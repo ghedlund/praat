@@ -20,10 +20,28 @@
 
 #include "Sampled.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 #include "SampledXY_def.h"
 
 void SampledXY_init (SampledXY me, double xmin, double xmax, long nx, double dx, double x1,
                                    double ymin, double ymax, long ny, double dy, double y1);
+
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT double SampledXY_getYMin(SampledXY me);
+PRAAT_LIB_EXPORT double SampledXY_getYMax(SampledXY me);
+PRAAT_LIB_EXPORT long SampledXY_getNy(SampledXY me);
+PRAAT_LIB_EXPORT double SampledXY_GetDy(SampledXY me);
+PRAAT_LIB_EXPORT double SampledXY_getY1(SampledXY me);
+
+PRAAT_LIB_EXPORT double SampledXY_indexToY (SampledXY me, long   index);
+PRAAT_LIB_EXPORT double SampledXY_yToIndex (SampledXY me, double y);
+PRAAT_LIB_EXPORT long SampledXY_yToLowIndex     (SampledXY me, double y);
+PRAAT_LIB_EXPORT long SampledXY_yToHighIndex    (SampledXY me, double y);
+PRAAT_LIB_EXPORT long SampledXY_yToNearestIndex (SampledXY me, double y);
+#else
 
 static inline double SampledXY_indexToY (SampledXY me, long   index) { return my y1 + (index - 1  ) * my dy; }
 static inline double SampledXY_indexToY (SampledXY me, double index) { return my y1 + (index - 1.0) * my dy; }
@@ -31,8 +49,9 @@ static inline double SampledXY_yToIndex (SampledXY me, double y) { return (y - m
 static inline long SampledXY_yToLowIndex     (SampledXY me, double y) { return (long) floor ((y - my y1) / my dy + 1.0); }
 static inline long SampledXY_yToHighIndex    (SampledXY me, double y) { return (long) ceil  ((y - my y1) / my dy + 1.0); }
 static inline long SampledXY_yToNearestIndex (SampledXY me, double y) { return (long) round ((y - my y1) / my dy + 1.0); }
+#endif
 
-long SampledXY_getWindowSamplesY (SampledXY me, double ymin, double ymax, long *iymin, long *iymax);
+PRAAT_LIB_EXPORT long SampledXY_getWindowSamplesY (SampledXY me, double ymin, double ymax, long *iymin, long *iymax);
 
 /* End of file SampledXY.h */
 #endif

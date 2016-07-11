@@ -106,5 +106,16 @@ oo_DEFINE_CLASS (Pitch, Sampled)
 oo_END_CLASS (Pitch)
 #undef ooSTRUCT
 
+// export C++ virtuals for praat library
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT int Pitch_domainQuantity (Pitch me);
+PRAAT_LIB_EXPORT int Pitch_getMinimumUnit (Pitch me, long ilevel);
+PRAAT_LIB_EXPORT int Pitch_getMaximumUnit (Pitch me, long ilevel);
+PRAAT_LIB_EXPORT const char32 * Pitch_getUnitText (Pitch me, long ilevel, int unit, unsigned long flags);
+PRAAT_LIB_EXPORT bool Pitch_isUnitLogarithmic (Pitch me, long ilevel, int unit);
+PRAAT_LIB_EXPORT double Pitch_convertStandardToSpecialUnit (Pitch me, double value, long ilevel, int unit);
+PRAAT_LIB_EXPORT double Pitch_convertSpecialToStandardUnit (Pitch me, double value, long ilevel, int unit);
+PRAAT_LIB_EXPORT double Pitch_getValueAtSample (Pitch me, long isamp, long ilevel, int unit);
+#endif
 
 /* End of file Pitch_def.h */

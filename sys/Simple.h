@@ -20,14 +20,18 @@
 
 #include "Data.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 #include "Simple_def.h"
 
-autoSimpleInt SimpleInt_create (int number);
-autoSimpleLong SimpleLong_create (long number);
-autoSimpleDouble SimpleDouble_create (double number);
-autoSimpleString SimpleString_create (const char32 *string);
+PRAAT_LIB_EXPORT autoSimpleInt SimpleInt_create (int number);
+PRAAT_LIB_EXPORT autoSimpleLong SimpleLong_create (long number);
+PRAAT_LIB_EXPORT autoSimpleDouble SimpleDouble_create (double number);
+PRAAT_LIB_EXPORT autoSimpleString SimpleString_create (const char32 *string);
 
-int SimpleString_compare (SimpleString me, SimpleString thee) noexcept;
+PRAAT_LIB_EXPORT int SimpleString_compare (SimpleString me, SimpleString thee) noexcept;
 
 /* End of file Simple.h */
 #endif

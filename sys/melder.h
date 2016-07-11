@@ -45,6 +45,10 @@
 	#define INT54_MIN  -9007199254740991LL
 #endif
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 typedef unsigned char char8;
 typedef char16_t char16;
 typedef char32_t char32;
@@ -291,7 +295,7 @@ void Melder_writeToConsole (const char32 *message, bool useStderr);
 /* the f versions open up a rainy day fund or crash Praat. */
 /* These routines also maintain a count of the total number of blocks allocated. */
 
-void Melder_alloc_init ();   // to be called around program start-up
+PRAAT_LIB_EXPORT void Melder_alloc_init ();   // to be called around program start-up
 void Melder_message_init ();   // to be called around program start-up
 void * _Melder_malloc (int64 size);
 #define Melder_malloc(type,numberOfElements)  (type *) _Melder_malloc ((numberOfElements) * (int64) sizeof (type))
@@ -407,14 +411,18 @@ struct structMelderDir {
 };
 typedef struct structMelderDir *MelderDir;
 
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT MelderFile MelderFile_new ();
+#endif
+
 const char32 * MelderFile_name (MelderFile file);
 const char32 * MelderDir_name (MelderDir dir);
 void Melder_pathToDir (const char32 *path, MelderDir dir);
-void Melder_pathToFile (const char32 *path, MelderFile file);
+PRAAT_LIB_EXPORT void Melder_pathToFile (const char32 *path, MelderFile file);
 void Melder_relativePathToFile (const char32 *path, MelderFile file);
 const char32 * Melder_dirToPath (MelderDir dir);
 	/* Returns a pointer internal to 'dir', like "/u/paul/praats" or "D:\Paul\Praats" */
-const char32 * Melder_fileToPath (MelderFile file);
+PRAAT_LIB_EXPORT const char32 * Melder_fileToPath (MelderFile file);
 void MelderFile_copy (MelderFile file, MelderFile copy);
 void MelderDir_copy (MelderDir dir, MelderDir copy);
 bool MelderFile_equal (MelderFile file1, MelderFile file2);
@@ -437,7 +445,7 @@ void Melder_getTempDir (MelderDir tempDir);
 
 bool MelderFile_exists (MelderFile file);
 bool MelderFile_readable (MelderFile file);
-long MelderFile_length (MelderFile file);
+PRAAT_LIB_EXPORT long MelderFile_length (MelderFile file);
 void MelderFile_delete (MelderFile file);
 
 /* The following two should be combined with each other and with Windows extension setting: */
@@ -597,9 +605,9 @@ void Melder_trace (const char *fileName, int lineNumber, const char *functionNam
 #endif
 
 /* So these will be the future replacements for the above, as soon as we rid of text files: */
-MelderFile MelderFile_open (MelderFile file);
+PRAAT_LIB_EXPORT MelderFile MelderFile_open (MelderFile file);
 MelderFile MelderFile_append (MelderFile file);
-MelderFile MelderFile_create (MelderFile file);
+PRAAT_LIB_EXPORT MelderFile MelderFile_create (MelderFile file);
 void * MelderFile_read (MelderFile file, long nbytes);
 char * MelderFile_readLine (MelderFile file);
 void MelderFile_writeCharacter (MelderFile file, wchar_t kar);

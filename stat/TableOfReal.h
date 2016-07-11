@@ -26,21 +26,25 @@ Thing_declare (Interpreter);
 
 #include "TableOfReal_def.h"
 
-void TableOfReal_init (TableOfReal me, long numberOfRows, long numberOfColumns);
-autoTableOfReal TableOfReal_create (long numberOfRows, long numberOfColumns);
-void TableOfReal_removeRow (TableOfReal me, long irow);
-void TableOfReal_removeColumn (TableOfReal me, long icol);
-void TableOfReal_insertRow (TableOfReal me, long irow);
-void TableOfReal_insertColumn (TableOfReal me, long icol);
-void TableOfReal_setRowLabel    (TableOfReal me, long irow, const char32 *label /* cattable */);
-void TableOfReal_setColumnLabel (TableOfReal me, long icol, const char32 *label /* cattable */);
-long TableOfReal_rowLabelToIndex    (TableOfReal me, const char32 *label /* cattable */);
-long TableOfReal_columnLabelToIndex (TableOfReal me, const char32 *label /* cattable */);
-double TableOfReal_getColumnMean (TableOfReal me, long icol);
-double TableOfReal_getColumnStdev (TableOfReal me, long icol);
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
-autoTableOfReal Table_to_TableOfReal (Table me, long labelColumn);
-autoTable TableOfReal_to_Table (TableOfReal me, const char32 *labelOfFirstColumn);
+PRAAT_LIB_EXPORT void TableOfReal_init (TableOfReal me, long numberOfRows, long numberOfColumns);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_create (long numberOfRows, long numberOfColumns);
+PRAAT_LIB_EXPORT void TableOfReal_removeRow (TableOfReal me, long irow);
+PRAAT_LIB_EXPORT void TableOfReal_removeColumn (TableOfReal me, long icol);
+PRAAT_LIB_EXPORT void TableOfReal_insertRow (TableOfReal me, long irow);
+PRAAT_LIB_EXPORT void TableOfReal_insertColumn (TableOfReal me, long icol);
+PRAAT_LIB_EXPORT void TableOfReal_setRowLabel    (TableOfReal me, long irow, const char32 *label /* cattable */);
+PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel (TableOfReal me, long icol, const char32 *label /* cattable */);
+PRAAT_LIB_EXPORT long TableOfReal_rowLabelToIndex    (TableOfReal me, const char32 *label /* cattable */);
+PRAAT_LIB_EXPORT long TableOfReal_columnLabelToIndex (TableOfReal me, const char32 *label /* cattable */);
+PRAAT_LIB_EXPORT double TableOfReal_getColumnMean (TableOfReal me, long icol);
+PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev (TableOfReal me, long icol);
+
+PRAAT_LIB_EXPORT autoTableOfReal Table_to_TableOfReal (Table me, long labelColumn);
+PRAAT_LIB_EXPORT autoTable TableOfReal_to_Table (TableOfReal me, const char32 *labelOfFirstColumn);
 void TableOfReal_formula (TableOfReal me, const char32 *expression, Interpreter interpreter, TableOfReal target);
 void TableOfReal_drawAsNumbers (TableOfReal me, Graphics g, long rowmin, long rowmax, int iformat, int precision);
 void TableOfReal_drawAsNumbers_if (TableOfReal me, Graphics g, long rowmin, long rowmax, int iformat, int precision,
@@ -52,28 +56,28 @@ void TableOfReal_drawHorizontalLines (TableOfReal me, Graphics g, long rowmin, l
 void TableOfReal_drawLeftAndRightLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
 void TableOfReal_drawTopAndBottomLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
 
-autoTableOfReal TablesOfReal_append (TableOfReal me, TableOfReal thee);
-autoTableOfReal TablesOfReal_appendMany (OrderedOf<structTableOfReal>* me);
-void TableOfReal_sortByLabel (TableOfReal me, long column1, long column2);
-void TableOfReal_sortByColumn (TableOfReal me, long column1, long column2);
+PRAAT_LIB_EXPORT autoTableOfReal TablesOfReal_append (TableOfReal me, TableOfReal thee);
+PRAAT_LIB_EXPORT autoTableOfReal TablesOfReal_appendMany (OrderedOf<structTableOfReal>* me);
+PRAAT_LIB_EXPORT void TableOfReal_sortByLabel (TableOfReal me, long column1, long column2);
+PRAAT_LIB_EXPORT void TableOfReal_sortByColumn (TableOfReal me, long column1, long column2);
 
-void TableOfReal_writeToHeaderlessSpreadsheetFile (TableOfReal me, MelderFile file);
-autoTableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile (MelderFile file);
+PRAAT_LIB_EXPORT void TableOfReal_writeToHeaderlessSpreadsheetFile (TableOfReal me, MelderFile file);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile (MelderFile file);
 
-autoTableOfReal TableOfReal_extractRowRanges (TableOfReal me, const char32 *ranges);
-autoTableOfReal TableOfReal_extractColumnRanges (TableOfReal me, const char32 *ranges);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowRanges (TableOfReal me, const char32 *ranges);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnRanges (TableOfReal me, const char32 *ranges);
 
-autoTableOfReal TableOfReal_extractRowsWhereColumn (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
-autoTableOfReal TableOfReal_extractColumnsWhereRow (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereColumn (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereRow (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
 
-autoTableOfReal TableOfReal_extractRowsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
-autoTableOfReal TableOfReal_extractColumnsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
 
 autoTableOfReal TableOfReal_extractRowsWhere (TableOfReal me, const char32 *condition, Interpreter interpreter);
 autoTableOfReal TableOfReal_extractColumnsWhere (TableOfReal me, const char32 *condition, Interpreter interpreter);
 
-autoStrings TableOfReal_extractRowLabelsAsStrings (TableOfReal me);
-autoStrings TableOfReal_extractColumnLabelsAsStrings (TableOfReal me);
+PRAAT_LIB_EXPORT autoStrings TableOfReal_extractRowLabelsAsStrings (TableOfReal me);
+PRAAT_LIB_EXPORT autoStrings TableOfReal_extractColumnLabelsAsStrings (TableOfReal me);
 
 #pragma mark - class TableOfRealList
 

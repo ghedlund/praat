@@ -74,6 +74,34 @@ double structTable :: v_getColIndex (const char32 *columnLabel) {
 	return Table_findColumnIndexFromColumnLabel (this, columnLabel);
 }
 
+#ifdef PRAAT_LIB
+double Table_getNrow (Table me) {
+	return me -> v_getNrow();
+}
+
+
+double Table_getNcol (Table me) {
+	return me -> v_getNcol();
+}
+
+const char32 * Table_getColStr (Table me, long columnNumber) {
+	return me -> v_getColStr(columnNumber);
+}	
+
+	
+double Table_getMatrix (Table me, long rowNumber, long columnNumber) {
+	return me -> v_getMatrix(rowNumber, columnNumber);	
+}
+
+const char32 * Table_getMatrixStr (Table me, long rowNumber, long columnNumber) {
+	return me -> v_getMatrixStr(rowNumber, columnNumber);
+}
+
+double Table_getColIndex  (Table me, const char32 *columnLabel) {
+	return me -> v_getColIndex(columnLabel);
+}
+#endif
+
 static autoTableRow TableRow_create (long numberOfColumns) {
 	autoTableRow me = Thing_new (TableRow);
 	my numberOfColumns = numberOfColumns;

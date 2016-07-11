@@ -1478,6 +1478,7 @@ DO
 	}
 END2 }
 
+/*
 FORM (TextGrid_removePoints, U"Remove points", nullptr) {
 	NATURAL (STRING_TIER_NUMBER, U"1")
 	OPTIONMENU_ENUM (U"Remove every point whose label...", kMelder_string, DEFAULT)
@@ -1490,6 +1491,7 @@ DO
 		praat_dataChanged (me);
 	}
 END2 }
+*/
 
 FORM (TextGrid_removeRightBoundary, U"TextGrid: Remove right boundary", nullptr) {
 	NATURAL (STRING_TIER_NUMBER, U"1")
@@ -1710,6 +1712,13 @@ void praat_TimeFunction_query_init (ClassInfo klas);
 void praat_TimeTier_query_init (ClassInfo klas);
 void praat_TimeTier_modify_init (ClassInfo klas);
 
+#ifdef PRAAT_LIB
+void praat_lib_uvafon_TextGrid_init ();
+void praat_lib_uvafon_TextGrid_init () {
+	Thing_recognizeClassByOtherName (classTextTier, U"MarkTier");
+}
+#endif
+
 void praat_uvafon_TextGrid_init ();
 void praat_uvafon_TextGrid_init () {
 	Thing_recognizeClassByOtherName (classTextTier, U"MarkTier");
@@ -1809,7 +1818,7 @@ void praat_uvafon_TextGrid_init () {
 		praat_addAction1 (classTextGrid, 0, U"Modify point tier", nullptr, 1, nullptr);
 			praat_addAction1 (classTextGrid, 0, U"Insert point...", nullptr, 2, DO_TextGrid_insertPoint);
 			praat_addAction1 (classTextGrid, 0, U"Remove point...", nullptr, 2, DO_TextGrid_removePoint);
-			praat_addAction1 (classTextGrid, 0, U"Remove points...", nullptr, 2, DO_TextGrid_removePoints);
+			//praat_addAction1 (classTextGrid, 0, U"Remove points...", nullptr, 2, DO_TextGrid_removePoints);
 			praat_addAction1 (classTextGrid, 0, U"Set point text...", nullptr, 2, DO_TextGrid_setPointText);
 praat_addAction1 (classTextGrid, 0, U"Analyse", nullptr, 0, nullptr);
 	praat_addAction1 (classTextGrid, 1, U"Extract one tier...", nullptr, 0, DO_TextGrid_extractOneTier);

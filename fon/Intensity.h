@@ -30,6 +30,10 @@
 
 #include "Vector.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 Thing_define (Intensity, Vector) {
 	void v_info ()
 		override;
@@ -41,13 +45,13 @@ Thing_define (Intensity, Vector) {
 		override;
 };
 
-autoIntensity Intensity_create (double tmin, double tmax, long nt, double dt, double t1);
+PRAAT_LIB_EXPORT autoIntensity Intensity_create (double tmin, double tmax, long nt, double dt, double t1);
 
 void Intensity_init (Intensity me, double tmin, double tmax, long nt, double dt, double t1);
 
-autoMatrix Intensity_to_Matrix (Intensity me);
+PRAAT_LIB_EXPORT autoMatrix Intensity_to_Matrix (Intensity me);
 
-autoIntensity Matrix_to_Intensity (Matrix me);
+PRAAT_LIB_EXPORT autoIntensity Matrix_to_Intensity (Matrix me);
 
 void Intensity_drawInside (Intensity me, Graphics g, double tmin, double tmax,
 	double minimum, double maximum);
@@ -55,7 +59,7 @@ void Intensity_drawInside (Intensity me, Graphics g, double tmin, double tmax,
 void Intensity_draw (Intensity me, Graphics g, double tmin, double tmax,
 	double minimum, double maximum, int garnish);
 
-double Intensity_getQuantile (Intensity me, double tmin, double tmax, double quantile);
+PRAAT_LIB_EXPORT double Intensity_getQuantile (Intensity me, double tmin, double tmax, double quantile);
 
 #define Intensity_units_ENERGY  1
 #define Intensity_units_SONES  2
@@ -65,7 +69,7 @@ double Intensity_getQuantile (Intensity me, double tmin, double tmax, double qua
 #define Intensity_averaging_ENERGY  1
 #define Intensity_averaging_SONES  2
 #define Intensity_averaging_DB  3
-double Intensity_getAverage (Intensity me, double tmin, double tmax, int averagingMethod);
+PRAAT_LIB_EXPORT double Intensity_getAverage (Intensity me, double tmin, double tmax, int averagingMethod);
 
 /* End of file Intensity.h */
 #endif

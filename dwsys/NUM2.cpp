@@ -2637,7 +2637,9 @@ double NUMminimize_brent (double (*f) (double x, void *closure), double a, doubl
 			}
 		}
 	}
+#ifndef PRAAT_LIB
 	Melder_warning (U"NUMminimize_brent: maximum number of iterations (", itermax, U") exceeded.");
+#endif
 	return x;
 }
 

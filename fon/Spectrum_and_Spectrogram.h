@@ -19,7 +19,11 @@
 #include "Spectrum.h"
 #include "Spectrogram.h"
 
-autoSpectrum Spectrogram_to_Spectrum (Spectrogram me, double time);
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
+PRAAT_LIB_EXPORT autoSpectrum Spectrogram_to_Spectrum (Spectrogram me, double time);
 /*
 	Function:
 		Create a time slice from the Spectrogram at the time nearest to 'time'.
@@ -35,7 +39,7 @@ autoSpectrum Spectrogram_to_Spectrum (Spectrogram me, double time);
 		}
 */
  
-autoSpectrogram Spectrum_to_Spectrogram (Spectrum me);
+PRAAT_LIB_EXPORT autoSpectrogram Spectrum_to_Spectrogram (Spectrum me);
 /*
 	Function:
 		Create a Spectrogram with one time slice from the Spectrum.

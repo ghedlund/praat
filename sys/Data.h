@@ -22,6 +22,10 @@
 /* It adds the functionality of reproduction, comparison, reading, and writing. */
 #include "Thing.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 typedef struct structData_Description {
 	const char32 *name;   // the name of this field
 	int type;   // bytewa..inheritwa, see below
@@ -100,27 +104,27 @@ bool Data_equal (Daata data1, Daata data2);
 
 typedef MelderCompareHook<structDaata> Data_CompareHook;
 
-bool Data_canWriteAsEncoding (Daata me, int outputEncoding);
+PRAAT_LIB_EXPORT bool Data_canWriteAsEncoding (Daata me, int outputEncoding);
 /*
 	Message:
 		"Can you write yourself in that encoding?"
 	The answer depends on whether all members can be written in that encoding.
 */
 
-bool Data_canWriteText (Daata me);
+PRAAT_LIB_EXPORT bool Data_canWriteText (Daata me);
 /*
 	Message:
 		"Can you write yourself as text?"
 	The answer depends on whether the subclass defines the 'writeText' method.
 */
 
-MelderFile Data_createTextFile (
+PRAAT_LIB_EXPORT MelderFile Data_createTextFile (
 	Daata me,
 	MelderFile file,
 	bool verbose
 );   // returns the input MelderFile in order to be caught by an autoMelderFile
 
-void Data_writeText (Daata me, MelderFile openFile);
+PRAAT_LIB_EXPORT void Data_writeText (Daata me, MelderFile openFile);
 /*
 	Message:
 		"try to write yourself as text to an open file."
@@ -133,7 +137,7 @@ void Data_writeText (Daata me, MelderFile openFile);
 		The format depends on the 'writeText' method defined by the subclass.
 */
 
-void Data_writeToTextFile (Daata me, MelderFile file);
+PRAAT_LIB_EXPORT void Data_writeToTextFile (Daata me, MelderFile file);
 /*
 	Message:
 		"try to write yourself as text to a file".
@@ -144,7 +148,7 @@ void Data_writeToTextFile (Daata me, MelderFile file);
 		The format of the lines after the second line is the same as in Data_writeText.
 */
 
-void Data_writeToShortTextFile (Daata me, MelderFile file);
+PRAAT_LIB_EXPORT void Data_writeToShortTextFile (Daata me, MelderFile file);
 /*
 	Message:
 		"try to write yourself as text to a file".
@@ -155,14 +159,14 @@ void Data_writeToShortTextFile (Daata me, MelderFile file);
 		The format of the lines after the second line is the same as in Data_writeText.
 */
 
-bool Data_canWriteBinary (Daata me);
+PRAAT_LIB_EXPORT bool Data_canWriteBinary (Daata me);
 /*
 	Message:
 		"Can you write yourself as binary data?"
 	The answer depends on whether the subclass defines the 'writeBinary' method.
 */
 
-void Data_writeBinary (Daata me, FILE *f);
+PRAAT_LIB_EXPORT void Data_writeBinary (Daata me, FILE *f);
 /*
 	Message:
 		"try to write yourself as binary data to an open file."
@@ -175,7 +179,7 @@ void Data_writeBinary (Daata me, FILE *f);
 		and IEEE floating-point format.
 */
 
-void Data_writeToBinaryFile (Daata me, MelderFile file);
+PRAAT_LIB_EXPORT void Data_writeToBinaryFile (Daata me, MelderFile file);
 /*
 	Message:
 		"try to write yourself as binary data to a file".
@@ -185,7 +189,7 @@ void Data_writeToBinaryFile (Daata me, MelderFile file);
 		The format of the file after this is the same as in Data_writeBinary.
 */
 
-bool Data_canReadText (Daata me);
+PRAAT_LIB_EXPORT bool Data_canReadText (Daata me);
 /*
 	Message:
 		"Can you read yourself as text?"
@@ -193,7 +197,7 @@ bool Data_canReadText (Daata me);
 	but is preferably the same as the answer from Data_canWriteText.
 */
 
-void Data_readText (Daata me, MelderReadText text, int formatVersion);
+PRAAT_LIB_EXPORT void Data_readText (Daata me, MelderReadText text, int formatVersion);
 /*
 	Message:
 		"try to read yourself as text from a string."
@@ -206,7 +210,7 @@ void Data_readText (Daata me, MelderReadText text, int formatVersion);
 		but is preferably the same as the format produced by the 'writeText' method.
 */
 
-autoDaata Data_readFromTextFile (MelderFile file);
+PRAAT_LIB_EXPORT autoDaata Data_readFromTextFile (MelderFile file);
 /*
 	Message:
 		"try to read a Data as text from a file".
@@ -222,7 +226,7 @@ autoDaata Data_readFromTextFile (MelderFile file);
 		(plus those from Data_readText)
 */
 
-bool Data_canReadBinary (Daata me);
+PRAAT_LIB_EXPORT bool Data_canReadBinary (Daata me);
 /*
 	Message:
 		"Can you read yourself as binary data?"
@@ -230,7 +234,7 @@ bool Data_canReadBinary (Daata me);
 	but is preferably the same as the answer from Data_canWriteBinary.
 */
 
-void Data_readBinary (Daata me, FILE *f, int formatVersion);
+PRAAT_LIB_EXPORT void Data_readBinary (Daata me, FILE *f, int formatVersion);
 /*
 	Message:
 		"try to read yourself as binary data from the stream <f>."
@@ -243,7 +247,7 @@ void Data_readBinary (Daata me, FILE *f, int formatVersion);
 		but is preferably the same as the format produced by the 'writeBinary' method.
 */
 
-autoDaata Data_readFromBinaryFile (MelderFile file);
+PRAAT_LIB_EXPORT autoDaata Data_readFromBinaryFile (MelderFile file);
 /*
 	Message:
 		"try to read a Data as binary data from a file".
@@ -303,7 +307,7 @@ Registering a file-type recognizer:
 	After this, Data_readFromFile is able to read Sun audio files.
 */
 
-autoDaata Data_readFromFile (MelderFile file);
+PRAAT_LIB_EXPORT autoDaata Data_readFromFile (MelderFile file);
 /*
 Purpose:
 	to read a file with data of any kind.

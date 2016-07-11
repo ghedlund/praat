@@ -23,6 +23,10 @@
 #include "PointProcess.h"
 #include "Collection.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 Thing_define (Ltas, Vector) {
 	void v_info ()
 		override;
@@ -33,6 +37,12 @@ Thing_define (Ltas, Vector) {
 	double v_convertSpecialToStandardUnit (double value, long ilevel, int unit)
 		override;
 };
+
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT int Ltas_domainQuantity(Ltas me);
+PRAAT_LIB_EXPORT double Ltas_convertStandardToSpecialUnit (Ltas me, double value, long ilevel, int unit);
+PRAAT_LIB_EXPORT double Ltas_convertSpecialToStandardUnit (Ltas me, double value, long ilevel, int unit);
+#endif
 
 /*
 	Attributes:
@@ -46,7 +56,7 @@ Thing_define (Ltas, Vector) {
 		z [1] [1..nx]		// The intensity per band, in db/Hz.
 */
 
-autoLtas Ltas_create (long nx, double dx);
+PRAAT_LIB_EXPORT autoLtas Ltas_create (long nx, double dx);
 /*
 	Function:
 		create an Ltas.
@@ -65,38 +75,38 @@ autoLtas Ltas_create (long nx, double dx);
 void Ltas_draw (Ltas me, Graphics g, double fmin, double fmax,
 	double minimum, double maximum, int garnish, const char32 *method);
 
-autoMatrix Ltas_to_Matrix (Ltas me);
-autoLtas Matrix_to_Ltas (Matrix me);
+PRAAT_LIB_EXPORT autoMatrix Ltas_to_Matrix (Ltas me);
+PRAAT_LIB_EXPORT autoLtas Matrix_to_Ltas (Matrix me);
 
 Collection_define (LtasBag, CollectionOf, Ltas) {
 };
 
-autoLtas Ltases_merge (LtasBag ltases);
-autoLtas Ltases_average (LtasBag ltases);
+PRAAT_LIB_EXPORT autoLtas Ltases_merge (LtasBag ltases);
+PRAAT_LIB_EXPORT autoLtas Ltases_average (LtasBag ltases);
 
-autoLtas Ltas_computeTrendLine (Ltas me, double fmin, double fmax);
-autoLtas Ltas_subtractTrendLine (Ltas me, double fmin, double fmax);
+PRAAT_LIB_EXPORT autoLtas Ltas_computeTrendLine (Ltas me, double fmin, double fmax);
+PRAAT_LIB_EXPORT autoLtas Ltas_subtractTrendLine (Ltas me, double fmin, double fmax);
 
 /* Direct computations. */
 
-autoLtas Spectrum_to_Ltas (Spectrum me, double bandwidth);
-autoLtas Spectrum_to_Ltas_1to1 (Spectrum me);
-autoLtas PointProcess_Sound_to_Ltas (PointProcess pulses, Sound sound,
+PRAAT_LIB_EXPORT autoLtas Spectrum_to_Ltas (Spectrum me, double bandwidth);
+PRAAT_LIB_EXPORT autoLtas Spectrum_to_Ltas_1to1 (Spectrum me);
+PRAAT_LIB_EXPORT autoLtas PointProcess_Sound_to_Ltas (PointProcess pulses, Sound sound,
 	double maximumFrequency, double bandWidth,
 	double shortestPeriod, double longestPeriod, double maximumPeriodFactor);
-autoLtas PointProcess_Sound_to_Ltas_harmonics (PointProcess pulses, Sound sound,
+PRAAT_LIB_EXPORT autoLtas PointProcess_Sound_to_Ltas_harmonics (PointProcess pulses, Sound sound,
 	long maximumHarmonic,
 	double shortestPeriod, double longestPeriod, double maximumPeriodFactor);
 
 /* Shortcuts. */
 
-autoLtas Sound_to_Ltas (Sound me, double bandwidth);
-autoLtas Sound_to_Ltas_pitchCorrected (Sound sound, double minimumPitch, double maximumPitch,
+PRAAT_LIB_EXPORT autoLtas Sound_to_Ltas (Sound me, double bandwidth);
+PRAAT_LIB_EXPORT autoLtas Sound_to_Ltas_pitchCorrected (Sound sound, double minimumPitch, double maximumPitch,
 	double maximumFrequency, double bandWidth,
 	double shortestPeriod, double longestPeriod, double maximumPeriodFactor);
 
-double Ltas_getSlope (Ltas me, double f1min, double f1max, double f2min, double f2max, int averagingUnits);
-double Ltas_getLocalPeakHeight (Ltas me, double environmentMin, double environmentMax, double peakMin, double peakMax, int averagingUnits);
+PRAAT_LIB_EXPORT double Ltas_getSlope (Ltas me, double f1min, double f1max, double f2min, double f2max, int averagingUnits);
+PRAAT_LIB_EXPORT double Ltas_getLocalPeakHeight (Ltas me, double environmentMin, double environmentMax, double peakMin, double peakMax, int averagingUnits);
 
 /* End of file Ltas.h */
 #endif

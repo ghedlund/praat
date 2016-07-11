@@ -175,4 +175,14 @@ bool Function_intersectRangeWithDomain (Function me, double *x1, double *x2) {
 	return true;
 }
 
+#ifdef PRAAT_LIB
+double Function_getXmin (Function me) { return my xmin; }
+double Function_getXmax (Function me) { return my xmax; }
+int Function_domainQuantity (Function me) { return 0; }
+void Function_shiftX (Function me, double xfrom, double xto)
+	{ return me -> v_shiftX (xfrom, xto); }
+void Function_scaleX (Function me, double xminfrom, double xmaxfrom, double xminto, double xmaxto)
+	{ return me -> v_scaleX (xminfrom, xmaxfrom, xminto, xmaxto); }
+#endif
+
 /* End of file Function.cpp */

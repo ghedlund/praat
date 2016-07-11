@@ -85,7 +85,13 @@ double structSpectrum :: v_getValueAtSample (long isamp, long which, int units) 
 	return NUMundefined;
 }
 
-autoSpectrum Spectrum_create (double fmax, long nf) {
+#ifdef PRAAT_LIB
+double Spectrum_getValueAtSample(Spectrum me, long isamp, long which, int units) {
+	return my v_getValueAtSample(isamp, which, units);
+}
+#endif
+
+PRAAT_LIB_EXPORT autoSpectrum Spectrum_create (double fmax, long nf) {
 	try {
 		autoSpectrum me = Thing_new (Spectrum);
 		Matrix_init (me.get(), 0.0, fmax, nf, fmax / (nf - 1), 0.0, 1.0, 2.0, 2, 1.0, 1.0);

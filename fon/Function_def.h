@@ -16,6 +16,9 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
 #define ooSTRUCT Function
 oo_DEFINE_CLASS (Function, Daata)
@@ -57,6 +60,13 @@ oo_DEFINE_CLASS (Function, Daata)
 
 oo_END_CLASS (Function)
 #undef ooSTRUCT
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT double Function_getXmin (Function me);
+PRAAT_LIB_EXPORT double Function_getXmax (Function me);
+PRAAT_LIB_EXPORT int Function_domainQuantity (Function me);
+PRAAT_LIB_EXPORT void Function_shiftX (Function me, double xfrom, double xto);
+PRAAT_LIB_EXPORT void Function_scaleX (Function me, double xminfrom, double xmaxfrom, double xminto, double xmaxto);
+#endif
 
 
 /* End of file Function_def.h */

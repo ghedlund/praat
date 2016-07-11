@@ -55,10 +55,15 @@ To make any class string-readable, use Thing_recognizeClassesByName ().
 String-readable classes are known by Thing_newFromClassName () and can therefore
 be read by Data_readFromTextFile () and Data_readFromBinaryFile ().
 */
-void praat_init (const char32 *title, int argc, char **argv);
+
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
+PRAAT_LIB_EXPORT void praat_init (const char32 *title, int argc, char **argv);
 void praat_run ();
 void praat_setStandAloneScriptText (const char32 *text);   // call before praat_init if you want to create a stand-alone application without Objects and Picture window
-extern "C" void praatlib_init ();   // for use in an application that uses Praatlib
+PRAAT_LIB_EXPORT void praatlib_init ();   // for use in an application that uses Praatlib
 
 void praat_addAction (ClassInfo class1, int n1, ClassInfo class2, int n2, ClassInfo class3, int n3,
 	const char32 *title, const char32 *after, unsigned long flags, UiCallback callback);
@@ -508,6 +513,12 @@ void praat_picture_close ();
    { extern void praat_xxx_init (); praat_xxx_init (); }
 #define INCLUDE_MANPAGES(manual_xxx_init) \
    { extern void manual_xxx_init (ManPages me); manual_xxx_init (theCurrentPraatApplication -> manPages); }
+
+// for PRAAT_LIB
+#ifdef PRAAT_LIB
+#define INCLUDE_LIB_LIBRARY(praat_lib_xxx_init) \
+   { extern void praat_lib_xxx_init (void); praat_lib_xxx_init (); }
+#endif
 
 /* For text-only applications that do not want to see that irritating Picture window. */
 /* Works only if called before praat_init. */

@@ -67,7 +67,11 @@
 /*
  * The way to call the sendpraat subroutine from another program.
  */
+#ifdef WIN32
+__declspec( dllexport )
+#endif
 char *sendpraat (void *display, const char *programName, long timeOut, const char *text);
+
 wchar_t *sendpraatW (void *display, const wchar_t *programName, long timeOut, const wchar_t *text);
 /*
  * Parameters:

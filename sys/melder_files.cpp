@@ -63,6 +63,7 @@ using namespace std;
 #include <errno.h>
 #include "abcio.h"
 #include "melder.h"
+#include <string.h>
 
 //#include "flac_FLAC_stream_encoder.h"
 extern "C" int  FLAC__stream_encoder_finish (FLAC__StreamEncoder *);
@@ -153,6 +154,14 @@ void Melder_8bitFileRepresentationToStr32_inline (const char *path8, char32 *pat
 	#else
 		Melder_8to32_inline (path8, path32, kMelder_textInputEncoding_UTF8);
 	#endif
+}
+#endif
+
+#ifdef PRAAT_LIB
+MelderFile MelderFile_new () {
+	MelderFile retVal = (MelderFile)malloc(sizeof(structMelderFile));
+	memset(retVal, 0, sizeof(structMelderFile));
+	return retVal;
 }
 #endif
 

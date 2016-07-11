@@ -1,6 +1,7 @@
 # Intermediate build products for Windows and Linux
 *.o
 *.a
+*\~
 
 *.xcodeproj/
 
@@ -23,3 +24,6 @@ makefile.defs
 praat
 Praat
 Praat.exe
+praat.dll
+libpraat.so
+libpraat.dylib

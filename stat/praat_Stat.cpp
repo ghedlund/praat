@@ -1796,6 +1796,16 @@ void praat_TableOfReal_init (ClassInfo klas) {
 		praat_addAction1 (klas, 0, U"To Matrix", nullptr, 1, DO_TableOfReal_to_Matrix);
 }
 
+#ifdef PRAAT_LIB
+void praat_lib_uvafon_stat_init (void);
+void praat_lib_uvafon_stat_init (void) {
+	Thing_recognizeClassesByName (classTableOfReal, classDistributions, classPairDistribution,
+		classTable, classLinearRegression, classLogisticRegression, NULL);
+
+	Data_recognizeFileType (tabSeparatedFileRecognizer);
+}
+#endif
+
 void praat_uvafon_stat_init ();
 void praat_uvafon_stat_init () {
 

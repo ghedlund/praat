@@ -22,19 +22,23 @@
 
 #include "Strings_def.h"
 
-autoStrings Strings_createAsFileList (const char32 *path /* cattable */);
-autoStrings Strings_createAsDirectoryList (const char32 *path /* cattable */);
-autoStrings Strings_readFromRawTextFile (MelderFile file);
-void Strings_writeToRawTextFile (Strings me, MelderFile file);
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
-void Strings_randomize (Strings me);
-void Strings_genericize (Strings me);
-void Strings_nativize (Strings me);
-void Strings_sort (Strings me);
+PRAAT_LIB_EXPORT autoStrings Strings_createAsFileList (const char32 *path /* cattable */);
+PRAAT_LIB_EXPORT autoStrings Strings_createAsDirectoryList (const char32 *path /* cattable */);
+PRAAT_LIB_EXPORT autoStrings Strings_readFromRawTextFile (MelderFile file);
+PRAAT_LIB_EXPORT void Strings_writeToRawTextFile (Strings me, MelderFile file);
 
-void Strings_remove (Strings me, long position);
-void Strings_replace (Strings me, long position, const char32 *text);
-void Strings_insert (Strings me, long position, const char32 *text);
+PRAAT_LIB_EXPORT void Strings_randomize (Strings me);
+PRAAT_LIB_EXPORT void Strings_genericize (Strings me);
+PRAAT_LIB_EXPORT void Strings_nativize (Strings me);
+PRAAT_LIB_EXPORT void Strings_sort (Strings me);
+
+PRAAT_LIB_EXPORT void Strings_remove (Strings me, long position);
+PRAAT_LIB_EXPORT void Strings_replace (Strings me, long position, const char32 *text);
+PRAAT_LIB_EXPORT void Strings_insert (Strings me, long position, const char32 *text);
 
 /* End of file Strings.h */
 #endif

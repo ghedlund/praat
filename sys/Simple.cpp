@@ -61,6 +61,9 @@ autoSimpleDouble SimpleDouble_create (double number) {
 	return me;
 }
 
+double SimpleDouble_getNumber(SimpleDouble me) { return my number; }
+void SimpleDouble_setNumber(SimpleDouble me, double number) { my number = number; }
+
 Thing_implement (SimpleString, Daata, 0);
 
 autoSimpleString SimpleString_create (const char32 *string) {

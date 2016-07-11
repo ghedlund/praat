@@ -1,0 +1,25 @@
+# File: makefile.defs.macos.lib
+# modified from makefile.defs.linux.silent.lib
+
+# System: Mac OS X
+# Greg Hedlund, 20 Aug 2015
+
+CC = clang -std=gnu99
+
+CXX = clang++ -std=c++11
+
+CFLAGS = -DuseCarbon=0 -Dmacintosh -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -mmacosx-version-min=10.7 -O1 -g1
+
+CXXFLAGS = $(CFLAGS) -ObjC++ -arch x86_64 -fmessage-length=80 -stdlib=libc++ -Wshadow 
+
+LINK = clang++
+
+EXECUTABLE = praat
+LIBRARY = libpraat.dylib
+
+LIBS = -arch x86_64 -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio
+
+AR = ar
+RANLIB = ranlib
+ICON =
+MAIN_ICON =

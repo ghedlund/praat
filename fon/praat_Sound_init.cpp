@@ -2423,6 +2423,18 @@ static int publishPlayedProc () {
 
 /***** buttons *****/
 
+#ifdef PRAAT_LIB
+void praat_lib_uvafon_Sound_init ();
+void praat_lib_uvafon_Sound_init () {
+	Data_recognizeFileType (macSoundOrEmptyFileRecognizer);
+	Data_recognizeFileType (soundFileRecognizer);
+	Data_recognizeFileType (movieFileRecognizer);
+	Data_recognizeFileType (sesamFileRecognizer);
+	Data_recognizeFileType (bellLabsFileRecognizer);
+	Data_recognizeFileType (kayFileRecognizer);
+}
+#endif
+
 void praat_uvafon_Sound_init ();
 void praat_uvafon_Sound_init () {
 

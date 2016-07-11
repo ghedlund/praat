@@ -18,6 +18,10 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 /* The root class of all objects. */
 
 /* Anyone who uses Thing can also use: */
@@ -148,7 +152,7 @@ struct structThing {
 
 /* All functions with 'Thing me' as the first argument assume that it is not null. */
 
-const char32 * Thing_className (Thing me);
+PRAAT_LIB_EXPORT const char32* Thing_className (Thing me);
 /* Return your class name. */
 
 bool Thing_isa (Thing me, ClassInfo klas);
@@ -165,8 +169,8 @@ bool Thing_isSubclass (ClassInfo klas, ClassInfo ancestor);
 	E.g., Thing_isSubclass (classX, classThing) will always return true.
 */
 
-void Thing_info (Thing me);
-void Thing_infoWithIdAndFile (Thing me, unsigned long id, MelderFile file);
+PRAAT_LIB_EXPORT void Thing_info (Thing me);
+PRAAT_LIB_EXPORT void Thing_infoWithIdAndFile (Thing me, unsigned long id, MelderFile file);
 
 void Thing_recognizeClassesByName (ClassInfo readableClass, ...);
 /*
@@ -204,11 +208,11 @@ ClassInfo Thing_classFromClassName (const char32 *className, int *formatVersion)
 	((klas) _Thing_dummyObject (class##klas))
 Thing _Thing_dummyObject (ClassInfo classInfo);
 
-char32 * Thing_getName (Thing me);
+PRAAT_LIB_EXPORT char32 * Thing_getName (Thing me);
 /* Return a pointer to your internal name (which can be null). */
 char32 * Thing_messageName (Thing me);
 
-void Thing_setName (Thing me, const char32 *name /* cattable */);
+PRAAT_LIB_EXPORT void Thing_setName (Thing me, const char32 *name);
 /*
 	Function:
 		remember that you are called 'name'.
@@ -220,7 +224,7 @@ void Thing_setName (Thing me, const char32 *name /* cattable */);
 	Klas var = static_cast <Klas> (expr);   /* The compiler checks this. */ \
 	Melder_assert (! var || Thing_isa (var, class##Klas));
 
-void Thing_swap (Thing me, Thing thee);
+PRAAT_LIB_EXPORT void Thing_swap (Thing me, Thing thee);
 /*
 	Function:
 		Swap my and thy contents.
@@ -235,8 +239,8 @@ void Thing_swap (Thing me, Thing thee);
 
 /* For the macros. */
 
-void _Thing_forget (Thing me);
-void _Thing_forget_nozero (Thing me);
+PRAAT_LIB_EXPORT void _Thing_forget (Thing me);
+PRAAT_LIB_EXPORT void _Thing_forget_nozero (Thing me);
 void * _Thing_check (Thing me, ClassInfo table, const char *fileName, int line);
 
 /* For debugging. */

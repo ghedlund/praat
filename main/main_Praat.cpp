@@ -19,6 +19,10 @@
 #include "../sys/praat.h"
 #include "../sys/praat_version.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 static void logo (Graphics graphics) {
 	Graphics_setWindow (graphics, 0.0, 1.0, 0.0, 0.8);
 	Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_HALF);

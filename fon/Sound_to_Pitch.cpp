@@ -319,6 +319,7 @@ static MelderThread_RETURN_TYPE Sound_into_Pitch (Sound_into_Pitch_Args me)
 		Pitch_Frame pitchFrame = & my pitch -> frame [iframe];
 		double t = Sampled_indexToX (my pitch, iframe);
 		if (my isMainThread) {
+#ifndef PRAAT_LIB
 			try {
 				Melder_progress (0.1 + 0.8 * (iframe - my firstFrame) / (my lastFrame - my firstFrame),
 					U"Sound to Pitch: analysing ", my lastFrame, U" frames");
@@ -326,6 +327,7 @@ static MelderThread_RETURN_TYPE Sound_into_Pitch (Sound_into_Pitch_Args me)
 				*my cancelled = 1;
 				throw;
 			}
+#endif
 		} else if (*my cancelled) {
 			MelderThread_RETURN;
 		}
@@ -517,7 +519,9 @@ autoPitch Sound_to_Pitch_any (Sound me,
 			brent_ixmax = (long) floor (nsamp_window * interpolation_depth);
 		}
 
+#ifndef PRAAT_LIB
 		autoMelderProgress progress (U"Sound to Pitch...");
+#endif
 
 		long numberOfFramesPerThread = 20;
 		int numberOfThreads = (nFrames - 1) / numberOfFramesPerThread + 1;
@@ -546,7 +550,10 @@ autoPitch Sound_to_Pitch_any (Sound me,
 		}
 		MelderThread_run (Sound_into_Pitch, args, numberOfThreads);
 
+#ifndef PRAAT_LIB
 		Melder_progress (0.95, U"Sound to Pitch: path finder");
+#endif
+
 		Pitch_pathFinder (thee.get(), silenceThreshold, voicingThreshold,
 			octaveCost, octaveJumpCost, voicedUnvoicedCost, ceiling, Melder_debug == 31 ? true : false);
 

@@ -62,6 +62,14 @@ double structLtas :: v_convertSpecialToStandardUnit (double value, long ilevel, 
 		value;   // value = dB
 }
 
+#ifdef PRAAT_LIB
+int Ltas_domainQuantity(Ltas me) { return MelderQuantity_FREQUENCY_HERTZ; }
+double Ltas_convertStandardToSpecialUnit (Ltas me, double value, long ilevel, int unit) 
+	{ return my v_convertStandardToSpecialUnit(value, ilevel, unit); }
+double Ltas_convertSpecialToStandardUnit (Ltas me, double value, long ilevel, int unit)
+	{ return my v_convertSpecialToStandardUnit (value, ilevel, unit); }
+#endif
+
 autoLtas Ltas_create (long nx, double dx) {
 	try {
 		autoLtas me = Thing_new (Ltas);
@@ -316,12 +324,16 @@ autoLtas PointProcess_Sound_to_Ltas (PointProcess pulses, Sound sound,
 		autoLtas numbers = Data_copy (ltas.get());
 		if (numberOfPeriods < 1)
 			Melder_throw (U"Cannot compute an Ltas if there are no periods in the point process.");
+#ifndef PRAAT_LIB
 		autoMelderProgress progress (U"Ltas analysis...");
+#endif
 		for (long ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
 			double leftInterval = pulses -> t [ipulse] - pulses -> t [ipulse - 1];
 			double rightInterval = pulses -> t [ipulse + 1] - pulses -> t [ipulse];
 			double intervalFactor = leftInterval > rightInterval ? leftInterval / rightInterval : rightInterval / leftInterval;
+#ifndef PRAAT_LIB
 			Melder_progress ((double) ipulse / pulses -> nt, U"Sound & PointProcess: To Ltas: pulse ", ipulse, U" out of ", pulses -> nt);
+#endif
 			if (leftInterval >= shortestPeriod && leftInterval <= longestPeriod &&
 				rightInterval >= shortestPeriod && rightInterval <= longestPeriod &&
 				intervalFactor <= maximumPeriodFactor)
@@ -428,12 +440,16 @@ autoLtas PointProcess_Sound_to_Ltas_harmonics (PointProcess pulses, Sound sound,
 		ltas -> xmax = maximumHarmonic;
 		if (numberOfPeriods < 1)
 			Melder_throw (U"There are no periods in the point process.");
+#ifndef PRAAT_LIB
 		autoMelderProgress progress (U"LTAS (harmonics) analysis...");
+#endif
 		for (long ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
 			double leftInterval = pulses -> t [ipulse] - pulses -> t [ipulse - 1];
 			double rightInterval = pulses -> t [ipulse + 1] - pulses -> t [ipulse];
 			double intervalFactor = leftInterval > rightInterval ? leftInterval / rightInterval : rightInterval / leftInterval;
+#ifndef PRAAT_LIB
 			Melder_progress ((double) ipulse / pulses -> nt, U"Sound & PointProcess: To Ltas: pulse ", ipulse, U" out of ", pulses -> nt);
+#endif
 			if (leftInterval >= shortestPeriod && leftInterval <= longestPeriod &&
 				rightInterval >= shortestPeriod && rightInterval <= longestPeriod &&
 				intervalFactor <= maximumPeriodFactor)

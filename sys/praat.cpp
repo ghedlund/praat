@@ -48,6 +48,9 @@
 	#include <gdk/gdkx.h>
 #endif
 
+#ifdef PRAAT_LIB
+	#include "praatlib.h"
+#endif
 Thing_implement (Praat_Command, Thing, 0);
 
 #define EDITOR  theCurrentPraatObjects -> list [IOBJECT]. editors
@@ -1439,6 +1442,94 @@ void praat_init (const char32 *title, int argc, char **argv)
 	if (unknownCommandLineOption) {
 		Melder_fatal (U"Unrecognized command line option ", unknownCommandLineOption);
 	}
+}
+
+PRAAT_LIB_EXPORT char32* praat_dir() {
+	return praatDir.path;
+}
+
+void praat_lib_init() 
+{
+	#if defined (UNIX)
+		setlocale (LC_ALL, "C");
+		setenv ("PULSE_LATENCY_MSEC", "1", 0);   // Rafael Laboissiere, August 2014
+	#elif defined (_WIN32)
+		setlocale (LC_ALL, "C");   // said to be superfluous
+	#elif defined (macintosh)
+		setlocale (LC_ALL, "en_US");   // required to make swprintf work correctly; the default "C" locale does not do that!
+	#endif
+	#ifdef macintosh
+		SInt32 sys1, sys2, sys3;
+		Gestalt ('sys1', & sys1);
+		Gestalt ('sys2', & sys2);
+		Gestalt ('sys3', & sys3);
+		Melder_systemVersion = sys1 * 10000 + sys2 * 100 + sys3;
+	#endif
+    
+	NUMmachar ();
+	NUMinit ();
+	Melder_textEncoding_prefs ();
+	Melder_alloc_init ();
+	//Melder_message_init ();
+
+	/*
+	 * Construct a program name like "myProg" for file and directory names.
+	 */
+	str32cpy (programName, U"Praat");
+	/*
+	 * Get home directory, e.g. "/home/miep/", or "/Users/miep/", or just "/".
+	 */
+	Melder_getHomeDir (& homeDir);
+	
+	/*
+	 * Get the program's private directory (if not yet set by the --prefdir option):
+	 *    "/u/miep/.myProg-dir" (Unix)
+	 *    "/Users/miep/Library/Preferences/MyProg Prefs" (Macintosh)
+	 *    "C:\Users\Miep\MyProg" (Windows)
+	 * and construct a preferences-file name and a script-buttons-file name like
+	 *    /u/miep/.myProg-dir/prefs5
+	 *    /u/miep/.myProg-dir/buttons5
+	 * or
+	 *    /Users/miep/Library/Preferences/MyProg Prefs/Prefs5
+	 *    /Users/miep/Library/Preferences/MyProg Prefs/Buttons5
+	 * or
+	 *    C:\Users\Miep\MyProg\Preferences5.ini
+	 *    C:\Users\Miep\MyProg\Buttons5.ini
+	 * Also create names for message and tracing files.
+	 */
+	if (MelderDir_isNull (& praatDir)) {   // not yet set by the --prefdir option?
+		structMelderDir prefParentDir { { 0 } };   // directory under which to store our preferences directory
+		Melder_getPrefDir (& prefParentDir);
+
+		/*
+		 * Make sure that the program's private directory exists.
+		 */
+		char32 name [256];
+		#if defined (UNIX)
+			Melder_sprint (name,256, U".", U"praat", U"-dir");   // for example .myProg-dir
+		#elif defined (macintosh)
+			Melder_sprint (name,256, programName, U" Prefs");   // for example MyProg Prefs
+		#elif defined (_WIN32)
+			Melder_sprint (name,256, programName);   // for example MyProg
+		#endif
+		try {
+			#if defined (UNIX) || defined (macintosh)
+				Melder_createDirectory (& prefParentDir, name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			#else
+				Melder_createDirectory (& prefParentDir, name, 0);
+			#endif
+			MelderDir_getSubdir (& prefParentDir, name, & praatDir);
+		} catch (MelderError) {
+			/*
+			 * If we arrive here, the directory could not be created,
+			 * and all the files are null. Praat should nevertheless start up.
+			 */
+			Melder_clearError ();
+		}
+	}
+
+	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_stat_init)
+	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_init)
 }
 
 static void executeStartUpFile (MelderDir startUpDirectory, const char32 *fileNameHead, const char32 *fileNameTail) {

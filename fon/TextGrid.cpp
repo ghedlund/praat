@@ -41,6 +41,11 @@
 #include "TextGrid_extensions.h"
 
 Thing_implement (TextPoint, AnyPoint, 0);
+#ifdef PRAAT_LIB
+const char32 *TextPoint_getText(TextPoint me) {
+	return my mark;
+}
+#endif
 
 autoTextPoint TextPoint_create (double time, const char32 *mark) {
 	try {
@@ -107,6 +112,27 @@ void TextInterval_setText (TextInterval me, const char32 *text) {
 
 Thing_implement (TextTier, AnyTier, 0);
 
+#ifdef PRAAT_LIB
+const char32 *TextInterval_getText(TextInterval me) {
+	return my text;
+}
+
+long TextTier_numberOfPoints (TextTier me) { return my points.size; }
+TextPoint TextTier_point (TextTier me, long i) { return static_cast <TextPoint> (my points.at [i]); }
+
+int TextTier_domainQuantity (TextTier me) { return MelderQuantity_TIME_SECONDS; }
+
+void TextTier_shiftX (TextTier me, double xfrom, double xto) {
+	me -> v_shiftX (xfrom, xto);
+}
+
+void TextTier_scaleX (TextTier me, double xminfrom, double xmaxfrom, double xminto, double xmaxto) {
+	me -> v_scaleX (xminfrom, xmaxfrom, xminto, xmaxto);
+}
+
+
+#endif
+
 autoTextTier TextTier_create (double tmin, double tmax) {
 	try {
 		autoTextTier me = Thing_new (TextTier);
@@ -128,6 +154,31 @@ void TextTier_addPoint (TextTier me, double time, const char32 *mark) {
 }
 
 Thing_implement (IntervalTier, Function, 0);
+
+#ifdef PRAAT_LIB
+long IntervalTier_numberOfIntervals (IntervalTier me) { return my intervals.size; }
+
+TextInterval IntervalTier_interval (IntervalTier me, long i) { return static_cast <TextInterval> (my intervals.at [i]); }
+
+int IntervalTier_domainQuantity (IntervalTier me) { return MelderQuantity_TIME_SECONDS; }
+
+void IntervalTier_shiftX (IntervalTier me, double xfrom, double xto) {
+	me -> v_shiftX(xfrom, xto);
+}
+
+void IntervalTier_scaleX (IntervalTier me, double xminfrom, double xmaxfrom, double xminto, double xmaxto) {
+	me -> v_scaleX(xminfrom, xmaxfrom, xminto, xmaxto);
+}
+
+static void IntervalTier_addInterval_unsafe(IntervalTier me, double tmin, double tmax, const char32 *label);
+void IntervalTier_addInterval (IntervalTier me, double tmin, double tmax, const char32 *label) {
+	IntervalTier_addInterval_unsafe(me, tmin, tmax, label);
+}
+
+void IntervalTier_removeInterval (IntervalTier me, long iinterval) {
+	//Collection_removeItem(my intervals, iinterval);
+}
+#endif
 
 void structIntervalTier :: v_shiftX (double xfrom, double xto) {
 	IntervalTier_Parent :: v_shiftX (xfrom, xto);
@@ -318,6 +369,26 @@ void structTextGrid :: v_scaleX (double xminfrom, double xmaxfrom, double xminto
 Thing_implement (FunctionList, Ordered, 0);
 
 Thing_implement (TextGrid, Function, 0);
+
+#ifdef PRAAT_LIB
+long TextGrid_numberOfTiers (TextGrid me) { return my tiers -> size; }
+
+Function TextGrid_tier (TextGrid me, long i) { return static_cast <Function> (my tiers -> at [i]); }
+
+void TextGrid_repair (TextGrid me) {
+	me -> v_repair();
+}
+
+int TextGrid_domainQuantity (TextGrid me) { return MelderQuantity_TIME_SECONDS; }
+
+void TextGrid_shiftX (TextGrid me, double xfrom, double xto) {
+	me -> v_shiftX(xfrom, xto);
+}
+
+void TextGrid_scaleX (TextGrid me, double xminfrom, double xmaxfrom, double xminto, double xmaxto) {
+	me -> v_scaleX (xminfrom, xmaxfrom, xminto, xmaxto);
+}
+#endif
 
 autoTextGrid TextGrid_createWithoutTiers (double tmin, double tmax) {
 	try {

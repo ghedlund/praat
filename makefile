@@ -42,6 +42,39 @@ all:
 		external/glpk/libglpk.a external/gsl/libgsl.a \
 		$(LIBS)
 
+library:
+	$(MAKE) -C external/gsl
+	$(MAKE) -C external/glpk
+	$(MAKE) -C external/mp3
+	$(MAKE) -C external/flac
+	$(MAKE) -C external/portaudio
+	$(MAKE) -C external/espeak
+	$(MAKE) -C kar
+	$(MAKE) -C num
+	$(MAKE) -C sys
+	$(MAKE) -C dwsys
+	$(MAKE) -C stat
+	$(MAKE) -C fon
+	$(MAKE) -C dwtools
+	$(MAKE) -C LPC
+	$(MAKE) -C EEG
+	$(MAKE) -C gram
+	$(MAKE) -C FFNet
+	$(MAKE) -C artsynth
+	$(MAKE) -C contrib/ola
+	$(MAKE) -C main main_Praat.o $(ICON)
+	$(MAKE) -C jpraat jpraat.o
+	$(LINK) -shared -o $(LIBRARY) jpraat/jpraat.o main/main_Praat.o sys/praat_version.o sys/sendpraat.o $(MAIN_ICON) fon/libfon.a \
+		contrib/ola/libOla.a artsynth/libartsynth.a \
+		FFNet/libFFNet.a gram/libgram.a EEG/libEEG.a \
+		LPC/libLPC.a dwtools/libdwtools.a \
+		fon/libfon.a stat/libstat.a dwsys/libdwsys.a \
+		sys/libsys.a num/libnum.a kar/libkar.a \
+		external/espeak/libespeak.a external/portaudio/libportaudio.a \
+		external/flac/libflac.a external/mp3/libmp3.a \
+		external/glpk/libglpk.a external/gsl/libgsl.a \
+		$(LIBS)
+
 clean:
 	$(MAKE) -C external/gsl clean
 	$(MAKE) -C external/glpk clean
@@ -63,4 +96,6 @@ clean:
 	$(MAKE) -C artsynth clean
 	$(MAKE) -C contrib/ola clean
 	$(MAKE) -C main clean
+	$(MAKE) -C jpraat clean
 	$(RM) praat
+	$(RM) $(LIBRARY)

@@ -20,15 +20,19 @@
 #include "Spectrum.h"
 Thing_declare (Interpreter);
 
-autoSpectrum Sound_to_Spectrum_at (Sound me, double tim, double windowDuration, int windowType);
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
-autoSpectrum Sound_to_Spectrum (Sound me, int fast);
-autoSound Spectrum_to_Sound (Spectrum me);
+PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum_at (Sound me, double tim, double windowDuration, int windowType);
 
-autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preemphasisFrequency);
+PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum (Sound me, int fast);
+PRAAT_LIB_EXPORT autoSound Spectrum_to_Sound (Spectrum me);
 
-autoSound Sound_filter_passHannBand (Sound me, double fmin, double fmax, double smooth);
-autoSound Sound_filter_stopHannBand (Sound me, double fmin, double fmax, double smooth);
-autoSound Sound_filter_formula (Sound me, const char32 *formula, Interpreter interpreter);
+PRAAT_LIB_EXPORT autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preemphasisFrequency);
+
+PRAAT_LIB_EXPORT autoSound Sound_filter_passHannBand (Sound me, double fmin, double fmax, double smooth);
+PRAAT_LIB_EXPORT autoSound Sound_filter_stopHannBand (Sound me, double fmin, double fmax, double smooth);
+PRAAT_LIB_EXPORT autoSound Sound_filter_formula (Sound me, const char32 *formula, Interpreter interpreter);
 
 /* End of file Sound_and_Spectrum.h */

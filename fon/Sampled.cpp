@@ -740,4 +740,32 @@ void Sampled_drawInside (Sampled me, Graphics g, double xmin, double xmax, doubl
 	}
 }
 
+#ifdef PRAAT_LIB
+double Sampled_getXMin(Sampled me) {
+        return my xmin;
+}
+
+double Sampled_getXMax(Sampled me) {
+        return my xmax;
+}
+
+long Sampled_getNx(Sampled me) {
+        return my nx;
+}
+
+double Sampled_getDx(Sampled me) {
+        return my dx;
+}
+
+double Sampled_getX1(Sampled me) {
+        return my x1;
+}
+
+double Sampled_indexToX (Sampled me, long   index) { return my x1 + (index - 1  ) * my dx; }
+double Sampled_xToIndex (Sampled me, double x) { return (x - my x1) / my dx + 1.0; }
+long Sampled_xToLowIndex     (Sampled me, double x) { return (long) floor ((x - my x1) / my dx + 1.0); }
+long Sampled_xToHighIndex    (Sampled me, double x) { return (long) ceil  ((x - my x1) / my dx + 1.0); }
+long Sampled_xToNearestIndex (Sampled me, double x) { return (long) round ((x - my x1) / my dx + 1.0); }
+#endif
+
 /* End of file Sampled.cpp */

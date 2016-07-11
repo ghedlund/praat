@@ -6460,6 +6460,33 @@ void praat_TimeTier_modify_init (ClassInfo klas) {
 	praat_addAction1 (klas, 0, U"Remove points between...", nullptr, 1, DO_TimeTier_removePointsBetween);
 }
 
+#ifdef PRAAT_LIB
+void praat_lib_uvafon_init ();
+void praat_lib_uvafon_init () {
+	Thing_recognizeClassesByName (classSound, classMatrix, classPolygon, classPointProcess, classParamCurve,
+		classSpectrum, classLtas, classSpectrogram, classFormant,
+		classExcitation, classCochleagram, classVocalTract, classFormantPoint, classFormantTier, classFormantGrid,
+		classLabel, classTier, classAutosegment,   // three obsolete classes
+		classIntensity, classPitch, classHarmonicity,
+		classTransition,
+		classRealPoint, classRealTier, classPitchTier, classIntensityTier, classDurationTier, classAmplitudeTier, classSpectrumTier,
+		classManipulation, classTextPoint, classTextInterval, classTextTier,
+		classIntervalTier, classTextGrid, classLongSound, classWordList, classSpellingChecker,
+		classMovie, classCorpus, classPhoto,
+		NULL);
+	Thing_recognizeClassByOtherName (classManipulation, U"Psola");
+	Thing_recognizeClassByOtherName (classManipulation, U"Analysis");
+	Thing_recognizeClassByOtherName (classPitchTier, U"StylPitch");
+
+	Data_recognizeFileType (cgnSyntaxFileRecognizer);
+	Data_recognizeFileType (chronologicalTextGridTextFileRecognizer);
+	Data_recognizeFileType (imageFileRecognizer);
+
+	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_Sound_init)
+	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_TextGrid_init)
+}
+#endif
+
 void praat_uvafon_init ();
 void praat_uvafon_init () {
 	Thing_recognizeClassesByName (classSound, classMatrix, classPolygon, classPointProcess, classParamCurve,

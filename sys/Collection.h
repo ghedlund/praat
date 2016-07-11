@@ -24,7 +24,6 @@
 
 #include "Simple.h"
 
-
 #pragma mark - class Collection
 
 /**

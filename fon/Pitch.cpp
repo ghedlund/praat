@@ -147,6 +147,41 @@ double structPitch :: v_getValueAtSample (long iframe, long ilevel, int unit) {
 	return v_convertStandardToSpecialUnit (ilevel == Pitch_LEVEL_FREQUENCY ? f : frame [iframe]. candidate [1]. strength, ilevel, unit);
 }
 
+
+#ifdef PRAAT_LIB
+int Pitch_domainQuantity (Pitch me) { return MelderQuantity_TIME_SECONDS; }
+
+int Pitch_getMinimumUnit (Pitch me, long ilevel) {
+	return my v_getMinimumUnit(ilevel);
+}
+
+
+int Pitch_getMaximumUnit (Pitch me, long ilevel) {
+	return my v_getMaximumUnit(ilevel);
+}
+
+const char32 * Pitch_getUnitText (Pitch me, long ilevel, int unit, unsigned long flags) {
+	return my v_getUnitText(ilevel, unit, flags);
+}
+
+bool Pitch_isUnitLogarithmic (Pitch me, long ilevel, int unit) {
+	return my v_isUnitLogarithmic(ilevel, unit);
+}
+
+double Pitch_convertStandardToSpecialUnit (Pitch me, double value, long ilevel, int unit) {
+	return my v_convertStandardToSpecialUnit(value, ilevel, unit);
+}
+
+double Pitch_convertSpecialToStandardUnit (Pitch me, double value, long ilevel, int unit) {
+	return my v_convertSpecialToStandardUnit(value, ilevel, unit);
+}
+
+double Pitch_getValueAtSample (Pitch me, long isamp, long ilevel, int unit) {
+	return my v_getValueAtSample(isamp, ilevel, unit);
+}
+
+#endif
+
 bool Pitch_isVoiced_i (Pitch me, long iframe) {
 	return NUMdefined (Sampled_getValueAtSample (me, iframe, Pitch_LEVEL_FREQUENCY, kPitch_unit_HERTZ));
 }

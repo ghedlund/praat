@@ -84,6 +84,17 @@ double structFormant :: v_getValueAtSample (long iframe, long which, int units) 
 	return NUMundefined;
 }
 
+#ifdef PRAAT_LIB
+double Formant_getValueAtSample(Formant me, long iframe, long which, int units) {
+	return me->v_getValueAtSample(iframe, which, units);
+}
+
+double Formant_getIntensityAtSample(Formant me, long iframe) {
+	Formant_Frame frame =&(my d_frames[ iframe ]);
+	return frame-> intensity;
+}
+#endif
+
 autoFormant Formant_create (double tmin, double tmax, long nt, double dt, double t1,
 	int maxnFormants)
 {

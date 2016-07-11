@@ -15,6 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
+ 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
 #define ooSTRUCT SimpleInt
 oo_DEFINE_CLASS (SimpleInt, Daata)
@@ -33,6 +37,10 @@ oo_DEFINE_CLASS (SimpleDouble, Daata)
 	oo_DOUBLE (number)
 oo_END_CLASS (SimpleDouble)
 #undef ooSTRUCT
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT double SimpleDouble_getNumber(SimpleDouble me);
+PRAAT_LIB_EXPORT void SimpleDouble_setNumber(SimpleDouble me, double number);
+#endif
 
 #define ooSTRUCT SimpleString
 oo_DEFINE_CLASS (SimpleString, Daata)

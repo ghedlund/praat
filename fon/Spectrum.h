@@ -26,6 +26,10 @@
 
 #include "Spectrum_def.h"
 
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
+
 /*
 	xmin            // lowest frequency (Hz)
 	xmax            // highest frequency (Hz)
@@ -38,7 +42,7 @@
 	dy = y1 = 1.0   // y is row number
 */
 
-autoSpectrum Spectrum_create (double fmax, long nf);
+PRAAT_LIB_EXPORT autoSpectrum Spectrum_create (double fmax, long nf);
 /* Preconditions:
 		fmax > 0.0;
 		nf >= 2;
@@ -56,22 +60,22 @@ autoSpectrum Spectrum_create (double fmax, long nf);
 		my z [1..ny] [1..nx] == 0.0;
 */
 		
-int Spectrum_getPowerDensityRange (Spectrum me, double *minimum, double *maximum);   // return 0 if all zeroes
-double Spectrum_getBandDensity (Spectrum me, double fmin, double fmax);   // Pa2 / Hz2
-double Spectrum_getBandEnergy (Spectrum me, double fmin, double fmax);   // Pa2 sec
-double Spectrum_getBandDensityDifference (Spectrum me,
+PRAAT_LIB_EXPORT int Spectrum_getPowerDensityRange (Spectrum me, double *minimum, double *maximum);   // return 0 if all zeroes
+PRAAT_LIB_EXPORT double Spectrum_getBandDensity (Spectrum me, double fmin, double fmax);   // Pa2 / Hz2
+PRAAT_LIB_EXPORT double Spectrum_getBandEnergy (Spectrum me, double fmin, double fmax);   // Pa2 sec
+PRAAT_LIB_EXPORT double Spectrum_getBandDensityDifference (Spectrum me,
 	double lowBandMin, double lowBandMax, double highBandMin, double HighBandMax);
-double Spectrum_getBandEnergyDifference (Spectrum me,
+PRAAT_LIB_EXPORT double Spectrum_getBandEnergyDifference (Spectrum me,
 	double lowBandMin, double lowBandMax, double highBandMin, double highBandMax);
 
 /*
 	Spectral moments.
 */
-double Spectrum_getCentreOfGravity (Spectrum me, double power);
-double Spectrum_getCentralMoment (Spectrum me, double moment, double power);
-double Spectrum_getStandardDeviation (Spectrum me, double power);
-double Spectrum_getSkewness (Spectrum me, double power);
-double Spectrum_getKurtosis (Spectrum me, double power);
+PRAAT_LIB_EXPORT double Spectrum_getCentreOfGravity (Spectrum me, double power);
+PRAAT_LIB_EXPORT double Spectrum_getCentralMoment (Spectrum me, double moment, double power);
+PRAAT_LIB_EXPORT double Spectrum_getStandardDeviation (Spectrum me, double power);
+PRAAT_LIB_EXPORT double Spectrum_getSkewness (Spectrum me, double power);
+PRAAT_LIB_EXPORT double Spectrum_getKurtosis (Spectrum me, double power);
 
 void Spectrum_drawInside (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum);
 void Spectrum_draw (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, int garnish);
@@ -87,21 +91,25 @@ void Spectrum_draw (Spectrum me, Graphics g, double fmin, double fmax, double mi
 */
 void Spectrum_drawLogFreq (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, int garnish);
 
-autoTable Spectrum_downto_Table (Spectrum me, bool includeBinNumbers, bool includeFrequency,
+PRAAT_LIB_EXPORT autoTable Spectrum_downto_Table (Spectrum me, bool includeBinNumbers, bool includeFrequency,
 	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity);
 void Spectrum_list (Spectrum me, bool includeBinNumbers, bool includeFrequency,
 	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity);
 
-autoSpectrum Matrix_to_Spectrum (Matrix me);
+PRAAT_LIB_EXPORT autoSpectrum Matrix_to_Spectrum (Matrix me);
 
-autoMatrix Spectrum_to_Matrix (Spectrum me);
+PRAAT_LIB_EXPORT autoMatrix Spectrum_to_Matrix (Spectrum me);
 
-autoSpectrum Spectrum_cepstralSmoothing (Spectrum me, double bandWidth);
+PRAAT_LIB_EXPORT autoSpectrum Spectrum_cepstralSmoothing (Spectrum me, double bandWidth);
 
-void Spectrum_passHannBand (Spectrum me, double fmin, double fmax, double smooth);
-void Spectrum_stopHannBand (Spectrum me, double fmin, double fmax, double smooth);
+PRAAT_LIB_EXPORT void Spectrum_passHannBand (Spectrum me, double fmin, double fmax, double smooth);
+PRAAT_LIB_EXPORT void Spectrum_stopHannBand (Spectrum me, double fmin, double fmax, double smooth);
 
-void Spectrum_getNearestMaximum (Spectrum me, double frequency, double *frequencyOfMaximum, double *heightOfMaximum);
+PRAAT_LIB_EXPORT void Spectrum_getNearestMaximum (Spectrum me, double frequency, double *frequencyOfMaximum, double *heightOfMaximum);
+
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT double Spectrum_getValueAtSample(Spectrum me, long isamp, long which, int units);
+#endif
 
 /* End of file Spectrum.h */
 #endif
