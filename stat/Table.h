@@ -22,9 +22,7 @@
 #include "Graphics.h"
 Thing_declare (Interpreter);
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "Table_def.h"
 

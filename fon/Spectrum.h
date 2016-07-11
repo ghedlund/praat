@@ -26,9 +26,7 @@
 
 #include "Spectrum_def.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 /*
 	xmin            // lowest frequency (Hz)

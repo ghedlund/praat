@@ -22,9 +22,7 @@
 
 #include "Strings_def.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoStrings Strings_createAsFileList (const char32 *path /* cattable */);
 PRAAT_LIB_EXPORT autoStrings Strings_createAsDirectoryList (const char32 *path /* cattable */);

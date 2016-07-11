@@ -19,9 +19,7 @@
 #include "Sound.h"
 #include "Formant.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoFormant Sound_to_Formant_any (Sound me, double timeStep, int numberOfPoles, double maximumFrequency,
 	double halfdt_window, int which, double preemphasisFrequency, double safetyMargin);

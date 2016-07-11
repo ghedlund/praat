@@ -16,9 +16,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #define ooSTRUCT Function
 oo_DEFINE_CLASS (Function, Daata)

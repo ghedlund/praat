@@ -20,9 +20,7 @@
 #include "Spectrum.h"
 Thing_declare (Interpreter);
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum_at (Sound me, double tim, double windowDuration, int windowType);
 

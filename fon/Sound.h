@@ -24,10 +24,7 @@
 #include "Collection.h"
 
 #include "Sound_enums.h"
-
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 Thing_define (Sound, Vector) {
 	void v_info ()

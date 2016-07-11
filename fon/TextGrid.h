@@ -29,9 +29,7 @@ Collection_define (FunctionList, OrderedOf, Function) {
 
 #include "TextGrid_def.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoTextPoint TextPoint_create (double time, const char32 *mark);
 

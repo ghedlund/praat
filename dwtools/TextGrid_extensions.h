@@ -24,10 +24,7 @@
 */
 
 #include "TextGrid.h"
-
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 autoTextGrid TextGrid_readFromTIMITLabelFile (MelderFile file, int phnFile);
 /*

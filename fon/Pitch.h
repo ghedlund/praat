@@ -24,9 +24,7 @@ Thing_declare (Interpreter);
 
 #include "Pitch_enums.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "Pitch_def.h"
 

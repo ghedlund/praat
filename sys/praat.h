@@ -56,9 +56,7 @@ String-readable classes are known by Thing_newFromClassName () and can therefore
 be read by Data_readFromTextFile () and Data_readFromBinaryFile ().
 */
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT void praat_init (const char32 *title, int argc, char **argv);
 void praat_run ();

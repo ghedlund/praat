@@ -21,9 +21,7 @@
 #include "Matrix.h"
 #include "Graphics.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 Thing_define (Spectrogram, Matrix) {
 	void v_info ()

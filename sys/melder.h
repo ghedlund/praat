@@ -45,9 +45,7 @@
 	#define INT54_MIN  -9007199254740991LL
 #endif
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 typedef unsigned char char8;
 typedef char16_t char16;

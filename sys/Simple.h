@@ -20,9 +20,7 @@
 
 #include "Data.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "Simple_def.h"
 

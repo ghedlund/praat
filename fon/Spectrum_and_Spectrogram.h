@@ -19,9 +19,7 @@
 #include "Spectrum.h"
 #include "Spectrogram.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoSpectrum Spectrogram_to_Spectrum (Spectrogram me, double time);
 /*

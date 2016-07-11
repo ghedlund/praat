@@ -24,9 +24,7 @@
 #include "../stat/TableOfReal.h"
 Thing_declare (Interpreter);
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "Matrix_def.h"
 

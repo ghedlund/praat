@@ -29,10 +29,7 @@
 */
 
 #include "Vector.h"
-
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 Thing_define (Intensity, Vector) {
 	void v_info ()

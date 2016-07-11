@@ -22,9 +22,7 @@
 /* It adds the functionality of reproduction, comparison, reading, and writing. */
 #include "Thing.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 typedef struct structData_Description {
 	const char32 *name;   // the name of this field

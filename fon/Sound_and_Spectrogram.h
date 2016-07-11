@@ -23,9 +23,8 @@
 
 #include "Sound_and_Spectrogram_enums.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
+
 PRAAT_LIB_EXPORT autoSpectrogram Sound_to_Spectrogram (Sound me, double effectiveAnalysisWidth, double fmax,
 	double minimumTimeStep1, double minimumFreqStep1, enum kSound_to_Spectrogram_windowShape windowShape,
 	double maximumTimeOversampling, double maximumFreqOversampling);

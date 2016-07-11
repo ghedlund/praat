@@ -21,9 +21,7 @@
 #include "Sound.h"
 #include "Collection.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #define COMPRESSED_MODE_READ_FLOAT 0
 #define COMPRESSED_MODE_READ_SHORT 1

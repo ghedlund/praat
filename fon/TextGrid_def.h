@@ -16,10 +16,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
-
 
 #define ooSTRUCT TextPoint
 oo_DEFINE_CLASS (TextPoint, AnyPoint)

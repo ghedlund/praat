@@ -19,9 +19,7 @@
 #include "Sound.h"
 #include "Pitch.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT autoPitch Sound_to_Pitch (Sound me, double timeStep,
 	double minimumPitch, double maximumPitch);

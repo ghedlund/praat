@@ -18,9 +18,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 /* The root class of all objects. */
 

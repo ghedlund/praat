@@ -23,9 +23,7 @@
 /* The rows are 'channels'. There will often be only one channel, but e.g. a stereo sound has two. */
 #include "Matrix.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 Thing_define (Vector, Matrix) {
 	bool v_hasGetVector ()

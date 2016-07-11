@@ -39,6 +39,7 @@
 		// The relative intensity of each frame, a real number between 0 and 1.
 */
 
+#include "praatlib.h"
 
 #define ooSTRUCT Pitch_Candidate
 oo_DEFINE_STRUCT (Pitch_Candidate)

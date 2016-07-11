@@ -6,6 +6,9 @@
 #ifndef _praatlib_h
 #define _praatlib_h
 
+#ifndef PRAAT_LIB
+#define PRAAT_LIB_EXPORT
+#else
 #ifdef WIN32
 #ifdef __cplusplus
 #define PRAAT_LIB_EXPORT extern "C" __declspec( dllexport )
@@ -17,6 +20,7 @@
 #define PRAAT_LIB_EXPORT extern "C"
 #else
 #define PRAAT_LIB_EXPORT
+#endif
 #endif
 #endif
 

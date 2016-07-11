@@ -20,9 +20,7 @@
 
 #include "Sampled.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "SampledXY_def.h"
 

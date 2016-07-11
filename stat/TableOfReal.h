@@ -26,9 +26,7 @@ Thing_declare (Interpreter);
 
 #include "TableOfReal_def.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 PRAAT_LIB_EXPORT void TableOfReal_init (TableOfReal me, long numberOfRows, long numberOfColumns);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_create (long numberOfRows, long numberOfColumns);

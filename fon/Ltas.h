@@ -23,9 +23,7 @@
 #include "PointProcess.h"
 #include "Collection.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 Thing_define (Ltas, Vector) {
 	void v_info ()

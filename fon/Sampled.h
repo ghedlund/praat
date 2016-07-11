@@ -22,9 +22,7 @@
 #include "Function.h"
 #include "Graphics.h"
 
-#ifdef PRAAT_LIB
 #include "praatlib.h"
-#endif
 
 #include "Sampled_def.h"
 

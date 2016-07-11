@@ -48,9 +48,6 @@
 	#include <gdk/gdkx.h>
 #endif
 
-#ifdef PRAAT_LIB
-	#include "praatlib.h"
-#endif
 Thing_implement (Praat_Command, Thing, 0);
 
 #define EDITOR  theCurrentPraatObjects -> list [IOBJECT]. editors
