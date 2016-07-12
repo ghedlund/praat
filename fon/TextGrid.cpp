@@ -176,7 +176,7 @@ void IntervalTier_addInterval (IntervalTier me, double tmin, double tmax, const 
 }
 
 void IntervalTier_removeInterval (IntervalTier me, long iinterval) {
-	//Collection_removeItem(my intervals, iinterval);
+	my intervals.removeItem(iinterval);
 }
 #endif
 
