@@ -25,6 +25,7 @@
 #include "../fon/TextGrid.h"
 #include "../dwtools/TextGrid_extensions.h"
 #include "../fon/Ltas.h"
+#include "../sys/Interpreter.h"
 
 #include <pthread.h>
 #include <string.h>
@@ -168,8 +169,8 @@ PRAAT_LIB_EXPORT void Data_writeToBinaryFile_wrapped(Daata arg0,MelderFile arg1)
 }
 
 // Data_readFromTextFile_wrapped -> Data_readFromTextFile
-PRAAT_LIB_EXPORT Thing Data_readFromTextFile_wrapped(MelderFile arg0) {
-	Thing retVal;
+PRAAT_LIB_EXPORT Pointer Data_readFromTextFile_wrapped(MelderFile arg0) {
+	Pointer retVal;
 	try {
 		return Data_readFromTextFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -183,8 +184,8 @@ PRAAT_LIB_EXPORT Thing Data_readFromTextFile_wrapped(MelderFile arg0) {
 }
 
 // Data_readFromBinaryFile_wrapped -> Data_readFromBinaryFile
-PRAAT_LIB_EXPORT Thing Data_readFromBinaryFile_wrapped(MelderFile arg0) {
-	Thing retVal;
+PRAAT_LIB_EXPORT Pointer Data_readFromBinaryFile_wrapped(MelderFile arg0) {
+	Pointer retVal;
 	try {
 		return Data_readFromBinaryFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -198,8 +199,8 @@ PRAAT_LIB_EXPORT Thing Data_readFromBinaryFile_wrapped(MelderFile arg0) {
 }
 
 // Data_readFromFile_wrapped -> Data_readFromFile
-PRAAT_LIB_EXPORT Thing Data_readFromFile_wrapped(MelderFile arg0) {
-	Thing retVal;
+PRAAT_LIB_EXPORT Pointer Data_readFromFile_wrapped(MelderFile arg0) {
+	Pointer retVal;
 	try {
 		return Data_readFromFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -560,6 +561,32 @@ PRAAT_LIB_EXPORT void Matrix_writeToHeaderlessSpreadsheetFile_wrapped(Matrix arg
 	}
 }
 
+// Matrix_formula_wrapped -> Matrix_formula
+PRAAT_LIB_EXPORT void Matrix_formula_wrapped(Matrix arg0,const char32_t* arg1,Interpreter arg2,Matrix arg3) {
+	try {
+		Matrix_formula(arg0,arg1,arg2,arg3);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
+// Matrix_formula_part_wrapped -> Matrix_formula_part
+PRAAT_LIB_EXPORT void Matrix_formula_part_wrapped(Matrix arg0,double arg1,double arg2,double arg3,double arg4,const char32_t* arg5,Interpreter arg6,Matrix arg7) {
+	try {
+		Matrix_formula_part(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
 // Pitch_create_wrapped -> Pitch_create
 PRAAT_LIB_EXPORT Pitch Pitch_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4,double arg5,int arg6) {
 	Pitch retVal;
@@ -646,6 +673,19 @@ PRAAT_LIB_EXPORT Pitch Pitch_smooth_wrapped(Pitch arg0,double arg1) {
 		jpraat_set_error("Unknown error");
 	}
 	return NULL;
+}
+
+// Pitch_formula_wrapped -> Pitch_formula
+PRAAT_LIB_EXPORT void Pitch_formula_wrapped(Pitch arg0,const char32_t* arg1,Interpreter arg2) {
+	try {
+		Pitch_formula(arg0,arg1,arg2);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
 }
 
 // Sound_readFromSoundFile_wrapped -> Sound_readFromSoundFile
@@ -1356,6 +1396,19 @@ PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_bandwidths_wrapped(Formant arg0,int ar
 		jpraat_set_error("Unknown error");
 	}
 	return NULL;
+}
+
+// Formant_formula_frequencies_wrapped -> Formant_formula_frequencies
+PRAAT_LIB_EXPORT void Formant_formula_frequencies_wrapped(Formant arg0,const char32_t* arg1,Interpreter arg2) {
+	try {
+		Formant_formula_frequencies(arg0,arg1,arg2);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
 }
 
 // Formant_tracker_wrapped -> Formant_tracker
@@ -3728,6 +3781,21 @@ PRAAT_LIB_EXPORT Ltas Sound_to_Ltas_pitchCorrected_wrapped(Sound arg0,double arg
 	Ltas retVal;
 	try {
 		return Sound_to_Ltas_pitchCorrected(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// Interpreter_create_wrapped -> Interpreter_create
+PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(const char32_t* arg0,ClassInfo arg1) {
+	Interpreter retVal;
+	try {
+		return Interpreter_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
