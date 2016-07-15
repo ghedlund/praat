@@ -197,7 +197,7 @@ PRAAT_LIB_EXPORT void Pitch_step (Pitch me, double step, double precision, doubl
 	as long as that candidate is in between 0 and my ceiling.
 */
 
-void Pitch_formula (Pitch me, const char32 *formula, Interpreter interpreter);
+PRAAT_LIB_EXPORT void Pitch_formula (Pitch me, const char32 *formula, Interpreter interpreter);
 
 /* End of file Pitch.h */
 #endif

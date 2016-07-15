@@ -80,8 +80,8 @@ void Formant_scatterPlot (Formant me, Graphics g, double tmin, double tmax,
 
 PRAAT_LIB_EXPORT autoMatrix Formant_to_Matrix (Formant me, int iformant);
 PRAAT_LIB_EXPORT autoMatrix Formant_to_Matrix_bandwidths (Formant me, int iformant);
-void Formant_formula_frequencies (Formant me, const char32 *formula, Interpreter interpreter);
-void Formant_formula_bandwidths (Formant me, const char32 *formula, Interpreter interpreter);
+PRAAT_LIB_EXPORT void Formant_formula_frequencies (Formant me, const char32 *formula, Interpreter interpreter);
+PRAAT_LIB_EXPORT void Formant_formula_bandwidths (Formant me, const char32 *formula, Interpreter interpreter);
 
 PRAAT_LIB_EXPORT autoFormant Formant_tracker (Formant me, int numberOfTracks,
 	double refF1, double refF2, double refF3, double refF4, double refF5,

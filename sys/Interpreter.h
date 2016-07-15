@@ -25,6 +25,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "praatlib.h"
+
 Thing_define (InterpreterVariable, SimpleString) {
 	char32 *stringValue;
 	double numericValue;
@@ -62,7 +64,7 @@ Thing_define (Interpreter, Thing) {
 		override;
 };
 
-autoInterpreter Interpreter_create (char32 *environmentName, ClassInfo editorClass);
+PRAAT_LIB_EXPORT autoInterpreter Interpreter_create (char32 *environmentName, ClassInfo editorClass);
 autoInterpreter Interpreter_createFromEnvironment (Editor editor);
 
 void Melder_includeIncludeFiles (char32 **text);

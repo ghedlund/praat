@@ -168,7 +168,7 @@ PRAAT_LIB_EXPORT long Matrix_getWindowExtrema (Matrix me, long ixmin, long ixmax
 		if result == 0, *minimum and *maximum are not changed;
 */
 
-void Matrix_formula (Matrix me, const char32 *expression, Interpreter interpreter, Matrix target);
+PRAAT_LIB_EXPORT void Matrix_formula (Matrix me, const char32 *expression, Interpreter interpreter, Matrix target);
 /*
 	Arguments:
 		"me" is the Matrix referred to as "self" or with "nx" etc. in the expression
@@ -183,7 +183,7 @@ void Matrix_formula (Matrix me, const char32 *expression, Interpreter interprete
 	Return value:
 		0 in case of failure, otherwise 1.
 */
-void Matrix_formula_part (Matrix me, double xmin, double xmax, double ymin, double ymax,
+PRAAT_LIB_EXPORT void Matrix_formula_part (Matrix me, double xmin, double xmax, double ymin, double ymax,
 	const char32 *expression, Interpreter interpreter, Matrix target);
 
 /***** Graphics routines. *****/
