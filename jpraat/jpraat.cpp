@@ -169,8 +169,8 @@ PRAAT_LIB_EXPORT void Data_writeToBinaryFile_wrapped(Daata arg0,MelderFile arg1)
 }
 
 // Data_readFromTextFile_wrapped -> Data_readFromTextFile
-PRAAT_LIB_EXPORT Pointer Data_readFromTextFile_wrapped(MelderFile arg0) {
-	Pointer retVal;
+PRAAT_LIB_EXPORT Thing Data_readFromTextFile_wrapped(MelderFile arg0) {
+	Thing retVal;
 	try {
 		return Data_readFromTextFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -184,8 +184,8 @@ PRAAT_LIB_EXPORT Pointer Data_readFromTextFile_wrapped(MelderFile arg0) {
 }
 
 // Data_readFromBinaryFile_wrapped -> Data_readFromBinaryFile
-PRAAT_LIB_EXPORT Pointer Data_readFromBinaryFile_wrapped(MelderFile arg0) {
-	Pointer retVal;
+PRAAT_LIB_EXPORT Thing Data_readFromBinaryFile_wrapped(MelderFile arg0) {
+	Thing retVal;
 	try {
 		return Data_readFromBinaryFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -199,8 +199,8 @@ PRAAT_LIB_EXPORT Pointer Data_readFromBinaryFile_wrapped(MelderFile arg0) {
 }
 
 // Data_readFromFile_wrapped -> Data_readFromFile
-PRAAT_LIB_EXPORT Pointer Data_readFromFile_wrapped(MelderFile arg0) {
-	Pointer retVal;
+PRAAT_LIB_EXPORT Thing Data_readFromFile_wrapped(MelderFile arg0) {
+	Thing retVal;
 	try {
 		return Data_readFromFile(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3792,7 +3792,7 @@ PRAAT_LIB_EXPORT Ltas Sound_to_Ltas_pitchCorrected_wrapped(Sound arg0,double arg
 }
 
 // Interpreter_create_wrapped -> Interpreter_create
-PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(const char32_t* arg0,ClassInfo arg1) {
+PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(char32* arg0,ClassInfo arg1) {
 	Interpreter retVal;
 	try {
 		return Interpreter_create(arg0,arg1).releaseToAmbiguousOwner();
