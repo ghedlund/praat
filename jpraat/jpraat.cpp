@@ -3462,6 +3462,19 @@ PRAAT_LIB_EXPORT void TextGrid_addTier_copy_wrapped(TextGrid arg0,Function arg1)
 	}
 }
 
+// TextGrid_removeTier_wrapped -> TextGrid_removeTier
+PRAAT_LIB_EXPORT void TextGrid_removeTier_wrapped(TextGrid arg0,long arg1) {
+	try {
+		TextGrid_removeTier(arg0,arg1);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
 // TextGrid_extractPart_wrapped -> TextGrid_extractPart
 PRAAT_LIB_EXPORT TextGrid TextGrid_extractPart_wrapped(TextGrid arg0,double arg1,double arg2,int arg3) {
 	TextGrid retVal;

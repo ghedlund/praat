@@ -579,6 +579,13 @@ void TextGrid_addTier_copy (TextGrid me, Function anyTier) {
 	}
 }
 
+void TextGrid_removeTier (TextGrid me, long tierNumber) {
+	if(my tiers->size <= 1)
+		Melder_throw(U"Sorry, I refuse to remove the last tier.");
+	if (tierNumber > my tiers->size) tierNumber = my tiers->size;
+	my tiers -> removeItem (tierNumber);
+}
+
 autoTextGrid TextGrids_merge (OrderedOf<structTextGrid>* textGrids) {
 	try {
 		if (textGrids->size < 1)
