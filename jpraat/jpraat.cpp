@@ -97,6 +97,7 @@ PRAAT_LIB_EXPORT Thing Thing_newFromClassName_wrapped(const char32_t* arg0,int* 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Data_createTextFile_wrapped -> Data_createTextFile
@@ -110,6 +111,7 @@ PRAAT_LIB_EXPORT MelderFile Data_createTextFile_wrapped(Daata arg0,MelderFile ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Data_writeText_wrapped -> Data_writeText
@@ -175,6 +177,7 @@ PRAAT_LIB_EXPORT Thing Data_readFromTextFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Data_readFromBinaryFile_wrapped -> Data_readFromBinaryFile
@@ -188,6 +191,7 @@ PRAAT_LIB_EXPORT Thing Data_readFromBinaryFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Data_readFromFile_wrapped -> Data_readFromFile
@@ -201,6 +205,7 @@ PRAAT_LIB_EXPORT Thing Data_readFromFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // SimpleDouble_create_wrapped -> SimpleDouble_create
@@ -214,6 +219,7 @@ PRAAT_LIB_EXPORT SimpleDouble SimpleDouble_create_wrapped(double arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // MelderFile_create_wrapped -> MelderFile_create
@@ -227,6 +233,7 @@ PRAAT_LIB_EXPORT MelderFile MelderFile_create_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // MelderFile_open_wrapped -> MelderFile_open
@@ -240,6 +247,7 @@ PRAAT_LIB_EXPORT MelderFile MelderFile_open_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Melder_pathToFile_wrapped -> Melder_pathToFile
@@ -266,6 +274,7 @@ PRAAT_LIB_EXPORT LongSound LongSound_open_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // LongSound_extractPart_wrapped -> LongSound_extractPart
@@ -279,6 +288,7 @@ PRAAT_LIB_EXPORT Sound LongSound_extractPart_wrapped(LongSound arg0,double arg1,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // LongSound_haveWindow_wrapped -> LongSound_haveWindow
@@ -292,6 +302,7 @@ PRAAT_LIB_EXPORT bool LongSound_haveWindow_wrapped(LongSound arg0,double arg1,do
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // LongSound_getWindowExtrema_wrapped -> LongSound_getWindowExtrema
@@ -318,6 +329,7 @@ PRAAT_LIB_EXPORT Intensity Intensity_create_wrapped(double arg0,double arg1,long
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Intensity_to_Matrix_wrapped -> Intensity_to_Matrix
@@ -331,6 +343,7 @@ PRAAT_LIB_EXPORT Matrix Intensity_to_Matrix_wrapped(Intensity arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_to_Intensity_wrapped -> Matrix_to_Intensity
@@ -344,6 +357,7 @@ PRAAT_LIB_EXPORT Intensity Matrix_to_Intensity_wrapped(Matrix arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Intensity_getQuantile_wrapped -> Intensity_getQuantile
@@ -357,6 +371,7 @@ PRAAT_LIB_EXPORT double Intensity_getQuantile_wrapped(Intensity arg0,double arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Intensity_getAverage_wrapped -> Intensity_getAverage
@@ -370,6 +385,7 @@ PRAAT_LIB_EXPORT double Intensity_getAverage_wrapped(Intensity arg0,double arg1,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Sound_to_Intensity_wrapped -> Sound_to_Intensity
@@ -383,6 +399,7 @@ PRAAT_LIB_EXPORT Intensity Sound_to_Intensity_wrapped(Sound arg0,double arg1,dou
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sampled_shortTermAnalysis_wrapped -> Sampled_shortTermAnalysis
@@ -409,6 +426,7 @@ PRAAT_LIB_EXPORT double Sampled_getQuantile_wrapped(Sampled arg0,double arg1,dou
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Matrix_create_wrapped -> Matrix_create
@@ -422,6 +440,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_create_wrapped(double arg0,double arg1,long arg2,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_createSimple_wrapped -> Matrix_createSimple
@@ -435,6 +454,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_createSimple_wrapped(long arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_readFromRawTextFile_wrapped -> Matrix_readFromRawTextFile
@@ -448,6 +468,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_readFromRawTextFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_readAP_wrapped -> Matrix_readAP
@@ -461,6 +482,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_readAP_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_power_wrapped -> Matrix_power
@@ -474,6 +496,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_power_wrapped(Matrix arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_scaleAbsoluteExtremum_wrapped -> Matrix_scaleAbsoluteExtremum
@@ -552,6 +575,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_create_wrapped(double arg0,double arg1,long arg2,do
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Pitch_pathFinder_wrapped -> Pitch_pathFinder
@@ -578,6 +602,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_killOctaveJumps_wrapped(Pitch arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Pitch_interpolate_wrapped -> Pitch_interpolate
@@ -591,6 +616,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_interpolate_wrapped(Pitch arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Pitch_subtractLinearFit_wrapped -> Pitch_subtractLinearFit
@@ -604,6 +630,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_subtractLinearFit_wrapped(Pitch arg0,int arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Pitch_smooth_wrapped -> Pitch_smooth
@@ -617,6 +644,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_smooth_wrapped(Pitch arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Pitch_formula_wrapped -> Pitch_formula
@@ -643,6 +671,7 @@ PRAAT_LIB_EXPORT Sound Sound_readFromSoundFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_writeToRawSoundFile_wrapped -> Sound_writeToRawSoundFile
@@ -669,6 +698,7 @@ PRAAT_LIB_EXPORT Sound Sound_create_wrapped(long arg0,double arg1,double arg2,lo
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_createAsPureTone_wrapped -> Sound_createAsPureTone
@@ -682,6 +712,7 @@ PRAAT_LIB_EXPORT Sound Sound_createAsPureTone_wrapped(long arg0,double arg1,doub
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_createFromToneComplex_wrapped -> Sound_createFromToneComplex
@@ -695,6 +726,7 @@ PRAAT_LIB_EXPORT Sound Sound_createFromToneComplex_wrapped(double arg0,double ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_createSimple_wrapped -> Sound_createSimple
@@ -708,6 +740,7 @@ PRAAT_LIB_EXPORT Sound Sound_createSimple_wrapped(long arg0,double arg1,double a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_convertToMono_wrapped -> Sound_convertToMono
@@ -721,6 +754,7 @@ PRAAT_LIB_EXPORT Sound Sound_convertToMono_wrapped(Sound arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_convertToStereo_wrapped -> Sound_convertToStereo
@@ -734,6 +768,7 @@ PRAAT_LIB_EXPORT Sound Sound_convertToStereo_wrapped(Sound arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_extractChannel_wrapped -> Sound_extractChannel
@@ -747,6 +782,7 @@ PRAAT_LIB_EXPORT Sound Sound_extractChannel_wrapped(Sound arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_upsample_wrapped -> Sound_upsample
@@ -760,6 +796,7 @@ PRAAT_LIB_EXPORT Sound Sound_upsample_wrapped(Sound arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_resample_wrapped -> Sound_resample
@@ -773,6 +810,7 @@ PRAAT_LIB_EXPORT Sound Sound_resample_wrapped(Sound arg0,double arg1,long arg2) 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sounds_append_wrapped -> Sounds_append
@@ -786,6 +824,7 @@ PRAAT_LIB_EXPORT Sound Sounds_append_wrapped(Sound arg0,double arg1,Sound arg2) 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sounds_convolve_wrapped -> Sounds_convolve
@@ -799,6 +838,7 @@ PRAAT_LIB_EXPORT Sound Sounds_convolve_wrapped(Sound arg0,Sound arg1,enum kSound
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sounds_crossCorrelate_wrapped -> Sounds_crossCorrelate
@@ -812,6 +852,7 @@ PRAAT_LIB_EXPORT Sound Sounds_crossCorrelate_wrapped(Sound arg0,Sound arg1,enum 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sounds_crossCorrelate_short_wrapped -> Sounds_crossCorrelate_short
@@ -825,6 +866,7 @@ PRAAT_LIB_EXPORT Sound Sounds_crossCorrelate_short_wrapped(Sound arg0,Sound arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_autoCorrelate_wrapped -> Sound_autoCorrelate
@@ -838,6 +880,7 @@ PRAAT_LIB_EXPORT Sound Sound_autoCorrelate_wrapped(Sound arg0,enum kSounds_convo
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_extractPart_wrapped -> Sound_extractPart
@@ -851,6 +894,7 @@ PRAAT_LIB_EXPORT Sound Sound_extractPart_wrapped(Sound arg0,double arg1,double a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_extractPartForOverlap_wrapped -> Sound_extractPartForOverlap
@@ -864,6 +908,7 @@ PRAAT_LIB_EXPORT Sound Sound_extractPartForOverlap_wrapped(Sound arg0,double arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_filterWithFormants_wrapped -> Sound_filterWithFormants
@@ -890,6 +935,7 @@ PRAAT_LIB_EXPORT Sound Sound_filter_oneFormant_wrapped(Sound arg0,double arg1,do
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_filterWithOneFormantInline_wrapped -> Sound_filterWithOneFormantInline
@@ -916,6 +962,7 @@ PRAAT_LIB_EXPORT Sound Sound_filter_preemphasis_wrapped(Sound arg0,double arg1) 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_filter_deemphasis_wrapped -> Sound_filter_deemphasis
@@ -929,6 +976,7 @@ PRAAT_LIB_EXPORT Sound Sound_filter_deemphasis_wrapped(Sound arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_reverse_wrapped -> Sound_reverse
@@ -955,6 +1003,7 @@ PRAAT_LIB_EXPORT Spectrogram Spectrogram_create_wrapped(double arg0,double arg1,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_to_Spectrogram_wrapped -> Matrix_to_Spectrogram
@@ -968,6 +1017,7 @@ PRAAT_LIB_EXPORT Spectrogram Matrix_to_Spectrogram_wrapped(Matrix arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrogram_to_Matrix_wrapped -> Spectrogram_to_Matrix
@@ -981,6 +1031,7 @@ PRAAT_LIB_EXPORT Matrix Spectrogram_to_Matrix_wrapped(Spectrogram arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Spectrogram_wrapped -> Sound_to_Spectrogram
@@ -994,6 +1045,7 @@ PRAAT_LIB_EXPORT Spectrogram Sound_to_Spectrogram_wrapped(Sound arg0,double arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Pitch_wrapped -> Sound_to_Pitch
@@ -1007,6 +1059,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_wrapped(Sound arg0,double arg1,double arg2
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Pitch_ac_wrapped -> Sound_to_Pitch_ac
@@ -1020,6 +1073,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_ac_wrapped(Sound arg0,double arg1,double a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Pitch_cc_wrapped -> Sound_to_Pitch_cc
@@ -1033,6 +1087,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_cc_wrapped(Sound arg0,double arg1,double a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Pitch_any_wrapped -> Sound_to_Pitch_any
@@ -1046,6 +1101,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_any_wrapped(Sound arg0,double arg1,double 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_create_wrapped -> Spectrum_create
@@ -1059,6 +1115,7 @@ PRAAT_LIB_EXPORT Spectrum Spectrum_create_wrapped(double arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_downto_Table_wrapped -> Spectrum_downto_Table
@@ -1072,6 +1129,7 @@ PRAAT_LIB_EXPORT Table Spectrum_downto_Table_wrapped(Spectrum arg0,bool arg1,boo
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_to_Spectrum_wrapped -> Matrix_to_Spectrum
@@ -1085,6 +1143,7 @@ PRAAT_LIB_EXPORT Spectrum Matrix_to_Spectrum_wrapped(Matrix arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_to_Matrix_wrapped -> Spectrum_to_Matrix
@@ -1098,6 +1157,7 @@ PRAAT_LIB_EXPORT Matrix Spectrum_to_Matrix_wrapped(Spectrum arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_cepstralSmoothing_wrapped -> Spectrum_cepstralSmoothing
@@ -1111,6 +1171,7 @@ PRAAT_LIB_EXPORT Spectrum Spectrum_cepstralSmoothing_wrapped(Spectrum arg0,doubl
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_getNearestMaximum_wrapped -> Spectrum_getNearestMaximum
@@ -1137,6 +1198,7 @@ PRAAT_LIB_EXPORT Spectrum Sound_to_Spectrum_wrapped(Sound arg0,int arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_to_Sound_wrapped -> Spectrum_to_Sound
@@ -1150,6 +1212,7 @@ PRAAT_LIB_EXPORT Sound Spectrum_to_Sound_wrapped(Spectrum arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_lpcSmoothing_wrapped -> Spectrum_lpcSmoothing
@@ -1163,6 +1226,7 @@ PRAAT_LIB_EXPORT Spectrum Spectrum_lpcSmoothing_wrapped(Spectrum arg0,int arg1,d
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_filter_passHannBand_wrapped -> Sound_filter_passHannBand
@@ -1176,6 +1240,7 @@ PRAAT_LIB_EXPORT Sound Sound_filter_passHannBand_wrapped(Sound arg0,double arg1,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_filter_stopHannBand_wrapped -> Sound_filter_stopHannBand
@@ -1189,6 +1254,7 @@ PRAAT_LIB_EXPORT Sound Sound_filter_stopHannBand_wrapped(Sound arg0,double arg1,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrogram_to_Spectrum_wrapped -> Spectrogram_to_Spectrum
@@ -1202,6 +1268,7 @@ PRAAT_LIB_EXPORT Spectrum Spectrogram_to_Spectrum_wrapped(Spectrogram arg0,doubl
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_to_Spectrogram_wrapped -> Spectrum_to_Spectrogram
@@ -1215,6 +1282,7 @@ PRAAT_LIB_EXPORT Spectrogram Spectrum_to_Spectrogram_wrapped(Spectrum arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Formant_create_wrapped -> Formant_create
@@ -1228,6 +1296,7 @@ PRAAT_LIB_EXPORT Formant Formant_create_wrapped(double arg0,double arg1,long arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Formant_to_Matrix_wrapped -> Formant_to_Matrix
@@ -1241,6 +1310,7 @@ PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_wrapped(Formant arg0,int arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Formant_to_Matrix_bandwidths_wrapped -> Formant_to_Matrix_bandwidths
@@ -1254,6 +1324,7 @@ PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_bandwidths_wrapped(Formant arg0,int ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Formant_formula_frequencies_wrapped -> Formant_formula_frequencies
@@ -1280,6 +1351,7 @@ PRAAT_LIB_EXPORT Formant Formant_tracker_wrapped(Formant arg0,int arg1,double ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Formant_downto_Table_wrapped -> Formant_downto_Table
@@ -1293,6 +1365,7 @@ PRAAT_LIB_EXPORT Table Formant_downto_Table_wrapped(Formant arg0,int arg1,int ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Formant_any_wrapped -> Sound_to_Formant_any
@@ -1306,6 +1379,7 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_any_wrapped(Sound arg0,double arg1,int
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Formant_burg_wrapped -> Sound_to_Formant_burg
@@ -1319,6 +1393,7 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_burg_wrapped(Sound arg0,double arg1,do
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Formant_keepAll_wrapped -> Sound_to_Formant_keepAll
@@ -1332,6 +1407,7 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_keepAll_wrapped(Sound arg0,double arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Formant_willems_wrapped -> Sound_to_Formant_willems
@@ -1345,6 +1421,7 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_willems_wrapped(Sound arg0,double arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_createWithColumnNames_wrapped -> Table_createWithColumnNames
@@ -1358,6 +1435,7 @@ PRAAT_LIB_EXPORT Table Table_createWithColumnNames_wrapped(long arg0,const char3
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_createWithoutColumnNames_wrapped -> Table_createWithoutColumnNames
@@ -1371,6 +1449,7 @@ PRAAT_LIB_EXPORT Table Table_createWithoutColumnNames_wrapped(long arg0,long arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_appendRow_wrapped -> Table_appendRow
@@ -1527,6 +1606,7 @@ PRAAT_LIB_EXPORT long Table_getColumnIndexFromColumnLabel_wrapped(Table arg0,con
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_getColumnIndicesFromColumnLabelString_wrapped -> Table_getColumnIndicesFromColumnLabelString
@@ -1540,6 +1620,7 @@ PRAAT_LIB_EXPORT long* Table_getColumnIndicesFromColumnLabelString_wrapped(Table
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_setStringValue_wrapped -> Table_setStringValue
@@ -1579,6 +1660,7 @@ PRAAT_LIB_EXPORT const char32_t* Table_getStringValue_Assert_wrapped(Table arg0,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_getNumericValue_Assert_wrapped -> Table_getNumericValue_Assert
@@ -1592,6 +1674,7 @@ PRAAT_LIB_EXPORT double Table_getNumericValue_Assert_wrapped(Table arg0,long arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getQuantile_wrapped -> Table_getQuantile
@@ -1605,6 +1688,7 @@ PRAAT_LIB_EXPORT double Table_getQuantile_wrapped(Table arg0,long arg1,double ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getMean_wrapped -> Table_getMean
@@ -1618,6 +1702,7 @@ PRAAT_LIB_EXPORT double Table_getMean_wrapped(Table arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getMaximum_wrapped -> Table_getMaximum
@@ -1631,6 +1716,7 @@ PRAAT_LIB_EXPORT double Table_getMaximum_wrapped(Table arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getMinimum_wrapped -> Table_getMinimum
@@ -1644,6 +1730,7 @@ PRAAT_LIB_EXPORT double Table_getMinimum_wrapped(Table arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getGroupMean_wrapped -> Table_getGroupMean
@@ -1657,6 +1744,7 @@ PRAAT_LIB_EXPORT double Table_getGroupMean_wrapped(Table arg0,long arg1,long arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getStdev_wrapped -> Table_getStdev
@@ -1670,6 +1758,7 @@ PRAAT_LIB_EXPORT double Table_getStdev_wrapped(Table arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_drawRowFromDistribution_wrapped -> Table_drawRowFromDistribution
@@ -1683,6 +1772,7 @@ PRAAT_LIB_EXPORT long Table_drawRowFromDistribution_wrapped(Table arg0,long arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_getCorrelation_pearsonR_wrapped -> Table_getCorrelation_pearsonR
@@ -1696,6 +1786,7 @@ PRAAT_LIB_EXPORT double Table_getCorrelation_pearsonR_wrapped(Table arg0,long ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getCorrelation_kendallTau_wrapped -> Table_getCorrelation_kendallTau
@@ -1709,6 +1800,7 @@ PRAAT_LIB_EXPORT double Table_getCorrelation_kendallTau_wrapped(Table arg0,long 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getMean_studentT_wrapped -> Table_getMean_studentT
@@ -1722,6 +1814,7 @@ PRAAT_LIB_EXPORT double Table_getMean_studentT_wrapped(Table arg0,long arg1,doub
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getDifference_studentT_wrapped -> Table_getDifference_studentT
@@ -1735,6 +1828,7 @@ PRAAT_LIB_EXPORT double Table_getDifference_studentT_wrapped(Table arg0,long arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getGroupMean_studentT_wrapped -> Table_getGroupMean_studentT
@@ -1748,6 +1842,7 @@ PRAAT_LIB_EXPORT double Table_getGroupMean_studentT_wrapped(Table arg0,long arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getGroupDifference_studentT_wrapped -> Table_getGroupDifference_studentT
@@ -1761,6 +1856,7 @@ PRAAT_LIB_EXPORT double Table_getGroupDifference_studentT_wrapped(Table arg0,lon
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getGroupDifference_wilcoxonRankSum_wrapped -> Table_getGroupDifference_wilcoxonRankSum
@@ -1774,6 +1870,7 @@ PRAAT_LIB_EXPORT double Table_getGroupDifference_wilcoxonRankSum_wrapped(Table a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_getExtrema_wrapped -> Table_getExtrema
@@ -1787,6 +1884,7 @@ PRAAT_LIB_EXPORT bool Table_getExtrema_wrapped(Table arg0,long arg1,double* arg2
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_sortRows_Assert_wrapped -> Table_sortRows_Assert
@@ -1878,6 +1976,7 @@ PRAAT_LIB_EXPORT Table Table_readFromTableFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_readFromCharacterSeparatedTextFile_wrapped -> Table_readFromCharacterSeparatedTextFile
@@ -1891,6 +1990,7 @@ PRAAT_LIB_EXPORT Table Table_readFromCharacterSeparatedTextFile_wrapped(MelderFi
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_extractRowsWhereColumn_number_wrapped -> Table_extractRowsWhereColumn_number
@@ -1904,6 +2004,7 @@ PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_number_wrapped(Table arg0,lo
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_extractRowsWhereColumn_string_wrapped -> Table_extractRowsWhereColumn_string
@@ -1917,6 +2018,7 @@ PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_string_wrapped(Table arg0,lo
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_collapseRows_wrapped -> Table_collapseRows
@@ -1930,6 +2032,7 @@ PRAAT_LIB_EXPORT Table Table_collapseRows_wrapped(Table arg0,const char32_t* arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_rowsToColumns_wrapped -> Table_rowsToColumns
@@ -1943,6 +2046,7 @@ PRAAT_LIB_EXPORT Table Table_rowsToColumns_wrapped(Table arg0,const char32_t* ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_transpose_wrapped -> Table_transpose
@@ -1956,6 +2060,7 @@ PRAAT_LIB_EXPORT Table Table_transpose_wrapped(Table arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Table_checkSpecifiedRowNumberWithinRange_wrapped -> Table_checkSpecifiedRowNumberWithinRange
@@ -2008,6 +2113,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_create_wrapped(long arg0,long arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_removeRow_wrapped -> TableOfReal_removeRow
@@ -2099,6 +2205,7 @@ PRAAT_LIB_EXPORT long TableOfReal_rowLabelToIndex_wrapped(TableOfReal arg0,const
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_columnLabelToIndex_wrapped -> TableOfReal_columnLabelToIndex
@@ -2112,6 +2219,7 @@ PRAAT_LIB_EXPORT long TableOfReal_columnLabelToIndex_wrapped(TableOfReal arg0,co
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_getColumnMean_wrapped -> TableOfReal_getColumnMean
@@ -2125,6 +2233,7 @@ PRAAT_LIB_EXPORT double TableOfReal_getColumnMean_wrapped(TableOfReal arg0,long 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // TableOfReal_getColumnStdev_wrapped -> TableOfReal_getColumnStdev
@@ -2138,6 +2247,7 @@ PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev_wrapped(TableOfReal arg0,long
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+return 0;
 }
 
 // Table_to_TableOfReal_wrapped -> Table_to_TableOfReal
@@ -2151,6 +2261,7 @@ PRAAT_LIB_EXPORT TableOfReal Table_to_TableOfReal_wrapped(Table arg0,long arg1) 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_to_Table_wrapped -> TableOfReal_to_Table
@@ -2164,6 +2275,7 @@ PRAAT_LIB_EXPORT Table TableOfReal_to_Table_wrapped(TableOfReal arg0,const char3
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_sortByLabel_wrapped -> TableOfReal_sortByLabel
@@ -2216,6 +2328,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile_wrapp
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractRowRanges_wrapped -> TableOfReal_extractRowRanges
@@ -2229,6 +2342,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowRanges_wrapped(TableOfReal ar
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractColumnRanges_wrapped -> TableOfReal_extractColumnRanges
@@ -2242,6 +2356,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnRanges_wrapped(TableOfReal
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractRowsWhereColumn_wrapped -> TableOfReal_extractRowsWhereColumn
@@ -2255,6 +2370,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereColumn_wrapped(TableOfR
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractColumnsWhereRow_wrapped -> TableOfReal_extractColumnsWhereRow
@@ -2268,6 +2384,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereRow_wrapped(TableOfR
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractRowsWhereLabel_wrapped -> TableOfReal_extractRowsWhereLabel
@@ -2281,6 +2398,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfRe
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractColumnsWhereLabel_wrapped -> TableOfReal_extractColumnsWhereLabel
@@ -2294,6 +2412,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereLabel_wrapped(TableO
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractRowLabelsAsStrings_wrapped -> TableOfReal_extractRowLabelsAsStrings
@@ -2307,6 +2426,7 @@ PRAAT_LIB_EXPORT Strings TableOfReal_extractRowLabelsAsStrings_wrapped(TableOfRe
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TableOfReal_extractColumnLabelsAsStrings_wrapped -> TableOfReal_extractColumnLabelsAsStrings
@@ -2320,6 +2440,7 @@ PRAAT_LIB_EXPORT Strings TableOfReal_extractColumnLabelsAsStrings_wrapped(TableO
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Strings_createAsFileList_wrapped -> Strings_createAsFileList
@@ -2333,6 +2454,7 @@ PRAAT_LIB_EXPORT Strings Strings_createAsFileList_wrapped(const char32_t* arg0) 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Strings_createAsDirectoryList_wrapped -> Strings_createAsDirectoryList
@@ -2346,6 +2468,7 @@ PRAAT_LIB_EXPORT Strings Strings_createAsDirectoryList_wrapped(const char32_t* a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Strings_readFromRawTextFile_wrapped -> Strings_readFromRawTextFile
@@ -2359,6 +2482,7 @@ PRAAT_LIB_EXPORT Strings Strings_readFromRawTextFile_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Strings_writeToRawTextFile_wrapped -> Strings_writeToRawTextFile
@@ -2424,6 +2548,7 @@ PRAAT_LIB_EXPORT PointProcess PointProcess_create_wrapped(double arg0,double arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcess_createPoissonProcess_wrapped -> PointProcess_createPoissonProcess
@@ -2437,6 +2562,7 @@ PRAAT_LIB_EXPORT PointProcess PointProcess_createPoissonProcess_wrapped(double a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcess_addPoint_wrapped -> PointProcess_addPoint
@@ -2463,6 +2589,7 @@ PRAAT_LIB_EXPORT PointProcess PointProcesses_union_wrapped(PointProcess arg0,Poi
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcesses_intersection_wrapped -> PointProcesses_intersection
@@ -2476,6 +2603,7 @@ PRAAT_LIB_EXPORT PointProcess PointProcesses_intersection_wrapped(PointProcess a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcesses_difference_wrapped -> PointProcesses_difference
@@ -2489,6 +2617,7 @@ PRAAT_LIB_EXPORT PointProcess PointProcesses_difference_wrapped(PointProcess arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcess_fill_wrapped -> PointProcess_fill
@@ -2528,6 +2657,7 @@ PRAAT_LIB_EXPORT TextPoint TextPoint_create_wrapped(double arg0,const char32_t* 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextPoint_setText_wrapped -> TextPoint_setText
@@ -2554,6 +2684,7 @@ PRAAT_LIB_EXPORT TextInterval TextInterval_create_wrapped(double arg0,double arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextInterval_setText_wrapped -> TextInterval_setText
@@ -2580,6 +2711,7 @@ PRAAT_LIB_EXPORT TextTier TextTier_create_wrapped(double arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextTier_addPoint_wrapped -> TextTier_addPoint
@@ -2606,6 +2738,7 @@ PRAAT_LIB_EXPORT TextTier TextTier_readFromXwaves_wrapped(MelderFile arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextTier_getPoints_wrapped -> TextTier_getPoints
@@ -2619,6 +2752,7 @@ PRAAT_LIB_EXPORT PointProcess TextTier_getPoints_wrapped(TextTier arg0,const cha
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextTier_removePoint_wrapped -> TextTier_removePoint
@@ -2645,6 +2779,7 @@ PRAAT_LIB_EXPORT IntervalTier IntervalTier_create_wrapped(double arg0,double arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_readFromXwaves_wrapped -> IntervalTier_readFromXwaves
@@ -2658,6 +2793,7 @@ PRAAT_LIB_EXPORT IntervalTier IntervalTier_readFromXwaves_wrapped(MelderFile arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_writeToXwaves_wrapped -> IntervalTier_writeToXwaves
@@ -2684,6 +2820,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_getStartingPoints_wrapped(IntervalTie
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_getEndPoints_wrapped -> IntervalTier_getEndPoints
@@ -2697,6 +2834,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_getEndPoints_wrapped(IntervalTier arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_getCentrePoints_wrapped -> IntervalTier_getCentrePoints
@@ -2710,6 +2848,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_getCentrePoints_wrapped(IntervalTier 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_PointProcess_startToCentre_wrapped -> IntervalTier_PointProcess_startToCentre
@@ -2723,6 +2862,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_PointProcess_startToCentre_wrapped(In
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_PointProcess_endToCentre_wrapped -> IntervalTier_PointProcess_endToCentre
@@ -2736,6 +2876,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_PointProcess_endToCentre_wrapped(Inte
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // IntervalTier_removeLeftBoundary_wrapped -> IntervalTier_removeLeftBoundary
@@ -2762,6 +2903,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_createWithoutTiers_wrapped(double arg0,double
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrids_merge_wrapped -> TextGrids_merge
@@ -2775,6 +2917,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrids_merge_wrapped(TextGrid arg0,TextGrid arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_extendTime_wrapped -> TextGrid_extendTime
@@ -3009,6 +3152,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_create_wrapped(double arg0,double arg1,const 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_countLabels_wrapped -> TextGrid_countLabels
@@ -3022,6 +3166,7 @@ PRAAT_LIB_EXPORT long TextGrid_countLabels_wrapped(TextGrid arg0,long arg1,const
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getStartingPoints_wrapped -> TextGrid_getStartingPoints
@@ -3035,6 +3180,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getStartingPoints_wrapped(TextGrid arg0,l
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getEndPoints_wrapped -> TextGrid_getEndPoints
@@ -3048,6 +3194,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getEndPoints_wrapped(TextGrid arg0,long a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getCentrePoints_wrapped -> TextGrid_getCentrePoints
@@ -3061,6 +3208,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getCentrePoints_wrapped(TextGrid arg0,lon
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getPoints_wrapped -> TextGrid_getPoints
@@ -3074,6 +3222,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_wrapped(TextGrid arg0,long arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getPoints_preceded_wrapped -> TextGrid_getPoints_preceded
@@ -3087,6 +3236,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_preceded_wrapped(TextGrid arg0,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_getPoints_followed_wrapped -> TextGrid_getPoints_followed
@@ -3100,6 +3250,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_followed_wrapped(TextGrid arg0,
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_checkSpecifiedTierNumberWithinRange_wrapped -> TextGrid_checkSpecifiedTierNumberWithinRange
@@ -3113,6 +3264,7 @@ PRAAT_LIB_EXPORT Function TextGrid_checkSpecifiedTierNumberWithinRange_wrapped(T
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_checkSpecifiedTierIsIntervalTier_wrapped -> TextGrid_checkSpecifiedTierIsIntervalTier
@@ -3126,6 +3278,7 @@ PRAAT_LIB_EXPORT IntervalTier TextGrid_checkSpecifiedTierIsIntervalTier_wrapped(
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_checkSpecifiedTierIsPointTier_wrapped -> TextGrid_checkSpecifiedTierIsPointTier
@@ -3139,6 +3292,7 @@ PRAAT_LIB_EXPORT TextTier TextGrid_checkSpecifiedTierIsPointTier_wrapped(TextGri
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_addTier_copy_wrapped -> TextGrid_addTier_copy
@@ -3178,6 +3332,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_extractPart_wrapped(TextGrid arg0,double arg1
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_genericize_wrapped -> TextGrid_genericize
@@ -3295,6 +3450,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_readFromChronologicalTextFile_wrapped(MelderF
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_readFromCgnSyntaxFile_wrapped -> TextGrid_readFromCgnSyntaxFile
@@ -3308,6 +3464,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_readFromCgnSyntaxFile_wrapped(MelderFile arg0
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // TextGrid_downto_Table_wrapped -> TextGrid_downto_Table
@@ -3321,6 +3478,7 @@ PRAAT_LIB_EXPORT Table TextGrid_downto_Table_wrapped(TextGrid arg0,bool arg1,int
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Ltas_create_wrapped -> Ltas_create
@@ -3334,6 +3492,7 @@ PRAAT_LIB_EXPORT Ltas Ltas_create_wrapped(long arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Matrix_to_Ltas_wrapped -> Matrix_to_Ltas
@@ -3347,6 +3506,7 @@ PRAAT_LIB_EXPORT Ltas Matrix_to_Ltas_wrapped(Matrix arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Ltas_to_Matrix_wrapped -> Ltas_to_Matrix
@@ -3360,6 +3520,7 @@ PRAAT_LIB_EXPORT Matrix Ltas_to_Matrix_wrapped(Ltas arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Ltas_computeTrendLine_wrapped -> Ltas_computeTrendLine
@@ -3373,6 +3534,7 @@ PRAAT_LIB_EXPORT Ltas Ltas_computeTrendLine_wrapped(Ltas arg0,double arg1,double
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Ltas_subtractTrendLine_wrapped -> Ltas_subtractTrendLine
@@ -3386,6 +3548,7 @@ PRAAT_LIB_EXPORT Ltas Ltas_subtractTrendLine_wrapped(Ltas arg0,double arg1,doubl
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_to_Ltas_wrapped -> Spectrum_to_Ltas
@@ -3399,6 +3562,7 @@ PRAAT_LIB_EXPORT Ltas Spectrum_to_Ltas_wrapped(Spectrum arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Spectrum_to_Ltas_1to1_wrapped -> Spectrum_to_Ltas_1to1
@@ -3412,6 +3576,7 @@ PRAAT_LIB_EXPORT Ltas Spectrum_to_Ltas_1to1_wrapped(Spectrum arg0) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcess_Sound_to_Ltas_wrapped -> PointProcess_Sound_to_Ltas
@@ -3425,6 +3590,7 @@ PRAAT_LIB_EXPORT Ltas PointProcess_Sound_to_Ltas_wrapped(PointProcess arg0,Sound
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // PointProcess_Sound_to_Ltas_harmonics_wrapped -> PointProcess_Sound_to_Ltas_harmonics
@@ -3438,6 +3604,7 @@ PRAAT_LIB_EXPORT Ltas PointProcess_Sound_to_Ltas_harmonics_wrapped(PointProcess 
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Ltas_wrapped -> Sound_to_Ltas
@@ -3451,6 +3618,7 @@ PRAAT_LIB_EXPORT Ltas Sound_to_Ltas_wrapped(Sound arg0,double arg1) {
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Sound_to_Ltas_pitchCorrected_wrapped -> Sound_to_Ltas_pitchCorrected
@@ -3464,6 +3632,7 @@ PRAAT_LIB_EXPORT Ltas Sound_to_Ltas_pitchCorrected_wrapped(Sound arg0,double arg
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
 
 // Interpreter_create_wrapped -> Interpreter_create
@@ -3477,4 +3646,5 @@ PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(char32* arg0,ClassInfo a
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+	return NULL;
 }
