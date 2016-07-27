@@ -11,7 +11,7 @@ CFLAGS = -DPRAAT_LIB -D_FILE_OFFSET_BITS=64 -fPIC -DUNIX -Dlinux `pkg-config --c
 
 CXXFLAGS = $(CFLAGS) -Wshadow
 
-LINK = g++
+LINK = g++ -static-libgcc -static-libstdc++
 
 EXECUTABLE = praat
 LIBRARY = libpraat.so
