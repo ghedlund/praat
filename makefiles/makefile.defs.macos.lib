@@ -17,7 +17,7 @@ LINK = clang++
 EXECUTABLE = praat
 LIBRARY = libpraat.dylib
 
-LIBS = -arch x86_64 -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio
+LIBS = -arch x86_64 -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio
 
 AR = ar
 RANLIB = ranlib
