@@ -10,7 +10,7 @@ You will also need the 64-bit version of the `GdiPlus.dll` file from a 64-bit ve
 
 ```
 sudo ln -s /usr/x86_64-w64-mingw32 /mingw64
-cd /mingw66
+cd /mingw64
 sudo mkdir bin
 cd bin
 
