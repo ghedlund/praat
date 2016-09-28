@@ -1,6 +1,6 @@
-# libpraat
+# libjpraat
 
-libpraat is a fork of the praat (http://www.fon.hum.uva.nl/praat/) application created by Paul Boersma and David Weenink at the University of Amsterdam.
+libjpraat is a fork of the praat (http://www.fon.hum.uva.nl/praat/) application created by Paul Boersma and David Weenink at the University of Amsterdam.
 
 This project is being created along with jpraat (https://github.com/ghedlund/jpraat/) to provide java wrappers for parts of the Praat framework.
 
