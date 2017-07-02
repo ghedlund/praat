@@ -30,7 +30,7 @@ Run make:
 
 ```make library```
 
-### Windows (using using mingw-w64 on ubuntu 14.04 or Ubuntu subsystem for Windows 10)
+### Windows (using mingw-w64 on Ubuntu 14.04 or Ubuntu subsystem for Windows 10)
 
 Setup mingw64 as described in [mingw-setup.md](./mingw-setup.md).
 
