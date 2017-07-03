@@ -14,7 +14,7 @@ CXXFLAGS = $(CFLAGS) -Wshadow
 LINK = g++ -static-libgcc -static-libstdc++
 
 EXECUTABLE = praat
-LIBRARY = libpraat.so
+LIBRARY = libjpraat.so
 
 LIBS = `pkg-config --libs gtk+-2.0` -lm -lpthread
 

@@ -14,7 +14,7 @@ CXXFLAGS = $(CFLAGS)
 LINK = /mingw64/bin/g++
 
 EXECUTABLE = Praat.exe
-LIBRARY = praat.dll
+LIBRARY = jpraat.dll
 
 LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 /mingw64/lib/GdiPlus.dll -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -Wl,--subsystem,windows
 

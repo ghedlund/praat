@@ -2,7 +2,7 @@
 
 VER=$1
 GROUP=ca.hedlund
-ARTIFACT=libpraat
+ARTIFACT=libjpraat
 REPO=phon.ca-release
 REPO_URL=https://phon.ca/artifacts/libs-release-local/
 
@@ -16,14 +16,14 @@ WIN32AMD64_FOLDER=win32-amd64
 MAKEFILE_DEFS_WIN32X64=makefiles/makefile.defs.mingw64.lib
 
 WIN32_TARGET=praat.dll
-WIN32_JAR=libpraat-win32-x86.jar
-WIN32X64_JAR=libpraat-win32-x86-64.jar
-WIN32AMD64_JAR=libpraat-win32-amd64.jar
+WIN32_JAR=libjpraat-win32-x86.jar
+WIN32X64_JAR=libjpraat-win32-x86-64.jar
+WIN32AMD64_JAR=libjpraat-win32-amd64.jar
 
-LINUXX64_JAR=libpraat-linux-x86-64.jar
-LINUXAMD64_JAR=libpraat-linux-amd64.jar
+LINUXX64_JAR=libjpraat-linux-x86-64.jar
+LINUXAMD64_JAR=libjpraat-linux-amd64.jar
 MAKEFILE_DEFS_LINUXX64=makefiles/makefile.defs.linux.silent.lib
-LINUX_TARGET=libpraat.so
+LINUX_TARGET=libjpraat.so
 LINUXX64_FOLDER=linux-x86-64
 LINUXAMD64_FOLDER=linux-amd64
 

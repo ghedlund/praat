@@ -15,7 +15,7 @@ CXXFLAGS = $(CFLAGS) -ObjC++ -arch x86_64 -fmessage-length=80 -stdlib=libc++ -Ws
 LINK = clang++
 
 EXECUTABLE = praat
-LIBRARY = libpraat.dylib
+LIBRARY = libjpraat.dylib
 
 LIBS = -arch x86_64 -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio
 
