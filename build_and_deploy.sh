@@ -15,7 +15,7 @@ WIN32X64_FOLDER=win32-x86-64
 WIN32AMD64_FOLDER=win32-amd64
 MAKEFILE_DEFS_WIN32X64=makefiles/makefile.defs.mingw64.lib
 
-WIN32_TARGET=praat.dll
+WIN32_TARGET=jpraat.dll
 WIN32_JAR=libjpraat-win32-x86.jar
 WIN32X64_JAR=libjpraat-win32-x86-64.jar
 WIN32AMD64_JAR=libjpraat-win32-amd64.jar
