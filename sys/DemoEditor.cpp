@@ -1,6 +1,6 @@
 /* DemoEditor.cpp
  *
- * Copyright (C) 2009-2011,2013,2015,2016 Paul Boersma
+ * Copyright (C) 2009-2011,2013,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,12 +103,12 @@ static void gui_drawingarea_cb_resize (DemoEditor me, GuiDrawingArea_ResizeEvent
 }
 
 void structDemoEditor :: v_createChildren () {
-	drawingArea = GuiDrawingArea_createShown (d_windowForm, 0, 0, 0, 0,
+	drawingArea = GuiDrawingArea_createShown (our windowForm, 0, 0, 0, 0,
 		gui_drawingarea_cb_expose, gui_drawingarea_cb_click, gui_drawingarea_cb_key, gui_drawingarea_cb_resize, this, 0);
 }
 
 void DemoEditor_init (DemoEditor me) {
-	Editor_init (me, 0, 0, 1024, 768, U"", nullptr);
+	Editor_init (me, 0, 0, 1344, 756, U"", nullptr);   // 70 percent of the standard 1920x1080 screen
 	my graphics = Graphics_create_xmdrawingarea (my drawingArea);
 	Graphics_setColour (my graphics.get(), Graphics_WHITE);
 	Graphics_setWindow (my graphics.get(), 0.0, 1.0, 0.0, 1.0);
@@ -142,7 +142,7 @@ void Demo_open () {
 	if (! theReferenceToTheOnlyDemoEditor) {
 		autoDemoEditor editor = DemoEditor_create ();
 		Melder_assert (editor);
-		//GuiObject_show (editor -> d_windowForm);
+		//GuiObject_show (editor -> windowForm);
 		editor -> praatPicture = Melder_calloc_f (structPraatPicture, 1);
 		theCurrentPraatPicture = (PraatPicture) editor -> praatPicture;
 		theCurrentPraatPicture -> graphics = editor -> graphics.get();
@@ -179,12 +179,34 @@ int Demo_windowTitle (const char32 *title) {
 int Demo_show () {
 	if (! theReferenceToTheOnlyDemoEditor) return 0;
 	autoDemoOpen demo;
-	GuiThing_show (theReferenceToTheOnlyDemoEditor -> d_windowForm);
-	#if defined (macintosh)
-		Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());
-	#endif
-	GuiShell_drain (theReferenceToTheOnlyDemoEditor -> d_windowForm);
+	GuiThing_show (theReferenceToTheOnlyDemoEditor -> windowForm);
+	GuiShell_drain (theReferenceToTheOnlyDemoEditor -> windowForm);
 	return 1;
+}
+
+#if cocoa
+	@interface DemoWindowTimer: NSObject
+	- (void) timerCallback: (NSTimer *) timer;
+	@end
+	@implementation DemoWindowTimer
+	- (void) timerCallback: (NSTimer *) timer {
+		(void) timer;
+		printf ("eureka\n");
+	}
+	@end
+	DemoWindowTimer *theDemoWindowTimer;
+#endif
+
+void Demo_timer (double duration) {
+	#if cocoa
+		if (! theDemoWindowTimer)
+			theDemoWindowTimer = [[DemoWindowTimer alloc] init];
+		[NSTimer scheduledTimerWithTimeInterval: duration
+			target: theDemoWindowTimer
+			selector: @selector (timerCallback)
+			userInfo: nil
+			repeats: false];
+	#endif
 }
 
 void Demo_waitForInput (Interpreter interpreter) {
@@ -193,7 +215,7 @@ void Demo_waitForInput (Interpreter interpreter) {
 		Melder_throw (U"You cannot work with the Demo window while it is waiting for input. "
 			U"Please click or type into the Demo window or close it.");
 	}
-	//GuiObject_show (theReferenceToTheOnlyDemoEditor -> d_windowForm);
+	//GuiObject_show (theReferenceToTheOnlyDemoEditor -> windowForm);
 	theReferenceToTheOnlyDemoEditor -> clicked = false;
 	theReferenceToTheOnlyDemoEditor -> keyPressed = false;
 	theReferenceToTheOnlyDemoEditor -> waitingForInput = true;
@@ -211,7 +233,7 @@ void Demo_waitForInput (Interpreter interpreter) {
 			#elif cocoa
 				do {
 					NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-					[theReferenceToTheOnlyDemoEditor -> d_windowForm -> d_cocoaShell   flushWindow];
+					[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   flushWindow];
 					Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());   // make sure that even texts will be drawn
 					NSEvent *nsEvent = [NSApp
 						nextEventMatchingMask: NSAnyEventMask
@@ -234,19 +256,70 @@ void Demo_waitForInput (Interpreter interpreter) {
 				} while (! theReferenceToTheOnlyDemoEditor -> clicked &&
 				         ! theReferenceToTheOnlyDemoEditor -> keyPressed &&
 						 ! theReferenceToTheOnlyDemoEditor -> userWantsToClose);
-			#elif defined (macintosh)
-				do {
-					XEvent event;
-					GuiNextEvent (& event);
-					XtDispatchEvent (& event);
-				} while (! theReferenceToTheOnlyDemoEditor -> clicked &&
-				         ! theReferenceToTheOnlyDemoEditor -> keyPressed &&
-						 ! theReferenceToTheOnlyDemoEditor -> userWantsToClose);
 			#endif
 		} catch (MelderError) {
 			Melder_flushError (U"An error made it to the outer level in the Demo window; should not occur! Please write to paul.boersma@uva.nl");
 		}
 		if (wasBackgrounding) praat_background ();
+	}
+	theReferenceToTheOnlyDemoEditor -> waitingForInput = false;
+	if (theReferenceToTheOnlyDemoEditor -> userWantsToClose) {
+		Interpreter_stop (interpreter);
+		forget (theReferenceToTheOnlyDemoEditor);
+		Melder_throw (U"You interrupted the script.");
+	}
+}
+
+void Demo_peekInput (Interpreter interpreter) {
+	if (! theReferenceToTheOnlyDemoEditor) return;
+	if (theReferenceToTheOnlyDemoEditor -> waitingForInput) {
+		Melder_throw (U"You cannot work with the Demo window while it is waiting for input. "
+			U"Please click or type into the Demo window or close it.");
+	}
+	//GuiObject_show (theReferenceToTheOnlyDemoEditor -> windowForm);
+	theReferenceToTheOnlyDemoEditor -> clicked = false;
+	theReferenceToTheOnlyDemoEditor -> keyPressed = false;
+	theReferenceToTheOnlyDemoEditor -> x = 0;
+	theReferenceToTheOnlyDemoEditor -> y = 0;
+	theReferenceToTheOnlyDemoEditor -> key = U'\0';
+	theReferenceToTheOnlyDemoEditor -> shiftKeyPressed = false;
+	theReferenceToTheOnlyDemoEditor -> commandKeyPressed = false;
+	theReferenceToTheOnlyDemoEditor -> optionKeyPressed = false;
+	theReferenceToTheOnlyDemoEditor -> extraControlKeyPressed = false;
+	theReferenceToTheOnlyDemoEditor -> waitingForInput = true;
+	{// scope
+		autoMelderSaveDefaultDir saveDir;
+		//bool wasBackgrounding = Melder_backgrounding;
+		//if (wasBackgrounding) praat_foreground ();
+		try {
+			#if gtk
+				while (gtk_events_pending ()) {
+					gtk_main_iteration ();
+				}
+			#elif cocoa
+				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+				[theReferenceToTheOnlyDemoEditor -> windowForm -> d_cocoaShell   flushWindow];
+				Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());   // make sure that even texts will be drawn
+				while (NSEvent *nsEvent = [NSApp
+					nextEventMatchingMask: NSAnyEventMask
+					untilDate: [NSDate distantPast]   // don't wait
+					inMode: NSDefaultRunLoopMode
+					dequeue: YES])
+				{
+					[NSApp  sendEvent: nsEvent];
+				}
+				[NSApp  updateWindows];   // called automatically?
+				[pool release];
+			#elif defined (_WIN32)
+				XEvent event;
+				while (PeekMessage (& event, 0, 0, 0, PM_REMOVE)) {
+					XtDispatchEvent (& event);
+				}
+			#endif
+		} catch (MelderError) {
+			Melder_flushError (U"An error made it to the outer level in the Demo window; should not occur! Please write to paul.boersma@uva.nl");
+		}
+		//if (wasBackgrounding) praat_background ();
 	}
 	theReferenceToTheOnlyDemoEditor -> waitingForInput = false;
 	if (theReferenceToTheOnlyDemoEditor -> userWantsToClose) {
@@ -364,6 +437,7 @@ bool Demo_clickedIn (double left, double right, double bottom, double top) {
 		Melder_throw (U"You cannot work with the Demo window while it is waiting for input. "
 			U"Please click or type into the Demo window or close it.");
 	}
+	if (! theReferenceToTheOnlyDemoEditor -> clicked) return false;
 	double xWC = Demo_x (), yWC = Demo_y ();
 	return xWC >= left && xWC < right && yWC >= bottom && yWC < top;
 }

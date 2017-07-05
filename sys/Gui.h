@@ -2,7 +2,7 @@
 #define _Gui_h_
 /* Gui.h
  *
- * Copyright (C) 1993-2011,2012,2013,2014,2015,2016 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2011,2012,2013,2014,2015,2016,2017 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -657,9 +657,9 @@ Thing_define (GuiMenuItem, GuiThing) {
 #define GuiMenu_BUTTON_STATE_MASK  (GuiMenu_INSENSITIVE|GuiMenu_CHECKBUTTON|GuiMenu_TOGGLE_ON|GuiMenu_ATTRACTIVE|GuiMenu_RADIO_FIRST|GuiMenu_RADIO_NEXT)
 
 /* Accelerators: */
-#define GuiMenu_OPTION  (1 << 21)
-#define GuiMenu_SHIFT  (1 << 22)
-#define GuiMenu_COMMAND  (1 << 23)
+#define GuiMenu_OPTION  (1 << 24)
+#define GuiMenu_SHIFT  (1 << 25)
+#define GuiMenu_COMMAND  (1 << 26)
 #define GuiMenu_LEFT_ARROW  1
 #define GuiMenu_RIGHT_ARROW  2
 #define GuiMenu_UP_ARROW  3
@@ -812,8 +812,8 @@ GuiScrollBar GuiScrollBar_createShown (GuiForm parent, int left, int right, int 
 	double minimum, double maximum, double value, double sliderSize, double increment, double pageIncrement,
 	GuiScrollBarCallback valueChangedCallback, Thing valueChangedBoss, uint32 flags);
 
-int GuiScrollBar_getValue (GuiScrollBar me);
-int GuiScrollBar_getSliderSize (GuiScrollBar me);
+double GuiScrollBar_getValue (GuiScrollBar me);
+double GuiScrollBar_getSliderSize (GuiScrollBar me);
 void GuiScrollBar_set (GuiScrollBar me, double minimum, double maximum, double value,
 	double sliderSize, double increment, double pageIncrement);
 
@@ -944,7 +944,6 @@ void GuiObject_destroy (GuiObject me);
 void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file));
 void Gui_setQuitApplicationCallback (int (*quitApplicationCallback) (void));
 
-extern GuiObject theGuiTopMenuBar;
 extern unsigned long theGuiTopLowAccelerators [8];
 
 /* End of file Gui.h */

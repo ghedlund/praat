@@ -1,6 +1,6 @@
 /* Sound_extensions.cpp
  *
- * Copyright (C) 1993-2011, 2015-2016 David Weenink
+ * Copyright (C) 1993-2011, 2015-2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@
 #include "DurationTier.h"
 #include "Ltas.h"
 #include "Manipulation.h"
-#include "NUM2.h"
+#include "NUMcomplex.h"
 
 
 #define MAX_T  0.02000000001   /* Maximum interval between two voice pulses (otherwise voiceless). */
@@ -645,8 +645,10 @@ autoSound Sound_createGammaTone (double minimumTime, double maximumTime, double 
 		for (long i = 1; i <= my nx; i++) {
 			double t = (i - 0.5) * my dx;
 			double f = frequency + addition / (NUM2pi * t);
-			if (f > 0 && f < samplingFrequency / 2) my z[1][i] = pow (t, gamma - 1) *
-				        exp (- NUM2pi * bandwidth * t) * cos (NUM2pi * frequency * t + addition * log (t) + initialPhase);
+			if (f > 0 && f < samplingFrequency / 2) {
+				my z[1][i] = pow (t, gamma - 1.0) * exp (- NUM2pi * bandwidth * t) * 
+					cos (NUM2pi * frequency * t + addition * log (t) + initialPhase);
+			}
 		}
 		if (scaleAmplitudes) {
 			Vector_scale (me.get(), 0.99996948);
@@ -791,8 +793,7 @@ static void NUMgammatoneFilter4 (double *x, double *y, long n, double centre_fre
 		       - b[5] * y[i - 5] - b[6] * y[i - 6] - b[7] * y[i - 7] - b[8] * y[i - 8];
 	}
 }
-
-
+#if 0
 autoSound Sound_filterByGammaToneFilter4 (Sound me, double centre_frequency, double bandwidth) {
 	try {
 		if (centre_frequency <= 0) {
@@ -823,6 +824,32 @@ autoSound Sound_filterByGammaToneFilter4 (Sound me, double centre_frequency, dou
 		Melder_throw (U"Sound not filtered by gammatone filter4.");
 	}
 }
+#endif
+
+
+autoSound Sound_filterByGammaToneFilter4 (Sound me, double centre_frequency, double bandwidth) {
+	return Sound_filterByGammaToneFilter (me, centre_frequency, bandwidth, 4, 0.0);
+}
+
+autoSound Sound_filterByGammaToneFilter (Sound me, double centre_frequency, double bandwidth, long gamma, double initialPhase) {
+	try {
+		autoSound gammaTone = Sound_createGammaTone (my xmin, my xmax, 1.0 / my dx, gamma, centre_frequency, bandwidth, initialPhase, 0.0, 0);
+		// kSounds_convolve_scaling_INTEGRAL, SUM, NORMALIZE, PEAK_099
+		autoSound thee = Sounds_convolve (me, gammaTone.get(), kSounds_convolve_scaling_INTEGRAL, kSounds_convolve_signalOutsideTimeDomain_ZERO);
+		
+		double response_re, response_im;
+		gammaToneFilterResponseAtResonance (centre_frequency, bandwidth, gamma, initialPhase, my xmax - my xmin, & response_re, & response_im);
+		
+		double scale = 1.0 / sqrt (response_re * response_re + response_im * response_im);
+		for (long i = 1; i <= thy nx; i++) {
+			thy z[1][i] *= scale;
+		}
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (U"Sound not filtered by gammatone filter4.");
+	}
+}
+
 
 /*
 Sound Sound_createShepardTone (double minimumTime, double maximumTime, double samplingFrequency,
@@ -1831,7 +1858,7 @@ static void _Sound_getWindowExtrema (Sound me, double *tmin, double *tmax, doubl
 	 We want to find the point in this interval where the formula switches from true to false.
 	 The x-value of the best point is approximated by a number of bisections.
 	 It is essential that the intermediate interpolated y-values are always between the values at points isample and isample+1.
-	 We cannot use a sinc-interpolation because at strong amplitude changes high-frequency oscilations may occur.
+	 We cannot use a sinc-interpolation because at strong amplitude changes high-frequency oscillations may occur.
 	 (may be leave out the interpolation and just use Vector_VALUE_INTERPOLATION_LINEAR only?)
 */
 static void Sound_findIntermediatePoint_bs (Sound me, long ichannel, long isample, bool left, bool right, const char32 *formula,
@@ -1843,7 +1870,7 @@ static void Sound_findIntermediatePoint_bs (Sound me, long ichannel, long isampl
 		*x = Matrix_columnToX (me, isample + 1);
 		*y = my z[ichannel][isample + 1];
 	}
-	if ( (left && right) || (!left && !right)) {
+	if (left == right) {
 		Melder_throw (U"Invalid situation.");
 	}
 
@@ -1852,40 +1879,36 @@ static void Sound_findIntermediatePoint_bs (Sound me, long ichannel, long isampl
 	}
 
 	long nx = 3;
-	double dx = my dx / 2;
+	double dx = my dx / 2.0;
 	double xleft = Matrix_columnToX (me, isample);
 	autoSound thee = Sound_create (my ny, my xmin, my xmax, nx, dx, xleft); // my domain !
 
 	for (long channel = 1; channel <= my ny; channel++) {
 		thy z[channel][1] = my z[channel][isample]; thy z[channel][3] = my z[channel][isample + 1];
 	}
-
-	Formula_compile (interpreter, thee.get(), formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
-
 	// bisection to find optimal x and y
 	long istep = 1;
 	double xright = xleft + my dx, xmid; // !!
 	do {
-		xmid = (xleft + xright) / 2;
+		xmid = (xleft + xright) / 2.0;
 
 		for (long channel = 1; channel <= my ny; channel++) {
 			thy z[channel][2] = Vector_getValueAtX (me, xmid, channel, interpolation);
 		}
-
-		// Only thy x1 and thy dx have changed; It seems we don't have to recompile.
 		struct Formula_Result result;
+		Formula_compile (interpreter, thee.get(), formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
 		Formula_run (ichannel, 2, & result);
 		bool current = (result.result.numericResult != 0.0);
 
-		dx /= 2;
-		if ((left && current) || (! left && ! current)) {
+		dx /= 2.0;
+		if (left == current) {
 			xleft = xmid;
 			left = current;
 			for (long channel = 1; channel <= my ny; channel++) {
 				thy z[channel][1] = thy z[channel][2];
 			}
 			thy x1 = xleft;
-		} else if ((left && ! current) || (!left && current)) {
+		} else if (left != current) { // xor of booleans!
 			xright = xmid;
 			right = current;
 			for (long channel = 1; channel <= my ny; channel++) {
@@ -1896,8 +1919,8 @@ static void Sound_findIntermediatePoint_bs (Sound me, long ichannel, long isampl
 			break;
 		}
 
-		thy xmin = xleft - dx / 2;
-		thy xmax = xright + dx / 2;
+		thy xmin = xleft - dx / 2.0;
+		thy xmax = xright + dx / 2.0;
 		thy dx = dx;
 		istep ++;
 	} while (istep < numberOfBisections);

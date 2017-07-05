@@ -1,13 +1,15 @@
 # File: makefile
 
 # Makefile for Praat.
-# Paul Boersma, 14 January 2012
+# Paul Boersma, 22 October 2016
 
 # System-dependent definitions of CC, LIBS, ICON and MAIN_ICON should be in
 # makefile.defs, which has to be copied and renamed
 # from a suitable makefile.defs.XXX file in the makefiles directory,
 # Perhaps that file requires some editing.
 include makefile.defs
+
+.PHONY: all clean install
 
 # Makes the Praat executable in the source directory.
 all:
@@ -99,3 +101,6 @@ clean:
 	$(MAKE) -C jpraat clean
 	$(RM) praat
 	$(RM) $(LIBRARY)
+
+install:
+	$(INSTALL)

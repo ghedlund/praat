@@ -1,6 +1,6 @@
 /* manual_dwtools.cpp
  *
- * Copyright (C) 1993-2016 David Weenink
+ * Copyright (C) 1993-2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 
 static autoTableOfReal getStandardizedLogFrequencyPolsData (bool includeLevels) {
-	autoTableOfReal me = TableOfReal_createFromPolsData_50males (includeLevels);
+	autoTableOfReal me = TableOfReal_create_pols1973 (includeLevels);
 	for (long i = 1; i <= my numberOfRows; i++) {
 		for (long j = 1; j <= 3; j++) {
 			my data[i][j] = log10 (my data[i][j]);
@@ -1300,7 +1300,7 @@ DEFINITION (U"define the coefficients of each @@Legendre polynomials|Legendre po
 	"The coefficient of the polynomial with the highest degree comes last.")
 MAN_END
 
-MAN_BEGIN (U"Create Sound from gammatone...", U"djmw", 20100517)
+MAN_BEGIN (U"Create Sound as gammatone...", U"djmw", 20161013)
 INTRO (U"A command to create a @Sound as a @@gammatone@.")
 ENTRY (U"Settings")
 TAG (U"##Name")
@@ -1342,7 +1342,7 @@ NORMAL (U"To avoid @aliasing in the chirp sound, a sound is only generated durin
 	"instantaneous frequency is greater than zero and smaller than the @@Nyquist frequency@.")
 MAN_END
 
-MAN_BEGIN (U"Create Sound from Shepard tone...", U"djmw", 20140117)
+MAN_BEGIN (U"Create Sound as Shepard tone...", U"djmw", 20161013)
 INTRO (U"One of the commands that create a @Sound.")
 ENTRY (U"Settings")
 TAG (U"##Name")
@@ -1393,7 +1393,7 @@ NORMAL (U"The following script generates 12 static Shepard tone complexes, 1 sem
 CODE (U"fadeTime = 0.010")
 CODE (U"for i to 12")
 CODE1 (U"fraction = (i-1)/12")
-CODE1 (U"Create Sound from Shepard tone: \"s\" + string\\$  (i), 0, 0.1, 22050, 4.863, 10, 0, 34, fraction")
+CODE1 (U"Create Sound as Shepard tone: \"s\" + string\\$  (i), 0, 0.1, 22050, 4.863, 10, 0, 34, fraction")
 CODE1 (U"Fade in: 0, 0, fadeTime, \"no\"")
 CODE1 (U"Fade out: 0, 0.1, -fadeTime, \"no\"")
 CODE (U"endfor")
@@ -2203,6 +2203,33 @@ INTRO (U"A command to query the selected @Eigen for the %j^^th^ element of the "
 	"%i^^th^ eigenvector.")
 MAN_END
 
+MAN_BEGIN (U"Eigen: Extract eigenvector...", U"djmw", 20160617)
+INTRO (U"Extract a specified eigenvector from the @Eigen as a @Matrix.")
+ENTRY (U"Settings")
+TAG (U"##Eigenvector number")
+DEFINITION (U"determines the eigenvector.")
+TAG (U"##Number of rows")
+DEFINITION (U"determines the number of rows of the newly created Matrix. If left 0, the number of rows is determined from the dimension, i.e. the number of elements, of the eigenvector and the #numberOfColumns argument as the %dimension / %numberOfColumns, rounded to the next larger integer.")
+TAG (U"##Number of columns")
+DEFINITION (U"determines the number of columns of the newly created Matrix. If left 0, the number of columns is determined by from the dimension, i.e. the number of elements, of the eigenvector and the #numberOfRows argument as  %dimension / %numberOfRows, rounded to the next larger integer.\nIf both ##Number of rows# and ##Number of columns# are zero, a Matrix with only one row and %dimension columns will be created.")
+ENTRY (U"Examples")
+NORMAL (U"Suppose we have an eigenvector of dimension 3 with elements {0.705, 0.424, 0.566}, then the newly created Matrix will depend on the ##Number of rows# and ##Number of columns# argument as follows:")
+NORMAL (U"If %numberOfRows=0 and %numberOfColumns=0, then the Matrix will have 1 row and 3 columns:")
+CODE (U"0.705 0.424 0.566")
+NORMAL (U"If %numberOfRows=3 and %numberOfColumns=0, then the Matrix will have 3 rows and 1 column:")
+CODE (U"0.705")
+CODE (U"0.424")
+CODE (U"0.566")
+NORMAL (U"If %numberOfRows=2 and %numberOfColumns=2, then the Matrix will have 2 rows and 2 columns:")
+CODE (U"0.705 0.424")
+CODE (U"0.566 0.0")
+NORMAL (U"If %numberOfRows=4 and %numberOfColumns=3, then the we get:")
+CODE (U"0.705 0.424 0.566")
+CODE (U"0.0   0.0   0.0 ")
+CODE (U"0.0   0.0   0.0 ")
+CODE (U"0.0   0.0   0.0 ")
+MAN_END
+
 MAN_BEGIN (U"Eigen & Matrix: To Matrix (project columns)...", U"djmw", 20160223)
 INTRO (U"A command to project the columns of the @Matrix object onto the "
 	"eigenspace of the @Eigen object.")
@@ -2381,6 +2408,21 @@ CODE (U"X = Q*( I   0    )")
 CODE (U"      ( 0 inv(R) ),")
 NORMAL (U"form the eigenvectors. The important eigenvectors, of course, correspond "
 	"to the positions where the %l eigenvalues are not infinite.")
+MAN_END
+
+MAN_BEGIN (U"Get incomplete gamma...", U"djmw", 20170531)
+INTRO (U"Get the value of the @@incomplete gamma function@ for particular values of \\al and %x.")
+ENTRY (U"Algorithm")
+NORMAL (U"The algorithm is taken from @@Kostlan & Gokhman (1987)@.")
+MAN_END
+
+MAN_BEGIN (U"incomplete gamma function", U"djmw", 20170531)
+INTRO (U"The incomplete gamma function is defined as:")
+FORMULA (U"\\Ga(\\al, %x) = \\in__%x_^^\\oo^ %t^^\\al\\-m1^e^^-%t^dt, \\Ga(\\al) = \\Ga(\\al, 0),")
+NORMAL (U"where \\al and %x are complex numbers and Re(\\al) > 0.")
+NORMAL (U"The complementary incomplete gamma function is defined as:")
+FORMULA (U"\\ga(\\al, %x) = \\in__%0_^^%x^ %t^^\\al\\-m1^e^^-%t^dt = \\Ga(\\al)\\-m\\Ga(\\al, %x).")
+
 MAN_END
 
 MAN_BEGIN (U"invFisherQ", U"djmw", 20000525)
@@ -3482,8 +3524,8 @@ INTRO (U"A command to draw only those parts of a @Sound where a condition holds.
 ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Sound: Draw where...", 5)
-	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (=all)")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (=all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (= all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (= all)")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN("Garnish", 1)
 	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU("Drawing method", "Curve")
 	Manual_DRAW_SETTINGS_WINDOW_TEXT ("Draw only those parts where the following condition holds",
@@ -3639,8 +3681,8 @@ ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (6), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Sound: Paint where...", 6)
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Colour (0-1, name, {r,g,b})", "0.5")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (=all)")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (=all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (= all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (= all)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Fill from level", "0")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN("Garnish", 1)
 	Manual_DRAW_SETTINGS_WINDOW_TEXT ("Paint only those parts where the following condition holds",
@@ -3707,8 +3749,8 @@ ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (4), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Sounds: Paint enclosed", 4)
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Colour (0-1, name, {r,g,b})", "0.5")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (=all)")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (=all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE("Time range (s)", "0.0", "0.0 (= all)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (= all)")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN("Garnish", 1)
 )
 TAG (U"##Colour")
@@ -4140,6 +4182,49 @@ INTRO (U"Extract those rows from the selected @TableOfReal object whose @@Mahala
 	"quantile range.")
 MAN_END
 
+MAN_BEGIN (U"Create Strings as tokens...", U"djmw", 20170417)
+INTRO (U"Create a new @@Strings@ object as a list of tokens.")
+ENTRY (U"Settings")
+TAG (U"##Text#")
+DEFINITION (U"the text to be tokenized.")
+TAG (U"##Separators#")
+DEFINITION (U"determines the separator characters. If left empty a space will be used as a separator")
+ENTRY (U"Behaviour")
+NORMAL (U"Multiple consecutive separators in the text will be treated as one.")
+ENTRY (U"Examples")
+TAG (U"Example 1")
+CODE (U"Create Strings as tokens: \"a b c\", \" \"")
+DEFINITION (U"will produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 2")
+CODE (U"Create Strings as tokens: \"a   b   c \", \" \"")
+DEFINITION (U"will also produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 3")
+CODE (U"Create Strings as tokens: \"a,b,c\", \",\"")
+DEFINITION (U"will produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 4")
+CODE (U"Create Strings as tokens: \"a, b, c\", \",\"")
+DEFINITION (U"will produce a Strings object with 3 strings in it: \"a\", \" b\" and \" c\".")
+TAG (U"Example 5")
+CODE (U"Create Strings as tokens: \"a, b, c\", \" ,\"")
+DEFINITION (U"will produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 6")
+CODE (U"Create Strings as tokens: \"a,,b,c\", \" ,\"")
+DEFINITION (U"will also produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 7")
+CODE (U"Create Strings as tokens: \"a, ,b,c\", \",\"")
+DEFINITION (U"will produce a Strings with 4 strings in it: \"a\",\" \", \"b\" and \"c\".")
+TAG (U"Example 8")
+CODE (U"Create Strings as tokens: \"a,b,c,\", \",\"")
+DEFINITION (U"will produce a Strings object with 3 strings in it: \"a\", \"b\" and \"c\".")
+TAG (U"Example 9")
+CODE (U"Create Strings as tokens: \"a,b,c, \", \",\"")
+DEFINITION (U"will produce a Strings object with 4 strings in it: \"a\", \"b\", \"c\" and \" \".")
+TAG (U"Example 10")
+CODE (U"Create Strings as tokens: \"A string\" + tab\\$ + \"of ..tokens\" + newline\\$ + \"and some  more tokens\", \" .,\" + tab\\$ + newline\\$ ")
+DEFINITION (U"will produce a Strings object with 8 strings in it: \"A\", \"string\", \"of\", \"tokens\", \"and\", \"some\", \"more\" and \"tokens\".")
+
+MAN_END
+
 MAN_BEGIN (U"T-test", U"djmw", 20020117)
 INTRO (U"A test on the mean of a normal variate when the variance is unknown.")
 NORMAL (U"In Praat, the t-test is used to query a @Covariance object and:")
@@ -4196,7 +4281,7 @@ ENTRY (U"Settings")
 SCRIPT (6, Manual_SETTINGS_WINDOW_HEIGHT (10), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Table: Bar plot where", 10)
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Vertical column(s)", "")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE("Vertical range", "0.0", "0.0 (=autoscaling)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE("Vertical range", "0.0", "0.0 (= autoscaling)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Column with labels", "")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Distance of first bar from border", "1.0")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Distance between bar groups", "1.0")
@@ -4288,13 +4373,13 @@ ENTRY (U"Settings")
 SCRIPT (7, Manual_SETTINGS_WINDOW_HEIGHT (8), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Table: Line graph where", 8)
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Vertical column", "")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (=autoscaling)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (= autoscaling)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Horizontal column", "")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Horizontal range", "0.0", "0.0 (=autoscaling)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Horizontal range", "0.0", "0.0 (= autoscaling)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Text", "+")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Label text angle (degrees)", "0.0")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN("Garnish", 1)
-	Manual_DRAW_SETTINGS_WINDOW_TEXT("Formula:", "1; (=everything)")
+	Manual_DRAW_SETTINGS_WINDOW_TEXT("Formula:", "1; (= everything)")
 )
 TAG (U"##Vertical column")
 DEFINITION (U"The column whose data points you want to plot.")
@@ -4391,14 +4476,14 @@ ENTRY (U"Settings")
 SCRIPT (6, Manual_SETTINGS_WINDOW_HEIGHT (9), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Table: Vertical confidence intervals plot where", 9)
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Horizontal column", "")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Horizontal range", "0.0", "0.0 (=autoscaling)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Horizontal range", "0.0", "0.0 (= autoscaling)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Vertical column", "")
-	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (=autoscaling)")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Vertical range", "0.0", "0.0 (= autoscaling)")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Lower error value column", "")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Upper error value column", "")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Bar size (mm)", "1.0")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN("Garnish", 1)
-	Manual_DRAW_SETTINGS_WINDOW_TEXT("Formula", "1; (=everything)")
+	Manual_DRAW_SETTINGS_WINDOW_TEXT("Formula", "1; (= everything)")
 )
 TAG (U"##Horizontal column")
 DEFINITION (U"determines the data along the horizontal axis.")
@@ -4869,6 +4954,91 @@ NORMAL (U"We add an extra (empty) interval into each %%interval tier%. "
 NORMAL (U"For %%point tiers% only the domain will be changed.")
 MAN_END
 
+MAN_BEGIN (U"TextGrid & DurationTier: To TextGrid (scale times)", U"djmw", 20170612)
+INTRO (U"Scales the durations of the selected @@TextGrid@ intervals as specified by the selected @@DurationTier@.")
+
+MAN_END
+
+MAN_BEGIN (U"TextGrid: To DurationTier...", U"djmw", 20170617)
+INTRO (U"Returns a @@DurationTier@ that could scale the durations of the specified intervals of the selected @@TextGrid@ with a specified factor.")
+ENTRY (U"Settings")
+SCRIPT (6, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
+	Manual_DRAW_SETTINGS_WINDOW ("TextGrid: To DurationTier", 5)
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Tier number", "1")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD("Time scale factor", "2.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD("Left transition duration", "1e-10")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD("Right transition duration", "1e-10")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Scale intervals whose labels", "starts with")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("...the text", "hi")
+)
+TAG (U"##Tier number#")
+DEFINITION (U"specifies the tier with the intervals.")
+TAG (U"##Time scale factor")
+DEFINITION (U"specifies the scale factor by which the duration of a selected interval has to be multiplied.")
+TAG (U"##Left transition duration#")
+DEFINITION (U"specifies how long it takes to go from a time scale factor of 1.0 to the specified one. Default a very small duration is used. ")
+TAG (U"##Right transition duration#")
+DEFINITION (U"specifies the time it takes to go from the specified time scale factor to 1.0. Default a very small duration is used.")
+TAG (U"##Scale intervals whose labels")
+DEFINITION (U"specifies the interval selection criterion.")
+TAG (U"##...the text")
+DEFINITION (U"specifies the text used in the selection criterion.")
+ENTRY (U"Algorithm")
+SCRIPT (5, 3, U"ymin = 0.9\n"
+	"Axes: 0, 1, ymin, 2.0\n" 
+	"t1 = 0.2\n"
+	"t4 = 0.9\n"
+	"timeScaleFactor = 1.5\n"
+	"leftTransitionDuration = 0.1\n"
+	"rightTransitionDuration = 0.2\n"
+	"t2 = t1 + leftTransitionDuration\n"
+	"t3 = t4 - rightTransitionDuration\n"
+	"Solid line\n"
+	"Draw line: t1, 1, t2, timeScaleFactor\n"
+	"Draw line: t2, timeScaleFactor, t3, timeScaleFactor\n"
+	"Draw line: t3, timeScaleFactor, t4, 1.0\n"
+	"Dotted line\n"
+	"Draw line: 0, 1, t1, 1\n"
+	"Draw line: t4, 1.0, 1.0, 1.0\n"
+	"Draw line: t1, ymin, t1, timeScaleFactor+0.1\n"
+	"Draw line: t2, ymin, t2, timeScaleFactor+0.1\n"
+	"Draw two-way arrow: t1, timeScaleFactor+0.1, t2, timeScaleFactor+0.1\n"
+	"Text: (t1+t2)/2, \"Centre\", timeScaleFactor+0.1, \"Bottom\", \"leftTransitionDuration\"\n"
+	"Draw line: t3, ymin, t3, timeScaleFactor+0.1\n"
+	"Draw line: t4, ymin, t4, timeScaleFactor+0.1\n"
+	"Draw two-way arrow: t3, timeScaleFactor+0.1, t4, timeScaleFactor+0.1\n"
+	"Text: (t3+t4)/2, \"Centre\", timeScaleFactor+0.1, \"Bottom\", \"rightTransitionDuration\"\n"
+	"One mark bottom: t1, \"no\", \"yes\", \"no\", \"t__1_\"\n"
+	"One mark bottom: t2, \"no\", \"yes\", \"no\", \"t__2_\"\n"
+	"One mark bottom: t3, \"no\", \"yes\", \"no\", \"t__3_\"\n"
+	"One mark bottom: t4, \"no\", \"yes\", \"no\", \"t__4_\"\n"
+	"One mark left: 1.0, \"yes\", \"yes\", \"no\", \"\"\n"
+	"Text bottom: \"yes\", \"Time (s) \\->\"\n"
+	"Text left: \"yes\", \"Duration scale factor \\->\"\n"
+	"Draw inner box\n"
+)
+NORMAL (U"For each selected interval its duration will be specified by four points in the duration tier as the figure above shows. "
+	"Given that the start time "
+	"and the end time of the interval are at %t__1_ and %t__4_, respectively, the times of these four points will be "
+	"%t__1_, %t__2_=%t__1_+%%leftTransitionDuration%, %t__3_=%t__4_-%%rightTransitionDuration% and %t__4_. The associated duration scale factors "
+	"will be 1.0, %%timeScalefactor%, %%timeScalefactor% and 1.0, respectively.")
+NORMAL (U"Normally we would use very small values for the right and the left transition durations and the curve in the figure above "
+	"would look more like a rectangular block instead of the trapezium above. If, on the contrary, larger values for the durations are taken, such that the sum of "
+	"the left and the right transition durations %%exceeds% the interval's width, then the ordering of the time points at %t__1_ to %t__4_ changes "
+	"which will have unexpected results on the duration tier.")
+ENTRY (U"Examples")
+NORMAL (U"Suppose you want to change the durations of some parts in a sound. The way to go is:")
+LIST_ITEM (U"1. Create a TextGrid with at least one interval tier with the segments of interest labeled.")
+LIST_ITEM (U"2. Select the TextGrid and choose the ##To DurationTier...# option.")
+LIST_ITEM (U"3. Use the selected sound to create a @@Manipulation@ object from it. Check and eventually correct the pitch measurements in this object (##View & Edit#) as the quality of the resynthesis depends critically on the quality of the pitch measurements.")
+LIST_ITEM (U"4. Select the Manipulation object and the newly created DurationTier object together and choose ##Replace duration tier#.")
+LIST_ITEM (U"5. Select the Manipulation object and choose ##Get resynthesis (overlap-add)#. The newly created sound object will have the "
+	"durations of its selected intervals changed.")
+LIST_ITEM (U"6. Optionally you might also want to scale the TextGrid to line up with the newly created sound too. You can do so by selecting the "
+	"TextGrid and the DurationTier together and choose ##To TextGrid (scale times)#. You will get a new TextGrid that is nicely "
+	"aligned with the new sound.")
+MAN_END
+
 MAN_BEGIN (U"TIMIT acoustic-phonetic speech corpus", U"djmw", 19970320)
 INTRO (U"A large American-English speech corpus that resulted from the joint efforts "
 	"of several American research sites.")
@@ -4966,10 +5136,10 @@ NORMAL (U"for 0 \\<_ %x \\<_ 1 and %a and %b and %a+%b not equal to a negative i
 //Symmetry: $I_x(a,b) = 1 - I_{1-x}(b,a)$
 MAN_END
 
-MAN_BEGIN (U"incompleteGammaP", U"djmw", 20071024)
+MAN_BEGIN (U"incompleteGammaP", U"djmw", 20170531)
 TAG (U"##incompleteGammaP (%a, %x)")
 DEFINITION (U"incompleteGammaP = 1/\\Ga(%a)\\in__0_^%x e^^-%t^%t^^%a-1^ dt,")
-NORMAL (U"For %x\\>_ 0 and %a not a negative integer.")
+NORMAL (U"where %x and %a are real numbers that satisfy %x\\>_ 0 and %a not being a negative integer.")
 MAN_END
 
 MAN_BEGIN (U"lnBeta", U"djmw", 20071024)
@@ -5073,7 +5243,7 @@ NORMAL (U"P.I.M. Johannesma (1972): \"The pre-response stimulus ensemble of "
 MAN_END
 
 MAN_BEGIN (U"Johnson (1998)", U"djmw", 20000525)
-NORMAL (U"D.E. Johnson (1998): %%Applied Multivariate methods%.")
+NORMAL (U"D.E. Johnson (1998): %%Applied multivariate methods%.")
 MAN_END
 
 MAN_BEGIN (U"Keating & Esposito (2006)", U"djmw", 20130620)
@@ -5089,8 +5259,12 @@ MAN_BEGIN (U"Kim & Kim (2006)", U"djmw", 20110617)
 NORMAL (U"D.H. Kim & M.-J. Kim (2006): \"An extension of polygon clipping to resolve degenerate cases.\" %%Computer-Aided Design & Applications% #3: 447\\--456.")
 MAN_END
 
+MAN_BEGIN (U"Kostlan & Gokhman (1987)", U"djmw", 20170530)
+NORMAL (U"E. Kostlan & D. Gokhman (1987): \"A program for calculating the incomplete gamma function.\" %%Technical report, Dept. of Mathematics, Univ. of California, Berkeley, 1987.")
+MAN_END
+
 MAN_BEGIN (U"Krishnamoorthy & Yu (2004)", U"djmw", 20090813)
-NORMAL (U"K. Krishnamoortht & J. Yu (2004): \"Modified Nel and Van der Merwe test for multivariate "
+NORMAL (U"K. Krishnamoorthy & J. Yu (2004): \"Modified Nel and Van der Merwe test for multivariate "
 	"Behrens-Fisher problem.\" %%Statistics & Probability Letters% #66: 161\\--169.")
 MAN_END
 
@@ -5102,7 +5276,7 @@ NORMAL (U"L.F. Lamel, R.H. Kassel & S. Sennef (1986): \"Speech Database "
 MAN_END
 
 MAN_BEGIN (U"Morrison (1990)", U"djmw", 19980123)
-NORMAL (U"D.F. Morrison (1990): %%Multivariate Statistical Methods%. "
+NORMAL (U"D.F. Morrison (1990): %%Multivariate statistical methods%. "
 	"New York: McGraw-Hill.")
 MAN_END
 

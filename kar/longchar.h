@@ -2,7 +2,7 @@
 #define _longchar_h_
 /* longchar.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,6 @@
 
 char32_t * Longchar_nativize32 (const char32_t *generic, char32_t *native, int educateQuotes);
 
-char * Longchar_genericize (const char *native, char *generic);
 char32_t *Longchar_genericize32 (const char32_t *native, char32_t *generic);
 /*
 	Function:
@@ -66,6 +65,7 @@ typedef struct structLongchar_Info {
 	unsigned char first, second;   /* First and second character of two-byte encoding. */
 		/* For ASCII characters, 'second' is a space. */
 	unsigned char alphabet;   /* Roman, Symbol, Phonetic, or Dingbats. */
+	unsigned char isDiacritic;
 	struct {
 		const char *name;   /* The PostScript name, starting with a slash. */
 		/* The widths in thousands of the height. */
@@ -84,7 +84,7 @@ typedef struct structLongchar_Info {
 }
 	*Longchar_Info;
 
-Longchar_Info Longchar_getInfo (char kar1, char kar2);
+Longchar_Info Longchar_getInfo (char32_t kar1, char32_t kar2);
 Longchar_Info Longchar_getInfoFromNative (char32_t kar);
 /* If no info found, these two routines return the info for a space. */
 
@@ -107,6 +107,10 @@ Longchar_Info Longchar_getInfoFromNative (char32_t kar);
 	Thus, the string typed as "`hallo'" will give you left and right quotes,
 	even on Macintosh. (Reading this note in Xwindows may feel somewhat funny.)
 */
+
+inline static bool Longchar_Info_isDiacritic (Longchar_Info me) {
+	return me -> isDiacritic;
+}
 
 /* End of file longchar.h */
 #endif

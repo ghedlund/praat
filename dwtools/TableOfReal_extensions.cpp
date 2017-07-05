@@ -1,6 +1,6 @@
 /* TableOfReal_extensions.cpp
  *
- * Copyright (C) 1993-2012, 2014, 2015 David Weenink
+ * Copyright (C) 1993-2012, 2014, 2015, 2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -835,7 +835,7 @@ void TableOfReal_drawScatterPlotMatrix (TableOfReal me, Graphics g, long colb, l
 	Graphics_unsetInner (g);
 }
 
-void TableOfReal_drawAsSquares_area (TableOfReal me, Graphics g, double zmin, double zmax, double cellSizeFactor, int randomFillOrder, bool garnish) {
+void TableOfReal_drawAsScalableSquares (TableOfReal me, Graphics g, double zmin, double zmax, double cellSizeFactor, int randomFillOrder, bool garnish) {
 	try {
 		cellSizeFactor = cellSizeFactor <= 0.0 ? 1.0 : cellSizeFactor;
 		if (zmin == 0 && zmax == 0) {
@@ -1000,7 +1000,7 @@ double TableOfReal_getColumnQuantile (TableOfReal me, long col, double quantile)
 
 static autoTableOfReal TableOfReal_createPolsVanNieropData (int choice, bool include_levels) {
 	try {
-		autoTable table = Table_createFromPolsVanNieropData ();
+		autoTable table = Table_create_polsVanNierop1973 ();
 
 		// Default: Pols 50 males, first part of the table.
 
@@ -1039,19 +1039,19 @@ static autoTableOfReal TableOfReal_createPolsVanNieropData (int choice, bool inc
 	}
 }
 
-autoTableOfReal TableOfReal_createFromPolsData_50males (bool include_levels) {
+autoTableOfReal TableOfReal_create_pols1973 (bool include_levels) {
 	return TableOfReal_createPolsVanNieropData (1, include_levels);
 }
 
-autoTableOfReal TableOfReal_createFromVanNieropData_25females (bool include_levels) {
+autoTableOfReal TableOfReal_create_vanNierop1973 (bool include_levels) {
 	return TableOfReal_createPolsVanNieropData (2, include_levels);
 }
 
-autoTableOfReal TableOfReal_createFromWeeninkData (int option) {
+autoTableOfReal TableOfReal_create_weenink1983 (int option) {
 	try {
 		long nvowels = 12, ncols = 3, nrows = 10 * nvowels;
 
-		autoTable table = Table_createFromWeeninkData ();
+		autoTable table = Table_create_weenink1983 ();
 
 		long ib = ( option == 1 ? 1 : option == 2 ? 11 : 21 ); /* m f c*/
 		ib = (ib - 1) * nvowels + 1;

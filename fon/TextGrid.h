@@ -109,8 +109,8 @@ PRAAT_LIB_EXPORT long TextPoint_labelLength (TextPoint me);
 PRAAT_LIB_EXPORT long IntervalTier_maximumLabelLength (IntervalTier me);
 PRAAT_LIB_EXPORT long TextTier_maximumLabelLength (TextTier me);
 PRAAT_LIB_EXPORT long TextGrid_maximumLabelLength (TextGrid me);
-PRAAT_LIB_EXPORT void TextGrid_genericize (TextGrid me);
-PRAAT_LIB_EXPORT void TextGrid_nativize (TextGrid me);
+PRAAT_LIB_EXPORT void TextGrid_convertToBackslashTrigraphs (TextGrid me);
+PRAAT_LIB_EXPORT void TextGrid_convertToUnicode (TextGrid me);
 
 PRAAT_LIB_EXPORT void TextInterval_removeText (TextInterval me);
 PRAAT_LIB_EXPORT void TextPoint_removeText (TextPoint me);

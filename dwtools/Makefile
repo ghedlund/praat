@@ -1,10 +1,10 @@
 # Makefile of the library "dwtools"
 # David Weenink and Paul Boersma
-# 23 November 2015
+# 8 June 2017
 
 include ../makefile.defs
 
-CPPFLAGS = -I ../num -I ../LPC -I ../fon -I ../sys -I ../stat -I ../dwsys -I ../external/portaudio -I ../external/espeak -I ../EEG -I ../kar
+CPPFLAGS = -I ../num -I ../kar -I ../LPC -I ../fon -I ../sys -I ../stat -I ../dwsys -I ../external/portaudio -I ../external/espeak -I ../EEG -I ../kar
 
 OBJECTS = ActivationList.o AffineTransform.o \
 	Categories.o CategoriesEditor.o \
@@ -30,7 +30,7 @@ OBJECTS = ActivationList.o AffineTransform.o \
 	MFCC.o \
 	manual_DataModeler.o manual_dwtools.o manual_BSS.o manual_HMM.o \
 	manual_KlattGrid.o manual_MDS.o manual_Permutation.o \
-	Minimizers.o \
+	Minimizers.o MixingMatrix.o \
 	Matrix_extensions.o \
 	Matrix_Categories.o MDS.o \
 	OptimalCeilingTier.o OptimalCeilingTierEditor.o \
@@ -39,6 +39,7 @@ OBJECTS = ActivationList.o AffineTransform.o \
 	Polygon_extensions.o Procrustes.o \
 	Proximity.o \
 	Resonator.o \
+	Sound_and_MixingMatrix.o \
 	Sound_and_Spectrogram_extensions.o Sound_and_PCA.o Sound_extensions.o \
 	Sound_to_MFCC.o Sounds_to_DTW.o \
 	Sound_to_Pitch2.o Sound_to_SPINET.o SPINET.o SPINET_to_Pitch.o \
@@ -47,7 +48,7 @@ OBJECTS = ActivationList.o AffineTransform.o \
 	Table_extensions.o TableOfReal_and_SVD.o\
 	TableOfReal_extensions.o \
 	TableOfReal_and_Permutation.o \
-	TextGrid_extensions.o \
+	TextGrid_and_DurationTier.o TextGrid_extensions.o \
 	VowelEditor.o \
 	praat_MDS_init.o praat_BSS_init.o praat_HMM_init.o \
 	praat_KlattGrid_init.o praat_DataModeler_init.o praat_David_init.o

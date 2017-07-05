@@ -2,7 +2,7 @@
 #define _FunctionEditor_h_
 /* FunctionEditor.h
  *
- * Copyright (C) 1992-2011,2012,2013,2014,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2012,2013,2014,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,13 +32,13 @@ Thing_define (FunctionEditor, Editor) {
 	/* but has to respect the invariants, */
 	/* and has to call FunctionEditor_marksChanged () */
 	/* immediately after making the changes. */
-	double tmin, tmax, d_startWindow, d_endWindow;
-	double d_startSelection, d_endSelection;   // markers
+	double tmin, tmax, startWindow, endWindow;
+	double startSelection, endSelection;   // markers
 		/* These attributes are all expressed in seconds. Invariants: */
 		/*    tmin <= startWindow < endWindow <= tmax; */
 		/*    tmin <= (startSelection, endSelection) <= tmax; */
 
-	autoGraphics d_graphics;   // used in the 'draw' method
+	autoGraphics graphics;   // used in the 'draw' method
 	short functionViewerLeft, functionViewerRight;   // size of drawing areas in pixels
 	short selectionViewerLeft, selectionViewerRight;   // size of drawing areas in pixels
 	short height;   // size of drawing areas in pixels
@@ -110,6 +110,7 @@ Thing_define (FunctionEditor, Editor) {
 		 * Behaviour of FunctionEditor::click ():
 		 *    moves the cursor to 'xWC', drags to create a selection, or extends the selection.
 		 */
+	virtual void v_clickSelectionViewer (double xWC, double yWC);
 	virtual bool v_clickB (double xWC, double yWC);
 	virtual bool v_clickE (double xWC, double yWC);
 	virtual int v_playCallback (int phase, double tmin, double tmax, double t);

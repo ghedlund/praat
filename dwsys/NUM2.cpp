@@ -63,12 +63,13 @@
  djmw 20140318 NUMvector_avevar now returns variance instead of sigma^2
 */
 
+#include <cmath> 
 #include <vector>
 #include "SVD.h"
 #include "Eigen.h"
 #include "NUMclapack.h"
 #ifndef _NUM_h_
-#include "NUM.h"
+	#include "NUM.h"
 #endif
 #include "NUM2.h"
 #include "NUMmachar.h"
@@ -3141,6 +3142,14 @@ TryAgain:
 Finish:
 
   	return (flipped) ? (n - ix) : ix;
+}
+
+double NUMrandomBinomial_real (double p, long n) {
+	if (p < 0.0 || p > 1.0 || n < 0) {
+		return NUMundefined;
+	} else {
+		return (double) NUMrandomBinomial (p, n);
+	}
 }
 
 void NUMlngamma_complex (double zr, double zi, double *lnr, double *arg) {

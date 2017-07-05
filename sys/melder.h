@@ -2,7 +2,7 @@
 #define _melder_h_
 /* melder.h
  *
- * Copyright (C) 1992-2012,2013,2014,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2012,2013,2014,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,6 +173,10 @@ cont:
 			goto cont;
 	return p - 1 - string1;
 }
+inline static bool islower32 (char32 kar) { return iswlower ((int) kar); }
+inline static bool isupper32 (char32 kar) { return iswupper ((int) kar); }
+inline static char32 tolower32 (char32 kar) { return (char32) towlower ((int) kar); }
+inline static char32 toupper32 (char32 kar) { return (char32) towupper ((int) kar); }
 extern "C" char * Melder_peek32to8 (const char32 *string);
 inline static long a32tol (const char32 *string) {
 	if (sizeof (wchar_t) == 4) {
@@ -1141,15 +1145,15 @@ void * Melder_monitor (double progress, Melder_16_TO_19_ARGS);
 */
 typedef class structGraphics *Graphics;
 class autoMelderMonitor {
-	Graphics d_graphics;
+	Graphics _graphics;
 public:
 	autoMelderMonitor (const char32 *message) {
-		d_graphics = (Graphics) Melder_monitor (0.0, message);
+		_graphics = (Graphics) Melder_monitor (0.0, message);
 	}
 	~autoMelderMonitor () {
 		Melder_monitor (1.0);
 	}
-	Graphics graphics () { return d_graphics; }
+	Graphics graphics () { return _graphics; }
 };
 
 /********** RECORD AND PLAY ROUTINES **********/
@@ -1180,10 +1184,6 @@ extern bool Melder_batch;   // true if run from the batch or from an interactive
 extern bool Melder_backgrounding;   // true if running a script
 extern bool Melder_consoleIsAnsi;
 extern bool Melder_asynchronous;   // true if specified by the "asynchronous" directive in a script
-#ifndef CONTROL_APPLICATION
-	typedef struct structGuiWindow *GuiWindow;
-	extern GuiWindow Melder_topShell;
-#endif
 
 /********** OVERRIDE DEFAULT BEHAVIOUR **********/
 
@@ -1198,6 +1198,8 @@ void Melder_setInformationProc (void (*informationProc) (const char32 *message))
 void Melder_setHelpProc (void (*help) (const char32 *query));
 void Melder_setSearchProc (void (*search) ());
 void Melder_setWarningProc (void (*warningProc) (const char32 *message));
+void Melder_setProgressProc (void (*progress) (double, const char32 *));
+void Melder_setMonitorProc (void * (*monitor) (double, const char32 *));
 void Melder_setErrorProc (void (*errorProc) (const char32 *message));
 void Melder_setFatalProc (void (*fatalProc) (const char32 *message));
 void Melder_setRecordProc (int (*record) (double));
@@ -1329,6 +1331,7 @@ const char32 * MelderQuantity_getShortUnitText (int quantity);   // e.g. "s"
 
 char32 * Melder_getenv (const char32 *variableName);
 void Melder_system (const char32 *command);   // spawn a system command
+void Melder_execv (const char32 *executableFileName, int narg, char32 **args);   // spawn a subprocess
 double Melder_clock ();   // seconds since 1969
 
 struct autoMelderProgressOff {

@@ -1,6 +1,6 @@
 /* Graphics.cpp
  *
- * Copyright (C) 1992-2012,2014,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2012,2014,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,6 +85,8 @@ void Graphics_init (Graphics me, int resolution) {
 		my resolutionNumber = kGraphics_resolution_600;
 	} else if (resolution == 720) {
 		my resolutionNumber = kGraphics_resolution_720;
+	} else if (resolution == 900) {
+		my resolutionNumber = kGraphics_resolution_900;
 	} else if (resolution == 1200) {
 		my resolutionNumber = kGraphics_resolution_1200;
 	} else {
@@ -142,7 +144,7 @@ void Graphics_setWsViewport (Graphics me,
 	my d_x2DC = x2DC;
 	my d_y1DC = y1DC;
 	my d_y2DC = y2DC;
-	#if win
+	#if gdi
 		if (my screen && my printer) {
 			GraphicsScreen mescreen = (GraphicsScreen) me;
 			/*

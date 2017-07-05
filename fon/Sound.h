@@ -167,7 +167,7 @@ PRAAT_LIB_EXPORT void Sound_setZero (Sound me, double tmin, double tmax, bool ro
 
 PRAAT_LIB_EXPORT autoSound Sound_createAsPureTone (long numberOfChannels, double startingTime, double endTime,
 	double sampleRate, double frequency, double amplitude, double fadeInDuration, double fadeOutDuration);
-PRAAT_LIB_EXPORT autoSound Sound_createFromToneComplex (double startingTime, double endTime,
+PRAAT_LIB_EXPORT autoSound Sound_createAsToneComplex (double startingTime, double endTime,
 	double sampleRate, int phase, double frequencyStep,
 	double firstFrequency, double ceiling, long numberOfComponents);
 /* Values for `phase' parameter: */
@@ -222,7 +222,7 @@ extern autoSound Sound_clipboard;
 
 /********** Sound_audio.cpp **********/
 
-autoSound Sound_recordFixedTime (int inputSource,
+autoSound Sound_record_fixedTime (int inputSource,
 	double gain, double balance, double samplingFrequency, double duration);
 	/*
 		Function:
@@ -245,7 +245,7 @@ autoSound Sound_recordFixedTime (int inputSource,
 				1.0 = right channel only.
 			samplingFrequency:
 				<=0.0 = do not change.
-				must be one of the sample rates supported by the hardware.
+				must be one of the sampling frequencies supported by the hardware.
 			duration:
 				positive time in seconds.
 		Return value:
@@ -301,16 +301,16 @@ void Sound_play (Sound me, Sound_PlayCallback playCallback, Thing playBoss);
 
 /* To avoid clipping, keep the absolute amplitude below 1.000. */
 /* All are mono or stereo PCM. */
-PRAAT_LIB_EXPORT void Sound_writeToAudioFile (Sound me, MelderFile file, int audioFileType, int numberOfBitsPerSamplePoint);
-PRAAT_LIB_EXPORT void Sound_writeToKayFile (Sound me, MelderFile file);   // 16-bit
-PRAAT_LIB_EXPORT void Sound_writeToSesamFile (Sound me, MelderFile file);   // 12-bit SESAM/LVS
+PRAAT_LIB_EXPORT void Sound_saveAsAudioFile (Sound me, MelderFile file, int audioFileType, int numberOfBitsPerSamplePoint);
+void Sound_saveAsKayFile (Sound me, MelderFile file);   // 16-bit
+void Sound_saveAsSesamFile (Sound me, MelderFile file);   // 12-bit SESAM/LVS
 
 PRAAT_LIB_EXPORT autoSound Sound_readFromSoundFile (MelderFile file);   // AIFF, WAV, NeXT/Sun, or NIST
-PRAAT_LIB_EXPORT autoSound Sound_readFromKayFile (MelderFile file);   // 16-bit
-PRAAT_LIB_EXPORT autoSound Sound_readFromSesamFile (MelderFile file);   // 12-bit SESAM/LVS
-PRAAT_LIB_EXPORT autoSound Sound_readFromBellLabsFile (MelderFile file);   // 16-bit
-PRAAT_LIB_EXPORT autoSound Sound_readFromRawAlawFile (MelderFile file);
-PRAAT_LIB_EXPORT autoSound Sound_readFromMovieFile (MelderFile file);
+autoSound Sound_readFromKayFile (MelderFile file);   // 16-bit
+autoSound Sound_readFromSesamFile (MelderFile file);   // 12-bit SESAM/LVS
+autoSound Sound_readFromBellLabsFile (MelderFile file);   // 16-bit
+autoSound Sound_readFromRawAlawFile (MelderFile file);
+autoSound Sound_readFromMovieFile (MelderFile file);
 
 PRAAT_LIB_EXPORT autoSound Sound_readFromRawSoundFile (MelderFile file, int encoding, int numberOfChannels, double sampleRate);
 /*
@@ -324,7 +324,7 @@ PRAAT_LIB_EXPORT autoSound Sound_readFromRawSoundFile (MelderFile file, int enco
 	'numberOfChannels' is 1 (mono) or 2 (stereo)
 	'sampleRate' is in hertz
 */
-PRAAT_LIB_EXPORT void Sound_writeToRawSoundFile (Sound me, MelderFile file, int encoding);
+void Sound_saveAsRawSoundFile (Sound me, MelderFile file, int encoding);
 /*
 	'encoding' is any of the following:
 		Melder_LINEAR_8_SIGNED
