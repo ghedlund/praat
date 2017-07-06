@@ -318,6 +318,32 @@ PRAAT_LIB_EXPORT void LongSound_getWindowExtrema_wrapped(LongSound arg0,double a
 	}
 }
 
+// LongSound_savePartAsAudioFile_wrapped -> LongSound_savePartAsAudioFile
+PRAAT_LIB_EXPORT void LongSound_savePartAsAudioFile_wrapped(LongSound arg0,int arg1,double arg2,double arg3,MelderFile arg4,int arg5) {
+	try {
+		LongSound_savePartAsAudioFile(arg0,arg1,arg2,arg3,arg4,arg5);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
+// LongSound_saveChannelAsAudioFile_wrapped -> LongSound_saveChannelAsAudioFile
+PRAAT_LIB_EXPORT void LongSound_saveChannelAsAudioFile_wrapped(LongSound arg0,int arg1,int arg2,MelderFile arg3) {
+	try {
+		LongSound_saveChannelAsAudioFile(arg0,arg1,arg2,arg3);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
 // Intensity_create_wrapped -> Intensity_create
 PRAAT_LIB_EXPORT Intensity Intensity_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4) {
 	try {
@@ -674,10 +700,23 @@ PRAAT_LIB_EXPORT Sound Sound_readFromSoundFile_wrapped(MelderFile arg0) {
 	return NULL;
 }
 
-// Sound_writeToRawSoundFile_wrapped -> Sound_writeToRawSoundFile
-PRAAT_LIB_EXPORT void Sound_writeToRawSoundFile_wrapped(Sound arg0,MelderFile arg1,int arg2) {
+// Sound_saveAsAudioFile_wrapped -> Sound_saveAsAudioFile
+PRAAT_LIB_EXPORT void Sound_saveAsAudioFile_wrapped(Sound arg0,MelderFile arg1,int arg2,int arg3) {
 	try {
-		Sound_writeToRawSoundFile(arg0,arg1,arg2);
+		Sound_saveAsAudioFile(arg0,arg1,arg2,arg3);
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+}
+
+// Sound_saveAsRawSoundFile_wrapped -> Sound_saveAsRawSoundFile
+PRAAT_LIB_EXPORT void Sound_saveAsRawSoundFile_wrapped(Sound arg0,MelderFile arg1,int arg2) {
+	try {
+		Sound_saveAsRawSoundFile(arg0,arg1,arg2);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -715,10 +754,10 @@ PRAAT_LIB_EXPORT Sound Sound_createAsPureTone_wrapped(long arg0,double arg1,doub
 	return NULL;
 }
 
-// Sound_createFromToneComplex_wrapped -> Sound_createFromToneComplex
-PRAAT_LIB_EXPORT Sound Sound_createFromToneComplex_wrapped(double arg0,double arg1,double arg2,int arg3,double arg4,double arg5,double arg6,long arg7) {
+// Sound_createAsToneComplex_wrapped -> Sound_createAsToneComplex
+PRAAT_LIB_EXPORT Sound Sound_createAsToneComplex_wrapped(double arg0,double arg1,double arg2,int arg3,double arg4,double arg5,double arg6,long arg7) {
 	try {
-		return Sound_createFromToneComplex(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7).releaseToAmbiguousOwner();
+		return Sound_createAsToneComplex(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3335,10 +3374,10 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_extractPart_wrapped(TextGrid arg0,double arg1
 	return NULL;
 }
 
-// TextGrid_genericize_wrapped -> TextGrid_genericize
-PRAAT_LIB_EXPORT void TextGrid_genericize_wrapped(TextGrid arg0) {
+// TextGrid_convertToBackslashTrigraphs_wrapped -> TextGrid_convertToBackslashTrigraphs
+PRAAT_LIB_EXPORT void TextGrid_convertToBackslashTrigraphs_wrapped(TextGrid arg0) {
 	try {
-		TextGrid_genericize(arg0);
+		TextGrid_convertToBackslashTrigraphs(arg0);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3348,10 +3387,10 @@ PRAAT_LIB_EXPORT void TextGrid_genericize_wrapped(TextGrid arg0) {
 	}
 }
 
-// TextGrid_nativize_wrapped -> TextGrid_nativize
-PRAAT_LIB_EXPORT void TextGrid_nativize_wrapped(TextGrid arg0) {
+// TextGrid_convertToUnicode_wrapped -> TextGrid_convertToUnicode
+PRAAT_LIB_EXPORT void TextGrid_convertToUnicode_wrapped(TextGrid arg0) {
 	try {
-		TextGrid_nativize(arg0);
+		TextGrid_convertToUnicode(arg0);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {

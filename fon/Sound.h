@@ -312,7 +312,7 @@ autoSound Sound_readFromBellLabsFile (MelderFile file);   // 16-bit
 autoSound Sound_readFromRawAlawFile (MelderFile file);
 autoSound Sound_readFromMovieFile (MelderFile file);
 
-PRAAT_LIB_EXPORT autoSound Sound_readFromRawSoundFile (MelderFile file, int encoding, int numberOfChannels, double sampleRate);
+autoSound Sound_readFromRawSoundFile (MelderFile file, int encoding, int numberOfChannels, double sampleRate);
 /*
 	'encoding' is any of the following:
 		Melder_LINEAR_8_SIGNED

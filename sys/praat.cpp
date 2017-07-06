@@ -1470,7 +1470,7 @@ void praat_lib_init()
 		}
 	}
 
-	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_stat_init)
+//	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_stat_init)
 	INCLUDE_LIB_LIBRARY(praat_lib_uvafon_init)
 }
 

@@ -3421,4 +3421,36 @@ praat_addAction1 (classTransition, 0, U"Cast", nullptr, 0, nullptr);
 	praat_ExperimentMFC_init ();
 }
 
+#ifdef PRAAT_LIB
+void praat_lib_uvafon_init ();
+void praat_lib_uvafon_init () {
+	Thing_recognizeClassesByName (classPolygon, classParamCurve,
+		classSpectrum, classLtas, classSpectrogram, classFormant,
+		classExcitation, classCochleagram, classVocalTract,
+		classLabel, classTier, classAutosegment,   // three obsolete classes
+		classIntensity, classPitch, classHarmonicity,
+		classTransition,
+		classManipulation, classTextPoint, classTextInterval, classTextTier,
+		classIntervalTier, classTextGrid, classWordList, classSpellingChecker,
+		classCorpus,
+		nullptr);
+	Thing_recognizeClassByOtherName (classManipulation, U"Psola");
+	Thing_recognizeClassByOtherName (classManipulation, U"Analysis");
+	Thing_recognizeClassByOtherName (classPitchTier, U"StylPitch");
+
+	Data_recognizeFileType (cgnSyntaxFileRecognizer);
+	Data_recognizeFileType (chronologicalTextGridTextFileRecognizer);
+	Data_recognizeFileType (IDXFormattedMatrixFileRecognizer);
+	
+	/*
+		The user interfaces for the classes are included in the order
+		in which they have to appear in the New menu:
+	*/
+	praat_Sound_init ();
+	praat_Matrix_init ();
+	INCLUDE_LIBRARY (praat_uvafon_stat_init)
+	praat_Tiers_init ();
+}
+#endif
+
 /* End of file praat_Fon.cpp */
