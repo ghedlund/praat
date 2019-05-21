@@ -1,6 +1,6 @@
 /* Polynomial_def.h
  *
- * Copyright (C) 1993-2002, 2016 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@
 #define ooSTRUCT FunctionTerms
 oo_DEFINE_CLASS (FunctionTerms, Function)
 
-	oo_LONG (numberOfCoefficients)
-	oo_DOUBLE_VECTOR (coefficients, numberOfCoefficients)
+	oo_INTEGER (numberOfCoefficients)
+	oo_VEC (coefficients, numberOfCoefficients)
 	
-	#if !oo_READING && !oo_WRITING
-		oo_LONG (_capacity)
+	#if ! oo_READING && ! oo_WRITING
+		oo_INTEGER (_capacity)
 	#endif
 		
 	#if oo_READING
@@ -36,12 +36,11 @@ oo_DEFINE_CLASS (FunctionTerms, Function)
 	#endif
 
 	#if oo_DECLARING
-		// new methods:
-			virtual double v_evaluate (double x);
-			virtual void v_evaluate_z (dcomplex *z, dcomplex *p);
-			virtual void v_evaluateTerms (double x, double terms[]);
-			virtual void v_getExtrema (double x1, double x2, double *xmin, double *ymin, double *xmax, double *ymax);
-			virtual long v_getDegree ();
+		virtual double v_evaluate (double x);
+		virtual dcomplex v_evaluate_z (dcomplex z);
+		virtual void v_evaluateTerms (double x, VEC terms);
+		virtual void v_getExtrema (double x1, double x2, double *xmin, double *ymin, double *xmax, double *ymax);
+		virtual integer v_getDegree ();
 	#endif
 	
 oo_END_CLASS (FunctionTerms)	
@@ -51,16 +50,17 @@ oo_END_CLASS (FunctionTerms)
 #define ooSTRUCT Spline
 oo_DEFINE_CLASS (Spline, FunctionTerms)
 
-	oo_LONG (degree)
-	oo_LONG (numberOfKnots)
-	oo_DOUBLE_VECTOR (knots, numberOfKnots)
+	oo_INTEGER (degree)
+	oo_INTEGER (numberOfKnots)
+	oo_VEC (knots, numberOfKnots)
 	
 	#if oo_DECLARING
-		// overridden methods:
-			virtual double v_evaluate (double x) override;
-			virtual long v_getDegree () override;
-		// new methods:
-			virtual long v_getOrder ();
+		double v_evaluate (double x)
+			override;
+		integer v_getDegree ()
+			override;
+
+		virtual integer v_getOrder ();
 	#endif
 
 oo_END_CLASS (Spline)	

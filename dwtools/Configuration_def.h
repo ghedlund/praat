@@ -1,6 +1,6 @@
 /* Configuration_def.h
  *
- * Copyright (C) 1993-2011 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 #define ooSTRUCT Configuration
 oo_DEFINE_CLASS (Configuration, TableOfReal)
 
-	oo_LONG (metric)
-	oo_DOUBLE_VECTOR (w, numberOfColumns)
+	oo_INTEGER (metric)
+	oo_VEC (w, numberOfColumns)
 
 	#if oo_DECLARING
 		void v_info ()

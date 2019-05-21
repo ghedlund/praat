@@ -1,6 +1,6 @@
 /* Network_def.h
  *
- * Copyright (C) 2009-2011,2012,2013,2014,2015 Paul Boersma
+ * Copyright (C) 2009-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,17 +36,17 @@ oo_END_STRUCT (NetworkNode)
 #define ooSTRUCT NetworkConnection
 oo_DEFINE_STRUCT (NetworkConnection)
 
-	oo_LONG (nodeFrom)
-	oo_LONG (nodeTo)
+	oo_INTEGER (nodeFrom)
+	oo_INTEGER (nodeTo)
 	oo_DOUBLE (weight)
+
 	oo_FROM (1)
 		oo_DOUBLE (plasticity)
 	oo_ENDFROM
-
 	#if oo_READING
-		if (formatVersion < 1) {
-			plasticity = 1.0;
-		}
+		oo_VERSION_UNTIL (1)
+			our plasticity = 1.0;
+		oo_VERSION_END
 	#endif
 
 oo_END_STRUCT (NetworkConnection)
@@ -80,24 +80,24 @@ oo_DEFINE_CLASS (Network, Daata)
 	oo_DOUBLE (weightLeak)
 
 	#if oo_READING
-		if (formatVersion < 6) {
-			if (formatVersion < 5) {
-				if (our learningRate != 0.0) our weightLeak /= our learningRate;
-				if (our dummyWeightUpdateRule == 1) our instar = 1.0, our outstar = 0.0;
-				if (our dummyWeightUpdateRule == 2) our instar = 0.0, our outstar = 1.0;
-				if (our dummyWeightUpdateRule == 3) our instar = 0.5, our outstar = 0.5;
-			}
+		oo_VERSION_UNTIL (5)
+			if (our learningRate != 0.0) our weightLeak /= our learningRate;
+			if (our dummyWeightUpdateRule == 1) our instar = 1.0, our outstar = 0.0;
+			if (our dummyWeightUpdateRule == 2) our instar = 0.0, our outstar = 1.0;
+			if (our dummyWeightUpdateRule == 3) our instar = 0.5, our outstar = 0.5;
+		oo_VERSION_END
+		oo_VERSION_UNTIL (6)
 			our activityLeak = - our activityLeak;   // convert self-excitation to activity leak
-		}
+		oo_VERSION_END
 	#endif
 
 	oo_DOUBLE (xmin)
 	oo_DOUBLE (xmax)
 	oo_DOUBLE (ymin)
 	oo_DOUBLE (ymax)
-	oo_LONG (numberOfNodes)
+	oo_INTEGER (numberOfNodes)
 	oo_STRUCT_VECTOR (NetworkNode, nodes, numberOfNodes)
-	oo_LONG (numberOfConnections)
+	oo_INTEGER (numberOfConnections)
 	oo_STRUCT_VECTOR (NetworkConnection, connections, numberOfConnections)
 
 	#if oo_DECLARING

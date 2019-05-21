@@ -12,6 +12,7 @@
  djmw 20020813 GPL header
  djmw 20071201 Latest modification
  pb 20100120 dlamc3_: declare volatile double ret_val to prevent optimization!
+ pb 2018 logicals -> bools
 */
 
 
@@ -24,19 +25,19 @@
 #define MAX(m,n) ((m) > (n) ? (m) : (n))
 #define MIN(m,n) ((m) < (n) ? (m) : (n))
 
-static int dlamc1_ (long *beta, long *t, long *rnd, long *ieee1);
-static int dlamc2_ (long *beta, long *t, long *rnd, double *eps, long *emin, double *rmin, long *emax,
+static int dlamc1_ (integer *beta, integer *t, bool *rnd, bool *ieee1);
+static int dlamc2_ (integer *beta, integer *t, bool *rnd, double *eps, integer *emin, double *rmin, integer *emax,
                     double *rmax);
 static double dlamc3_ (double *, double *);
-static int dlamc4_ (long *emin, double *start, long *base);
-static int dlamc5_ (long *beta, long *p, long *emin, long *ieee, long *emax, double *rmax);
+static int dlamc4_ (integer *emin, double *start, integer *base);
+static int dlamc5_ (integer *beta, integer *p, integer *emin, bool *ieee, integer *emax, double *rmax);
 
-int NUMblas_daxpy (long *n, double *da, double *dx, long *incx, double *dy, long *incy) {
+int NUMblas_daxpy (integer *n, double *da, double *dx, integer *incx, double *dy, integer *incy) {
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 
 	/* Local variables */
-	static long i__, m, ix, iy, mp1;
+	static integer i__, m, ix, iy, mp1;
 
 	--dy;
 	--dx;
@@ -94,12 +95,12 @@ L40:
 	return 0;
 }								/* NUMblas_daxpy */
 
-int NUMblas_dcopy (long *n, double *dx, long *incx, double *dy, long *incy) {
+int NUMblas_dcopy (integer *n, double *dx, integer *incx, double *dy, integer *incy) {
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 
 	/* Local variables */
-	static long i__, m, ix, iy, mp1;
+	static integer i__, m, ix, iy, mp1;
 
 	--dy;
 	--dx;
@@ -157,15 +158,15 @@ L40:
 	return 0;
 }								/* NUMblas_dcopy */
 
-double NUMblas_ddot (long *n, double *dx, long *incx, double *dy, long *incy) {
+double NUMblas_ddot (integer *n, double *dx, integer *incx, double *dy, integer *incy) {
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 	double ret_val;
 
 	/* Local variables */
-	static long i__, m;
+	static integer i__, m;
 	static double dtemp;
-	static long ix, iy, mp1;
+	static integer ix, iy, mp1;
 
 	/* Parameter adjustments */
 	--dy;
@@ -225,17 +226,17 @@ L60:
 	return ret_val;
 }								/* NUMblas_ddot */
 
-int NUMblas_dgemm (const char *transa, const char *transb, long *m, long *n, long *k, double *alpha, double *a, long *lda,
-                   double *b, long *ldb, double *beta, double *c__, long *ldc) {
+int NUMblas_dgemm (const char *transa, const char *transb, integer *m, integer *n, integer *k, double *alpha, double *a, integer *lda,
+                   double *b, integer *ldb, double *beta, double *c__, integer *ldc) {
 	/* System generated locals */
-	long a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2, i__3;
+	integer a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2, i__3;
 
 	/* Local variables */
-	static long info;
-	static long nota, notb;
+	static integer info;
+	static integer nota, notb;
 	static double temp;
-	static long i__, j, l, ncola;
-	static long nrowa, nrowb;
+	static integer i__, j, l, ncola;
+	static integer nrowa, nrowb;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 #define b_ref(a_1,a_2) b[(a_2)*b_dim1 + a_1]
@@ -438,15 +439,15 @@ int NUMblas_dgemm (const char *transa, const char *transb, long *m, long *n, lon
 #undef b_ref
 #undef a_ref
 
-int NUMblas_dger (long *m, long *n, double *alpha, double *x, long *incx, double *y, long *incy, double *a,
-                  long *lda) {
+int NUMblas_dger (integer *m, integer *n, double *alpha, double *x, integer *incx, double *y, integer *incy, double *a,
+                  integer *lda) {
 	/* System generated locals */
-	long a_dim1, a_offset, i__1, i__2;
+	integer a_dim1, a_offset, i__1, i__2;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp;
-	static long i__, j, ix, jy, kx;
+	static integer i__, j, ix, jy, kx;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 	/* Test the input parameters. Parameter adjustments */
@@ -524,16 +525,16 @@ int NUMblas_dger (long *m, long *n, double *alpha, double *x, long *incx, double
 
 #undef a_ref
 
-int NUMblas_dgemv (const char *trans, long *m, long *n, double *alpha, double *a, long *lda, double *x, long *incx,
-                   double *beta, double *y, long *incy) {
+int NUMblas_dgemv (const char *trans, integer *m, integer *n, double *alpha, double *a, integer *lda, double *x, integer *incx,
+                   double *beta, double *y, integer *incy) {
 	/* System generated locals */
-	long a_dim1, a_offset, i__1, i__2;
+	integer a_dim1, a_offset, i__1, i__2;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp;
-	static long lenx, leny, i__, j;
-	static long ix, iy, jx, jy, kx, ky;
+	static integer lenx, leny, i__, j;
+	static integer ix, iy, jx, jy, kx, ky;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 
@@ -698,26 +699,26 @@ int NUMblas_dgemv (const char *trans, long *m, long *n, double *alpha, double *a
 
 double NUMblas_dlamch (const char *cmach) {
 	/* Initialized data */
-	static long first = TRUE;
+	static bool first = true;
 
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 	double ret_val;
 
 	/* Builtin functions */
 	/* Local variables */
 	static double base;
-	static long beta;
+	static integer beta;
 	static double emin, prec, emax;
-	static long imin, imax;
-	static long lrnd;
+	static integer imin, imax;
+	static bool lrnd;
 	static double rmin, rmax, t, rmach;
 	static double smal, sfmin;
-	static long it;
+	static integer it;
 	static double rnd, eps;
 
 	if (first) {
-		first = FALSE;
+		first = false;
 		dlamc2_ (&beta, &it, &lrnd, &eps, &imin, &rmin, &imax, &rmax);
 		base = (double) beta;
 		t = (double) it;
@@ -770,7 +771,7 @@ double NUMblas_dlamch (const char *cmach) {
 	return ret_val;
 }								/* NUMblas_dlamch */
 
-static int dlamc1_ (long *beta, long *t, long *rnd, long *ieee1) {
+static int dlamc1_ (integer *beta, integer *t, bool *rnd, bool *ieee1) {
 	/* -- LAPACK auxiliary routine (version 3.0) -- Univ. of Tennessee, Univ.
 	   of California Berkeley, NAG Ltd., Courant Institute, Argonne National
 	   Lab, and Rice University October 31, 1992
@@ -810,23 +811,23 @@ static int dlamc1_ (long *beta, long *t, long *rnd, long *ieee1) {
 
 	   ===================================================================== */
 	/* Initialized data */
-	static long first = TRUE;
+	static bool first = true;
 
 	/* System generated locals */
 	double d__1, d__2;
 
 	/* Local variables */
-	static long lrnd;
+	static bool lrnd;
 	static double a, b, c, f;
-	static long lbeta;
+	static integer lbeta;
 	static double savec;
-	static long lieee1;
+	static bool lieee1;
 	static double t1, t2;
-	static long lt;
+	static integer lt;
 	static double one, qtr;
 
 	if (first) {
-		first = FALSE;
+		first = false;
 		one = 1.;
 
 		/* LBETA, LIEEE1, LT and LRND are the local values of BETA, IEEE1, T
@@ -875,7 +876,7 @@ L20:
 		savec = c;
 		d__1 = -a;
 		c = dlamc3_ (&c, &d__1);
-		lbeta = (long) (c + qtr);
+		lbeta = (integer) (c + qtr);
 
 		/* Now determine whether rounding or chopping occurs, by adding a bit
 		   less than beta/2 and a bit more than beta/2 to a. */
@@ -886,16 +887,16 @@ L20:
 		f = dlamc3_ (&d__1, &d__2);
 		c = dlamc3_ (&f, &a);
 		if (c == a) {
-			lrnd = TRUE;
+			lrnd = true;
 		} else {
-			lrnd = FALSE;
+			lrnd = false;
 		}
 		d__1 = b / 2;
 		d__2 = b / 100;
 		f = dlamc3_ (&d__1, &d__2);
 		c = dlamc3_ (&f, &a);
 		if (lrnd && c == a) {
-			lrnd = FALSE;
+			lrnd = false;
 		}
 
 		/* Try and decide whether rounding is done in the IEEE 'round to
@@ -940,7 +941,7 @@ L30:
 	return 0;
 }								/* dlamc1_ */
 
-static int dlamc2_ (long *beta, long *t, long *rnd, double *eps, long *emin, double *rmin, long *emax,
+static int dlamc2_ (integer *beta, integer *t, bool *rnd, double *eps, integer *emin, double *rmin, integer *emax,
                     double *rmax) {
 	/* -- LAPACK auxiliary routine (version 3.0) -- Univ. of Tennessee, Univ.
 	   of California Berkeley, NAG Ltd., Courant Institute, Argonne National
@@ -986,31 +987,31 @@ static int dlamc2_ (long *beta, long *t, long *rnd, double *eps, long *emin, dou
 	   ===================================================================== */
 	/* Table of constant values */
 	/* Initialized data */
-	static long first = TRUE;
-	static long iwarn = FALSE;
+	static bool first = true;
+	static bool iwarn = false;
 
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 	double d__1, d__2, d__3, d__4, d__5;
 
 	/* Builtin functions */
 	/* Local variables */
-	static long ieee;
+	static bool ieee;
 	static double half;
-	static long lrnd;
+	static bool lrnd;
 	static double leps, zero, a, b, c;
-	static long i, lbeta;
+	static integer i, lbeta;
 	static double rbase;
-	static long lemin, lemax, gnmin;
+	static integer lemin, lemax, gnmin;
 	static double smal;
-	static long gpmin;
+	static integer gpmin;
 	static double third, lrmin, lrmax, sixth;
-	static long lieee1;
-	static long lt, ngnmin, ngpmin;
+	static bool lieee1;
+	static integer lt, ngnmin, ngpmin;
 	static double one, two;
 
 	if (first) {
-		first = FALSE;
+		first = false;
 		zero = 0.;
 		one = 1.;
 		two = 2.;
@@ -1091,7 +1092,7 @@ L10:
 		dlamc4_ (&gpmin, &a, &lbeta);
 		d__1 = -a;
 		dlamc4_ (&gnmin, &d__1, &lbeta);
-		ieee = FALSE;
+		ieee = false;
 
 		if (ngpmin == ngnmin && gpmin == gnmin) {
 			if (ngpmin == gpmin) {
@@ -1100,13 +1101,13 @@ L10:
 				   e.g., VAX ) */
 			} else if (gpmin - ngpmin == 3) {
 				lemin = ngpmin - 1 + lt;
-				ieee = TRUE;
+				ieee = true;
 				/* ( Non twos-complement machines, with gradual underflow;
 				   e.g., IEEE standard followers ) */
 			} else {
 				lemin = MIN (ngpmin, gpmin);
 				/* ( A guess; no known machine ) */
-				iwarn = TRUE;
+				iwarn = true;
 			}
 
 		} else if (ngpmin == gpmin && ngnmin == gnmin) {
@@ -1117,7 +1118,7 @@ L10:
 			} else {
 				lemin = MIN (ngpmin, ngnmin);
 				/* ( A guess; no known machine ) */
-				iwarn = TRUE;
+				iwarn = true;
 			}
 
 		} else if ( (i__1 = ngpmin - ngnmin, labs (i__1)) == 1 && gpmin == gnmin) {
@@ -1128,7 +1129,7 @@ L10:
 			} else {
 				lemin = MIN (ngpmin, ngnmin);
 				/* ( A guess; no known machine ) */
-				iwarn = TRUE;
+				iwarn = true;
 			}
 
 		} else {
@@ -1136,11 +1137,11 @@ L10:
 			i__1 = MIN (ngpmin, ngnmin), i__1 = MIN (i__1, gpmin);
 			lemin = MIN (i__1, gnmin);
 			/* ( A guess; no known machine ) */
-			iwarn = TRUE;
+			iwarn = true;
 		}
 		/* Comment out this if block if EMIN is ok */
 		if (iwarn) {
-			first = TRUE;
+			first = true;
 			Melder_warning (U"\n\n WARNING. The value EMIN may be incorrect:- " "EMIN = ", lemin,
 			                U"\nIf, after inspection, the value EMIN looks acceptable"
 			                "please comment out \n the IF block as marked within the"
@@ -1201,7 +1202,7 @@ static double dlamc3_ (double *a, double *b)
 	return ret_val;
 }								/* dlamc3_ */
 
-static int dlamc4_ (long *emin, double *start, long *base) {
+static int dlamc4_ (integer *emin, double *start, integer *base) {
 	/* -- LAPACK auxiliary routine (version 2.0) -- Univ. of Tennessee, Univ.
 	   of California Berkeley, NAG Ltd., Courant Institute, Argonne National
 	   Lab, and Rice University October 31, 1992
@@ -1225,12 +1226,12 @@ static int dlamc4_ (long *emin, double *start, long *base) {
 
 	   ===================================================================== */
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 	double d__1;
 
 	/* Local variables */
 	static double zero, a;
-	static long i;
+	static integer i;
 	static double rbase, b1, b2, c1, c2, d1, d2;
 	static double one;
 
@@ -1278,7 +1279,7 @@ L10:
 	return 0;
 }								/* dlamc4_ */
 
-static int dlamc5_ (long *beta, long *p, long *emin, long *ieee, long *emax, double *rmax) {
+static int dlamc5_ (integer *beta, integer *p, integer *emin, bool *ieee, integer *emax, double *rmax) {
 	/*
 	   First compute LEXP and UEXP, two powers of 2 that bound abs(EMIN). We
 	   then assume that EMAX + abs(EMIN) will sum approximately to the bound
@@ -1288,17 +1289,17 @@ static int dlamc5_ (long *beta, long *p, long *emin, long *ieee, long *emax, dou
 	static double c_b5 = 0.;
 
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 	double d__1;
 
 	/* Local variables */
-	static long lexp;
+	static integer lexp;
 	static double oldy;
-	static long uexp, i;
+	static integer uexp, i;
 	static double y, z;
-	static long nbits;
+	static integer nbits;
 	static double recbas;
-	static long exbits, expsum, try__;
+	static integer exbits, expsum, try__;
 
 	lexp = 1;
 	exbits = 1;
@@ -1343,7 +1344,7 @@ L10:
 		   Cray machines) or the mantissa has an implicit bit, (e.g. IEEE
 		   machines, Dec Vax machines), which is perhaps the most likely. We
 		   have to assume the last alternative. If this is true, then we need
-		   to reduce EMAX by one because there must be some way of
+		   to reduce EMAX by one because there should be some way of
 		   representing zero in an implicit-bit system. On machines like
 		   Cray, we are reducing EMAX by one unnecessarily. */
 		-- (*emax);
@@ -1388,16 +1389,16 @@ L10:
 	return 0;
 }								/* dlamc5_ */
 
-double NUMblas_dnrm2 (long *n, double *x, long *incx) {
+double NUMblas_dnrm2 (integer *n, double *x, integer *incx) {
 	/* The following loop is equivalent to this call to the LAPACK auxiliary
 	   routine: CALL DLASSQ( N, X, INCX, SCALE, SSQ ) */
 	/* System generated locals */
-	long i__1, i__2;
+	integer i__1, i__2;
 	double ret_val, d__1;
 
 	/* Local variables */
 	static double norm, scale, absxi;
-	static long ix;
+	static integer ix;
 	static double ssq;
 
 	--x;
@@ -1435,14 +1436,14 @@ double NUMblas_dnrm2 (long *n, double *x, long *incx) {
 	return ret_val;
 }								/* NUMblas_dnrm2 */
 
-int NUMblas_drot (long *n, double *dx, long *incx, double *dy, long *incy, double *c__, double *s) {
+int NUMblas_drot (integer *n, double *dx, integer *incx, double *dy, integer *incy, double *c__, double *s) {
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 
 	/* Local variables */
-	static long i__;
+	static integer i__;
 	static double dtemp;
-	static long ix, iy;
+	static integer ix, iy;
 
 	/* applies a plane rotation. jack dongarra, linpack, 3/11/78. modified
 	   12/3/93, array(1) declarations changed to array(*) Parameter
@@ -1488,12 +1489,12 @@ L20:
 	return 0;
 }								/* NUMblas_drot */
 
-int NUMblas_dscal (long *n, double *da, double *dx, long *incx) {
+int NUMblas_dscal (integer *n, double *da, double *dx, integer *incx) {
 	/* System generated locals */
-	long i__1, i__2;
+	integer i__1, i__2;
 
 	/* Local variables */
-	static long i__, m, nincx, mp1;
+	static integer i__, m, nincx, mp1;
 
 	/* Parameter adjustments */
 	--dx;
@@ -1541,14 +1542,14 @@ L40:
 	return 0;
 }								/* dscal_ */
 
-int NUMblas_dswap (long *n, double *dx, long *incx, double *dy, long *incy) {
+int NUMblas_dswap (integer *n, double *dx, integer *incx, double *dy, integer *incy) {
 	/* System generated locals */
-	long i__1;
+	integer i__1;
 
 	/* Local variables */
-	static long i__, m;
+	static integer i__, m;
 	static double dtemp;
-	static long ix, iy, mp1;
+	static integer ix, iy, mp1;
 
 	/* interchanges two vectors. uses unrolled loops for increments equal
 	   one. jack dongarra, linpack, 3/11/78. modified 12/3/93, array(1)
@@ -1615,16 +1616,16 @@ L40:
 	return 0;
 }								/* NUMblas_dswap */
 
-int NUMblas_dsymv (const char *uplo, long *n, double *alpha, double *a, long *lda, double *x, long *incx, double *beta,
-                   double *y, long *incy) {
+int NUMblas_dsymv (const char *uplo, integer *n, double *alpha, double *a, integer *lda, double *x, integer *incx, double *beta,
+                   double *y, integer *incy) {
 	/* System generated locals */
-	long a_dim1, a_offset, i__1, i__2;
+	integer a_dim1, a_offset, i__1, i__2;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp1, temp2;
-	static long i__, j;
-	static long ix, iy, jx, jy, kx, ky;
+	static integer i__, j;
+	static integer ix, iy, jx, jy, kx, ky;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 
@@ -1791,16 +1792,16 @@ int NUMblas_dsymv (const char *uplo, long *n, double *alpha, double *a, long *ld
 
 #undef a_ref
 
-int NUMblas_dsyr2 (const char *uplo, long *n, double *alpha, double *x, long *incx, double *y, long *incy, double *a,
-                   long *lda) {
+int NUMblas_dsyr2 (const char *uplo, integer *n, double *alpha, double *x, integer *incx, double *y, integer *incy, double *a,
+                   integer *lda) {
 	/* System generated locals */
-	long a_dim1, a_offset, i__1, i__2;
+	integer a_dim1, a_offset, i__1, i__2;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp1, temp2;
-	static long i__, j;
-	static long ix, iy, jx, jy, kx, ky;
+	static integer i__, j;
+	static integer ix, iy, jx, jy, kx, ky;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 
@@ -1928,17 +1929,17 @@ int NUMblas_dsyr2 (const char *uplo, long *n, double *alpha, double *x, long *in
 
 #undef a_ref
 
-int NUMblas_dsyr2k (const char *uplo, const char *trans, long *n, long *k, double *alpha, double *a, long *lda, double *b,
-                    long *ldb, double *beta, double *c__, long *ldc) {
+int NUMblas_dsyr2k (const char *uplo, const char *trans, integer *n, integer *k, double *alpha, double *a, integer *lda, double *b,
+                    integer *ldb, double *beta, double *c__, integer *ldc) {
 	/* System generated locals */
-	long a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2, i__3;
+	integer a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2, i__3;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp1, temp2;
-	static long i__, j, l;
-	static long nrowa;
-	static long upper;
+	static integer i__, j, l;
+	static integer nrowa;
+	static integer upper;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 #define b_ref(a_1,a_2) b[(a_2)*b_dim1 + a_1]
@@ -2156,19 +2157,19 @@ int NUMblas_dsyr2k (const char *uplo, const char *trans, long *n, long *k, doubl
 #undef b_ref
 #undef a_ref
 
-int NUMblas_dtrmm (const char *side, const char *uplo, const char *transa, const char *diag, long *m, long *n, double *alpha, double *a,
-                   long *lda, double *b, long *ldb) {
+int NUMblas_dtrmm (const char *side, const char *uplo, const char *transa, const char *diag, integer *m, integer *n, double *alpha, double *a,
+                   integer *lda, double *b, integer *ldb) {
 	/* System generated locals */
-	long a_dim1, a_offset, b_dim1, b_offset, i__1, i__2, i__3;
+	integer a_dim1, a_offset, b_dim1, b_offset, i__1, i__2, i__3;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp;
-	static long i__, j, k;
-	static long lside;
-	static long nrowa;
-	static long upper;
-	static long nounit;
+	static integer i__, j, k;
+	static integer lside;
+	static integer nrowa;
+	static integer upper;
+	static integer nounit;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 #define b_ref(a_1,a_2) b[(a_2)*b_dim1 + a_1]
@@ -2438,16 +2439,16 @@ int NUMblas_dtrmm (const char *side, const char *uplo, const char *transa, const
 #undef b_ref
 #undef a_ref
 
-int NUMblas_dtrmv (const char *uplo, const char *trans, const char *diag, long *n, double *a, long *lda, double *x, long *incx) {
+int NUMblas_dtrmv (const char *uplo, const char *trans, const char *diag, integer *n, double *a, integer *lda, double *x, integer *incx) {
 	/* System generated locals */
-	long a_dim1, a_offset, i__1, i__2;
+	integer a_dim1, a_offset, i__1, i__2;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp;
-	static long i__, j;
-	static long ix, jx, kx;
-	static long nounit;
+	static integer i__, j;
+	static integer ix, jx, kx;
+	static integer nounit;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 	/* -- Written on 22-October-1986. Jack Dongarra, Argonne National Lab.
@@ -2646,19 +2647,19 @@ int NUMblas_dtrmv (const char *uplo, const char *trans, const char *diag, long *
 
 #undef a_ref
 
-int NUMblas_dtrsm (const char *side, const char *uplo, const char *transa, const char *diag, long *m, long *n,
-                   double *alpha, double *a, long *lda, double *b, long *ldb) {
+int NUMblas_dtrsm (const char *side, const char *uplo, const char *transa, const char *diag, integer *m, integer *n,
+                   double *alpha, double *a, integer *lda, double *b, integer *ldb) {
 	/* System generated locals */
-	long a_dim1, a_offset, b_dim1, b_offset, i__1, i__2, i__3;
+	integer a_dim1, a_offset, b_dim1, b_offset, i__1, i__2, i__3;
 
 	/* Local variables */
-	static long info;
+	static integer info;
 	static double temp;
-	static long i__, j, k;
-	static long lside;
-	static long nrowa;
-	static long upper;
-	static long nounit;
+	static integer i__, j, k;
+	static integer lside;
+	static integer nrowa;
+	static integer upper;
+	static integer nounit;
 
 #define a_ref(a_1,a_2) a[(a_2)*a_dim1 + a_1]
 #define b_ref(a_1,a_2) b[(a_2)*b_dim1 + a_1]
@@ -2953,14 +2954,14 @@ int NUMblas_dtrsm (const char *side, const char *uplo, const char *transa, const
 #undef b_ref
 #undef a_ref
 
-long NUMblas_idamax (long *n, double *dx, long *incx) {
+integer NUMblas_idamax (integer *n, double *dx, integer *incx) {
 	/* System generated locals */
-	long ret_val, i__1;
+	integer ret_val, i__1;
 	double d__1;
 
 	/* Local variables */
 	static double dmax__;
-	static long i__, ix;
+	static integer i__, ix;
 
 	/* finds the index of element having max. absolute value. jack
 	   dongarra, linpack, 3/11/78. modified 3/93 to return if incx .le. 0.

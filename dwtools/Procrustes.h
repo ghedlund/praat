@@ -2,7 +2,7 @@
 #define _Procrustes_h_
 /* Procrustes.h
  *
- * Copyright (C) 1993-2011, 2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,6 @@
 
 #include "Procrustes_def.h"
 
-autoProcrustes Procrustes_create (long n);
+autoProcrustes Procrustes_create (integer n);
 
 #endif /* _Procrustes_h_ */

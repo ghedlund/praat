@@ -22,14 +22,14 @@
 #include "ManPages.h"
 
 Thing_define (Manual, HyperPage) {
-	long path, numberOfParagraphs;
+	integer path, numberOfParagraphs;
 	struct structManPage_Paragraph *paragraphs;
 	GuiText searchText;
 	GuiButton homeButton, recordButton, playButton, publishButton;
 	int numberOfMatches;
-	long matches [1 + 20], fromPage, toPage;
+	integer matches [1 + 20], fromPage, toPage;
 	int suppressLinksHither;
-	char32 *printPagesStartingWith;
+	conststring32 printPagesStartingWith;
 
 	bool v_scriptable ()
 		override { return false; }
@@ -45,13 +45,13 @@ Thing_define (Manual, HyperPage) {
 		override;
 	void v_defaultHeaders (EditorCommand cmd)
 		override;
-	long v_getNumberOfPages ()
+	integer v_getNumberOfPages ()
 		override;
-	long v_getCurrentPageNumber ()
+	integer v_getCurrentPageNumber ()
 		override;
-	int v_goToPage (const char32 *title)
+	int v_goToPage (conststring32 title)
 		override;
-	void v_goToPage_i (long pageNumber)
+	void v_goToPage_i (integer pageNumber)
 		override;
 	bool v_hasHistory ()
 		override { return true; }
@@ -59,10 +59,10 @@ Thing_define (Manual, HyperPage) {
 		override { return true; }
 };
 
-void Manual_init (Manual me, const char32 *title, Daata data, bool ownData);
-autoManual Manual_create (const char32 *title, Daata data, bool ownData);
+void Manual_init (Manual me, conststring32 title, Daata data, bool ownData);
+autoManual Manual_create (conststring32 title, Daata data, bool ownData);
 
-void Manual_search (Manual me, const char32 *query);
+void Manual_search (Manual me, conststring32 query);
 
 /* End of file Manual.h */
 #endif

@@ -1,6 +1,6 @@
 /* Sound_and_Spectrum.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2009,2011,2012,2015,2016,2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,11 @@ Thing_declare (Interpreter);
 
 #include "praatlib.h"
 
-PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum_at (Sound me, double tim, double windowDuration, int windowType);
-
-PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum (Sound me, int fast);
+PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum (Sound me, bool fast);
 PRAAT_LIB_EXPORT autoSound Spectrum_to_Sound (Spectrum me);
-
-PRAAT_LIB_EXPORT autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preemphasisFrequency);
 
 PRAAT_LIB_EXPORT autoSound Sound_filter_passHannBand (Sound me, double fmin, double fmax, double smooth);
 PRAAT_LIB_EXPORT autoSound Sound_filter_stopHannBand (Sound me, double fmin, double fmax, double smooth);
-PRAAT_LIB_EXPORT autoSound Sound_filter_formula (Sound me, const char32 *formula, Interpreter interpreter);
+PRAAT_LIB_EXPORT autoSound Sound_filter_formula (Sound me, conststring32 formula, Interpreter interpreter);
 
 /* End of file Sound_and_Spectrum.h */

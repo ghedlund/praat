@@ -2,7 +2,7 @@
 #define _ArtwordEditor_h_
 /* ArtwordEditor.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2009-2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 
 Thing_define (ArtwordEditor, Editor) {
 	autoGraphics graphics;
-	int feature;
+	kArt_muscle muscle;
 	GuiList list;
 	GuiDrawingArea drawingArea;
 	GuiText time, value;
-	GuiRadioButton button [1 + kArt_muscle_MAX];
+	GuiRadioButton button [1 + (int) kArt_muscle::MAX];
 
 	void v_destroy () noexcept
 		override;
@@ -37,7 +37,7 @@ Thing_define (ArtwordEditor, Editor) {
 		override;
 };
 
-autoArtwordEditor ArtwordEditor_create (const char32 *title, Artword data);
+autoArtwordEditor ArtwordEditor_create (conststring32 title, Artword data);
 
 /* End of file ArtwordEditor.h */
 #endif

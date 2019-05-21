@@ -1,6 +1,6 @@
 /* ClassificationTable.cpp
  *
- * Copyright (C) 1993-2011, 2014-2016 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 Thing_implement (ClassificationTable, TableOfReal, 0);
 
-autoClassificationTable ClassificationTable_create (long numberOfRows, long numberOfClasses) {
+autoClassificationTable ClassificationTable_create (integer numberOfRows, integer numberOfClasses) {
 	try {
 		autoClassificationTable me = Thing_new (ClassificationTable);
 		TableOfReal_init (me.get(), numberOfRows, numberOfClasses);
@@ -49,21 +49,20 @@ autoConfusion ClassificationTable_to_Confusion (ClassificationTable me, bool onl
 		autoStrings s2 = TableOfReal_extractRowLabelsAsStrings (me);
 		autoDistributions d2 = Strings_to_Distributions (s2.get());
 		autoStrings stimuli = TableOfReal_extractRowLabelsAsStrings (d2.get());
-		autoConfusion thee = Confusion_createFromStringses ((onlyClassLabels ? responses.get() : stimuli.get() ), responses.get());
-		Confusion_and_ClassificationTable_increase (thee.get(), me);
+		autoConfusion thee = Confusion_createFromStringses (( onlyClassLabels ? responses.get() : stimuli.get() ), responses.get());
+		Confusion_ClassificationTable_increase (thee.get(), me);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": confusions cannot be calculated.");
 	}
 }
 
-void Confusion_and_ClassificationTable_increase (Confusion me, ClassificationTable thee) {
-	if (my numberOfColumns != thy numberOfColumns) {
-		Melder_throw (U"The number of columns must be equal.");
-	}
-	for (long irow = 1; irow <= thy numberOfRows; irow ++) {
-		long index = TableOfReal_getColumnIndexAtMaximumInRow (thee, irow);
-		Confusion_increase (me, thy rowLabels [irow], my columnLabels [index]);
+void Confusion_ClassificationTable_increase (Confusion me, ClassificationTable thee) {
+	Melder_require (my numberOfColumns == thy numberOfColumns, 
+		U"The number of columns should be equal.");
+	for (integer irow = 1; irow <= thy numberOfRows; irow ++) {
+		integer index = TableOfReal_getColumnIndexAtMaximumInRow (thee, irow);
+		Confusion_increase (me, thy rowLabels [irow].get(), my columnLabels [index].get());
 	}
 }
 
@@ -71,18 +70,10 @@ autoStrings ClassificationTable_to_Strings_maximumProbability (ClassificationTab
 	try {
 		autoStrings thee = Strings_createFixedLength (my numberOfRows);
 		Melder_assert (my numberOfColumns > 0);
-		for (long i = 1; i <= my numberOfRows; i ++) {
-			double max = my data [i] [1];
-			long col = 1;
-			for (long j = 2; j <= my numberOfColumns; j ++) {
-				if (my data [i] [j] > max) {
-					max = my data [i] [j];
-					col = j;
-				}
-			}
-			if (my columnLabels [col]) {
-				Strings_replace (thee.get(), i, my columnLabels [col]);
-			}
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			integer col = NUMmaxPos (my data.row (i));
+			if (my columnLabels [col])
+				Strings_replace (thee.get(), i, my columnLabels [col].get());
 		}
 		return thee;
 	} catch (MelderError) {
@@ -94,16 +85,9 @@ autoCategories ClassificationTable_to_Categories_maximumProbability (Classificat
 	try {
 		autoCategories thee = Categories_create ();
 		Melder_assert (my numberOfColumns > 0);
-		for (long i = 1; i <= my numberOfRows; i ++) {
-			double max = my data [i] [1];
-			long col = 1;
-			for (long j = 2; j <= my numberOfColumns; j ++) {
-				if (my data [i] [j] > max) {
-					max = my data [i] [j];
-					col = j;
-				}
-			}
-			OrderedOfString_append (thee.get(), my columnLabels [col]);
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			integer col = NUMmaxPos (my data.row (i));
+			OrderedOfString_append (thee.get(), my columnLabels [col].get());
 		}
 		return thee;
 	} catch (MelderError) {
@@ -114,17 +98,16 @@ autoCategories ClassificationTable_to_Categories_maximumProbability (Classificat
 autoCorrelation ClassificationTable_to_Correlation_columns (ClassificationTable me) {
 	try {
 		autoCorrelation thee = Correlation_create (my numberOfColumns);
-		for (long icol = 1; icol <= thy numberOfColumns; icol ++) {
-			char32 *label = my columnLabels [icol];
+		for (integer icol = 1; icol <= thy numberOfColumns; icol ++) {
+			conststring32 label = my columnLabels [icol].get();
 			TableOfReal_setRowLabel (thee.get(), icol, label);
 			TableOfReal_setColumnLabel (thee.get(), icol, label);
 		}
-
-		for (long irow = 1; irow <= thy numberOfColumns; irow ++) {
+		for (integer irow = 1; irow <= thy numberOfColumns; irow ++) {
 			thy data [irow] [irow] = 1.0;
-			for (long icol = irow + 1; icol <= thy numberOfColumns; icol ++) {
+			for (integer icol = irow + 1; icol <= thy numberOfColumns; icol ++) {
 				double n11 = 0.0, n22 = 0.0, n12 = 0.0;
-				for (long i = 1; i <= my numberOfRows; i ++) {
+				for (integer i = 1; i <= my numberOfRows; i ++) {
 					n12 += my data [i] [irow] * my data [i] [icol];
 					n11 += my data [i] [irow] * my data [i] [irow];
 					n22 += my data [i] [icol] * my data [i] [icol];

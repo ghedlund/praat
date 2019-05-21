@@ -19,8 +19,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/types.h>
-#include <stdio.h>
+#include "../../melder/melder.h"   // for integer
 
 /* The following function is used to identify MP3 files */
 int mp3_recognize (int nread, const char *data);
@@ -39,8 +38,8 @@ typedef int MP3F_SAMPLE;
 #define MP3F_MAX_SAMPLES  1152 /* Per callback */
 
 typedef void (*MP3F_CALLBACK) (
-		const MP3F_SAMPLE *channels[MP3F_MAX_CHANNELS],
-		long num_samples,
+		const MP3F_SAMPLE *channels [MP3F_MAX_CHANNELS],
+		integer num_samples,
 		void *context);
 
 MP3_FILE mp3f_new ();

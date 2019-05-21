@@ -1,6 +1,6 @@
 /* OTMulti_def.h
  *
- * Copyright (C) 2005-2011,2015 Paul Boersma
+ * Copyright (C) 2005,2007,2009-2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,19 +23,19 @@ oo_DEFINE_STRUCT (OTConstraint)
 	oo_STRING (name)
 	oo_DOUBLE (ranking)
 	oo_DOUBLE (disharmony)
+
 	oo_FROM (2)
 		oo_DOUBLE (plasticity)
 	oo_ENDFROM
-
 	#if oo_READING
-		if (formatVersion < 2) {
-			plasticity = 1.0;
-		}
+		oo_VERSION_UNTIL (2)
+			our plasticity = 1.0;
+		oo_VERSION_END
 	#endif
 
-	#if !oo_READING && !oo_WRITING
-		oo_INT (tiedToTheLeft)
-		oo_INT (tiedToTheRight)
+	#if ! oo_READING && ! oo_WRITING
+		oo_BOOLEAN (tiedToTheLeft)
+		oo_BOOLEAN (tiedToTheRight)
 	#endif
 
 oo_END_STRUCT (OTConstraint)
@@ -46,10 +46,10 @@ oo_END_STRUCT (OTConstraint)
 oo_DEFINE_STRUCT (OTCandidate)
 
 	oo_STRING (string)
-	oo_LONG (numberOfConstraints)
-	oo_INT_VECTOR (marks, numberOfConstraints)
+	oo_INTEGER (numberOfConstraints)
+	oo_INTVEC16 (marks, numberOfConstraints)
 
-	#if !oo_READING && !oo_WRITING
+	#if ! oo_READING && ! oo_WRITING
 		oo_DOUBLE (harmony)
 		oo_DOUBLE (probability)
 	#endif
@@ -67,10 +67,10 @@ oo_DEFINE_CLASS (OTMulti, Daata)
 	oo_FROM (2)
 		oo_DOUBLE (leak)
 	oo_ENDFROM
-	oo_LONG (numberOfConstraints)
+	oo_INTEGER (numberOfConstraints)
 	oo_STRUCT_VECTOR (OTConstraint, constraints, numberOfConstraints)
-	oo_LONG_VECTOR (index, numberOfConstraints)
-	oo_LONG (numberOfCandidates)
+	oo_INTVEC (index, numberOfConstraints)
+	oo_INTEGER (numberOfCandidates)
 	oo_STRUCT_VECTOR (OTCandidate, candidates, numberOfCandidates)
 
 	#if oo_READING

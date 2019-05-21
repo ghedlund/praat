@@ -1,6 +1,6 @@
 /* Spectrogram.cpp
  *
- * Copyright (C) 1992-2012,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2008,2011,2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ void structSpectrogram :: v_info () {
 	MelderInfo_writeLine (U"   First frequency band around (bin centre at): ", y1, U" Hz");
 }
 
-autoSpectrogram Spectrogram_create (double tmin, double tmax, long nt, double dt, double t1,
-	double fmin, double fmax, long nf, double df, double f1)
+autoSpectrogram Spectrogram_create (double tmin, double tmax, integer nt, double dt, double t1,
+	double fmin, double fmax, integer nf, double df, double f1)
 {
 	try {
 		autoSpectrogram me = Thing_new (Spectrogram);
@@ -57,17 +57,17 @@ void Spectrogram_paintInside (Spectrogram me, Graphics g, double tmin, double tm
 {
 	if (tmax <= tmin) { tmin = my xmin; tmax = my xmax; }
 	if (fmax <= fmin) { fmin = my ymin; fmax = my ymax; }
-	long itmin, itmax, ifmin, ifmax;
+	integer itmin, itmax, ifmin, ifmax;
 	if (! Matrix_getWindowSamplesX (me, tmin - 0.49999 * my dx, tmax + 0.49999 * my dx, & itmin, & itmax) ||
-		 ! Matrix_getWindowSamplesY (me, fmin - 0.49999 * my dy, fmax + 0.49999 * my dy, & ifmin, & ifmax))
+			! Matrix_getWindowSamplesY (me, fmin - 0.49999 * my dy, fmax + 0.49999 * my dy, & ifmin, & ifmax))
 		return;
 	Graphics_setWindow (g, tmin, tmax, fmin, fmax);
 	autoNUMvector <double> preemphasisFactor (ifmin, ifmax);
 	autoNUMvector <double> dynamicFactor (itmin, itmax);
 	/* Pre-emphasis in place; also compute maximum after pre-emphasis. */
-	for (long ifreq = ifmin; ifreq <= ifmax; ifreq ++) {
+	for (integer ifreq = ifmin; ifreq <= ifmax; ifreq ++) {
 		preemphasisFactor [ifreq] = (preemphasis / NUMln2) * log (ifreq * my dy / 1000.0);
-		for (long itime = itmin; itime <= itmax; itime ++) {
+		for (integer itime = itmin; itime <= itmax; itime ++) {
 			double value = my z [ifreq] [itime];   // power
 			value = (10.0/NUMln10) * log ((value + 1e-30) / 4.0e-10) + preemphasisFactor [ifreq];   // dB
 			if (value > dynamicFactor [itime]) dynamicFactor [itime] = value;   // local maximum
@@ -77,25 +77,24 @@ void Spectrogram_paintInside (Spectrogram me, Graphics g, double tmin, double tm
 	/* Compute global maximum. */
 	if (autoscaling) {
 		maximum = 0.0;
-		for (long itime = itmin; itime <= itmax; itime ++)
+		for (integer itime = itmin; itime <= itmax; itime ++)
 			if (dynamicFactor [itime] > maximum) maximum = dynamicFactor [itime];
 	}
 	/* Dynamic compression in place. */
-	for (long itime = itmin; itime <= itmax; itime ++) {
+	for (integer itime = itmin; itime <= itmax; itime ++) {
 		dynamicFactor [itime] = dynamicCompression * (maximum - dynamicFactor [itime]);
-		for (long ifreq = ifmin; ifreq <= ifmax; ifreq ++)
+		for (integer ifreq = ifmin; ifreq <= ifmax; ifreq ++)
 			my z [ifreq] [itime] += dynamicFactor [itime];
 	}
-	Graphics_image (g, my z,
-		itmin, itmax,
+	Graphics_image (g, my z.part (ifmin, ifmax, itmin, itmax),
 		Matrix_columnToX (me, itmin - 0.5),
 		Matrix_columnToX (me, itmax + 0.5),
-		ifmin, ifmax,
 		Matrix_rowToY (me, ifmin - 0.5),
 		Matrix_rowToY (me, ifmax + 0.5),
-		maximum - dynamic, maximum);
-	for (long ifreq = ifmin; ifreq <= ifmax; ifreq ++)
-		for (long itime = itmin; itime <= itmax; itime ++) {
+		maximum - dynamic, maximum
+	);
+	for (integer ifreq = ifmin; ifreq <= ifmax; ifreq ++)
+		for (integer itime = itmin; itime <= itmax; itime ++) {
 			double value = 4.0e-10 * exp ((my z [ifreq] [itime] - dynamicFactor [itime]
 				- preemphasisFactor [ifreq]) * (NUMln10 / 10.0)) - 1e-30;
 			my z [ifreq] [itime] = value > 0.0 ? value : 0.0;
@@ -105,7 +104,7 @@ void Spectrogram_paintInside (Spectrogram me, Graphics g, double tmin, double tm
 void Spectrogram_paint (Spectrogram me, Graphics g,
 	double tmin, double tmax, double fmin, double fmax, double maximum, int autoscaling,
 	double dynamic, double preemphasis, double dynamicCompression,
-	int garnish)
+	bool garnish)
 {
 	Graphics_setInner (g);
 	Spectrogram_paintInside (me, g, tmin, tmax, fmin, fmax, maximum, autoscaling, dynamic, preemphasis, dynamicCompression);
@@ -122,7 +121,7 @@ void Spectrogram_paint (Spectrogram me, Graphics g,
 autoSpectrogram Matrix_to_Spectrogram (Matrix me) {
 	try {
 		autoSpectrogram thee = Spectrogram_create (my xmin, my xmax, my nx, my dx, my x1, my ymin, my ymax, my ny, my dy, my y1);
-		NUMmatrix_copyElements (my z, thy z, 1, my ny, 1, my nx);
+		thy z.all() <<= my z.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Spectrogram.");
@@ -132,7 +131,7 @@ autoSpectrogram Matrix_to_Spectrogram (Matrix me) {
 autoMatrix Spectrogram_to_Matrix (Spectrogram me) {
 	try {
 		autoMatrix thee = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, my ymin, my ymax, my ny, my dy, my y1);
-		NUMmatrix_copyElements (my z, thy z, 1, my ny, 1, my nx);
+		thy z.all() <<= my z.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Matrix.");

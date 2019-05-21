@@ -1,6 +1,6 @@
 /* LineSpectralFrequencies.cpp
  *
- * Copyright (C) 2016 David Weenink
+ * Copyright (C) 2016-2018 David Weenink
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,19 +54,19 @@ void structLineSpectralFrequencies :: v_info () {
 	MelderInfo_writeLine (U"First frame at: ", x1, U" (s).");
 }
 
-void LineSpectralFrequencies_Frame_init (LineSpectralFrequencies_Frame me, int numberOfFrequencies) {
-	my frequencies = NUMvector<double> (1, numberOfFrequencies);
+void LineSpectralFrequencies_Frame_init (LineSpectralFrequencies_Frame me, integer numberOfFrequencies) {
+	my frequencies = newVECzero (numberOfFrequencies);
 	my numberOfFrequencies = numberOfFrequencies;
 }
 
-static void LineSpectralFrequencies_init (LineSpectralFrequencies me, double tmin, double tmax, long nt, double dt, double t1, int numberOfFrequencies, double maximumFrequency) {
+void LineSpectralFrequencies_init (LineSpectralFrequencies me, double tmin, double tmax, integer nt, double dt, double t1, integer numberOfFrequencies, double maximumFrequency) {
 	my maximumFrequency = maximumFrequency;
 	my maximumNumberOfFrequencies = numberOfFrequencies;
 	Sampled_init (me, tmin, tmax, nt, dt, t1);
 	my d_frames = NUMvector<structLineSpectralFrequencies_Frame> (1, nt);
 }
 
-autoLineSpectralFrequencies LineSpectralFrequencies_create (double tmin, double tmax, long nt, double dt, double t1, int numberOfFrequencies, double maximumFrequency) {
+autoLineSpectralFrequencies LineSpectralFrequencies_create (double tmin, double tmax, integer nt, double dt, double t1, integer numberOfFrequencies, double maximumFrequency) {
 	try {
 		autoLineSpectralFrequencies me = Thing_new (LineSpectralFrequencies);
 		LineSpectralFrequencies_init (me.get(), tmin, tmax, nt, dt, t1, numberOfFrequencies, maximumFrequency);
@@ -81,31 +81,33 @@ void LineSpectralFrequencies_drawFrequencies (LineSpectralFrequencies me, Graphi
 		tmin = my xmin;
 		tmax = my xmax;
 	}
-	long itmin, itmax;
+	integer itmin, itmax;
 	if (! Sampled_getWindowSamples (me, tmin, tmax, & itmin, & itmax)) {
 		return;
 	}
 	if (fmax <= fmin) {
-		double f1max, f2min; 
-		autoNUMvector<double> f1 (itmin, itmax), f2 (itmin, itmax);
-		for (long iframe = itmin; iframe <= itmax; iframe++) {
-			f1[iframe] = my d_frames[iframe].frequencies[1];
-			f2[iframe] = my d_frames[iframe].frequencies[my d_frames[iframe].numberOfFrequencies];
+		double f1max, f2min;
+		integer numberOfSelected = itmax - itmin + 1;
+		autoVEC f1 = newVECraw (numberOfSelected);
+		autoVEC f2 = newVECraw (numberOfSelected);
+		for (integer iframe = itmin; iframe <= itmax; iframe ++) {
+			f1 [iframe - itmin + 1] = my d_frames [iframe]. frequencies [1];
+			f2 [iframe - itmin + 1] = my d_frames [iframe]. frequencies [my d_frames [iframe] . numberOfFrequencies];
 		}
-		NUMvector_extrema (f1.peek(), itmin, itmax, & fmin, & f1max);
-		NUMvector_extrema (f2.peek(), itmin, itmax, & f2min, & fmax);
+		NUMextrema (f1.get(), & fmin, & f1max);
+		NUMextrema (f2.get(), & f2min, & fmax);
 	}
 	if (fmax == fmin) {
-		fmin = 0;
+		fmin = 0.0;
 		fmax += 0.5;
 	}
 
 	Graphics_setInner (g);
 	Graphics_setWindow (g, tmin, tmax, fmin, fmax);
-	for (long iframe = itmin; iframe <= itmax; iframe++) {
-		LineSpectralFrequencies_Frame lsf = & my d_frames[iframe];
+	for (integer iframe = itmin; iframe <= itmax; iframe ++) {
+		LineSpectralFrequencies_Frame lsf = & my d_frames [iframe];
 		double x = Sampled_indexToX (me, iframe);
-		for (long ifreq = 1; ifreq <= lsf -> numberOfFrequencies; ifreq++) {
+		for (integer ifreq = 1; ifreq <= lsf -> numberOfFrequencies; ifreq ++) {
 			double y = lsf -> frequencies [ifreq];
 			if (y >= fmin && y <= fmax) { 
 				Graphics_speckle (g, x, y);
@@ -125,10 +127,10 @@ void LineSpectralFrequencies_drawFrequencies (LineSpectralFrequencies me, Graphi
 autoMatrix LineSpectralFrequencies_downto_Matrix (LineSpectralFrequencies me) {
 	try {
 		autoMatrix thee = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, 0.5, 0.5 + my maximumNumberOfFrequencies, my maximumNumberOfFrequencies, 1.0, 1.0);
-		for (long j = 1; j <= my nx; j++) {
+		for (integer j = 1; j <= my nx; j ++) {
 			LineSpectralFrequencies_Frame lsf = & my d_frames[j];
-			for (long i = 1; i <= lsf -> numberOfFrequencies; i++) {
-				thy z [i][j] = lsf -> frequencies [i];
+			for (integer i = 1; i <= lsf -> numberOfFrequencies; i ++) {
+				thy z [i] [j] = lsf -> frequencies [i];
 			}
 		}
 		return thee;

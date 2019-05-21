@@ -101,7 +101,7 @@ PRAAT_LIB_EXPORT void IntervalTier_removeInterval (IntervalTier me, long iinterv
 #define ooSTRUCT TextGrid
 oo_DEFINE_CLASS (TextGrid, Function)
 
-	oo_AUTO_OBJECT (FunctionList, 0, tiers)   // TextTier and IntervalTier objects
+	oo_OBJECT (FunctionList, 0, tiers)   // TextTier and IntervalTier objects
 
 	#if oo_DECLARING
 		void v_info ()

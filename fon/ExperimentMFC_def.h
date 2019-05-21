@@ -1,6 +1,6 @@
 /* ExperimentMFC_def.h
  *
- * Copyright (C) 2001-2011,2013,2015,2016 Paul Boersma
+ * Copyright (C) 2001-2007,2009,2011,2013,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +37,9 @@
 oo_DEFINE_STRUCT (SoundMFC)
 
 	oo_STRING (name)
-	#if !oo_READING && !oo_WRITING
-		oo_AUTO_OBJECT (Sound, 0, sound)
-	#endif
-		
-	#if oo_DESTROYING
-		sound.reset();
+
+	#if ! oo_READING && ! oo_WRITING
+		oo_OBJECT (Sound, 0, sound)
 	#endif
 
 oo_END_STRUCT (SoundMFC)
@@ -56,12 +53,9 @@ oo_DEFINE_STRUCT (StimulusMFC)
 	oo_FROM (4)
 		oo_STRING (visibleText)
 	oo_ENDFROM
-	#if !oo_READING && !oo_WRITING
-		oo_AUTO_OBJECT (Sound, 0, sound)
-	#endif
 
-	#if oo_DESTROYING
-		sound.reset();
+	#if ! oo_READING && ! oo_WRITING
+		oo_OBJECT (Sound, 0, sound)
 	#endif
 
 oo_END_STRUCT (StimulusMFC)
@@ -77,18 +71,15 @@ oo_DEFINE_STRUCT (ResponseMFC)
 	oo_FLOAT (top)
 	oo_STRING (label)
 	oo_FROM (5)
-		oo_INT (fontSize)
+		oo_INT16 (fontSize)
 	oo_ENDFROM
 	oo_FROM (3)
 		oo_STRING (key)
 	oo_ENDFROM
 	oo_STRING (name)
-	#if !oo_READING && !oo_WRITING
-		oo_AUTO_OBJECT (Sound, 0, sound)
-	#endif
 
-	#if oo_DESTROYING
-		sound.reset();
+	#if ! oo_READING && ! oo_WRITING
+		oo_OBJECT (Sound, 0, sound)
 	#endif
 
 oo_END_STRUCT (ResponseMFC)
@@ -104,7 +95,7 @@ oo_DEFINE_STRUCT (GoodnessMFC)
 	oo_FLOAT (top)
 	oo_STRING (label)
 	oo_FROM (7)
-		oo_INT (fontSize)
+		oo_INT16 (fontSize)
 		oo_STRING (key)
 	oo_ENDFROM
 
@@ -132,17 +123,17 @@ oo_DEFINE_CLASS (ExperimentMFC, Daata)
 	oo_FROM (6)
 		oo_DOUBLE (stimulusFinalSilenceDuration)
 	oo_ENDFROM
-	oo_LONG (numberOfDifferentStimuli)
+	oo_INTEGER (numberOfDifferentStimuli)
 	oo_STRUCT_VECTOR (StimulusMFC, stimulus, numberOfDifferentStimuli)
-	oo_LONG (numberOfReplicationsPerStimulus)
-	oo_LONG (breakAfterEvery)
+	oo_INTEGER (numberOfReplicationsPerStimulus)
+	oo_INTEGER (breakAfterEvery)
 	oo_ENUM (kExperiment_randomize, randomize)
 	oo_STRING (startText)
 	oo_STRING (runText)
 	oo_STRING (pauseText)
 	oo_STRING (endText)
 	oo_FROM (4)
-		oo_LONG (maximumNumberOfReplays)
+		oo_INTEGER (maximumNumberOfReplays)
 		oo_FLOAT (replay_left)
 		oo_FLOAT (replay_right)
 		oo_FLOAT (replay_bottom)
@@ -174,29 +165,31 @@ oo_DEFINE_CLASS (ExperimentMFC, Daata)
 	oo_FROM (6)
 		oo_DOUBLE (responseFinalSilenceDuration)
 	oo_ENDFROM
-	oo_LONG (numberOfDifferentResponses)
+	oo_INTEGER (numberOfDifferentResponses)
 	oo_STRUCT_VECTOR (ResponseMFC, response, numberOfDifferentResponses)
 	oo_FROM (1)
-		oo_LONG (numberOfGoodnessCategories)
+		oo_INTEGER (numberOfGoodnessCategories)
 		oo_STRUCT_VECTOR (GoodnessMFC, goodness, numberOfGoodnessCategories)
 	oo_ENDFROM
-	#if !oo_READING && !oo_WRITING
+	#if ! oo_READING && ! oo_WRITING
 		oo_DOUBLE (samplePeriod)
-		oo_INT (numberOfChannels)
+		oo_INTEGER (numberOfChannels)
 		oo_BOOLEAN (pausing)
-		oo_LONG (trial)
-		oo_LONG (numberOfTrials)
-		oo_LONG_VECTOR (stimuli, numberOfTrials)
-		oo_LONG_VECTOR (responses, numberOfTrials)
-		oo_DOUBLE_VECTOR (goodnesses, numberOfTrials)
+		oo_INTEGER (trial)
+		oo_INTEGER (numberOfTrials)
+		oo_INTVEC (stimuli, numberOfTrials)
+		oo_INTVEC (responses, numberOfTrials)
+		oo_VEC (goodnesses, numberOfTrials)
 		oo_DOUBLE (startingTime)
-		oo_DOUBLE_VECTOR (reactionTimes, numberOfTrials)
-		oo_AUTO_OBJECT (Sound, 0, playBuffer)
+		oo_VEC (reactionTimes, numberOfTrials)
+		oo_OBJECT (Sound, 0, playBuffer)
 	#endif
 	oo_DIR (rootDirectory)
 	#if oo_READING
 		MelderDir_copy (& Data_directoryBeingRead, & rootDirectory);
-		if (formatVersion < 4) stimuliAreSounds = true;
+		oo_VERSION_UNTIL (4)
+			stimuliAreSounds = true;
+		oo_VERSION_END
 	#endif
 
 oo_END_CLASS (ExperimentMFC)
@@ -224,7 +217,7 @@ oo_END_STRUCT (TrialMFC)
 #define ooSTRUCT ResultsMFC
 oo_DEFINE_CLASS (ResultsMFC, Daata)
 
-	oo_LONG (numberOfTrials)
+	oo_INTEGER (numberOfTrials)
 	oo_STRUCT_VECTOR (TrialMFC, result, numberOfTrials)
 
 oo_END_CLASS (ResultsMFC)

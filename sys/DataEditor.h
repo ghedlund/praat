@@ -33,8 +33,8 @@ typedef struct structDataSubEditor_FieldData {
 	GuiText text;
 	void *address;
 	Data_Description description;
-	long minimum, maximum, min2, max2;
-	char32 *history;   // the full prefix of the members
+	integer minimum, maximum, min2, max2;
+	autostring32 history;   // the full prefix of the members
 	int rank;   // should the button open a StructEditor (0) or VectorEditor (1) or MatrixEditor (2) ?
 	int y;
 } *DataSubEditor_FieldData;
@@ -58,30 +58,30 @@ Thing_define (DataSubEditor, Editor) {
 	void v_createHelpMenuItems (EditorMenu menu)
 		override;
 
-	virtual long v_countFields () { return 0; }
+	virtual integer v_countFields () { return 0; }
 	virtual void v_showMembers () { }
 };
 
 Thing_define (VectorEditor, DataSubEditor) {
-	long d_minimum, d_maximum;
+	integer d_minimum, d_maximum;
 
-	long v_countFields ()
+	integer v_countFields ()
 		override;
 	void v_showMembers ()
 		override;
 };
 
 Thing_define (MatrixEditor, DataSubEditor) {
-	long d_minimum, d_maximum, d_min2, d_max2;
+	integer d_minimum, d_maximum, d_min2, d_max2;
 
-	long v_countFields ()
+	integer v_countFields ()
 		override;
 	void v_showMembers ()
 		override;
 };
 
 Thing_define (StructEditor, DataSubEditor) {
-	long v_countFields ()
+	integer v_countFields ()
 		override;
 	void v_showMembers ()
 		override;
@@ -101,7 +101,7 @@ Thing_define (DataEditor, ClassEditor) {
 		override;
 };
 
-autoDataEditor DataEditor_create (const char32 *title, Daata data);
+autoDataEditor DataEditor_create (conststring32 title, Daata data);
 
 /* End of file DataEditor.h */
 #endif

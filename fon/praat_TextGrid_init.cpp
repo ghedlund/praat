@@ -1,6 +1,6 @@
 /* praat_TextGrid_init.cpp
  *
- * Copyright (C) 1992-2012,2014,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,18 +30,18 @@
 #undef iam
 #define iam iam_LOOP
 
-static const char32 *STRING_FROM_FREQUENCY_HZ = U"left Frequency range (Hz)";
-static const char32 *STRING_TO_FREQUENCY_HZ = U"right Frequency range (Hz)";
-static const char32 *STRING_TIER_NUMBER = U"Tier number";
-static const char32 *STRING_INTERVAL_NUMBER = U"Interval number";
-static const char32 *STRING_POINT_NUMBER = U"Point number";
+static const conststring32 STRING_FROM_FREQUENCY_HZ = U"left Frequency range (Hz)";
+static const conststring32 STRING_TO_FREQUENCY_HZ = U"right Frequency range (Hz)";
+static const conststring32 STRING_TIER_NUMBER = U"Tier number";
+static const conststring32 STRING_INTERVAL_NUMBER = U"Interval number";
+static const conststring32 STRING_POINT_NUMBER = U"Point number";
 
 // MARK: - ANYTIER (generic)
 
 DIRECT (NEW1_AnyTier_into_TextGrid) {
 	CONVERT_LIST (Function)
 		autoTextGrid result = TextGrid_createWithoutTiers (1e30, -1e30);
-		for (long i = 1; i <= list.size; i ++) {
+		for (integer i = 1; i <= list.size; i ++) {
 			TextGrid_addTier_copy (result.get(), list.at [i]);
 		}
 	CONVERT_LIST_END (U"grid")
@@ -50,22 +50,22 @@ DIRECT (NEW1_AnyTier_into_TextGrid) {
 // MARK: - INTERVALTIER
 
 FORM (NEW_IntervalTier_downto_TableOfReal, U"IntervalTier: Down to TableOfReal", nullptr) {
-	SENTENCE4 (label, U"Label", U"")
+	SENTENCE (label, U"Label", U"")
 	OK
 DO
 	CONVERT_EACH (IntervalTier)
 		autoTableOfReal result = IntervalTier_downto_TableOfReal (me, label);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_IntervalTier_downto_TableOfReal_any) {
 	CONVERT_EACH (IntervalTier)
 		autoTableOfReal result = IntervalTier_downto_TableOfReal_any (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_IntervalTier_getCentrePoints, U"IntervalTier: Get centre points", nullptr) {
-	SENTENCE4 (text, U"Text", U"")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	CONVERT_EACH (IntervalTier)
@@ -74,7 +74,7 @@ DO
 }
 
 FORM (NEW_IntervalTier_getEndPoints, U"IntervalTier: Get end points", nullptr) {
-	SENTENCE4 (text, U"Text", U"")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	CONVERT_EACH (IntervalTier)
@@ -83,7 +83,7 @@ DO
 }
 
 FORM (NEW_IntervalTier_getStartingPoints, U"IntervalTier: Get starting points", nullptr) {
-	SENTENCE4 (text, U"Text", U"")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	CONVERT_EACH (IntervalTier)
@@ -104,21 +104,21 @@ FORM_SAVE (SAVE_IntervalTier_writeToXwaves, U"Xwaves label file", nullptr, nullp
 // MARK: - INTERVALTIER & POINTPROCESS
 
 FORM (NEW1_IntervalTier_PointProcess_startToCentre, U"From start to centre", U"IntervalTier & PointProcess: Start to centre...") {
-	REALVAR (phase, U"Phase (0-1)", U"0.5")
+	REAL (phase, U"Phase (0-1)", U"0.5")
 	OK
 DO
 	CONVERT_TWO (IntervalTier, PointProcess)
 		autoPointProcess result = IntervalTier_PointProcess_startToCentre (me, you, phase);
-	CONVERT_TWO_END (my name, U"_", your name, U"_", lround (100.0 * phase));
+	CONVERT_TWO_END (my name.get(), U"_", your name.get(), U"_", Melder_iround (100.0 * phase));
 }
 
 FORM (NEW1_IntervalTier_PointProcess_endToCentre, U"From end to centre", U"IntervalTier & PointProcess: End to centre...") {
-	REALVAR (phase, U"Phase (0-1)", U"0.5")
+	REAL (phase, U"Phase (0-1)", U"0.5")
 	OK
 DO
 	CONVERT_TWO (IntervalTier, PointProcess)
 		autoPointProcess result = IntervalTier_PointProcess_endToCentre (me, you, phase);
-	CONVERT_TWO_END (my name, U"_", your name, U"_", lround (100.0 * phase));
+	CONVERT_TWO_END (my name.get(), U"_", your name.get(), U"_", Melder_iround (100.0 * phase));
 }
 
 // MARK: - LABEL (obsolete)
@@ -126,7 +126,7 @@ DO
 DIRECT (NEW1_Label_Sound_to_TextGrid) {
 	CONVERT_TWO (Label, Sound)
 		autoTextGrid result = Label_Function_to_TextGrid (me, you);
-	CONVERT_TWO_END (your name)
+	CONVERT_TWO_END (your name.get())
 }
 
 DIRECT (HINT_Label_Sound_to_TextGrid) {
@@ -139,328 +139,328 @@ DIRECT (HINT_Label_Sound_to_TextGrid) {
 // MARK: - PITCH & TEXTGRID
 
 FORM (GRAPHICS_TextGrid_Pitch_draw, U"TextGrid & Pitch: Draw", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	INTEGER4 (fontSize, U"Font size (points)", U"18")
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	OPTIONMENU4x (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	INTEGER (fontSize, U"Font size (points)", U"18")
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	OPTIONMENUx (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_draw (me, you, GRAPHICS, tierNumber, fromTime, toTime, fromFrequency, toFrequency,
-			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit_HERTZ);
+			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit::HERTZ);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawErb, U"TextGrid & Pitch: Draw erb", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (ERB)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (ERB)", U"10.0")
-	INTEGER4 (fontSize, U"Font size (points)", U"18")
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	OPTIONMENU4x (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (ERB)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (ERB)", U"10.0")
+	INTEGER (fontSize, U"Font size (points)", U"18")
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	OPTIONMENUx (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_draw (me, you, GRAPHICS, tierNumber, fromTime, toTime, fromFrequency, toFrequency,
-			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit_ERB);
+			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit::ERB);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawLogarithmic, U"TextGrid & Pitch: Draw logarithmic", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVEVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	INTEGER4 (fontSize, U"Font size (points)", U"18")
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	OPTIONMENU4x (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	POSITIVE (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	INTEGER (fontSize, U"Font size (points)", U"18")
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	OPTIONMENUx (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_draw (me, you, GRAPHICS, tierNumber, fromTime, toTime, fromFrequency, toFrequency,
-			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit_HERTZ_LOGARITHMIC);
+			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit::HERTZ_LOGARITHMIC);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawMel, U"TextGrid & Pitch: Draw mel", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (mel)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (mel)", U"500.0")
-	INTEGER4 (fontSize, U"Font size (points)", U"18")
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	OPTIONMENU4x (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (mel)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (mel)", U"500.0")
+	INTEGER (fontSize, U"Font size (points)", U"18")
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	OPTIONMENUx (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_draw (me, you, GRAPHICS, tierNumber, fromTime, toTime, fromFrequency, toFrequency,
-			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit_MEL);
+			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit::MEL);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSemitones, U"TextGrid & Pitch: Draw semitones", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	LABEL (U"", U"Range in semitones re 100 hertz:")
-	REALVAR (fromFrequency, U"left Frequency range (st)", U"-12.0")
-	REALVAR (toFrequency, U"right Frequency range (st)", U"30.0")
-	INTEGER4 (fontSize, U"Font size (points)", U"18")
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	OPTIONMENU4x (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	LABEL (U"Range in semitones re 100 hertz:")
+	REAL (fromFrequency, U"left Frequency range (st)", U"-12.0")
+	REAL (toFrequency, U"right Frequency range (st)", U"30.0")
+	INTEGER (fontSize, U"Font size (points)", U"18")
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	OPTIONMENUx (textAlignment, U"Text alignment", 2, 0) OPTION (U"Left") OPTION (U"Centre") OPTION (U"Right")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_draw (me, you, GRAPHICS, tierNumber, fromTime, toTime, fromFrequency, toFrequency,
-			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit_SEMITONES_100);
+			fontSize, useTextStyles, textAlignment, garnish, Pitch_speckle_NO, kPitch_unit::SEMITONES_100);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSeparately, U"TextGrid & Pitch: Draw separately", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
-	REALVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
+	REAL (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit_HERTZ);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit::HERTZ);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSeparatelyErb, U"TextGrid & Pitch: Draw separately erb", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (ERB)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (ERB)", U"10.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (ERB)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (ERB)", U"10.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit_ERB);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit::ERB);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSeparatelyLogarithmic, U"TextGrid & Pitch: Draw separately logarithmic", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVEVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	POSITIVE (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit_HERTZ_LOGARITHMIC);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit::HERTZ_LOGARITHMIC);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSeparatelyMel, U"TextGrid & Pitch: Draw separately mel", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (mel)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (mel)", U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (mel)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (mel)", U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit_MEL);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit::MEL);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_drawSeparatelySemitones, U"TextGrid & Pitch: Draw separately semitones", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	LABEL (U"", U"Range in semitones re 100 hertz:")
-	REALVAR (fromFrequency, U"left Frequency range (st)", U"-12.0")
-	REALVAR (toFrequency, U"right Frequency range (st)", U"30.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	LABEL (U"Range in semitones re 100 hertz:")
+	REAL (fromFrequency, U"left Frequency range (st)", U"-12.0")
+	REAL (toFrequency, U"right Frequency range (st)", U"30.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit_SEMITONES_100);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_NO, kPitch_unit::SEMITONES_100);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckle, U"TextGrid & Pitch: Speckle", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_HERTZ);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::HERTZ);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleErb, U"TextGrid & Pitch: Speckle erb", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (ERB)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (ERB)", U"10.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (ERB)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (ERB)", U"10.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_ERB);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::ERB);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleLogarithmic, U"TextGrid & Pitch: Speckle logarithmic", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVEVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	POSITIVE (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_HERTZ_LOGARITHMIC);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::HERTZ_LOGARITHMIC);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleMel, U"TextGrid & Pitch: Speckle mel", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (mel)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (mel)", U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (mel)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (mel)", U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_MEL);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::MEL);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSemitones, U"TextGrid & Pitch: Speckle semitones", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	LABEL (U"", U"Range in semitones re 100 hertz:")
-	REALVAR (fromFrequency, U"left Frequency range (st)", U"-12.0")
-	REALVAR (toFrequency, U"right Frequency range (st)", U"30.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	LABEL (U"Range in semitones re 100 hertz:")
+	REAL (fromFrequency, U"left Frequency range (st)", U"-12.0")
+	REAL (toFrequency, U"right Frequency range (st)", U"30.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_SEMITONES_100);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::SEMITONES_100);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSeparately, U"TextGrid & Pitch: Speckle separately", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
-	REALVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"0.0")
+	REAL (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_HERTZ);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::HERTZ);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSeparatelyErb, U"TextGrid & Pitch: Speckle separately erb", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (ERB)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (ERB)", U"10.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (ERB)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (ERB)", U"10.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_ERB);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::ERB);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSeparatelyLogarithmic, U"TextGrid & Pitch: Speckle separately logarithmic", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVEVAR (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
-	POSITIVEVAR (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	POSITIVE (fromFrequency, STRING_FROM_FREQUENCY_HZ, U"50.0")
+	POSITIVE (toFrequency, STRING_TO_FREQUENCY_HZ, U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_HERTZ_LOGARITHMIC);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::HERTZ_LOGARITHMIC);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSeparatelyMel, U"TextGrid & Pitch: Speckle separately mel", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (mel)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (mel)", U"500.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (mel)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (mel)", U"500.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_MEL);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::MEL);
 	GRAPHICS_TWO_END
 }
 
 FORM (GRAPHICS_TextGrid_Pitch_speckleSeparatelySemitones, U"TextGrid & Pitch: Speckle separately semitones", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	LABEL (U"", U"Range in semitones re 100 hertz:")
-	REALVAR (fromFrequency, U"left Frequency range (st)", U"-12.0")
-	REALVAR (toFrequency, U"right Frequency range (st)", U"30.0")
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	LABEL (U"Range in semitones re 100 hertz:")
+	REAL (fromFrequency, U"left Frequency range (st)", U"-12.0")
+	REAL (toFrequency, U"right Frequency range (st)", U"30.0")
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Pitch)
 		TextGrid_Pitch_drawSeparately (me, you, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
-			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit_MEL);
+			showBoundaries, useTextStyles, garnish, Pitch_speckle_YES, kPitch_unit::MEL);
 	GRAPHICS_TWO_END
 }
 
 // MARK: - PITCH & TEXTTIER
 
 FORM (NEW1_Pitch_TextTier_to_PitchTier, U"Pitch & TextTier to PitchTier", U"Pitch & TextTier: To PitchTier...") {
-	RADIO4x (unvoicedStrategy, U"Unvoiced strategy", 3, 0)
+	RADIOx (unvoicedStrategy, U"Unvoiced strategy", 3, 0)
 		RADIOBUTTON (U"Zero")
 		RADIOBUTTON (U"Error")
 		RADIOBUTTON (U"Interpolate")
@@ -468,16 +468,16 @@ FORM (NEW1_Pitch_TextTier_to_PitchTier, U"Pitch & TextTier to PitchTier", U"Pitc
 DO
 	CONVERT_TWO (Pitch, TextTier)
 		autoPitchTier result = Pitch_AnyTier_to_PitchTier (me, you->asAnyTier(), unvoicedStrategy);
-	CONVERT_TWO_END (my name)
+	CONVERT_TWO_END (my name.get())
 }
 
 // MARK: - SOUND & TEXTGRID
 
 FORM (GRAPHICS_TextGrid_Sound_draw, U"TextGrid & Sound: Draw...", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_TWO (TextGrid, Sound)
@@ -486,8 +486,8 @@ DO
 }
 
 FORM (NEW1_TextGrid_Sound_extractAllIntervals, U"TextGrid & Sound: Extract all intervals", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	BOOLEAN4 (preserveTimes, U"Preserve times", false)
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	BOOLEAN (preserveTimes, U"Preserve times", false)
 	OK
 DO
 	CONVERT_TWO (TextGrid, Sound)
@@ -497,8 +497,8 @@ DO
 }
 
 FORM (NEW1_TextGrid_Sound_extractNonemptyIntervals, U"TextGrid & Sound: Extract non-empty intervals", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	BOOLEAN4 (preserveTimes, U"Preserve times", false)
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	BOOLEAN (preserveTimes, U"Preserve times", false)
 	OK
 DO
 	CONVERT_TWO (TextGrid, Sound)
@@ -508,23 +508,24 @@ DO
 }
 
 FORM (NEW1_TextGrid_Sound_extractIntervals, U"TextGrid & Sound: Extract intervals", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	BOOLEAN4 (preserveTimes, U"Preserve times", false)
-	SENTENCE4 (labelText, U"Label text", U"")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	BOOLEAN (preserveTimes, U"Preserve times", false)
+	SENTENCE (labelText, U"Label text", U"")
 	OK
 DO
 	CONVERT_TWO (TextGrid, Sound)
 		autoSoundList result = TextGrid_Sound_extractIntervalsWhere (me, you,
-			tierNumber, kMelder_string_EQUAL_TO, labelText, preserveTimes);
+			tierNumber, kMelder_string::EQUAL_TO, labelText, preserveTimes);
 		result -> classInfo = classCollection;   // YUCK, in order to force automatic unpacking
 	CONVERT_TWO_END (U"dummy")
 }
 
 FORM (NEW1_TextGrid_Sound_extractIntervalsWhere, U"TextGrid & Sound: Extract intervals", nullptr) {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	BOOLEAN4 (preserveTimes, U"Preserve times", false)
-	OPTIONMENU_ENUM4 (extractEveryIntervalWhoseLabel___, U"Extract every interval whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (__theText, U"...the text", U"")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	BOOLEAN (preserveTimes, U"Preserve times", false)
+	OPTIONMENU_ENUM (kMelder_string, extractEveryIntervalWhoseLabel___,
+			U"Extract every interval whose label...", kMelder_string::DEFAULT)
+	SENTENCE (__theText, U"...the text", U"")
 	OK
 DO
 	CONVERT_TWO (TextGrid, Sound)
@@ -551,7 +552,7 @@ DIRECT (MODIFY_TextGrid_Sound_cloneTimeDomain) {
 // MARK: - SPELLINGCHECKER
 
 FORM (MODIFY_SpellingChecker_addNewWord, U"Add word to user dictionary", U"SpellingChecker") {
-	SENTENCE4 (newWord, U"New word", U"")
+	SENTENCE (newWord, U"New word", U"")
 	OK
 DO
 	MODIFY_EACH (SpellingChecker)
@@ -560,78 +561,77 @@ DO
 }
 
 FORM (WINDOW_SpellingChecker_viewAndEdit, U"Edit spelling checker", U"SpellingChecker") {
-	LABEL (U"", U"-- Syntax --")
-	SENTENCE4 (forbiddenStrings, U"Forbidden strings", U"")
-	BOOLEAN4 (checkMatchingParentheses, U"Check matching parentheses", false)
-	SENTENCE4 (separatingCharacters, U"Separating characters", U"")
-	BOOLEAN4 (allowAllParenthesized, U"Allow all parenthesized", false)
-	LABEL (U"", U"-- Capitals --")
-	BOOLEAN4 (allowAllNames, U"Allow all names", false)
-	SENTENCE4 (namePrefixes, U"Name prefixes", U"")
-	BOOLEAN4 (allowAllAbbreviations, U"Allow all abbreviations", false)
-	LABEL (U"", U"-- Capitalization --")
-	BOOLEAN4 (allowCapsSentenceInitially, U"Allow caps sentence-initially", false)
-	BOOLEAN4 (allowCapsAfterColon, U"Allow caps after colon", false)
-	LABEL (U"", U"-- Word parts --")
-	SENTENCE4 (allowAllWordsContaining, U"Allow all words containing", U"")
-	SENTENCE4 (allowAllWordsStartingWith, U"Allow all words starting with", U"")
-	SENTENCE4 (allowAllWordsEndingIn, U"Allow all words ending in", U"")
+	LABEL (U"-- Syntax --")
+	SENTENCE (forbiddenStrings, U"Forbidden strings", U"")
+	BOOLEAN (checkMatchingParentheses, U"Check matching parentheses", false)
+	SENTENCE (separatingCharacters, U"Separating characters", U"")
+	BOOLEAN (allowAllParenthesized, U"Allow all parenthesized", false)
+	LABEL (U"-- Capitals --")
+	BOOLEAN (allowAllNames, U"Allow all names", false)
+	SENTENCE (namePrefixes, U"Name prefixes", U"")
+	BOOLEAN (allowAllAbbreviations, U"Allow all abbreviations", false)
+	LABEL (U"-- Capitalization --")
+	BOOLEAN (allowCapsSentenceInitially, U"Allow caps sentence-initially", false)
+	BOOLEAN (allowCapsAfterColon, U"Allow caps after colon", false)
+	LABEL (U"-- Word parts --")
+	SENTENCE (allowAllWordsContaining, U"Allow all words containing", U"")
+	SENTENCE (allowAllWordsStartingWith, U"Allow all words starting with", U"")
+	SENTENCE (allowAllWordsEndingIn, U"Allow all words ending in", U"")
 OK
 	FIND_ONE (SpellingChecker)
-		SET_STRING (U"Forbidden strings", my forbiddenStrings)
-		SET_INTEGER (U"Check matching parentheses", my checkMatchingParentheses)
-		SET_STRING (U"Separating characters", my separatingCharacters)
-		SET_INTEGER (U"Allow all parenthesized", my allowAllParenthesized)
-		SET_INTEGER (U"Allow all names", my allowAllNames)
-		SET_STRING (U"Name prefixes", my namePrefixes)
-		SET_INTEGER (U"Allow all abbreviations", my allowAllAbbreviations)
-		SET_INTEGER (U"Allow caps sentence-initially", my allowCapsSentenceInitially)
-		SET_INTEGER (U"Allow caps after colon", my allowCapsAfterColon)
-		SET_STRING (U"Allow all words containing", my allowAllWordsContaining)
-		SET_STRING (U"Allow all words starting with", my allowAllWordsStartingWith)
-		SET_STRING (U"Allow all words ending in", my allowAllWordsEndingIn)
+		SET_STRING (forbiddenStrings, my forbiddenStrings.get())
+		SET_BOOLEAN (checkMatchingParentheses, my checkMatchingParentheses)
+		SET_STRING (separatingCharacters, my separatingCharacters.get())
+		SET_BOOLEAN (allowAllParenthesized, my allowAllParenthesized)
+		SET_BOOLEAN (allowAllNames, my allowAllNames)
+		SET_STRING (namePrefixes, my namePrefixes.get())
+		SET_BOOLEAN (allowAllAbbreviations, my allowAllAbbreviations)
+		SET_BOOLEAN (allowCapsSentenceInitially, my allowCapsSentenceInitially)
+		SET_BOOLEAN (allowCapsAfterColon, my allowCapsAfterColon)
+		SET_STRING (allowAllWordsContaining, my allowAllWordsContaining.get())
+		SET_STRING (allowAllWordsStartingWith, my allowAllWordsStartingWith.get())
+		SET_STRING (allowAllWordsEndingIn, my allowAllWordsEndingIn.get())
 DO
 	MODIFY_EACH (SpellingChecker)
-		Melder_free (my forbiddenStrings); my forbiddenStrings = Melder_dup_f (forbiddenStrings);
+		my forbiddenStrings = Melder_dup (forbiddenStrings);
 		my checkMatchingParentheses = checkMatchingParentheses;
-		Melder_free (my separatingCharacters); my separatingCharacters = Melder_dup_f (separatingCharacters);
+		my separatingCharacters = Melder_dup (separatingCharacters);
 		my allowAllParenthesized = allowAllParenthesized;
 		my allowAllNames = allowAllNames;
-		Melder_free (my namePrefixes); my namePrefixes = Melder_dup_f (namePrefixes);
+		my namePrefixes = Melder_dup (namePrefixes);
 		my allowAllAbbreviations = allowAllAbbreviations;
 		my allowCapsSentenceInitially = allowCapsSentenceInitially;
 		my allowCapsAfterColon = allowCapsAfterColon;
-		Melder_free (my allowAllWordsContaining); my allowAllWordsContaining = Melder_dup_f (allowAllWordsContaining);
-		Melder_free (my allowAllWordsStartingWith); my allowAllWordsStartingWith = Melder_dup_f (allowAllWordsStartingWith);
-		Melder_free (my allowAllWordsEndingIn); my allowAllWordsEndingIn = Melder_dup_f (allowAllWordsEndingIn);
+		my allowAllWordsContaining = Melder_dup (allowAllWordsContaining);
+		my allowAllWordsStartingWith = Melder_dup (allowAllWordsStartingWith);
+		my allowAllWordsEndingIn = Melder_dup (allowAllWordsEndingIn);
 	MODIFY_EACH_END
 }
 
 DIRECT (NEW_SpellingChecker_extractWordList) {
 	CONVERT_EACH (SpellingChecker)
 		autoWordList result = SpellingChecker_extractWordList (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_SpellingChecker_extractUserDictionary) {
 	CONVERT_EACH (SpellingChecker)
 		autoStringSet result = SpellingChecker_extractUserDictionary (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (BOOLEAN_SpellingChecker_isWordAllowed, U"Is word allowed?", U"SpellingChecker") {
-	SENTENCE4 (word, U"Word", U"")
+	SENTENCE (word, U"Word", U"")
 	OK
 DO
 	NUMBER_ONE (SpellingChecker)
-		long result = SpellingChecker_isWordAllowed (me, word);
+		integer result = SpellingChecker_isWordAllowed (me, word);
 	NUMBER_ONE_END (result ? U" (allowed)" : U" (not allowed)")
 }
 
 FORM (STRING_SpellingChecker_nextNotAllowedWord, U"Next not allowed word?", U"SpellingChecker") {
-	LABEL (U"", U"Sentence:")
-	TEXTFIELD4 (sentence, U"sentence", U"")
-	INTEGER4 (startingCharacter, U"Starting character", U"0")
+	TEXTFIELD (sentence, U"Sentence:", U"")
+	INTEGER (startingCharacter, U"Starting character", U"0")
 	OK
 DO
 	STRING_ONE (SpellingChecker)
@@ -639,7 +639,7 @@ DO
 			Melder_throw (U"Your starting character should be 0 or positive.");
 		if (startingCharacter > (int) str32len (sentence))
 			Melder_throw (U"Your starting character should not exceed the end of the sentence.");
-		const char32 *result = SpellingChecker_nextNotAllowedWord (me, sentence, & startingCharacter);
+		conststring32 result = SpellingChecker_nextNotAllowedWord (me, sentence, & startingCharacter);
 	STRING_ONE_END
 }
 
@@ -691,12 +691,10 @@ static void cb_TextGridEditor_publication (Editor /* editor */, autoDaata public
 		praat_updateSelection ();
 		if (isaSpectralSlice) {
 			int IOBJECT;
-			LOOP {
-				iam (Spectrum);
-				autoSpectrumEditor editor2 = SpectrumEditor_create (ID_AND_FULL_NAME, me);
-				praat_installEditor (editor2.get(), IOBJECT);
-				editor2.releaseToUser();
-			}
+			FIND_ONE_WITH_IOBJECT (Spectrum)
+			autoSpectrumEditor editor2 = SpectrumEditor_create (ID_AND_FULL_NAME, me);
+			praat_installEditor (editor2.get(), IOBJECT);
+			editor2.releaseToUser();
 		}
 	} catch (MelderError) {
 		Melder_flushError ();
@@ -704,36 +702,26 @@ static void cb_TextGridEditor_publication (Editor /* editor */, autoDaata public
 }
 DIRECT (WINDOW_TextGrid_viewAndEdit) {
 	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a TextGrid from batch.");
-	Sound sound = nullptr;
-	LOOP {
-		if (CLASS == classSound) sound = (Sound) OBJECT;   // may stay null
-	}
-	LOOP if (CLASS == classTextGrid) {
-		iam (TextGrid);
-		autoTextGridEditor editor = TextGridEditor_create (ID_AND_FULL_NAME, me, sound, true, nullptr, nullptr);
+	FIND_TWO_WITH_IOBJECT (TextGrid, Sound)   // Sound may be NULL
+		autoTextGridEditor editor = TextGridEditor_create (ID_AND_FULL_NAME, me, you, true, nullptr, nullptr);
 		Editor_setPublicationCallback (editor.get(), cb_TextGridEditor_publication);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 FORM (WINDOW_TextGrid_viewAndEditWithCallback, U"TextGrid: View & Edit with callback", nullptr) {
-	SENTENCE4 (callbackText, U"Callback text", U"r1")
+	SENTENCE (callbackText, U"Callback text", U"r1")
 	OK
 DO
 	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a TextGrid from batch.");
-	Sound sound = nullptr;
-	LOOP {
-		if (CLASS == classSound) sound = (Sound) OBJECT;   // may stay null
-	}
-	LOOP if (CLASS == classTextGrid) {
-		iam (TextGrid);
-		autoTextGridEditor editor = TextGridEditor_create (ID_AND_FULL_NAME, me, sound, true, nullptr, Melder_peek32to8 (callbackText));
+	FIND_TWO_WITH_IOBJECT (TextGrid, Sound)   // Sound may be NULL
+		autoTextGridEditor editor = TextGridEditor_create (ID_AND_FULL_NAME, me, you, true, nullptr, Melder_peek32to8 (callbackText));
 		Editor_setPublicationCallback (editor.get(), cb_TextGridEditor_publication);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 DIRECT (WINDOW_TextGrid_LongSound_viewAndEdit) {
 	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a TextGrid from batch.");
@@ -799,9 +787,9 @@ DIRECT (HINT_TextGrid_Sound_viewAndEdit) {
 
 FORM (GRAPHICS_TextGrid_draw, U"TextGrid: Draw", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	BOOLEAN4 (showBoundaries, U"Show boundaries", true)
-	BOOLEAN4 (useTextStyles, U"Use text styles", true)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	BOOLEAN (showBoundaries, U"Show boundaries", true)
+	BOOLEAN (useTextStyles, U"Use text styles", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (TextGrid)
@@ -824,10 +812,10 @@ DIRECT (HINT_TextGrid_Pitch_draw) {
 // MARK: Tabulate
 
 FORM (LIST_TextGrid_list, U"TextGrid: List", nullptr) {
-	BOOLEAN4 (includeLineNumber, U"Include line number", false)
-	NATURAL4 (timeDecimals, U"Time decimals", U"6")
-	BOOLEAN4 (includeTierNames, U"Include tier names", true)
-	BOOLEAN4 (includeEmptyIntervals, U"Include empty intervals", false)
+	BOOLEAN (includeLineNumber, U"Include line number", false)
+	NATURAL (timeDecimals, U"Time decimals", U"6")
+	BOOLEAN (includeTierNames, U"Include tier names", true)
+	BOOLEAN (includeEmptyIntervals, U"Include empty intervals", false)
 	OK
 DO
 	INFO_ONE (TextGrid)
@@ -836,59 +824,73 @@ DO
 }
 
 FORM (NEW_TextGrid_downto_Table, U"TextGrid: Down to Table", nullptr) {
-	BOOLEAN4 (includeLineNumber, U"Include line number", false)
-	NATURAL4 (timeDecimals, U"Time decimals", U"6")
-	BOOLEAN4 (includeTierNames, U"Include tier names", true)
-	BOOLEAN4 (includeEmptyIntervals, U"Include empty intervals", false)
+	BOOLEAN (includeLineNumber, U"Include line number", false)
+	NATURAL (timeDecimals, U"Time decimals", U"6")
+	BOOLEAN (includeTierNames, U"Include tier names", true)
+	BOOLEAN (includeEmptyIntervals, U"Include empty intervals", false)
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoTable result = TextGrid_downto_Table (me, includeLineNumber, timeDecimals,
 			includeTierNames, includeEmptyIntervals);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
+
+FORM (NEW_TextGrid_tabulateOccurrences, U"TextGrid: Tabulate occurrences", nullptr) {
+	NUMVEC (searchTiers, U"Search tiers:", U"{ 1, 2 }")
+	OPTIONMENU_ENUM (kMelder_string, listEveryLabelThat___,
+			U"List every label that...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hello")
+	BOOLEAN (caseSensitive, U"Case-sensitive", false)
+	OK
+DO
+	CONVERT_EACH (TextGrid)
+		autoTable result = TextGrid_tabulateOccurrences (me, searchTiers, listEveryLabelThat___, ___theText, caseSensitive);
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
+}
+
 
 // MARK: Query
 
 DIRECT (INTEGER_TextGrid_getNumberOfTiers) {
 	NUMBER_ONE (TextGrid)
-		long result = my tiers->size;
+		integer result = my tiers->size;
 	NUMBER_ONE_END (U" tiers")
 }
 
-inline static void pr_TextGrid_checkTierNumber (TextGrid me, long tierNumber) {
+inline static void pr_TextGrid_checkTierNumber (TextGrid me, integer tierNumber) {
 	if (tierNumber > my tiers->size)
 		Melder_throw (U"Your tier number (", tierNumber,
 			U") should not be greater than the number of tiers (", my tiers->size, U").");
 }
 
-inline static Function pr_TextGrid_peekTier (TextGrid me, long tierNumber) {
+inline static Function pr_TextGrid_peekTier (TextGrid me, integer tierNumber) {
 	pr_TextGrid_checkTierNumber (me, tierNumber);
 	return my tiers->at [tierNumber];
 }
 
 FORM (STRING_TextGrid_getTierName, U"TextGrid: Get tier name", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	STRING_ONE (TextGrid)
 		Function tier = pr_TextGrid_peekTier (me, tierNumber);
-		const char32 *result = tier -> name;
+		conststring32 result = tier -> name.get();
 	STRING_ONE_END
 }
 
 FORM (BOOLEAN_TextGrid_isIntervalTier, U"TextGrid: Is interval tier?", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		Function tier = pr_TextGrid_peekTier (me, tierNumber);
-		long result = ( tier -> classInfo == classIntervalTier );
+		integer result = ( tier -> classInfo == classIntervalTier );
 	NUMBER_ONE_END (result ? U" (yes, tier " : U" (no, tier ", tierNumber,
 		result ? U" is an interval tier)" : U" is a point tier)")
 }
 
-static IntervalTier pr_TextGrid_peekIntervalTier (TextGrid me, long tierNumber) {
+static IntervalTier pr_TextGrid_peekIntervalTier (TextGrid me, integer tierNumber) {
 	Function tier = pr_TextGrid_peekTier (me, tierNumber);
 	if (tier -> classInfo != classIntervalTier)
 		Melder_throw (U"Your tier should be an interval tier.");
@@ -896,24 +898,24 @@ static IntervalTier pr_TextGrid_peekIntervalTier (TextGrid me, long tierNumber) 
 }
 
 FORM (INTEGER_TextGrid_getNumberOfIntervals, U"TextGrid: Get number of intervals", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = intervalTier -> intervals.size;
+		integer result = intervalTier -> intervals.size;
 	NUMBER_ONE_END (U" intervals")
 }
 
-static TextInterval pr_TextGrid_peekInterval (TextGrid me, long tierNumber, long intervalNumber) {
+static TextInterval pr_TextGrid_peekInterval (TextGrid me, integer tierNumber, integer intervalNumber) {
 	IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
 	if (intervalNumber > intervalTier -> intervals.size) Melder_throw (U"Interval number too large.");
 	return intervalTier -> intervals.at [intervalNumber];
 }
 
 FORM (REAL_TextGrid_getStartTimeOfInterval, U"TextGrid: Get start time of interval", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
@@ -923,8 +925,8 @@ DO
 }
 
 FORM (REAL_TextGrid_getEndTimeOfInterval, U"TextGrid: Get end time of interval", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
@@ -934,83 +936,84 @@ DO
 }
 
 FORM (STRING_TextGrid_getLabelOfInterval, U"TextGrid: Get label of interval", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
 	OK
 DO
 	STRING_ONE (TextGrid)
 		TextInterval interval = pr_TextGrid_peekInterval (me, tierNumber, intervalNumber);
-		const char32 *result = interval -> text;
+		conststring32 result = interval -> text.get();
 	STRING_ONE_END
 }
 
 FORM (INTEGER_TextGrid_getIntervalAtTime, U"TextGrid: Get interval at time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = IntervalTier_timeToIndex (intervalTier, time);
+		integer result = IntervalTier_timeToIndex (intervalTier, time);
 	NUMBER_ONE_END (U" (interval number)")
 }
 
 FORM (INTEGER_TextGrid_getLowIntervalAtTime, U"TextGrid: Get low interval at time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = IntervalTier_timeToHighIndex (intervalTier, time);
+		integer result = IntervalTier_timeToHighIndex (intervalTier, time);
 	NUMBER_ONE_END (U" (low interval)")
 }
 
 FORM (INTEGER_TextGrid_getHighIntervalAtTime, U"TextGrid: Get high interval at time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = IntervalTier_timeToLowIndex (intervalTier, time);
+		integer result = IntervalTier_timeToLowIndex (intervalTier, time);
 	NUMBER_ONE_END (U" (high interval)")
 }
 
 FORM (INTEGER_TextGrid_getIntervalEdgeFromTime, U"TextGrid: Get interval edge from time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = IntervalTier_hasTime (intervalTier, time);
+		integer result = IntervalTier_hasTime (intervalTier, time);
 	NUMBER_ONE_END (U" (interval edge)")
 }
 
 FORM (INTEGER_TextGrid_getIntervalBoundaryFromTime, U"TextGrid: Get interval boundary from time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		IntervalTier intervalTier = pr_TextGrid_peekIntervalTier (me, tierNumber);
-		long result = IntervalTier_hasBoundary (intervalTier, time);
+		integer result = IntervalTier_hasBoundary (intervalTier, time);
 	NUMBER_ONE_END (U" (interval boundary)")
 }
 
 FORM (INTEGER_TextGrid_countIntervalsWhere, U"Count intervals", U"TextGrid: Count intervals where...") {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (countIntervalsWhoseLabel___, U"Count intervals whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, countIntervalsWhoseLabel___,
+			U"Count intervals whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
-		long result = TextGrid_countIntervalsWhere (me, tierNumber, countIntervalsWhoseLabel___, ___theText);
+		integer result = TextGrid_countIntervalsWhere (me, tierNumber, countIntervalsWhoseLabel___, ___theText);
 	NUMBER_ONE_END (U" intervals containing ", ___theText);
 }
 
-static TextTier pr_TextGrid_peekTextTier (TextGrid me, long tierNumber) {
+static TextTier pr_TextGrid_peekTextTier (TextGrid me, integer tierNumber) {
 	Function tier = pr_TextGrid_peekTier (me, tierNumber);
 	if (! tier) return nullptr;
 	if (tier -> classInfo != classTextTier) Melder_throw (U"Your tier should be a point tier (TextTier).");
@@ -1018,24 +1021,24 @@ static TextTier pr_TextGrid_peekTextTier (TextGrid me, long tierNumber) {
 }
 
 FORM (INTEGER_TextGrid_getNumberOfPoints, U"TextGrid: Get number of points", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		TextTier textTier = pr_TextGrid_peekTextTier (me, tierNumber);
-		long result = textTier -> points.size;
+		integer result = textTier -> points.size;
 	NUMBER_ONE_END (U" (points")
 }
 
-static TextPoint pr_TextGrid_peekPoint (TextGrid me, long tierNumber, long pointNumber) {
+static TextPoint pr_TextGrid_peekPoint (TextGrid me, integer tierNumber, integer pointNumber) {
 	TextTier textTier = pr_TextGrid_peekTextTier (me, tierNumber);
 	if (pointNumber > textTier -> points.size) Melder_throw (U"Point number too large.");
 	return textTier -> points.at [pointNumber];
 }
 
 FORM (REAL_TextGrid_getTimeOfPoint, U"TextGrid: Get time of point", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (pointNumber, STRING_POINT_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (pointNumber, STRING_POINT_NUMBER, U"1")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
@@ -1045,67 +1048,68 @@ DO
 }
 
 FORM (STRING_TextGrid_getLabelOfPoint, U"TextGrid: Get label of point", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (pointNumber, STRING_POINT_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (pointNumber, STRING_POINT_NUMBER, U"1")
 	OK
 DO
 	STRING_ONE (TextGrid)
 		TextPoint point = pr_TextGrid_peekPoint (me, tierNumber, pointNumber);
-		const char32 *result = point -> mark;
+		conststring32 result = point -> mark.get();
 	STRING_ONE_END
 }
 
 FORM (INTEGER_TextGrid_getLowIndexFromTime, U"Get low index", U"AnyTier: Get low index from time...") {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		TextTier textTier = pr_TextGrid_peekTextTier (me, tierNumber);
-		long result = AnyTier_timeToLowIndex (textTier->asAnyTier(), time);
+		integer result = AnyTier_timeToLowIndex (textTier->asAnyTier(), time);
 	NUMBER_ONE_END (U" (low index)")
 }
 
 FORM (INTEGER_TextGrid_getHighIndexFromTime, U"Get high index", U"AnyTier: Get high index from time...") {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		TextTier textTier = pr_TextGrid_peekTextTier (me, tierNumber);
-		long result = AnyTier_timeToHighIndex (textTier->asAnyTier(), time);
+		integer result = AnyTier_timeToHighIndex (textTier->asAnyTier(), time);
 	NUMBER_ONE_END (U" (high index)")
 }
 
 FORM (INTEGER_TextGrid_getNearestIndexFromTime, U"Get nearest index", U"AnyTier: Get nearest index from time...") {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
 		TextTier textTier = pr_TextGrid_peekTextTier (me, tierNumber);
-		long result = AnyTier_timeToNearestIndex (textTier->asAnyTier(), time);
+		integer result = AnyTier_timeToNearestIndex (textTier->asAnyTier(), time);
 	NUMBER_ONE_END (U" (nearest index)")
 }
 
 FORM (INTEGER_TextGrid_countPointsWhere, U"Count points", U"TextGrid: Count points where...") {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (countPointsWhoseLabel___, U"Count points whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, countPointsWhoseLabel___,
+			U"Count points whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
-		long result = TextGrid_countPointsWhere (me, tierNumber, countPointsWhoseLabel___, ___theText);
+		integer result = TextGrid_countPointsWhere (me, tierNumber, countPointsWhoseLabel___, ___theText);
 	NUMBER_ONE_END (U" points containing ", ___theText);
 }
 
 FORM (INTEGER_TextGrid_countLabels, U"Count labels", U"TextGrid: Count labels...") {
-	INTEGER4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	SENTENCE4 (labelText, U"Label text", U"a")
+	INTEGER (tierNumber, STRING_TIER_NUMBER, U"1")
+	SENTENCE (labelText, U"Label text", U"a")
 	OK
 DO
 	NUMBER_ONE (TextGrid)
-		long result = TextGrid_countLabels (me, tierNumber, labelText);
+		integer result = TextGrid_countLabels (me, tierNumber, labelText);
 	NUMBER_ONE_END (U" labels ", labelText)
 }
 
@@ -1124,8 +1128,8 @@ DIRECT (MODIFY_TextGrid_convertToUnicode) {
 }
 
 FORM (MODIFY_TextGrid_insertIntervalTier, U"TextGrid: Insert interval tier", nullptr) {
-	NATURAL4 (position, U"Position", U"1 (= at top)")
-	WORD4 (name, U"Name", U"")
+	NATURAL (position, U"Position", U"1 (= at top)")
+	WORD (name, U"Name", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1139,8 +1143,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_insertPointTier, U"TextGrid: Insert point tier", nullptr) {
-	NATURAL4 (position, U"Position", U"1 (= at top)")
-	WORD4 (name, U"Name", U"")
+	NATURAL (position, U"Position", U"1 (= at top)")
+	WORD (name, U"Name", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1154,9 +1158,9 @@ DO
 }
 
 FORM (MODIFY_TextGrid_duplicateTier, U"TextGrid: Duplicate tier", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (position, U"Position", U"1 (= at top)")
-	WORD4 (name, U"Name", U"")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (position, U"Position", U"1 (= at top)")
+	WORD (name, U"Name", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1170,7 +1174,7 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removeTier, U"TextGrid: Remove tier", nullptr) {
-	NATURALVAR (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1182,8 +1186,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_insertBoundary, U"TextGrid: Insert boundary", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1192,8 +1196,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removeLeftBoundary, U"TextGrid: Remove left boundary", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"2")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"2")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1216,8 +1220,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removeRightBoundary, U"TextGrid: Remove right boundary", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"2")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"2")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1229,10 +1233,10 @@ DO
 		if (intervalTier -> classInfo != classIntervalTier)
 			Melder_throw (U"You cannot remove a boundary from tier ", tierNumber, U" of ", me,
 				U", because that tier is a point tier instead of an interval tier.");
-		if (tierNumber > intervalTier -> intervals.size)
+		if (intervalNumber > intervalTier -> intervals.size)
 			Melder_throw (U"You cannot remove a boundary from interval ", intervalNumber, U" of tier ", tierNumber, U" of ", me,
 				U", because that tier has only ", intervalTier -> intervals.size, U" intervals.");
-		if (tierNumber == intervalTier -> intervals.size)
+		if (intervalNumber == intervalTier -> intervals.size)
 			Melder_throw (U"You cannot remove the right boundary from interval ", intervalNumber, U" of tier ", tierNumber, U" of ", me,
 				U", because this is at the right edge of the tier.");
 		IntervalTier_removeLeftBoundary (intervalTier, intervalNumber + 1);
@@ -1240,8 +1244,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removeBoundaryAtTime, U"TextGrid: Remove boundary at time", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1250,10 +1254,9 @@ DO
 }
 
 FORM (MODIFY_TextGrid_setIntervalText, U"TextGrid: Set interval text", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
-	LABEL (U"", U"Text:")
-	TEXTFIELD4 (text, U"text", U"")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (intervalNumber, STRING_INTERVAL_NUMBER, U"1")
+	TEXTFIELD (text, U"Text:", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1262,10 +1265,9 @@ DO
 }
 
 FORM (MODIFY_TextGrid_insertPoint, U"TextGrid: Insert point", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
-	LABEL (U"", U"Text:")
-	TEXTFIELD4 (text, U"text", U"")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	REAL (time, U"Time (s)", U"0.5")
+	TEXTFIELD (text, U"Text:", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1274,8 +1276,8 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removePoint, U"TextGrid: Remove point", nullptr) {
-	NATURALVAR (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURALVAR (pointNumber, STRING_POINT_NUMBER, U"2")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (pointNumber, STRING_POINT_NUMBER, U"2")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1295,9 +1297,10 @@ DO
 }
 
 FORM (MODIFY_TextGrid_removePoints, U"Remove points", nullptr) {
-	NATURALVAR (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (removeEveryPointWhoseLabel___, U"Remove every point whose label...", kMelder_string, DEFAULT)
-	SENTENCEVAR (___theText, U"...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, removeEveryPointWhoseLabel___,
+			U"Remove every point whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1306,10 +1309,9 @@ DO
 }
 
 FORM (MODIFY_TextGrid_setPointText, U"TextGrid: Set point text", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	NATURAL4 (pointNumber, STRING_POINT_NUMBER, U"1")
-	LABEL (U"", U"Text:")
-	TEXTFIELD4 (text, U"text", U"")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (pointNumber, STRING_POINT_NUMBER, U"1")
+	TEXTFIELD (text, U"Text:", U"")
 	OK
 DO
 	MODIFY_EACH (TextGrid)
@@ -1320,107 +1322,115 @@ DO
 // MARK: Analyse
 
 FORM (NEW1_TextGrid_extractOneTier, U"TextGrid: Extract one tier", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		Function tier = pr_TextGrid_peekTier (me, tierNumber);
 		autoTextGrid result = TextGrid_createWithoutTiers (1e30, -1e30);
 		TextGrid_addTier_copy (result.get(), tier);   // no transfer of tier ownership, because a copy is made
-	CONVERT_EACH_END (tier -> name)
+	CONVERT_EACH_END (tier -> name.get())
 }
 
 FORM (NEW1_TextGrid_extractTier, U"TextGrid: Extract tier", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		Function tier = pr_TextGrid_peekTier (me, tierNumber);
 		autoFunction result = Data_copy (tier);
-	CONVERT_EACH_END (tier -> name)
+	CONVERT_EACH_END (tier -> name.get())
 }
 
 FORM (NEW_TextGrid_extractPart, U"TextGrid: Extract part", nullptr) {
-	REAL4 (fromTime, U"left Time range (s)", U"0.0")
-	REAL4 (toTime, U"right Time range (s)", U"1.0")
-	BOOLEAN4 (preserveTimes, U"Preserve times", false)
+	REAL (fromTime, U"left Time range (s)", U"0.0")
+	REAL (toTime, U"right Time range (s)", U"1.0")
+	BOOLEAN (preserveTimes, U"Preserve times", false)
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoTextGrid result = TextGrid_extractPart (me, fromTime, toTime, preserveTimes);
-	CONVERT_EACH_END (my name, U"_part")
+	CONVERT_EACH_END (my name.get(), U"_part")
 }
 
 FORM (NEW_TextGrid_getStartingPoints, U"TextGrid: Get starting points", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getStartingPointsWhoseLabel___, U"Get starting points whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getStartingPointsWhoseLabel___,
+			U"Get starting points whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getStartingPoints (me, tierNumber, getStartingPointsWhoseLabel___, ___theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 FORM (NEW_TextGrid_getEndPoints, U"TextGrid: Get end points", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getEndPointsWhoseLabel___, U"Get end points whose label", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getEndPointsWhoseLabel___,
+			U"Get end points whose label", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getEndPoints (me, tierNumber, getEndPointsWhoseLabel___, ___theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 FORM (NEW_TextGrid_getCentrePoints, U"TextGrid: Get centre points", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getCentrePointsWhoseLabel___, U"Get centre points whose label", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getCentrePointsWhoseLabel___,
+			U"Get centre points whose label", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getCentrePoints (me, tierNumber, getCentrePointsWhoseLabel___, ___theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 FORM (NEW_TextGrid_getPoints, U"Get points", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getPointsWhoseLabel___, U"Get points whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getPointsWhoseLabel___,
+			U"Get points whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getPoints (me, tierNumber, getPointsWhoseLabel___, ___theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 FORM (NEW_TextGrid_getPoints_preceded, U"Get points (preceded)", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getPointsWhoseLabel___, U"Get points whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"there")
-	OPTIONMENU_ENUM4 (___precededByALabelThat___, U"...preceded by a label that...", kMelder_string, DEFAULT)
-	SENTENCE4 (____theText, U" ...the text", U"hi")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getPointsWhoseLabel___,
+			U"Get points whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"there")
+	OPTIONMENU_ENUM (kMelder_string, ___precededByALabelThat___,
+			U"...preceded by a label that...", kMelder_string::DEFAULT)
+	SENTENCE (____theText, U" ...the text", U"hi")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getPoints_preceded (me, tierNumber,
-			getPointsWhoseLabel___, ___theText, ___precededByALabelThat___, ____theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+			(kMelder_string) getPointsWhoseLabel___, ___theText, ___precededByALabelThat___, ____theText);
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 FORM (NEW_TextGrid_getPoints_followed, U"Get points (followed)", nullptr) {
-	NATURAL4 (tierNumber, STRING_TIER_NUMBER, U"1")
-	OPTIONMENU_ENUM4 (getPointsWhoseLabel___, U"Get points whose label...", kMelder_string, DEFAULT)
-	SENTENCE4 (___theText, U"...the text", U"hi")
-	OPTIONMENU_ENUM4 (___followedByALabelThat___, U"...followed by a label that...", kMelder_string, DEFAULT)
-	SENTENCE4 (____theText, U" ...the text", U"there")
+	NATURAL (tierNumber, STRING_TIER_NUMBER, U"1")
+	OPTIONMENU_ENUM (kMelder_string, getPointsWhoseLabel___,
+			U"Get points whose label...", kMelder_string::DEFAULT)
+	SENTENCE (___theText, U"...the text", U"hi")
+	OPTIONMENU_ENUM (kMelder_string, ___followedByALabelThat___,
+			U"...followed by a label that...", kMelder_string::DEFAULT)
+	SENTENCE (____theText, U" ...the text", U"there")
 	OK
 DO
 	CONVERT_EACH (TextGrid)
 		autoPointProcess result = TextGrid_getPoints_followed (me, tierNumber,
-			getPointsWhoseLabel___, ___theText, ___followedByALabelThat___, ____theText);
-	CONVERT_EACH_END (my name, U"_", ___theText)
+			(kMelder_string) getPointsWhoseLabel___, ___theText, ___followedByALabelThat___, ____theText);
+	CONVERT_EACH_END (my name.get(), U"_", ___theText)
 }
 
 // MARK: Synthesize
@@ -1443,14 +1453,14 @@ DIRECT (NEW1_TextGrid_IntervalTier_append) {
 	CONVERT_TWO (TextGrid, IntervalTier)
 		autoTextGrid result = Data_copy (me);
 		TextGrid_addTier_copy (result.get(), you);
-	CONVERT_TWO_END (my name)
+	CONVERT_TWO_END (my name.get())
 }
 
 DIRECT (NEW1_TextGrid_TextTier_append) {
 	CONVERT_TWO (TextGrid, TextTier)
 		autoTextGrid result = Data_copy (me);
 		TextGrid_addTier_copy (result.get(), you);
-	CONVERT_TWO_END (my name)
+	CONVERT_TWO_END (my name.get())
 }
 
 // MARK: - TEXTGRID & LONGSOUND
@@ -1464,8 +1474,8 @@ DIRECT (MODIFY_TextGrid_LongSound_scaleTimes) {
 // MARK: - TEXTTIER
 
 FORM (MODIFY_TextTier_addPoint, U"TextTier: Add point", U"TextTier: Add point...") {
-	REAL4 (time, U"Time (s)", U"0.5")
-	SENTENCE4 (text, U"Text", U"")
+	REAL (time, U"Time (s)", U"0.5")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	MODIFY_EACH (TextTier)
@@ -1476,37 +1486,37 @@ DO
 DIRECT (NEW_TextTier_downto_PointProcess) {
 	CONVERT_EACH (TextTier)
 		autoPointProcess result = AnyTier_downto_PointProcess (me->asAnyTier());
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_TextTier_downto_TableOfReal, U"TextTier: Down to TableOfReal", nullptr) {
-	SENTENCE4 (label, U"Label", U"")
+	SENTENCE (label, U"Label", U"")
 	OK
 DO
 	CONVERT_EACH (TextTier)
 		autoTableOfReal result = TextTier_downto_TableOfReal (me, label);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_TextTier_downto_TableOfReal_any) {
 	CONVERT_EACH (TextTier)
 		autoTableOfReal result = TextTier_downto_TableOfReal_any (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (STRING_TextTier_getLabelOfPoint, U"Get label of point", nullptr) {
-	NATURAL4 (pointNumber, U"Point number", U"1")
+	NATURAL (pointNumber, U"Point number", U"1")
 	OK
 DO
 	STRING_ONE (TextTier)
 		if (pointNumber > my points.size) Melder_throw (U"No such point.");
 		TextPoint point = my points.at [pointNumber];
-		const char32 *result = point -> mark;
+		conststring32 result = point -> mark.get();
 	STRING_ONE_END
 }
 
 FORM (NEW_TextTier_getPoints, U"Get points", nullptr) {
-	SENTENCE4 (text, U"Text", U"")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	CONVERT_EACH (TextTier)
@@ -1521,24 +1531,24 @@ DIRECT (HELP_TextTier_help) {
 // MARK: - WORDLIST
 
 FORM (BOOLEAN_WordList_hasWord, U"Does word occur in list?", U"WordList") {
-	SENTENCE4 (word, U"Word", U"")
+	SENTENCE (word, U"Word", U"")
 	OK
 DO
 	NUMBER_ONE (WordList)
-		long result = WordList_hasWord (me, word);
+		integer result = WordList_hasWord (me, word);
 	NUMBER_ONE_END (result ? U" (present)" : U" (absent)")
 }
 
 DIRECT (NEW_WordList_to_Strings) {
 	CONVERT_EACH (WordList)
 		autoStrings result = WordList_to_Strings (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_WordList_upto_SpellingChecker) {
 	CONVERT_EACH (WordList)
 		autoSpellingChecker result = WordList_upto_SpellingChecker (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 /***** buttons *****/
@@ -1585,8 +1595,10 @@ void praat_uvafon_TextGrid_init () {
 	praat_addAction1 (classTextGrid, 0, U"Draw...", nullptr, 1, GRAPHICS_TextGrid_draw);
 	praat_addAction1 (classTextGrid, 1, U"Draw with Sound?", nullptr, 1, HINT_TextGrid_Sound_draw);
 	praat_addAction1 (classTextGrid, 1, U"Draw with Pitch?", nullptr, 1, HINT_TextGrid_Pitch_draw);
-	praat_addAction1 (classTextGrid, 1, U"List...", nullptr, 0, LIST_TextGrid_list);
-	praat_addAction1 (classTextGrid, 0, U"Down to Table...", nullptr, 0, NEW_TextGrid_downto_Table);
+	praat_addAction1 (classTextGrid, 1, U"Tabulate -", nullptr, 0, nullptr);
+		praat_addAction1 (classTextGrid, 0, U"Down to Table...", nullptr, 1, NEW_TextGrid_downto_Table);
+		praat_addAction1 (classTextGrid, 1, U"List...", nullptr, 1, LIST_TextGrid_list);
+		praat_addAction1 (classTextGrid, 0, U"Tabulate occurrences...", nullptr, 1, NEW_TextGrid_tabulateOccurrences);
 	praat_addAction1 (classTextGrid, 0, U"Query -", nullptr, 0, nullptr);
 		praat_TimeFunction_query_init (classTextGrid);
 		praat_addAction1 (classTextGrid, 1, U"-- query textgrid --", nullptr, 1, nullptr);

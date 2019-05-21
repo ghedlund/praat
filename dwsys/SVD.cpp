@@ -1,6 +1,6 @@
 /* SVD.cpp
  *
- * Copyright (C) 1994-2016 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,9 +34,10 @@
 */
 
 #include "SVD.h"
-#include "NUMlapack.h"
+#include <algorithm>
 #include "NUMmachar.h"
 #include "Collection.h"
+#include "../melder/melder.h"
 #include "NUMclapack.h"
 #include "NUMcblas.h"
 
@@ -59,47 +60,33 @@
 #include "oo_DESCRIPTION.h"
 #include "SVD_def.h"
 
-#define MAX(m,n) ((m) > (n) ? (m) : (n))
-#define MIN(m,n) ((m) < (n) ? (m) : (n))
-
 void structSVD :: v_info () {
 	MelderInfo_writeLine (U"Number of rows: ", numberOfRows);
 	MelderInfo_writeLine (U"Number of columns: ", numberOfColumns);
+	MelderInfo_writeLine (U"This matrix is", (isTransposed ? U"" : U"not "), U" transposed.");
 }
 
-Thing_implement (SVD, Daata, 0);
-
-static void NUMtranspose_d (double **m, long n);
-
-/* if A=UDV' then A' = (UDV')'=VDU' */
-static void SVD_transpose (SVD me) {
-	long tmpl = my numberOfRows;
-	double **tmpd = my u;
-
-	my u = my v;
-	my v = tmpd;
-	my numberOfRows = my numberOfColumns;
-	my numberOfColumns = tmpl;
-}
+Thing_implement (SVD, Daata, 1);
 
 /*
 	m >=n, mxn matrix A has svd UDV', where u is mxn, D is n and V is nxn.
-	m < n, mxn matrix A. Consider A' with svd (UDV')'= VDU', where v is mxm, D is m and U' is mxn
+	m < n, then transpose A. Consider A' with svd (UDV')'= VDU', where v is mxm, D is m and U' is mxn
 */
-void SVD_init (SVD me, long numberOfRows, long numberOfColumns) {
-	long mn_min = MIN (numberOfRows, numberOfColumns);
+void SVD_init (SVD me, integer numberOfRows, integer numberOfColumns) {
+	if (numberOfRows < numberOfColumns) {
+		my isTransposed = true;
+		std::swap (numberOfRows, numberOfColumns);
+	}
 	my numberOfRows = numberOfRows;
 	my numberOfColumns = numberOfColumns;
-	if (! NUMfpp) {
-		NUMmachar ();
-	}
-	my tolerance = NUMfpp -> eps * MAX (numberOfRows, numberOfColumns);
-	my u = NUMmatrix<double> (1, numberOfRows, 1, mn_min);
-	my v = NUMmatrix<double> (1, numberOfColumns, 1, mn_min);
-	my d = NUMvector<double> (1, mn_min);
+	if (! NUMfpp) NUMmachar ();
+	my tolerance = NUMfpp -> eps * numberOfRows;
+	my u = newMATzero (numberOfRows,  numberOfColumns);
+	my v = newMATzero (numberOfColumns, numberOfColumns);
+	my d = newVECzero (numberOfColumns);
 }
 
-autoSVD SVD_create (long numberOfRows, long numberOfColumns) {
+autoSVD SVD_create (integer numberOfRows, integer numberOfColumns) {
 	try {
 		autoSVD me = Thing_new (SVD);
 		SVD_init (me.get(), numberOfRows, numberOfColumns);
@@ -109,60 +96,27 @@ autoSVD SVD_create (long numberOfRows, long numberOfColumns) {
 	}
 }
 
-autoSVD SVD_create_d (double **m, long numberOfRows, long numberOfColumns) {
+autoSVD SVD_createFromGeneralMatrix (constMAT m) {
 	try {
-		autoSVD me = SVD_create (numberOfRows, numberOfColumns);
-		SVD_svd_d (me.get(), m);
+		autoSVD me = SVD_create (m.nrow, m.ncol);
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			for (integer j = 1; j <= my numberOfColumns; j ++)
+				my u [i] [j] = my isTransposed ? m [j] [i] : m [i] [j];
+		}
+		SVD_compute (me.get());
 		return me;
 	} catch (MelderError) {
-		Melder_throw (U"SVD not created from vector.");
+		Melder_throw (U"SVD not created from general matrix.");
 	}
 }
 
-autoSVD SVD_create_f (float **m, long numberOfRows, long numberOfColumns) {
-	try {
-		autoSVD me = SVD_create (numberOfRows, numberOfColumns);
-		SVD_svd_f (me.get(), m);
-		return me;
-	} catch (MelderError) {
-		Melder_throw (U"SVD not created from vector.");
-	}
-}
 
-void SVD_svd_d (SVD me, double **m) {
-	if (my numberOfRows >= my numberOfColumns) {
-		// Store m in u
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = 1; j <= my numberOfColumns; j++) {
-				my u[i][j] = m[i][j];
-			}
-		}
-	} else {
-		// Store m transposed in v
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = 1; j <= my numberOfColumns; j++) {
-				my v[j][i] = m[i][j];
-			}
-		}
-	}
-	SVD_compute (me);
-}
-
-void SVD_svd_f (SVD me, float **m) {
-	if (my numberOfRows >= my numberOfColumns) {
-		// Store in u
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = 1; j <= my numberOfColumns; j++) {
-				my u[j][i] = m[i][j];
-			}
-		}
-	} else {
-		// Store transposed in v
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = 1; j <= my numberOfColumns; j++) {
-				my v[i][j] = m[j][i];
-			}
-		}
+void SVD_svd_d (SVD me, constMAT m) {
+	Melder_assert ((my numberOfRows == m.nrow && my numberOfColumns == m.ncol) ||
+		(my isTransposed && my numberOfRows == m.ncol && my numberOfColumns == m.nrow));
+	for (integer i = 1; i <= my numberOfRows; i ++) {
+		for (integer j = 1; j <= my numberOfColumns; j ++)
+			my u [i] [j] = my isTransposed ? m [j] [i] : m [i] [j];
 	}
 	SVD_compute (me);
 }
@@ -175,17 +129,6 @@ double SVD_getTolerance (SVD me) {
 	return my tolerance;
 }
 
-static void NUMtranspose_d (double **m, long n) {
-	for (long i = 1; i <= n - 1; i++) {
-		for (long j = i + 1; j <= n; j++) {
-			double t = m[i][j];
-			m[i][j] = m[j][i];
-			m[j][i] = t;
-		}
-	}
-}
-
-
 /*
 	Compute svd(A) = U D Vt.
 	The svd routine from CLAPACK uses (fortran) column major storage, while	C uses row major storage.
@@ -197,181 +140,184 @@ static void NUMtranspose_d (double **m, long n) {
 	The only thing that we have to do afterwards is transposing the (small) V matrix
 	because the SVD-object has row vectors in v.
 	The sv's are already sorted.
-	int NUMlapack_dgesvd (char *jobu, char *jobvt, long *m, long *n, double *a, long *lda,
-		double *s, double *u, long *ldu, double *vt, long *ldvt, double *work,
-		long *lwork, long *info);
+	int NUMlapack_dgesvd (char *jobu, char *jobvt, integer *m, integer *n, double *a, integer *lda,
+		double *s, double *u, integer *ldu, double *vt, integer *ldvt, double *work,
+		integer *lwork, integer *info);
 */
 void SVD_compute (SVD me) {
 	try {
-		char jobu = 'S', jobvt = 'O';
-		long m, lda, ldu, ldvt, info, lwork = -1;
-		double wt[2];
-		int transpose = my numberOfRows < my numberOfColumns;
+		char jobu = 'S'; // the first min(m,n) columns of U are returned in the array U;
+		char jobvt = 'O'; // the first min(m,n) rows of V**T are overwritten on the array A;
+		integer m = my numberOfColumns; // number of rows of input matrix 
+		integer n = my numberOfRows; // number of columns of input matrix
+		integer lda = m, ldu = m, ldvt = m;
+		integer info, lwork = -1;
+		double wt [2];
 
-		// Transpose: if rows < cols then data in v
-		if (transpose) {
-			SVD_transpose (me);
-		}
+		(void) NUMlapack_dgesvd (& jobu, & jobvt, & m, & n, & my u [1] [1], & lda, my d.begin(), & my v [1] [1], & ldu, nullptr, & ldvt, wt, & lwork, & info);
+		Melder_require (info == 0, U"SVD could not be precomputed.");
 
-		lda = ldu = ldvt = m = my numberOfColumns;
-		long n = my numberOfRows;
-
-		(void) NUMlapack_dgesvd (&jobu, &jobvt, &m, &n, &my u[1][1], &lda, &my d[1], &my v[1][1], &ldu, nullptr, &ldvt, wt, &lwork, &info);
-
-		if (info != 0) {
-			Melder_throw (U"SVD not precomputed.");
-		}
-
-		lwork = wt[0];
-		autoNUMvector<double> work (0L, lwork);
-		(void) NUMlapack_dgesvd (&jobu, &jobvt, &m, &n, &my u[1][1], &lda, &my d[1], &my v[1][1], &ldu, nullptr, &ldvt, work.peek(), &lwork, &info);
-		if (info != 0) {
-			Melder_throw (U"SVD not computed.");
-		}
-
-		NUMtranspose_d (my v, MIN (m, n));
-		if (transpose) {
-			SVD_transpose (me);
-		}
+		lwork = wt [0];
+		autoVEC work = newVECraw (lwork);
+		(void) NUMlapack_dgesvd (& jobu, & jobvt, & m, & n, & my u [1] [1], & lda, my d.begin(), & my v [1] [1], & ldu, nullptr, & ldvt, work.begin(), & lwork, & info);
+		Melder_require (info == 0, U"SVD could not be computed.");
+		/*
+			Because we store the eigenvectors row-wise, they must be transposed
+		*/
+		MATtranspose_inplace_mustBeSquare (my v.get()); 
+		
 	} catch (MelderError) {
 		Melder_throw (me, U": SVD could not be computed.");
 	}
 }
 
 // V D^2 V'or V D^-2 V
-void SVD_getSquared (SVD me, double **m, bool inverse) {
-	for (long i = 1; i <= my numberOfColumns; i++) {
-		for (long j = 1; j <= my numberOfColumns; j++) {
-			double val = 0.0;
-			for (long k = 1; k <= my numberOfColumns; k++) {
-				if (my d[k] > 0.0) {
-					double dsq = my d[k] * my d[k];
-					double factor = inverse ? 1.0 / dsq : dsq;
-					val += my v[i][k] * my v[j][k] * factor;
+void SVD_getSquared_preallocated (MAT m, SVD me, bool inverse) {
+	Melder_assert (m.nrow == m.ncol && m.ncol == my numberOfColumns);
+	for (integer i = 1; i <= my numberOfColumns; i ++) {
+		for (integer j = 1; j <= my numberOfColumns; j ++) {
+			longdouble val = 0.0;
+			for (integer k = 1; k <= my numberOfColumns; k ++) {
+				if (my d [k] > 0.0) {
+					longdouble dsq = my d [k] * my d [k];
+					longdouble factor = inverse ? 1.0 / dsq : dsq;
+					val += my v [i] [k] * my v [j] [k] * factor;
 				}
 			}
-			m[i][j] = val;
+			m [i] [j] = (double) val;
 		}
 	}
 }
 
-void SVD_solve (SVD me, double b[], double x[]) {
+autoMAT SVD_getSquared (SVD me, bool inverse) {
+	autoMAT result = newMATraw (my numberOfColumns, my numberOfColumns);
+	SVD_getSquared_preallocated (result.get(), me, inverse);
+	return result;
+}
+
+autoVEC SVD_solve (SVD me, constVEC b) {
 	try {
-		long mn_min = MIN (my numberOfRows, my numberOfColumns);
-
-		autoNUMvector<double> t (1, mn_min);
-
-		/*  Solve UDV' x = b.
-			Solution: x = V D^-1 U' b */
-
-		for (long j = 1; j <= mn_min; j++) {
-			double tmp = 0.0;
-			if (my d[j] > 0.0) {
-				for (long i = 1; i <= my numberOfRows; i++) {
-					tmp += my u[i][j] * b[i];
-				}
-				tmp /= my d[j];
+		/*
+			Solve UDV' x = b.
+			Solution: x = V D^-1 U' b
+		*/
+		Melder_assert (my numberOfRows == b.size);
+		autoVEC t = newVECzero (my numberOfColumns);
+		for (integer j = 1; j <= my numberOfColumns; j ++) {
+			longdouble tmp = 0.0;
+			if (my d [j] > 0.0) {
+				for (integer i = 1; i <= my numberOfRows; i ++)
+					tmp += my u [i] [j] * b [i];
+				tmp /= my d [j];
 			}
-			t[j] = tmp;
+			t [j] = (double) tmp;
 		}
 
-		for (long j = 1; j <= my numberOfColumns; j++) {
-			double tmp = 0.0;
-			for (long i = 1; i <= mn_min; i++) {
-				tmp += my v[j][i] * t[i];
-			}
-			x[j] = tmp;
-		}
+		autoVEC x = newVECmul (my v.get(), t.get());
+		return x;
 	} catch (MelderError) {
 		Melder_throw (me, U": not solved.");
 	}
 }
 
-void SVD_sort (SVD me) {
+integer SVD_getMinimumNumberOfSingularValues (SVD me, double fractionOfSumOfSingularValues) {
+	double sumOfSingularValues = SVD_getSumOfSingularValues (me, 1, my numberOfColumns);
+	double criterion = sumOfSingularValues * fractionOfSumOfSingularValues;
+	integer j = 1;
+	longdouble sum = my d [1];
+	while (sum < criterion && j < my numberOfColumns) {
+		sum += my d [++ j];
+	}
+	return j;
+}
+
+void SVD_sort (SVD me) { // Superfluous??, SVD is always sorted
 	try {
-		long mn_min = MIN (my numberOfRows, my numberOfColumns);
 		autoSVD thee = Data_copy (me);
-		autoNUMvector<long> index (1, mn_min);
+		autoINTVEC index = NUMindexx (my d.get());
 
-		NUMindexx (my d, mn_min, index.peek());
-
-		for (long j = 1; j <= mn_min; j++) {
-			long from = index[mn_min - j + 1];
-			my d[j] = thy d[from];
-			for (long i = 1; i <= my numberOfRows; i++) {
-				my u[i][j] = thy u[i][from];
-			}
-			for (long i = 1; i <= my numberOfColumns; i++) {
-				my v[i][j] = thy v[i][from];
-			}
+		for (integer j = 1; j <= my numberOfColumns; j ++) {
+			integer from = index [my numberOfColumns - j + 1];
+			my d [j] = thy d [from];
+			for (integer i = 1; i <= my numberOfRows; i ++)
+				my u [i] [j] = thy u [i] [from];
+			for (integer i = 1; i <= my numberOfColumns; i ++)
+				my v [i] [j] = thy v [i] [from];
 		}
 	} catch (MelderError) {
 		Melder_throw (me, U": not sorted.");
 	}
 }
 
-long SVD_zeroSmallSingularValues (SVD me, double tolerance) {
-	long numberOfZeroed = 0, mn_min = MIN (my numberOfRows, my numberOfColumns);
-	double dmax = my d[1];
+double SVD_getConditionNumber (SVD me) {
+	return my d[my numberOfColumns] > 0.0 ? my d[1] / my d[my numberOfColumns] : undefined;
+}
 
-	if (tolerance == 0.0) {
+double SVD_getSumOfSingularValuesAsFractionOfTotal (SVD me, integer from, integer to) {
+	double part = SVD_getSumOfSingularValues (me, from, to);
+	double total = SVD_getSumOfSingularValues (me, 1, my numberOfColumns);
+	return part / total;
+}
+
+double SVD_getSumOfSingularValues (SVD me, integer from, integer to) {
+	from = from == 0 ? 1 : from;
+	to = to == 0 ? my numberOfColumns : to;
+	Melder_require (from > 0 && from <= to && to <= my numberOfColumns, U"The range should be within [1,", my numberOfColumns, U"].");
+	return NUMsum (my d.part (from, to));
+}
+
+integer SVD_zeroSmallSingularValues (SVD me, double tolerance) {
+	if (tolerance == 0.0)
 		tolerance = my tolerance;
-	}
-	for (long i = 2; i <= mn_min; i++) {
-		if (my d[i] > dmax) {
-			dmax = my d[i];
+
+	double dmax = my d [1];
+	for (integer i = 2; i <= my numberOfColumns; i ++)
+		if (my d [i] > dmax)
+			dmax = my d [i];
+
+	integer numberOfZeroed = 0;
+	for (integer i = 1; i <= my numberOfColumns; i ++)
+		if (my d [i] < dmax * tolerance) {
+			my d [i] = 0.0;
+			numberOfZeroed ++;
 		}
-	}
-	for (long i = 1; i <= mn_min; i++) {
-		if (my d[i] < dmax * tolerance) {
-			my d[i] = 0.0; numberOfZeroed++;
-		}
-	}
 	return numberOfZeroed;
 }
 
 
-long SVD_getRank (SVD me) {
-	long rank = 0, mn_min = MIN (my numberOfRows, my numberOfColumns);
-	for (long i = 1; i <= mn_min; i++) {
-		if (my d[i] > 0.0) {
-			rank++;
-		}
-	}
+integer SVD_getRank (SVD me) {
+	integer rank = 0;
+	for (integer i = 1; i <= my numberOfColumns; i ++)
+		if (my d [i] > 0.0)
+			rank ++;
 	return rank;
 }
 
 /*
 	SVD of A = U D V'.
-	If u[i] is the i-th column vector of U and v[i] the i-th column vector of V and s[i] the i-th singular value,
-	we can write the svd expansion  A = sum_{i=1}^n {d[i] u[i] v[i]'}.
+	If u [i] is the i-th column vector of U and v [i] the i-th column vector of V and s [i] the i-th singular value,
+	we can write the svd expansion  A = sum_{i=1}^n {d [i] u [i] v [i]'}.
 	Golub & van Loan, 3rd ed, p 71.
 */
-void SVD_synthesize (SVD me, long sv_from, long sv_to, double **m) {
+autoMAT SVD_synthesize (SVD me, integer sv_from, integer sv_to) {
+	if (sv_to == 0) sv_to = my numberOfColumns;
 	try {
-		long mn_min = MIN (my numberOfRows, my numberOfColumns);
-
-		if (sv_to == 0) {
-			sv_to = mn_min;
-		}
-
-		if (sv_from > sv_to || sv_from < 1 || sv_to > mn_min) {
-			Melder_throw (U"Indices must be in range [1, ", mn_min, U"].");
-		}
-
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = 1; j <= my numberOfColumns; j++) {
-				m[i][j] = 0.0;
-			}
-		}
-
-		for (long k = sv_from; k <= sv_to; k++) {
-			for (long i = 1; i <= my numberOfRows; i++) {
-				for (long j = 1; j <= my numberOfColumns; j++) {
-					m[i][j] += my d[k] * my u[i][k] * my v[j][k];
+		Melder_require (sv_from > 0 && sv_from <= sv_to && sv_to <= my numberOfColumns, U"Indices must be in range [1, ", my numberOfColumns, U"].");
+		long nrow = my numberOfRows;
+		long ncol = my numberOfColumns;
+		if (my isTransposed) std::swap (nrow, ncol);
+		autoMAT result = newMATzero (nrow, ncol);
+		for (integer k = sv_from; k <= sv_to; k ++) {
+			for (integer i = 1; i <= my numberOfRows; i ++)
+				for (integer j = 1; j <= my numberOfColumns; j ++) {
+					double value = my d [k] * my u [i] [k] * my v [j] [k];
+					if (my isTransposed)
+						result [j] [i] += value;
+					else
+						result [i] [j] += value;
 				}
-			}
 		}
+		return result;
 	} catch (MelderError) {
 		Melder_throw (me, U": no synthesis.");
 	}
@@ -383,70 +329,61 @@ void structGSVD :: v_info () {
 	MelderInfo_writeLine (U"Number of columns: ", numberOfColumns);
 }
 
-autoGSVD GSVD_create (long numberOfColumns) {
+autoGSVD GSVD_create (integer numberOfColumns) {
 	try {
 		autoGSVD me = Thing_new (GSVD);
 		my numberOfColumns = numberOfColumns;
 
-		my q = NUMmatrix<double> (1, numberOfColumns, 1, numberOfColumns);
-		my r = NUMmatrix<double> (1, numberOfColumns, 1, numberOfColumns);
-		my d1 = NUMvector<double> (1, numberOfColumns);
-		my d2 = NUMvector<double> (1, numberOfColumns);
+		my q = newMATzero (numberOfColumns, numberOfColumns);
+		my r = newMATzero (numberOfColumns, numberOfColumns);
+		my d1 = newVECzero (numberOfColumns);
+		my d2 = newVECzero (numberOfColumns);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"GSVD not created.");
 	}
 }
 
-autoGSVD GSVD_create_d (double **m1, long numberOfRows1, long numberOfColumns, double **m2, long numberOfRows2) {
+autoGSVD GSVD_create_d (constMAT m1, constMAT m2) {
 	try {
-		long m = numberOfRows1, n = numberOfColumns, p = numberOfRows2;
-		long lwork = MAX (MAX (3 * n, m), p) + n;
+		integer m = m1.nrow, n = m1.ncol, p = m2.nrow;
+		integer lwork = std::max (std::max (3 * n, m), p) + n;
 
 		// Store the matrices a and b as column major!
-		autoNUMmatrix<double> a (NUMmatrix_transpose (m1, m, n), 1, 1);
-		autoNUMmatrix<double> b (NUMmatrix_transpose (m2, p, n), 1, 1);
-		autoNUMmatrix<double> q (1, n, 1, n);
-		autoNUMvector<double> alpha (1, n);
-		autoNUMvector<double> beta (1, n);
-		autoNUMvector<double> work (1, lwork);
-		autoNUMvector<long> iwork (1, n);
+		autoMAT a = newMATtranspose (m1);
+		autoMAT b = newMATtranspose (m2);
+		autoMAT q = newMATraw (n, n);
+		autoVEC alpha = newVECraw (n);
+		autoVEC beta = newVECraw (n);
+		autoVEC work = newVECraw (lwork);
+		autoINTVEC iwork = newINTVECraw (n);
 
 
 		char jobu1 = 'N', jobu2 = 'N', jobq = 'Q';
-		long k, l, info;
-		NUMlapack_dggsvd (&jobu1, &jobu2, &jobq, &m, &n, &p, &k, &l,
-		    &a[1][1], &m, &b[1][1], &p, &alpha[1], &beta[1], nullptr, &m,
-		    nullptr, &p, &q[1][1], &n, &work[1], &iwork[1], &info);
-		if (info != 0) {
-			Melder_throw (U"dggsvd failed, error = ", info);
-		}
+		integer k, l, info;
+		NUMlapack_dggsvd (& jobu1, & jobu2, & jobq, & m, & n, & p, & k, & l,
+		    & a [1] [1], & m, & b [1] [1], & p, alpha.begin(), beta.begin(), nullptr, & m,
+		    nullptr, & p, & q [1] [1], & n, work.begin(), iwork.begin(), & info);
+		Melder_require (info == 0, U"dggsvd failed with error = ", info);
 
-
-		long kl = k + l;
+		integer kl = k + l;
 		autoGSVD me = GSVD_create (kl);
 
-		for (long i = 1; i <= kl; i++) {
-			my d1[i] = alpha[i];
-			my d2[i] = beta[i];
+		for (integer i = 1; i <= kl; i ++) {
+			my d1 [i] = alpha [i];
+			my d2 [i] = beta [i];
 		}
 
 		// Transpose q
 
-		for (long i = 1; i <= n; i++) {
-			for (long j = i + 1; j <= n; j++) {
-				my q[i][j] = q[j][i];
-				my q[j][i] = q[i][j];
-			}
-			my q[i][i] = q[i][i];
-		}
+		MATtranspose_preallocated (my q.get(), q.get());
 
 		// Get R from a(1:k+l,n-k-l+1:n)
 
-		double *pr = &a[1][1];
-		for (long i = 1; i <= kl; i++) {
-			for (long j = i; j <= kl; j++) {
-				my r[i][j] = pr[i - 1 + (n - kl + j - 1) * m]; /* from col-major */
+		double *pr = & a [1] [1];
+		for (integer i = 1; i <= kl; i ++) {
+			for (integer j = i; j <= kl; j ++) {
+				my r [i] [j] = pr [i - 1 + (n - kl + j - 1) * m]; /* from col-major */
 			}
 		}
 		return me;
@@ -462,8 +399,5 @@ void GSVD_setTolerance (GSVD me, double tolerance) {
 double GSVD_getTolerance (GSVD me) {
 	return my tolerance;
 }
-
-#undef MAX
-#undef MIN
 
 /* End of file SVD.c */

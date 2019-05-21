@@ -2,7 +2,7 @@
 #define _PointProcess_h_
 /* PointProcess.h
  *
- * Copyright (C) 1992-2011,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,18 +25,18 @@
 
 #include "PointProcess_def.h"
 
-PRAAT_LIB_EXPORT autoPointProcess PointProcess_create (double startingTime, double finishingTime, long initialMaxnt);
 PRAAT_LIB_EXPORT autoPointProcess PointProcess_createPoissonProcess (double startingTime, double finishingTime, double density);
-PRAAT_LIB_EXPORT void PointProcess_init (PointProcess me, double startingTime, double finishingTime, long initialMaxnt);
-PRAAT_LIB_EXPORT long PointProcess_getLowIndex (PointProcess me, double t);
-PRAAT_LIB_EXPORT long PointProcess_getHighIndex (PointProcess me, double t);
-PRAAT_LIB_EXPORT long PointProcess_getNearestIndex (PointProcess me, double t);
-PRAAT_LIB_EXPORT long PointProcess_getWindowPoints (PointProcess me, double tmin, double tmax, long *p_imin, long *p_imax);
+PRAAT_LIB_EXPORT void PointProcess_init (PointProcess me, double startingTime, double finishingTime, integer initialMaxnt);
+PRAAT_LIB_EXPORT integer PointProcess_getLowIndex (PointProcess me, double t);
+PRAAT_LIB_EXPORT integer PointProcess_getHighIndex (PointProcess me, double t);
+PRAAT_LIB_EXPORT integer PointProcess_getNearestIndex (PointProcess me, double t);
+PRAAT_LIB_EXPORT integer PointProcess_getWindowPoints (PointProcess me, double tmin, double tmax, integer *p_imin, integer *p_imax);
 PRAAT_LIB_EXPORT void PointProcess_addPoint (PointProcess me, double t);
-PRAAT_LIB_EXPORT long PointProcess_findPoint (PointProcess me, double t);
-PRAAT_LIB_EXPORT void PointProcess_removePoint (PointProcess me, long index);
+PRAAT_LIB_EXPORT void PointProcess_addPoints (PointProcess me, constVEC times);
+PRAAT_LIB_EXPORT integer PointProcess_findPoint (PointProcess me, double t);
+PRAAT_LIB_EXPORT void PointProcess_removePoint (PointProcess me, integer index);
 PRAAT_LIB_EXPORT void PointProcess_removePointNear (PointProcess me, double t);
-PRAAT_LIB_EXPORT void PointProcess_removePoints (PointProcess me, long first, long last);
+PRAAT_LIB_EXPORT void PointProcess_removePoints (PointProcess me, integer first, integer last);
 PRAAT_LIB_EXPORT void PointProcess_removePointsBetween (PointProcess me, double fromTime, double toTime);
 PRAAT_LIB_EXPORT void PointProcess_draw (PointProcess me, Graphics g, double fromTime, double toTime, bool garnish);
 PRAAT_LIB_EXPORT double PointProcess_getInterval (PointProcess me, double t);
@@ -46,7 +46,7 @@ PRAAT_LIB_EXPORT autoPointProcess PointProcesses_difference (PointProcess me, Po
 PRAAT_LIB_EXPORT void PointProcess_fill (PointProcess me, double tmin, double tmax, double period);
 PRAAT_LIB_EXPORT void PointProcess_voice (PointProcess me, double period, double maxT);
 
-PRAAT_LIB_EXPORT long PointProcess_getNumberOfPeriods (PointProcess me, double tmin, double tmax,
+PRAAT_LIB_EXPORT integer PointProcess_getNumberOfPeriods (PointProcess me, double tmin, double tmax,
 	double minimumPeriod, double maximumPeriod, double maximumPeriodFactor);
 PRAAT_LIB_EXPORT double PointProcess_getMeanPeriod (PointProcess me, double tmin, double tmax,
 	double minimumPeriod, double maximumPeriod, double maximumPeriodFactor);

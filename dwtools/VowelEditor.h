@@ -2,7 +2,7 @@
 #define _VowelEditor_h_
 /* VowelEditor.h
  *
- * Copyright (C) 2008-2011, 2014 David Weenink
+ * Copyright (C) 2008-2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ struct structVowelEditor_F0 {
 	double slopeOctPerSec;
 	double minimum, maximum;
 	double samplingFrequency, adaptFactor, adaptTime;
-	long interpolationDepth;
+	integer interpolationDepth;
 };
 
 struct structVowelEditor_F1F2Grid {
@@ -77,7 +77,7 @@ Thing_define (VowelEditor, Editor) {
 		override;
 };
 
-autoVowelEditor VowelEditor_create (const char32 *title, Daata data);
+autoVowelEditor VowelEditor_create (conststring32 title, Daata data);
 
 void VowelEditor_prefs ();
 

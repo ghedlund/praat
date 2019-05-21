@@ -1,6 +1,6 @@
 /* ParamCurve.cpp
  *
- * Copyright (C) 1992-2012,2014,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2012,2014,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,17 +32,8 @@
 Thing_implement (ParamCurve, Function, 2);
 
 void structParamCurve :: v_info () {
-	double xvalmin = 1e308, xvalmax = -1e308, yvalmin = 1e308, yvalmax = -1e308;
-	for (long i = 1; i <= our x -> nx; i ++) {
-		double value = our x -> z [1] [i];
-		if (value < xvalmin) xvalmin = value;
-		if (value > xvalmax) xvalmax = value;
-	}
-	for (long i = 1; i <= y -> nx; i ++) {
-		double value = our y -> z [1] [i];
-		if (value < yvalmin) yvalmin = value;
-		if (value > yvalmax) yvalmax = value;
-	}
+	const MelderRealRange xextrema = NUMextrema (our x -> z.row (1));
+	const MelderRealRange yextrema = NUMextrema (our y -> z.row (1));
 	structDaata :: v_info ();
 	MelderInfo_writeLine (U"Domain:");
 	MelderInfo_writeLine (U"   tmin: ", our xmin);
@@ -52,15 +43,15 @@ void structParamCurve :: v_info () {
 	MelderInfo_writeLine (U"   t step in x: ", our x -> dx, U" (sampling rate ", 1.0 / our x -> dx, U")");
 	MelderInfo_writeLine (U"   First t in x: ", our x -> x1);
 	MelderInfo_writeLine (U"x values:");
-	MelderInfo_writeLine (U"   Minimum x: ", xvalmin);
-	MelderInfo_writeLine (U"   Maximum x: ", xvalmax);
+	MelderInfo_writeLine (U"   Minimum x: ", xextrema.min);
+	MelderInfo_writeLine (U"   Maximum x: ", xextrema.max);
 	MelderInfo_writeLine (U"y sampling:");
 	MelderInfo_writeLine (U"   Number of values of t in y: ", our y -> nx);
 	MelderInfo_writeLine (U"   t step in y: ", our y -> dx, U" (sampling rate ", 1.0 / our y -> dx, U")");
 	MelderInfo_writeLine (U"   First t in y: ", our y -> x1);
 	MelderInfo_writeLine (U"y values:");
-	MelderInfo_writeLine (U"   Minimum y: ", yvalmin);
-	MelderInfo_writeLine (U"   Maximum y: ", yvalmax);
+	MelderInfo_writeLine (U"   Minimum y: ", yextrema.min);
+	MelderInfo_writeLine (U"   Maximum y: ", yextrema.max);
 }
 
 void structParamCurve :: v_writeText (MelderFile file) {
@@ -111,7 +102,7 @@ autoParamCurve ParamCurve_create (Sound x, Sound y) {
 }
 
 void ParamCurve_draw (ParamCurve me, Graphics g, double t1, double t2, double dt,
-	double x1, double x2, double y1, double y2, int garnish)
+	double x1, double x2, double y1, double y2, bool garnish)
 {
 	if (t2 <= t1) {
 		double tx1 = my x -> x1;
@@ -127,16 +118,16 @@ void ParamCurve_draw (ParamCurve me, Graphics g, double t1, double t2, double dt
 	if (y1 == y2) { y1 -= 1.0; y2 += 1.0; }
 	if (dt <= 0.0)
 		dt = my x -> dx < my y -> dx ? my x -> dx : my y -> dx;
-	long numberOfPoints = (long) ceil ((t2 - t1) / dt) + 1;
+	integer numberOfPoints = Melder_iceiling ((t2 - t1) / dt) + 1;
 	if (numberOfPoints > 0) {
-		autoNUMvector <double> x (1, numberOfPoints);
-		autoNUMvector <double> y (1, numberOfPoints);
-		for (long i = 1; i <= numberOfPoints; i ++) {
+		autoVEC x = newVECraw (numberOfPoints);
+		autoVEC y = newVECraw (numberOfPoints);
+		for (integer i = 1; i <= numberOfPoints; i ++) {
 			double t = i == numberOfPoints ? t2 : t1 + (i - 1) * dt;
 			double index = Sampled_xToIndex (my x.get(), t);
-			x [i] = NUM_interpolate_sinc (my x -> z [1], my x -> nx, index, 50);
+			x [i] = NUM_interpolate_sinc (my x -> z.row (1), index, 50);
 			index = Sampled_xToIndex (my y.get(), t);
-			y [i] = NUM_interpolate_sinc (my y -> z [1], my y -> nx, index, 50);
+			y [i] = NUM_interpolate_sinc (my y -> z.row (1), index, 50);
 		}
 		Graphics_setWindow (g, x1, x2, y1, y2);
 		Graphics_setInner (g);

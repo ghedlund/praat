@@ -1,6 +1,6 @@
 /* ERPTier_def.h
  *
- * Copyright (C) 2011,2014,2015 Paul Boersma
+ * Copyright (C) 2011,2014,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #define ooSTRUCT ERPPoint
 oo_DEFINE_CLASS (ERPPoint, AnyPoint)
 
-	oo_AUTO_OBJECT (Sound, 2, erp)
+	oo_OBJECT (Sound, 2, erp)
 
 oo_END_CLASS (ERPPoint)
 #undef ooSTRUCT
@@ -31,7 +31,7 @@ oo_DEFINE_CLASS (ERPTier, Function)
 
 	oo_COLLECTION_OF (SortedSetOfDoubleOf, points, ERPPoint, 0)
 
-	oo_LONG (numberOfChannels)
+	oo_INTEGER (numberOfChannels)
 	oo_STRING_VECTOR (channelNames, numberOfChannels)
 
 	#if oo_DECLARING

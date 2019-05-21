@@ -1,6 +1,6 @@
 /* Formant_def.h
  *
- * Copyright (C) 1992-2002,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2008,2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 oo_DEFINE_STRUCT (Formant_Formant)
 
 	#if oo_READING
-		if (formatVersion <= 1) {
+		oo_VERSION_UNTIL (2)
 			oo_FLOAT (frequency)
 			oo_FLOAT (bandwidth)
-		} else {
+		oo_VERSION_ELSE
 			oo_DOUBLE (frequency)
 			oo_DOUBLE (bandwidth)
-		}
+		oo_VERSION_END
 	#else
 		oo_DOUBLE (frequency)
 		oo_DOUBLE (bandwidth)
@@ -45,7 +45,7 @@ oo_DEFINE_STRUCT (Formant_Frame)
 		oo_DOUBLE (intensity)
 	oo_ENDFROM
 
-	oo_INT (nFormants)
+	oo_INT16 (nFormants)
 	oo_STRUCT_VECTOR (Formant_Formant, formant, nFormants)
 
 oo_END_STRUCT (Formant_Frame)
@@ -56,7 +56,7 @@ oo_END_STRUCT (Formant_Frame)
 #define ooSTRUCT Formant
 oo_DEFINE_CLASS (Formant, Sampled)
 
-	oo_INT (maxnFormants)
+	oo_INT16 (maxnFormants)
 	oo_STRUCT_VECTOR (Formant_Frame, d_frames, nx)
 
 	#if oo_DECLARING
@@ -64,7 +64,7 @@ oo_DEFINE_CLASS (Formant, Sampled)
 			override;
 		int v_domainQuantity ()
 			override { return MelderQuantity_TIME_SECONDS; }
-		double v_getValueAtSample (long iframe, long which, int units)
+		double v_getValueAtSample (integer iframe, integer which, int units)
 			override;
 	#endif
 

@@ -2,7 +2,7 @@
 #define _Intensity_h_
 /* Intensity.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,15 +36,15 @@ Thing_define (Intensity, Vector) {
 		override;
 	int v_domainQuantity ()
 		override { return MelderQuantity_TIME_SECONDS; }
-	double v_convertStandardToSpecialUnit (double value, long ilevel, int unit)
+	double v_convertStandardToSpecialUnit (double value, integer level, int unit)
 		override;
-	double v_convertSpecialToStandardUnit (double value, long ilevel, int unit)
+	double v_convertSpecialToStandardUnit (double value, integer level, int unit)
 		override;
 };
 
-PRAAT_LIB_EXPORT autoIntensity Intensity_create (double tmin, double tmax, long nt, double dt, double t1);
+PRAAT_LIB_EXPORT autoIntensity Intensity_create (double tmin, double tmax, integer nt, double dt, double t1);
 
-void Intensity_init (Intensity me, double tmin, double tmax, long nt, double dt, double t1);
+void Intensity_init (Intensity me, double tmin, double tmax, integer nt, double dt, double t1);
 
 PRAAT_LIB_EXPORT autoMatrix Intensity_to_Matrix (Intensity me);
 
@@ -54,7 +54,7 @@ void Intensity_drawInside (Intensity me, Graphics g, double tmin, double tmax,
 	double minimum, double maximum);
 
 void Intensity_draw (Intensity me, Graphics g, double tmin, double tmax,
-	double minimum, double maximum, int garnish);
+	double minimum, double maximum, bool garnish);
 
 PRAAT_LIB_EXPORT double Intensity_getQuantile (Intensity me, double tmin, double tmax, double quantile);
 

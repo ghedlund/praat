@@ -27,7 +27,6 @@
  djmw 20100212 Analysis window length is now "Window length"
 */
 
-#include <math.h>
 #include "Cepstrumc.h"
 #include "Cepstrogram.h"
 #include "Cepstrum_and_Spectrum.h"
@@ -56,12 +55,12 @@
 #include "praat_Matrix.h"
 
 #define praat_Quefrency_RANGE(fromQuefrency,toQuefrency) \
-	REALVAR (fromQuefrency, U"left Quefrency range (s)", U"0.0") \
-	REALVAR (toQuefrency, U"right Quefrency range (s)", U"0.0 (= all)")
+	REAL (fromQuefrency, U"left Quefrency range (s)", U"0.0") \
+	REAL (toQuefrency, U"right Quefrency range (s)", U"0.0 (= all)")
 
-static const char32 *DRAW_BUTTON    = U"Draw -";
-static const char32 *QUERY_BUTTON   = U"Query -";
-static const char32 *MODIFY_BUTTON   = U"Modify -";
+static const conststring32 DRAW_BUTTON    = U"Draw -";
+static const conststring32 QUERY_BUTTON   = U"Query -";
+static const conststring32 MODIFY_BUTTON   = U"Modify -";
 
 void praat_CC_init (ClassInfo klas);
 void praat_TimeFrameSampled_query_init (ClassInfo klas);
@@ -71,7 +70,7 @@ void praat_TimeFrameSampled_query_init (ClassInfo klas);
 DIRECT (NEW_Cepstrum_downto_PowerCepstrum) {
 	CONVERT_EACH (Cepstrum)
 		autoPowerCepstrum result = Cepstrum_downto_PowerCepstrum (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (HELP_PowerCepstrum_help) {
@@ -80,9 +79,9 @@ DIRECT (HELP_PowerCepstrum_help) {
 
 FORM (GRAPHICS_Cepstrum_drawLinear, U"Cepstrum: Draw linear", U"Cepstrum: Draw (linear)...") {
 	praat_Quefrency_RANGE(fromQuefrency,toQuefrency)
-	REALVAR (ymin, U"Minimum", U"0.0")
-	REALVAR (ymax, U"Maximum", U"0.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (ymin, U"Minimum", U"0.0")
+	REAL (ymax, U"Maximum", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (Cepstrum)
@@ -92,9 +91,9 @@ DO
 
 FORM (GRAPHICS_PowerCepstrum_draw, U"PowerCepstrum: Draw", U"PowerCepstrum: Draw...") {
 	praat_Quefrency_RANGE(fromQuefrency,toQuefrency)
-	REALVAR (ymin, U"Minimum (dB)", U"0.0")
-	REALVAR (ymax, U"Maximum (dB)", U"0.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (ymin, U"Minimum (dB)", U"0.0")
+	REAL (ymax, U"Maximum (dB)", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (PowerCepstrum)
@@ -104,15 +103,15 @@ DO
 
 FORM (GRAPHICS_PowerCepstrum_drawTiltLine, U"PowerCepstrum: Draw tilt line", U"PowerCepstrum: Draw tilt line...") {
 	praat_Quefrency_RANGE(fromQuefrency,toQuefrency)
-	REALVAR (fromAmplitude_dB, U"left Amplitude range (dB)", U"0.0")
-	REALVAR (toAmplitude_dB, U"right Amplitude range (dB)", U"0.0")
-	LABEL (U"", U"Parameters for the tilt line fit")
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+	REAL (fromAmplitude_dB, U"left Amplitude range (dB)", U"0.0")
+	REAL (toAmplitude_dB, U"right Amplitude range (dB)", U"0.0")
+	LABEL (U"Parameters for the tilt line fit")
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
@@ -123,9 +122,9 @@ DO
 }
 
 FORM (MODIFY_PowerCepstrum_formula, U"PowerCepstrum: Formula...", U"PowerCepstrum: Formula...") {
-	LABEL (U"label", U"y := y1; for row := 1 to nrow do { x := x1; "
+	LABEL (U"y := y1; for row := 1 to nrow do { x := x1; "
 		"for col := 1 to ncol do { self [row, col] := `formula' ; x := x + dx } y := y + dy }")
-	TEXTVAR (formula, U"formula", U"self")
+	TEXTFIELD (formula, U"Formula:", U"self")
 	OK
 DO
 	MODIFY_EACH (PowerCepstrum)
@@ -134,9 +133,9 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getPeak, U"PowerCepstrum: Get peak", nullptr) {
-	REALVAR (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
-	RADIOVAR (interpolationMethod, U"Interpolation", 2)
+	REAL (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
+	RADIO (interpolationMethod, U"Interpolation", 2)
 		RADIOBUTTON (U"None")
 		RADIOBUTTON (U"Parabolic")
 		RADIOBUTTON (U"Cubic")
@@ -150,9 +149,9 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getQuefrencyOfPeak, U"PowerCepstrum: Get quefrency of peak", nullptr) {
-	REALVAR (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
-	RADIOVAR (interpolationMethod, U"Interpolation", 2)
+	REAL (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
+	RADIO (interpolationMethod, U"Interpolation", 2)
 		RADIOBUTTON (U"None")
 		RADIOBUTTON (U"Parabolic")
 		RADIOBUTTON (U"Cubic")
@@ -167,9 +166,9 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getRNR, U"PowerCepstrum: Get rhamonics to noise ration", nullptr) {
-	REALVAR (fromPitch, U"left Pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Pitch range (Hz)", U"333.3")
-	POSITIVEVAR (fractionalWIdth, U"Fractional width (0-1)", U"0.05")
+	REAL (fromPitch, U"left Pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Pitch range (Hz)", U"333.3")
+	POSITIVE (fractionalWIdth, U"Fractional width (0-1)", U"0.05")
 	OK
 DO
 	NUMBER_ONE (PowerCepstrum)
@@ -178,8 +177,8 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getPeakProminence_hillenbrand, U"PowerCepstrum: Get peak prominence (hillenbrand)", U"PowerCepstrum: Get peak prominence (hillenbrand)...") {
-	REALVAR (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
+	REAL (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
 	OK
 DO
 	NUMBER_ONE (PowerCepstrum)
@@ -188,12 +187,12 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getTiltLineSlope, U"PowerCepstrum: Get tilt line slope", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
@@ -206,12 +205,12 @@ DO
 
 
 FORM (REAL_PowerCepstrum_getTiltLineIntercept, U"PowerCepstrum: Get tilt line intercept", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 	OPTION (U"Least squares")
 	OPTION (U"Robust")
 	OK
@@ -223,19 +222,19 @@ DO
 }
 
 FORM (REAL_PowerCepstrum_getPeakProminence, U"PowerCepstrum: Get peak prominence", U"PowerCepstrum: Get peak prominence...") {
-	REALVAR (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
-	RADIOVAR (interpolationMethod, U"Interpolation", 2)
+	REAL (fromPitch, U"left Search peak in pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Search peak in pitch range (Hz)", U"333.3")
+	RADIO (interpolationMethod, U"Interpolation", 2)
 		RADIOBUTTON (U"None")
 		RADIOBUTTON (U"Parabolic")
 		RADIOBUTTON (U"Cubic")
 		RADIOBUTTON (U"Sinc70")
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
@@ -245,68 +244,68 @@ DO
 	NUMBER_ONE_END (U" dB; quefrency=", qpeak, U" s (f=", 1.0 / qpeak, U" Hz).");
 }
 
-FORM (MODIFY_PowerCepstrum_subtractTilt_inline, U"PowerCepstrum: Subtract tilt (in-line)", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+FORM (MODIFY_PowerCepstrum_subtractTilt_inplace, U"PowerCepstrum: Subtract tilt (in-place)", nullptr) {
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
 DO
 	MODIFY_EACH (PowerCepstrum)
-		PowerCepstrum_subtractTilt_inline (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
+		PowerCepstrum_subtractTilt_inplace (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
 	MODIFY_EACH_END
 }
 
-FORM (MODIFY_PowerCepstrum_smooth_inline, U"PowerCepstrum: Smooth (in-line)", nullptr) {
-	REALVAR (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
-	NATURALVAR (numberOfIterations, U"Number of iterations", U"1");
+FORM (MODIFY_PowerCepstrum_smooth_inplace, U"PowerCepstrum: Smooth (in-place)", nullptr) {
+	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
+	NATURAL (numberOfIterations, U"Number of iterations", U"1");
 	OK
 DO
 	MODIFY_EACH (PowerCepstrum)
-		PowerCepstrum_smooth_inline (me, quefrencySmoothingWindowDuration, numberOfIterations);
+		PowerCepstrum_smooth_inplace (me, quefrencySmoothingWindowDuration, numberOfIterations);
 	MODIFY_EACH_END
 }
 
 FORM (NEW_PowerCepstrum_smooth, U"PowerCepstrum: Smooth", nullptr) {
-	REALVAR (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
-	NATURALVAR (numberOfIterations, U"Number of iterations", U"1");
+	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
+	NATURAL (numberOfIterations, U"Number of iterations", U"1");
 	OK
 DO
 	CONVERT_EACH (PowerCepstrum)
 		autoPowerCepstrum result = PowerCepstrum_smooth (me, quefrencySmoothingWindowDuration, numberOfIterations);
-	CONVERT_EACH_END (my name, U"_smooth")
+	CONVERT_EACH_END (my name.get(), U"_smooth")
 }
 
 FORM (NEW_PowerCepstrum_subtractTilt, U"PowerCepstrum: Subtract tilt", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 1)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 1)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrum)
 		autoPowerCepstrum result = PowerCepstrum_subtractTilt (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
-	CONVERT_EACH_END (my name, U"_minusTilt")
+	CONVERT_EACH_END (my name.get(), U"_minusTilt")
 }
 
 DIRECT (NEW_Cepstrum_to_Spectrum) {
 	CONVERT_EACH (Cepstrum)
 		autoSpectrum result = Cepstrum_to_Spectrum (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_PowerCepstrum_to_Matrix) {
 	CONVERT_EACH (PowerCepstrum)
 		autoMatrix result = PowerCepstrum_to_Matrix (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 /********************** Cepstrogram  ****************************************/
@@ -318,9 +317,9 @@ DIRECT (HELP_PowerCepstrogram_help) {
 FORM (GRAPHICS_old_PowerCepstrogram_paint, U"PowerCepstrogram: Paint", nullptr) {
 	praat_TimeFunction_RANGE(fromTime,toTime)
 	praat_Quefrency_RANGE(fromQuefrency,toQuefrency)
-	REALVAR (minimum_dB, U"Minimum (dB)", U"0.0")
-	REALVAR (maximum_dB, U"Maximum (dB)", U"0.0")
-	BOOLEANVAR (garnish, U"Garnish", true);
+	REAL (minimum_dB, U"Minimum (dB)", U"0.0")
+	REAL (maximum_dB, U"Maximum (dB)", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true);
 	OK
 DO
 	GRAPHICS_EACH (PowerCepstrogram)
@@ -331,11 +330,11 @@ DO
 FORM (GRAPHICS_PowerCepstrogram_paint, U"PowerCepstrogram: Paint", U"PowerCepstrogram: Paint...") {
 	praat_TimeFunction_RANGE(fromTime,toTime)
 	praat_Quefrency_RANGE(fromQuefrency,toQuefrency)
-	REALVAR (maximum_dB, U"Maximum (dB)", U"80.0")
-	BOOLEANVAR (autoscaling, U"Autoscaling", false);
-	REALVAR (dynamicRange_dB, U"Dynamic range (dB)", U"30.0");
-	REALVAR (compression, U"Dynamic compression (0-1)", U"0.0");
-	BOOLEANVAR (garnish, U"Garnish", true);
+	REAL (maximum_dB, U"Maximum (dB)", U"80.0")
+	BOOLEAN (autoscaling, U"Autoscaling", false);
+	REAL (dynamicRange_dB, U"Dynamic range (dB)", U"30.0");
+	REAL (compression, U"Dynamic compression (0-1)", U"0.0");
+	BOOLEAN (garnish, U"Garnish", true);
 	OK
 DO_ALTERNATIVE (GRAPHICS_old_PowerCepstrogram_paint)
 	GRAPHICS_EACH (PowerCepstrogram)
@@ -344,13 +343,13 @@ DO_ALTERNATIVE (GRAPHICS_old_PowerCepstrogram_paint)
 }
 
 FORM (NEW_PowerCepstrogram_smooth, U"PowerCepstrogram: Smooth", U"PowerCepstrogram: Smooth...") {
-	REALVAR (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
-	REALVAR (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
+	REAL (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
+	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrogram)
 		autoPowerCepstrogram result = PowerCepstrogram_smooth (me, smoothingWindowDuration, quefrencySmoothingWindowDuration);
-	CONVERT_EACH_END (my name, U"_smoothed")
+	CONVERT_EACH_END (my name.get(), U"_smoothed")
 }
 
 DIRECT (REAL_PowerCepstrogram_getStartQuefrency) {
@@ -367,7 +366,7 @@ DIRECT (REAL_PowerCepstrogram_getEndQuefrency) {
 
 DIRECT (INTEGER_PowerCepstrogram_getNumberOfQuefrencyBins) {
 	INTEGER_ONE (PowerCepstrogram)
-		long result = my ny;
+		integer result = my ny;
 	INTEGER_ONE_END (U" quefrency bins")
 }
 
@@ -378,45 +377,45 @@ DIRECT (REAL_PowerCepstrogram_getQuefrencyStep) {
 }
 
 FORM (NEW_PowerCepstrogram_subtractTilt, U"PowerCepstrogram: Subtract tilt", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 2)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 2)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrogram)
 		autoPowerCepstrogram result = PowerCepstrogram_subtractTilt (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
-	CONVERT_EACH_END (my name, U"_minusTilt")
+	CONVERT_EACH_END (my name.get(), U"_minusTilt")
 }
 
-FORM (MODIFY_PowerCepstrogram_subtractTilt_inline, U"PowerCepstrogram: Subtract tilt (in-line)", nullptr) {
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 2)
+FORM (MODIFY_PowerCepstrogram_subtractTilt_inplace, U"PowerCepstrogram: Subtract tilt (in-place)", nullptr) {
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 2)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
 DO
 	MODIFY_EACH (PowerCepstrogram)
-		PowerCepstrogram_subtractTilt_inline (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
+		PowerCepstrogram_subtractTilt_inplace (me, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
 	MODIFY_EACH_END
 }
 
 FORM (REAL_PowerCepstrogram_getCPPS_hillenbrand, U"PowerCepstrogram: Get CPPS", nullptr) {
-	LABEL (U"", U"Smoothing:")
-	BOOLEANVAR (subtractTiltBeforeSmoothing, U"Subtract tilt before smoothing", true)
-	REALVAR (smoothinWindowDuration, U"Time averaging window (s)", U"0.001")
-	REALVAR (quefrencySmoothinWindowDuration, U"Quefrency averaging window (s)", U"0.00005")
-	LABEL (U"", U"Peak search:")
-	REALVAR (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	LABEL (U"Smoothing:")
+	BOOLEAN (subtractTiltBeforeSmoothing, U"Subtract tilt before smoothing", true)
+	REAL (smoothinWindowDuration, U"Time averaging window (s)", U"0.001")
+	REAL (quefrencySmoothinWindowDuration, U"Quefrency averaging window (s)", U"0.00005")
+	LABEL (U"Peak search:")
+	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
 	OK
 DO
 	NUMBER_ONE (PowerCepstrogram)
@@ -425,26 +424,26 @@ DO
 }
 
 FORM (REAL_PowerCepstrogram_getCPPS, U"PowerCepstrogram: Get CPPS", nullptr) {
-	LABEL (U"", U"Smoothing:")
-	BOOLEANVAR (subtractTiltBeforeSmoothing, U"Subtract tilt before smoothing", true)
-	REALVAR (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
-	REALVAR (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
-	LABEL (U"", U"Peak search:")
-	REALVAR (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
-	POSITIVEVAR (tolerance, U"Tolerance (0-1)", U"0.05")
-	RADIOVAR (interpolationMethod, U"Interpolation", 2)
+	LABEL (U"Smoothing:")
+	BOOLEAN (subtractTiltBeforeSmoothing, U"Subtract tilt before smoothing", true)
+	REAL (smoothingWindowDuration, U"Time averaging window (s)", U"0.02")
+	REAL (quefrencySmoothingWindowDuration, U"Quefrency averaging window (s)", U"0.0005")
+	LABEL (U"Peak search:")
+	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
+	RADIO (interpolationMethod, U"Interpolation", 2)
 		RADIOBUTTON (U"None")
 		RADIOBUTTON (U"Parabolic")
 		RADIOBUTTON (U"Cubic")
 		RADIOBUTTON (U"Sinc70")
-	LABEL (U"", U"Tilt line:")
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 2)
+	LABEL (U"Tilt line:")
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 2)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
@@ -455,12 +454,11 @@ DO
 }
 
 FORM (MODIFY_PowerCepstrogram_formula, U"PowerCepstrogram: Formula", nullptr) {
-	LABEL (U"label", U"Do for all times and quefrencies:")
-	LABEL (U"label", U"   `x' is the time in seconds")
-	LABEL (U"label", U"   `y' is the quefrency in seconds")
-	LABEL (U"label", U"   `self' is the current value")
-	LABEL (U"label", U"   Replace all values with:")
-	TEXTVAR (formula, U"formula", U"sqrt(self)")
+	LABEL (U"Do for all times and quefrencies:")
+	LABEL (U"   `x` is the time in seconds")
+	LABEL (U"   `y` is the quefrency in seconds")
+	LABEL (U"   `self` is the current value")
+	TEXTFIELD (formula, U"   Replace all values with:", U"sqrt(self)")
 	OK
 DO
 	MODIFY_EACH_WEAK (PowerCepstrogram)
@@ -469,52 +467,52 @@ DO
 }
 
 FORM (NEW_PowerCepstrogram_to_PowerCepstrum_slice, U"PowerCepstrogram: To PowerCepstrum (slice)", nullptr) {
-	REALVAR (time, U"Time (s)", U"0.1")
+	REAL (time, U"Time (s)", U"0.1")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrogram)
 		autoPowerCepstrum result = PowerCepstrogram_to_PowerCepstrum_slice (me, time);
-	CONVERT_EACH_END (my name, NUMstring_timeNoDot (time));
+	CONVERT_EACH_END (my name.get(), NUMstring_timeNoDot (time));
 }
 
 FORM (NEW_PowerCepstrogram_to_Table_cpp, U"PowerCepstrogram: To Table (peak prominence)", U"PowerCepstrogram: To Table (peak prominence)...") {
-	REALVAR (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
-	POSITIVEVAR (tolerance, U"Tolerance (0-1)", U"0.05")
-	RADIOVAR (interpolationMethod, U"Interpolation", 2)
+	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	POSITIVE (tolerance, U"Tolerance (0-1)", U"0.05")
+	RADIO (interpolationMethod, U"Interpolation", 2)
 		RADIOBUTTON (U"None")
 		RADIOBUTTON (U"Parabolic")
 		RADIOBUTTON (U"Cubic")
 		RADIOBUTTON (U"Sinc70")
-	REALVAR (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
-	REALVAR (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
-	OPTIONMENUVAR (lineType, U"Line type", 2)
+	REAL (fromQuefrency_tiltLine, U"left Tilt line quefrency range (s)", U"0.001")
+	REAL (toQuefrency_tiltLine, U"right Tilt line quefrency range (s)", U"0.0 (= end)")
+	OPTIONMENU (lineType, U"Line type", 2)
 		OPTION (U"Straight")
 		OPTION (U"Exponential decay")
-	OPTIONMENUVAR (fitMethod, U"Fit method", 2)
+	OPTIONMENU (fitMethod, U"Fit method", 2)
 		OPTION (U"Least squares")
 		OPTION (U"Robust")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrogram)
 		autoTable result = PowerCepstrogram_to_Table_cpp (me, fromPitch, toPitch, tolerance, interpolationMethod - 1, fromQuefrency_tiltLine, toQuefrency_tiltLine, lineType, fitMethod);
-	CONVERT_EACH_END (my name, U"_cpp");
+	CONVERT_EACH_END (my name.get(), U"_cpp");
 }
 
 FORM (NEW_PowerCepstrogram_to_Table_hillenbrand, U"PowerCepstrogram: To Table (hillenbrand)", U"PowerCepstrogram: To Table (peak prominence...") {
-	REALVAR (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
-	REALVAR (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
+	REAL (fromPitch, U"left Peak search pitch range (Hz)", U"60.0")
+	REAL (toPitch, U"right Peak search pitch range (Hz)", U"330.0")
 	OK
 DO
 	CONVERT_EACH (PowerCepstrogram)
 		autoTable result = PowerCepstrogram_to_Table_hillenbrand (me,fromPitch, toPitch);
-	CONVERT_EACH_END (my name, U"_cpp")
+	CONVERT_EACH_END (my name.get(), U"_cpp")
 }
 
 DIRECT (NEW_PowerCepstrogram_to_Matrix) {
 	CONVERT_EACH (PowerCepstrogram)
 		autoMatrix result = PowerCepstrogram_to_Matrix (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 /********************** Cepstrumc  ****************************************/
@@ -522,20 +520,20 @@ DIRECT (NEW_PowerCepstrogram_to_Matrix) {
 DIRECT (NEW_Cepstrumc_to_LPC) {
 	CONVERT_EACH (Cepstrumc)
 		autoLPC result = Cepstrumc_to_LPC (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW1_Cepstrumc_to_DTW, U"Cepstrumc: To DTW", U"Cepstrumc: To DTW...") {
-	LABEL (U"", U"Distance calculation between Cepstra")
-	REALVAR (cepstralWeight, U"Cepstral weight", U"1.0")
-	REALVAR (logEnergyWeight, U"Log energy weight", U"0.0")
-	REALVAR (regressionWeight, U"Regression weight", U"0.0")
-	REALVAR (regressionLogEnergyWeight, U"Regression weight log energy", U"0.0")
-	REALVAR (windowDuration, U"Window for regression coefficients (seconds)", U"0.056")
-	LABEL (U"", U"Boundary conditions for time warp")
-	BOOLEANVAR (matchBeginPositions, U"Match begin positions", false)
-	BOOLEANVAR (matchEndPositions, U"Match end positions", false)
-	RADIOVAR (slopeConstraintType, U"Slope constraints", 1)
+	LABEL (U"Distance calculation between Cepstra")
+	REAL (cepstralWeight, U"Cepstral weight", U"1.0")
+	REAL (logEnergyWeight, U"Log energy weight", U"0.0")
+	REAL (regressionWeight, U"Regression weight", U"0.0")
+	REAL (regressionLogEnergyWeight, U"Regression weight log energy", U"0.0")
+	REAL (windowDuration, U"Window for regression coefficients (seconds)", U"0.056")
+	LABEL (U"Boundary conditions for time warp")
+	BOOLEAN (matchBeginPositions, U"Match begin positions", false)
+	BOOLEAN (matchEndPositions, U"Match end positions", false)
+	RADIO (slopeConstraintType, U"Slope constraints", 1)
 		RADIOBUTTON (U"no restriction")
 		RADIOBUTTON (U"1/3 < slope < 3")
 		RADIOBUTTON (U"1/2 < slope < 2")
@@ -544,33 +542,33 @@ FORM (NEW1_Cepstrumc_to_DTW, U"Cepstrumc: To DTW", U"Cepstrumc: To DTW...") {
 DO
 	CONVERT_COUPLE (Cepstrumc)
 		autoDTW result = Cepstrumc_to_DTW (me, you, cepstralWeight, logEnergyWeight, regressionWeight, regressionLogEnergyWeight, windowDuration, matchBeginPositions, matchEndPositions, slopeConstraintType);
-	CONVERT_COUPLE_END (my name, U"_", your name)
+	CONVERT_COUPLE_END (my name.get(), U"_", your name.get())
 }
 
 DIRECT (NEW_Cepstrumc_to_Matrix) {
 	CONVERT_EACH (Cepstrumc)
 		autoMatrix result = Cepstrumc_to_Matrix (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 /******************** Formant ********************************************/
 
 FORM (NEW_Formant_to_LPC, U"Formant: To LPC", nullptr) {
-	POSITIVEVAR (samplingFrequency, U"Sampling frequency (Hz)", U"16000.0")
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"16000.0")
 	OK
 DO
 	CONVERT_EACH (Formant)
 		autoLPC result = Formant_to_LPC (me, 1.0 / samplingFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (MODIFY_Formant_formula, U"Formant: Formula", nullptr) {
 	praat_TimeFunction_RANGE(fromTime,toTime)
-	NATURALVAR (fromFormant, U"left Formant range", U"1")
-	NATURALVAR (toFormant, U"right Formant range", U"5")
-	LABEL (U"", U"Formant frequencies in odd numbered rows")
-	LABEL (U"", U"Formant bandwidths in even numbered rows")
-	SENTENCEVAR (formula, U"Formula", U"if row mod 2 = 1 and self[row,col]/self[row+1,col] < 5 then 0 else self fi")
+	NATURAL (fromFormant, U"left Formant range", U"1")
+	NATURAL (toFormant, U"right Formant range", U"5")
+	LABEL (U"Formant frequencies in odd numbered rows")
+	LABEL (U"Formant bandwidths in even numbered rows")
+	SENTENCE (formula, U"Formula", U"if row mod 2 = 1 and self[row,col]/self[row+1,col] < 5 then 0 else self fi")
 	OK
 DO
 	MODIFY_EACH_WEAK (Formant)
@@ -580,13 +578,13 @@ DO
 
 /******************** Formant & Spectrogram ************************************/
 
-FORM (NEW1_Formant_and_Spectrogram_to_IntensityTier, U"Formant & Spectrogram: To IntensityTier", U"Formant & Spectrogram: To IntensityTier...") {
-	NATURALVAR (formantNumber, U"Formant number", U"1")
+FORM (NEW1_Formant_Spectrogram_to_IntensityTier, U"Formant & Spectrogram: To IntensityTier", U"Formant & Spectrogram: To IntensityTier...") {
+	NATURAL (formantNumber, U"Formant number", U"1")
 	OK
 DO
 	CONVERT_TWO (Formant, Spectrogram)
-		autoIntensityTier result = Formant_and_Spectrogram_to_IntensityTier (me, you, formantNumber);
-	CONVERT_TWO_END (my name, U"_", formantNumber)
+		autoIntensityTier result = Formant_Spectrogram_to_IntensityTier (me, you, formantNumber);
+	CONVERT_TWO_END (my name.get(), U"_", formantNumber)
 }
 
 /********************LFCC ********************************************/
@@ -596,13 +594,13 @@ DIRECT (HELP_LFCC_help) {
 }
 
 FORM (NEW_LFCC_to_LPC, U"LFCC: To LPC", U"LFCC: To LPC...") {
-	INTEGERVAR (numberOfCoefficients, U"Number of coefficients", U"0")
+	INTEGER (numberOfCoefficients, U"Number of coefficients", U"0")
 	OK
 DO
-	REQUIRE (numberOfCoefficients >= 0, U"Number of coefficients must be greater or equal zero.")
+	Melder_require (numberOfCoefficients >= 0, U"Number of coefficients should not be less than zero.");
 	CONVERT_EACH (LFCC)
 		autoLPC result = LFCC_to_LPC (me, numberOfCoefficients);
-	CONVERT_EACH_END (my name);
+	CONVERT_EACH_END (my name.get());
 }
 
 /********************LineSpectralFrequencies ********************************************/
@@ -613,9 +611,9 @@ DIRECT (HELP_LineSpectralFrequencies_help) {
 
 FORM (GRAPHICS_LineSpectralFrequencies_drawFrequencies, U"LineSpectralFrequencies: Draw frequencies", nullptr) {
 	praat_TimeFunction_RANGE(fromTime,toTime)
-	REALVAR (fromFrequency, U"left Frequency range (Hz)", U"0.0")
-	REALVAR (toFrequency, U"right Frequency range (Hz)", U"5000.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (Hz)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (Hz)", U"5000.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (LineSpectralFrequencies)
@@ -626,7 +624,7 @@ DO
 DIRECT (NEW_LineSpectralFrequencies_to_LPC) {
 	CONVERT_EACH (LineSpectralFrequencies)
 		autoLPC result = LineSpectralFrequencies_to_LPC (me);
-	CONVERT_EACH_END (my name);
+	CONVERT_EACH_END (my name.get());
 }
 
 /********************LPC ********************************************/
@@ -637,9 +635,9 @@ DIRECT (HELP_LPC_help) {
 
 FORM (GRAPHICS_LPC_drawGain, U"LPC: Draw gain", U"LPC: Draw gain...") {
 	praat_TimeFunction_RANGE(fromTime,toTime)
-	REALVAR (minimumGain, U"Minimum gain", U"0.0")
-	REALVAR (maximumGain, U"Maximum gain", U"0.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (minimumGain, U"Minimum gain", U"0.0")
+	REAL (maximumGain, U"Maximum gain", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (LPC)
@@ -654,18 +652,19 @@ DIRECT (REAL_LPC_getSamplingInterval) {
 }
 
 FORM (INTEGER_LPC_getNumberOfCoefficients, U"LPC: Get number of coefficients", U"LPC: Get number of coefficients...") {
-	NATURALVAR (frameNumber, U"Frame number", U"1")
+	NATURAL (frameNumber, U"Frame number", U"1")
 	OK
 DO
 	INTEGER_ONE (LPC)
-		REQUIRE (frameNumber <= my nx, Melder_cat (U"Frame number is too large.\n\nPlease choose a number between 1 and ", my nx))
-		long result = my d_frames[frameNumber].nCoefficients;
+		Melder_require (frameNumber <= my nx,
+			U"Your frame number (", frameNumber, U") is too large. It should be between 1 and ", my nx, U".");
+		integer result = my d_frames[frameNumber].nCoefficients;
 	INTEGER_ONE_END (U" coefficients")
 }
 
 FORM (GRAPHICS_LPC_drawPoles, U"LPC: Draw poles", U"LPC: Draw poles...") {
-	REALVAR (time, U"Time (seconds)", U"0.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (time, U"Time (seconds)", U"0.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (LPC)
@@ -676,232 +675,231 @@ DO
 DIRECT (NEW_LPC_to_Formant) {
 	CONVERT_EACH (LPC)
 		autoFormant result = LPC_to_Formant (me, 50.0);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_LPC_to_Formant_keep_all) {
 	CONVERT_EACH (LPC)
 		autoFormant result = LPC_to_Formant (me, 0.0);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_LPC_to_LFCC, U"LPC: To LFCC", U"LPC: To LFCC...") {
-	INTEGERVAR (numberOfCoefficients, U"Number of coefficients", U"0")
+	INTEGER (numberOfCoefficients, U"Number of coefficients", U"0")
 	OK
 DO
-	REQUIRE (numberOfCoefficients >= 0, U"The number of coefficients should be greater than or equal to zero.")
+	Melder_require (numberOfCoefficients >= 0, U"The number of coefficients should not be less than zero.");
 	CONVERT_EACH (LPC)
 		autoLFCC result = LPC_to_LFCC (me, numberOfCoefficients);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_LPC_to_LineSpectralFrequencies, U"LPC: To LineSpectralFrequencies", nullptr) {
-	REALVAR (gridSize, U"Grid size", U"0.0")
+	REAL (gridSize, U"Grid size", U"0.0")
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoLineSpectralFrequencies result = LPC_to_LineSpectralFrequencies (me, gridSize);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
-FORM (NEW_LPC_to_Polynomial, U"LPC: To Polynomial", U"LPC: To Polynomial (slice)...") {
-	REALVAR (time, U"Time (s)", U"0.0")
+FORM (NEW_LPC_to_Polynomial_slice, U"LPC: To Polynomial", U"LPC: To Polynomial (slice)...") {
+	REAL (time, U"Time (s)", U"0.0")
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoPolynomial result = LPC_to_Polynomial (me, time);
-	CONVERT_EACH_END (my name, NUMstring_timeNoDot (time))
+	CONVERT_EACH_END (my name.get(), NUMstring_timeNoDot (time))
 }
 
-FORM (NEW_LPC_to_Spectrum, U"LPC: To Spectrum", U"LPC: To Spectrum (slice)...") {
-	REALVAR (time, U"Time (seconds)", U"0.0")
-	REALVAR (minimumFrequencyResolution, U"Minimum frequency resolution (Hz)", U"20.0")
-	REALVAR (bandwidthReduction, U"Bandwidth reduction (Hz)", U"0.0")
-	REALVAR (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
+FORM (NEW_LPC_to_Spectrum_slice, U"LPC: To Spectrum", U"LPC: To Spectrum (slice)...") {
+	REAL (time, U"Time (seconds)", U"0.0")
+	REAL (minimumFrequencyResolution, U"Minimum frequency resolution (Hz)", U"20.0")
+	REAL (bandwidthReduction, U"Bandwidth reduction (Hz)", U"0.0")
+	REAL (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoSpectrum result = LPC_to_Spectrum (me, time, minimumFrequencyResolution, bandwidthReduction, deemphasisFrequency);
-	CONVERT_EACH_END (my name, NUMstring_timeNoDot (time))
+	CONVERT_EACH_END (my name.get(), NUMstring_timeNoDot (time))
 }
 
 FORM (NEW_LPC_to_Spectrogram, U"LPC: To Spectrogram", U"LPC: To Spectrogram...") {
-	REALVAR (minimumFrequencyResolution, U"Minimum frequency resolution (Hz)", U"20.0")
-	REALVAR (bandwidthReduction, U"Bandwidth reduction (Hz)", U"0.0")
-	REALVAR (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
+	REAL (minimumFrequencyResolution, U"Minimum frequency resolution (Hz)", U"20.0")
+	REAL (bandwidthReduction, U"Bandwidth reduction (Hz)", U"0.0")
+	REAL (deemphasisFrequency, U"De-emphasis frequency (Hz)", U"50.0")
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoSpectrogram result = LPC_to_Spectrogram (me, minimumFrequencyResolution, bandwidthReduction, deemphasisFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
-FORM (NEW_LPC_to_VocalTract_special, U"LPC: To VocalTract", U"LPC: To VocalTract (slice, special)...") {
-	REALVAR (time, U"Time (s)", U"0.0")
-	REALVAR (glottalDamping, U"Glottal damping", U"0.1")
-	BOOLEANVAR (radiationDamping, U"Radiation damping", true)
-	BOOLEANVAR (internalDamping, U"Internal damping", true)
+FORM (NEW_LPC_to_VocalTract_slice_special, U"LPC: To VocalTract", U"LPC: To VocalTract (slice, special)...") {
+	REAL (time, U"Time (s)", U"0.0")
+	REAL (glottalDamping, U"Glottal damping", U"0.1")
+	BOOLEAN (radiationDamping, U"Radiation damping", true)
+	BOOLEAN (internalDamping, U"Internal damping", true)
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoVocalTract result = LPC_to_VocalTract (me, time, glottalDamping, radiationDamping, internalDamping);
-	CONVERT_EACH_END (my name, NUMstring_timeNoDot (time))
+	CONVERT_EACH_END (my name.get(), NUMstring_timeNoDot (time))
 }
 
-FORM (NEW_LPC_to_VocalTract, U"LPC: To VocalTract", U"LPC: To VocalTract (slice)...") {
-	REALVAR (time, U"Time (s)", U"0.0")
-	POSITIVEVAR (lenght, U"Length (m)", U"0.17")
+FORM (NEW_LPC_to_VocalTract_slice, U"LPC: To VocalTract", U"LPC: To VocalTract (slice)...") {
+	REAL (time, U"Time (s)", U"0.0")
+	POSITIVE (lenght, U"Length (m)", U"0.17")
 	OK
 DO
 	CONVERT_EACH (LPC)
 		autoVocalTract result = LPC_to_VocalTract (me, time, lenght);
-	CONVERT_EACH_END (my name, NUMstring_timeNoDot (time))
+	CONVERT_EACH_END (my name.get(), NUMstring_timeNoDot (time))
 }
 
 DIRECT (NEW_LPC_downto_Matrix_lpc) {
 	CONVERT_EACH (LPC)
 		autoMatrix result = LPC_downto_Matrix_lpc (me);
-	CONVERT_EACH_END (my name, U"_lpc")
+	CONVERT_EACH_END (my name.get(), U"_lpc")
 }
 
 DIRECT (NEW_LPC_downto_Matrix_rc) {
 	CONVERT_EACH (LPC)
 		autoMatrix result = LPC_downto_Matrix_rc (me);
-	CONVERT_EACH_END (my name, U"_rc");
+	CONVERT_EACH_END (my name.get(), U"_rc");
 }
 
 DIRECT (NEW_LPC_downto_Matrix_area) {
 	CONVERT_EACH (LPC)
 		autoMatrix result = LPC_downto_Matrix_area (me);
-	CONVERT_EACH_END (my name, U"_area");
+	CONVERT_EACH_END (my name.get(), U"_area");
 }
 
 /********************** Sound *******************************************/
 
 FORM (NEW_Sound_to_PowerCepstrogram, U"Sound: To PowerCepstrogram", U"Sound: To PowerCepstrogram...") {
-	POSITIVEVAR (pitchFloor, U"Pitch floor (Hz)", U"60.0")
-	POSITIVEVAR (timeStep,U"Time step (s)", U"0.002")
-	POSITIVEVAR (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
-	POSITIVEVAR (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50")
+	POSITIVE (pitchFloor, U"Pitch floor (Hz)", U"60.0")
+	POSITIVE (timeStep,U"Time step (s)", U"0.002")
+	POSITIVE (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
+	POSITIVE (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50")
 	OK
 DO
 	CONVERT_EACH (Sound)
 		autoPowerCepstrogram result = Sound_to_PowerCepstrogram (me, pitchFloor, timeStep, maximumFrequency, preEmphasisFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 
 FORM (NEW_Sound_to_PowerCepstrogram_hillenbrand, U"Sound: To PowerCepstrogram (hillenbrand)", U"Sound: To PowerCepstrogram...") {
-	POSITIVEVAR (pitchFloor, U"Pitch floor (Hz)", U"60.0")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.002")
+	POSITIVE (pitchFloor, U"Pitch floor (Hz)", U"60.0")
+	POSITIVE (timeStep, U"Time step (s)", U"0.002")
 	OK
 DO
 	CONVERT_EACH (Sound)
 		autoPowerCepstrogram result = Sound_to_PowerCepstrogram_hillenbrand (me, pitchFloor, timeStep);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 	
 FORM (NEW_Sound_to_Formant_robust, U"Sound: To Formant (robust)", U"Sound: To Formant (robust)...") {
-	REALVAR (timeStep, U"Time step (s)", U"0.0 (= auto)")
-	POSITIVEVAR (maximumNumberOfFormants, U"Max. number of formants", U"5.0")
-	REALVAR (maximumFormantFrequency, U"Maximum formant (Hz)", U"5500.0 (= adult female)")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50.0")
-	POSITIVEVAR (numberOfStandardDeviations, U"Number of std. dev.", U"1.5")
-	NATURALVAR (maximumNumberOfIterations, U"Maximum number of iterations", U"5")
-	REALVAR (tolerance, U"Tolerance", U"0.000001")
+	REAL (timeStep, U"Time step (s)", U"0.0 (= auto)")
+	POSITIVE (maximumNumberOfFormants, U"Max. number of formants", U"5.0")
+	REAL (maximumFormantFrequency, U"Maximum formant (Hz)", U"5500.0 (= adult female)")
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (preEmphasisFrequency, U"Pre-emphasis from (Hz)", U"50.0")
+	POSITIVE (numberOfStandardDeviations, U"Number of std. dev.", U"1.5")
+	NATURAL (maximumNumberOfIterations, U"Maximum number of iterations", U"5")
+	REAL (tolerance, U"Tolerance", U"0.000001")
 	OK
 DO
 	CONVERT_EACH (Sound)
 		autoFormant result = Sound_to_Formant_robust (me, timeStep, maximumNumberOfFormants, maximumFormantFrequency, windowLength, preEmphasisFrequency, 50.0, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, 1);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
-static void Sound_to_LPC_addWarning (UiForm dia) {
-	LABEL (U"", U"Warning 1:  for formant analysis, use \"To Formant\" instead.")
-	LABEL (U"", U"Warning 2:  if you do use \"To LPC\", you may want to resample first.")
-	LABEL (U"", U"Click Help for more details.")
-	LABEL (U"", U"")
-}
+#define Sound_to_LPC_addWarning \
+	LABEL (U"Warning 1:  for formant analysis, use \"To Formant\" instead.") \
+	LABEL (U"Warning 2:  if you do use \"To LPC\", you may want to resample first.") \
+	LABEL (U"Click Help for more details.") \
+	LABEL (U"")
 
-FORM (NEW_Sound_to_LPC_auto, U"Sound: To LPC (autocorrelation)", U"Sound: To LPC (autocorrelation)...") {
-	Sound_to_LPC_addWarning (dia);
-	NATURALVAR (predictionOrder, U"Prediction order", U"16")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.005")
-	REALVAR (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
+FORM (NEW_Sound_to_LPC_autocorrelation, U"Sound: To LPC (autocorrelation)", U"Sound: To LPC (autocorrelation)...") {
+	Sound_to_LPC_addWarning
+	NATURAL (predictionOrder, U"Prediction order", U"16")
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (timeStep, U"Time step (s)", U"0.005")
+	REAL (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
 	OK
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH (Sound)
 		autoLPC result = Sound_to_LPC_auto (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
-FORM (NEW_Sound_to_LPC_covar, U"Sound: To LPC (covariance)", U"Sound: To LPC (covariance)...") {
-	Sound_to_LPC_addWarning (dia);
-	NATURALVAR (predictionOrder, U"Prediction order", U"16")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.005")
-	REALVAR (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
+FORM (NEW_Sound_to_LPC_covariance, U"Sound: To LPC (covariance)", U"Sound: To LPC (covariance)...") {
+	Sound_to_LPC_addWarning
+	NATURAL (predictionOrder, U"Prediction order", U"16")
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (timeStep, U"Time step (s)", U"0.005")
+	REAL (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
 	OK
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH (Sound)
 		autoLPC result = Sound_to_LPC_covar (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_Sound_to_LPC_burg, U"Sound: To LPC (burg)", U"Sound: To LPC (burg)...") {
-	Sound_to_LPC_addWarning (dia);
-	NATURALVAR (predictionOrder, U"Prediction order", U"16")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.005")
-	REALVAR (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
+	Sound_to_LPC_addWarning
+	NATURAL (predictionOrder, U"Prediction order", U"16")
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (timeStep, U"Time step (s)", U"0.005")
+	REAL (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
 	OK
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH (Sound)
 		autoLPC result = Sound_to_LPC_burg (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_Sound_to_LPC_marple, U"Sound: To LPC (marple)", U"Sound: To LPC (marple)...") {
-	Sound_to_LPC_addWarning (dia);
-	NATURALVAR (predictionOrder, U"Prediction order", U"16")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.005")
-	REALVAR (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
-	POSITIVEVAR (tolerance1, U"Tolerance 1", U"1e-6")
-	POSITIVEVAR (tolerance2, U"Tolerance 2", U"1e-6")
+	Sound_to_LPC_addWarning
+	NATURAL (predictionOrder, U"Prediction order", U"16")
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (timeStep, U"Time step (s)", U"0.005")
+	REAL (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
+	POSITIVE (tolerance1, U"Tolerance 1", U"1e-6")
+	POSITIVE (tolerance2, U"Tolerance 2", U"1e-6")
 	OK
 DO
 	preEmphasisFrequency = preEmphasisFrequency < 0.0 ? 0.0 : preEmphasisFrequency;
 	CONVERT_EACH (Sound)
 		autoLPC result = Sound_to_LPC_marple (me, predictionOrder, windowLength, timeStep, preEmphasisFrequency, tolerance1, tolerance2);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_Sound_to_MFCC, U"Sound: To MFCC", U"Sound: To MFCC...") {
-	NATURALVAR (numberOfCoefficients, U"Number of coefficients", U"12")
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.015")
-	POSITIVEVAR (timeStep, U"Time step (s)", U"0.005")
-	LABEL (U"", U"Filter bank parameters")
-	POSITIVEVAR (firstFilterFrequency, U"First filter frequency (mel)", U"100.0")
-	POSITIVEVAR (distancBetweenFilters, U"Distance between filters (mel)", U"100.0")
-	REALVAR (maximumFrequency, U"Maximum frequency (mel)", U"0.0");
+	NATURAL (numberOfCoefficients, U"Number of coefficients", U"12")
+	POSITIVE (windowLength, U"Window length (s)", U"0.015")
+	POSITIVE (timeStep, U"Time step (s)", U"0.005")
+	LABEL (U"Filter bank parameters")
+	POSITIVE (firstFilterFrequency, U"First filter frequency (mel)", U"100.0")
+	POSITIVE (distancBetweenFilters, U"Distance between filters (mel)", U"100.0")
+	REAL (maximumFrequency, U"Maximum frequency (mel)", U"0.0");
 	OK
 DO
-	REQUIRE (numberOfCoefficients < 25, U"The number of coefficients should be less than 25.")
+	Melder_require (numberOfCoefficients < 25, U"The number of coefficients should be less than 25.");
 	CONVERT_EACH (Sound)
 		autoMFCC result = Sound_to_MFCC (me, numberOfCoefficients, windowLength, timeStep, firstFilterFrequency, maximumFrequency, distancBetweenFilters);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (GRAPHICS_VocalTract_drawSegments, U"VocalTract: Draw segments", nullptr) {
-	POSITIVEVAR (maximumLength, U"Maximum length (cm)", U"20.0")
-	POSITIVEVAR (maximumArea, U"Maximum area (cm^2)", U"90.0")
-	BOOLEANVAR (glottisClosed, U"Closed at glottis", true)
+	POSITIVE (maximumLength, U"Maximum length (cm)", U"20.0")
+	POSITIVE (maximumArea, U"Maximum area (cm^2)", U"90.0")
+	BOOLEAN (glottisClosed, U"Closed at glottis", true)
 	OK
 DO
 	GRAPHICS_EACH (VocalTract)
@@ -916,7 +914,7 @@ DIRECT (REAL_VocalTract_getLength) {
 }
 
 FORM (MODIFY_VocalTract_setLength, U"", nullptr) {
-	POSITIVEVAR (length, U"New length (m)", U"0.17")
+	POSITIVE (length, U"New length (m)", U"0.17")
 	OK
 DO
 	MODIFY_EACH (VocalTract)
@@ -925,16 +923,16 @@ DO
 }
 
 FORM (NEW_VocalTract_to_VocalTractTier, U"VocalTract: To VocalTractTier", nullptr) {
-	REALVAR (fromTime, U"Tier start time (s)", U"0.0")
-	REALVAR (toTime, U"Tier end time (s)", U"1.0")
-	REALVAR (time, U"Insert at time (s)", U"0.5")
+	REAL (fromTime, U"Tier start time (s)", U"0.0")
+	REAL (toTime, U"Tier end time (s)", U"1.0")
+	REAL (time, U"Insert at time (s)", U"0.5")
 	OK
 DO
-	REQUIRE (fromTime < toTime, U"The start time must be before the end time.")
-	REQUIRE (time >= fromTime && time <= toTime, U"The insert time must be between start and end time.")
+	Melder_require (fromTime < toTime, U"Your start time should be before your end time.");
+	Melder_require (time >= fromTime && time <= toTime, U"Your insert time should be between your start and end times.");
 	CONVERT_EACH (VocalTract)
 		autoVocalTractTier result = VocalTract_to_VocalTractTier (me, fromTime, toTime, time);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (HELP_VocalTractTier_help) {
@@ -942,25 +940,25 @@ DIRECT (HELP_VocalTractTier_help) {
 }
 
 FORM (NEW_VocalTractTier_to_LPC, U"VocalTractTier: To LPC", nullptr) {
-	POSITIVEVAR (timeStep, U"Time step", U"0.005")
+	POSITIVE (timeStep, U"Time step", U"0.005")
 	OK
 DO
 	CONVERT_EACH (VocalTractTier)
 		autoLPC result = VocalTractTier_to_LPC (me, timeStep);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_VocalTractTier_to_VocalTract, U"", nullptr) {
-	REALVAR (time, U"Time (s)", U"0.1")
+	REAL (time, U"Time (s)", U"0.1")
 	OK
 DO
 	CONVERT_EACH (VocalTractTier)
 		autoVocalTract result = VocalTractTier_to_VocalTract (me, time);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (MODIFY_VocalTractTier_addVocalTract, U"VocalTractTier: Add VocalTract", nullptr) {
-	REALVAR (time, U"Time (s)", U"0.1")
+	REAL (time, U"Time (s)", U"0.1")
 	OK
 DO
 	MODIFY_FIRST_OF_TWO (VocalTractTier, VocalTract)
@@ -970,60 +968,60 @@ DO
 
 /******************* LPC & Sound *************************************/
 
-FORM (NEW1_LPC_and_Sound_filter, U"LPC & Sound: Filter", U"LPC & Sound: Filter...") {
-	BOOLEANVAR (useGain, U"Use LPC gain", false)
+FORM (NEW1_LPC_Sound_filter, U"LPC & Sound: Filter", U"LPC & Sound: Filter...") {
+	BOOLEAN (useGain, U"Use LPC gain", false)
 	OK
 DO
 	CONVERT_TWO (LPC, Sound)
-		autoSound result = LPC_and_Sound_filter (me , you, useGain);
-	CONVERT_TWO_END (my name)
+		autoSound result = LPC_Sound_filter (me, you, useGain);
+	CONVERT_TWO_END (my name.get())
 }
 
-FORM (NEW1_LPC_and_Sound_filterWithFilterAtTime, U"LPC & Sound: Filter with one filter at time", U"LPC & Sound: Filter with filter at time...") {
-	OPTIONMENUVAR (channel, U"Channel", 2)
+FORM (NEW1_LPC_Sound_filterWithFilterAtTime, U"LPC & Sound: Filter with one filter at time", U"LPC & Sound: Filter with filter at time...") {
+	OPTIONMENU (channel, U"Channel", 2)
 		OPTION (U"Both")
 		OPTION (U"Left")
 		OPTION (U"Right")
-	REALVAR (time, U"Use filter at time (s)", U"0.0")
+	REAL (time, U"Use filter at time (s)", U"0.0")
 	OK
 DO
 	CONVERT_TWO (LPC, Sound)
-		autoSound result = LPC_and_Sound_filterWithFilterAtTime (me , you, channel - 1, time);
-	CONVERT_TWO_END (my name)
+		autoSound result = LPC_Sound_filterWithFilterAtTime (me, you, channel - 1, time);
+	CONVERT_TWO_END (my name.get())
 }
 
-DIRECT (NEW1_LPC_and_Sound_filterInverse) {
+DIRECT (NEW1_LPC_Sound_filterInverse) {
 	CONVERT_TWO (LPC, Sound)
-		autoSound result = LPC_and_Sound_filterInverse (me , you);
-	CONVERT_TWO_END (my name)
+		autoSound result = LPC_Sound_filterInverse (me, you);
+	CONVERT_TWO_END (my name.get())
 }
 
-FORM (NEW1_LPC_and_Sound_filterInverseWithFilterAtTime, U"LPC & Sound: Filter (inverse) with filter at time",
+FORM (NEW1_LPC_Sound_filterInverseWithFilterAtTime, U"LPC & Sound: Filter (inverse) with filter at time",
       U"LPC & Sound: Filter (inverse) with filter at time...") {
-	OPTIONMENUVAR (channel, U"Channel", 2)
+	OPTIONMENU (channel, U"Channel", 2)
 		OPTION (U"Both")
 		OPTION (U"Left")
 		OPTION (U"Right")
-	REALVAR (time, U"Use filter at time (s)", U"0.0")
+	REAL (time, U"Use filter at time (s)", U"0.0")
 	OK
 DO
 	CONVERT_TWO (LPC, Sound)
-		autoSound result = LPC_and_Sound_filterInverseWithFilterAtTime (me , you, channel - 1, time);
-	CONVERT_TWO_END (my name)
+		autoSound result = LPC_Sound_filterInverseWithFilterAtTime (me, you, channel - 1, time);
+	CONVERT_TWO_END (my name.get())
 }
 
-FORM (NEW1_LPC_and_Sound_to_LPC_robust, U"Robust LPC analysis", U"LPC & Sound: To LPC (robust)...") {
-	POSITIVEVAR (windowLength, U"Window length (s)", U"0.025")
-	POSITIVEVAR (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
-	POSITIVEVAR (numberOfStandardDeviations, U"Number of std. dev.", U"1.5")
-	NATURALVAR (maximumNumberOfIterations, U"Maximum number of iterations", U"5")
-	REALVAR (tolerance, U"Tolerance", U"0.000001")
-	BOOLEANVAR (locationVariable, U"Variable location", false)
+FORM (NEW1_LPC_Sound_to_LPC_robust, U"Robust LPC analysis", U"LPC & Sound: To LPC (robust)...") {
+	POSITIVE (windowLength, U"Window length (s)", U"0.025")
+	POSITIVE (preEmphasisFrequency, U"Pre-emphasis frequency (Hz)", U"50.0")
+	POSITIVE (numberOfStandardDeviations, U"Number of std. dev.", U"1.5")
+	NATURAL (maximumNumberOfIterations, U"Maximum number of iterations", U"5")
+	REAL (tolerance, U"Tolerance", U"0.000001")
+	BOOLEAN (locationVariable, U"Variable location", false)
 	OK
 DO
 	CONVERT_TWO (LPC, Sound)
-		autoLPC result = LPC_and_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, locationVariable);
-	CONVERT_TWO_END (my name, U"_r");
+		autoLPC result = LPC_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, locationVariable);
+	CONVERT_TWO_END (my name.get(), U"_r");
 }
 
 extern void praat_TimeTier_query_init (ClassInfo klas);
@@ -1048,8 +1046,10 @@ void praat_uvafon_LPC_init () {
 		praat_addAction1 (classPowerCepstrum, 0, U"Get rhamonics to noise ratio...", 0, 1, REAL_PowerCepstrum_getRNR);
 	praat_addAction1 (classPowerCepstrum, 1, U"Modify -", 0, 0, 0);
 		praat_addAction1 (classPowerCepstrum, 0, U"Formula...", 0, 1, MODIFY_PowerCepstrum_formula);
-		praat_addAction1 (classPowerCepstrum, 0, U"Subtract tilt (in-line)...", 0, 1, MODIFY_PowerCepstrum_subtractTilt_inline);
-		praat_addAction1 (classPowerCepstrum, 0, U"Smooth (in-line)...", 0, 1, MODIFY_PowerCepstrum_smooth_inline);
+		praat_addAction1 (classPowerCepstrum, 0, U"Subtract tilt (in-place)...", 0, 1, MODIFY_PowerCepstrum_subtractTilt_inplace);
+		praat_addAction1 (classPowerCepstrum, 0, U"Subtract tilt (in-line)...", 0, praat_DEPTH_1 + praat_DEPRECATED_2017, MODIFY_PowerCepstrum_subtractTilt_inplace);
+		praat_addAction1 (classPowerCepstrum, 0, U"Smooth (in-place)...", 0, 1, MODIFY_PowerCepstrum_smooth_inplace);
+		praat_addAction1 (classPowerCepstrum, 0, U"Smooth (in-line)...", 0, praat_DEPTH_1 + praat_DEPRECATED_2017, MODIFY_PowerCepstrum_smooth_inplace);
 
 	praat_addAction1 (classPowerCepstrum, 0, U"Subtract tilt...", 0, 0, NEW_PowerCepstrum_subtractTilt);
 	praat_addAction1 (classPowerCepstrum, 0, U"Smooth...", 0, 0, NEW_PowerCepstrum_smooth);
@@ -1071,7 +1071,8 @@ void praat_uvafon_LPC_init () {
 	praat_addAction1 (classPowerCepstrogram, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_TimeFunction_modify_init (classPowerCepstrogram);
 		praat_addAction1 (classPowerCepstrogram, 0, U"Formula...", 0, 1, MODIFY_PowerCepstrogram_formula);
-		praat_addAction1 (classPowerCepstrogram, 0, U"Subtract tilt (in-line)...", 0, 1, MODIFY_PowerCepstrogram_subtractTilt_inline);
+		praat_addAction1 (classPowerCepstrogram, 0, U"Subtract tilt (in-place)...", 0, 1, MODIFY_PowerCepstrogram_subtractTilt_inplace);
+		praat_addAction1 (classPowerCepstrogram, 0, U"Subtract tilt (in-line)...", 0, praat_DEPTH_1 + praat_DEPRECATED_2017, MODIFY_PowerCepstrogram_subtractTilt_inplace);
 	praat_addAction1 (classPowerCepstrogram, 0, U"To PowerCepstrum (slice)...", 0, 0, NEW_PowerCepstrogram_to_PowerCepstrum_slice);
 	praat_addAction1 (classPowerCepstrogram, 0, U"Smooth...", 0, 0, NEW_PowerCepstrogram_smooth);
 	praat_addAction1 (classPowerCepstrogram, 0, U"Subtract tilt...", 0, 0, NEW_PowerCepstrogram_subtractTilt);
@@ -1088,7 +1089,7 @@ void praat_uvafon_LPC_init () {
 	praat_addAction1 (classFormant, 0, U"Analyse", 0, 0, 0);
 	praat_addAction1 (classFormant, 0, U"To LPC...", 0, 0, NEW_Formant_to_LPC);
 	praat_addAction1 (classFormant, 0, U"Formula...", U"Formula (bandwidths)...", 1, MODIFY_Formant_formula);
-	praat_addAction2 (classFormant, 1, classSpectrogram, 1, U"To IntensityTier...", 0, 0, NEW1_Formant_and_Spectrogram_to_IntensityTier);
+	praat_addAction2 (classFormant, 1, classSpectrogram, 1, U"To IntensityTier...", 0, 0, NEW1_Formant_Spectrogram_to_IntensityTier);
 
 	
 	
@@ -1112,10 +1113,10 @@ void praat_uvafon_LPC_init () {
 		praat_TimeFunction_modify_init (classLPC);
 	praat_addAction1 (classLPC, 0, U"Extract", 0, 0, 0);
 
-	praat_addAction1 (classLPC, 0, U"To Spectrum (slice)...", 0, 0, NEW_LPC_to_Spectrum);
-	praat_addAction1 (classLPC, 0, U"To VocalTract (slice)...", 0, 0, NEW_LPC_to_VocalTract);
-	praat_addAction1 (classLPC, 0, U"To VocalTract (slice, special)...", 0, 0, NEW_LPC_to_VocalTract_special);
-	praat_addAction1 (classLPC, 0, U"To Polynomial (slice)...", 0, 0, NEW_LPC_to_Polynomial);
+	praat_addAction1 (classLPC, 0, U"To Spectrum (slice)...", 0, 0, NEW_LPC_to_Spectrum_slice);
+	praat_addAction1 (classLPC, 0, U"To VocalTract (slice)...", 0, 0, NEW_LPC_to_VocalTract_slice);
+	praat_addAction1 (classLPC, 0, U"To VocalTract (slice, special)...", 0, 0, NEW_LPC_to_VocalTract_slice_special);
+	praat_addAction1 (classLPC, 0, U"To Polynomial (slice)...", 0, 0, NEW_LPC_to_Polynomial_slice);
 	praat_addAction1 (classLPC, 0, U"Down to Matrix (lpc)", 0, 0, NEW_LPC_downto_Matrix_lpc);
 	praat_addAction1 (classLPC, 0, U"Down to Matrix (rc)", 0, praat_HIDDEN, NEW_LPC_downto_Matrix_rc);
 	praat_addAction1 (classLPC, 0, U"Down to Matrix (area)", 0, praat_HIDDEN, NEW_LPC_downto_Matrix_area);
@@ -1127,15 +1128,15 @@ void praat_uvafon_LPC_init () {
 	praat_addAction1 (classLPC, 0, U"To LineSpectralFrequencies...", 0, 0, NEW_LPC_to_LineSpectralFrequencies);
 
 	praat_addAction2 (classLPC, 1, classSound, 1, U"Analyse", 0, 0, 0);
-	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter...", 0, 0, NEW1_LPC_and_Sound_filter);
-	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter (inverse)", 0, 0, NEW1_LPC_and_Sound_filterInverse);
-	praat_addAction2 (classLPC, 1, classSound, 1, U"To LPC (robust)...", 0, praat_HIDDEN + praat_DEPTH_1, NEW1_LPC_and_Sound_to_LPC_robust);
-	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter with filter at time...", 0, 0, NEW1_LPC_and_Sound_filterWithFilterAtTime);
-	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter (inverse) with filter at time...", 0, 0, NEW1_LPC_and_Sound_filterInverseWithFilterAtTime);
+	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter...", 0, 0, NEW1_LPC_Sound_filter);
+	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter (inverse)", 0, 0, NEW1_LPC_Sound_filterInverse);
+	praat_addAction2 (classLPC, 1, classSound, 1, U"To LPC (robust)...", 0, praat_HIDDEN + praat_DEPTH_1, NEW1_LPC_Sound_to_LPC_robust);
+	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter with filter at time...", 0, 0, NEW1_LPC_Sound_filterWithFilterAtTime);
+	praat_addAction2 (classLPC, 1, classSound, 1, U"Filter (inverse) with filter at time...", 0, 0, NEW1_LPC_Sound_filterInverseWithFilterAtTime);
 
 
-	praat_addAction1 (classSound, 0, U"To LPC (autocorrelation)...", U"To Formant (sl)...", 1, NEW_Sound_to_LPC_auto);
-	praat_addAction1 (classSound, 0, U"To LPC (covariance)...", U"To LPC (autocorrelation)...", 1, NEW_Sound_to_LPC_covar);
+	praat_addAction1 (classSound, 0, U"To LPC (autocorrelation)...", U"To Formant (sl)...", 1, NEW_Sound_to_LPC_autocorrelation);
+	praat_addAction1 (classSound, 0, U"To LPC (covariance)...", U"To LPC (autocorrelation)...", 1, NEW_Sound_to_LPC_covariance);
 	praat_addAction1 (classSound, 0, U"To LPC (burg)...", U"To LPC (covariance)...", 1, NEW_Sound_to_LPC_burg);
 	praat_addAction1 (classSound, 0, U"To LPC (marple)...", U"To LPC (burg)...", 1, NEW_Sound_to_LPC_marple);
 	praat_addAction1 (classSound, 0, U"To MFCC...", U"To LPC (marple)...", 1, NEW_Sound_to_MFCC);

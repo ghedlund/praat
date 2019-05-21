@@ -1,6 +1,6 @@
 /* Praat_tests.cpp
  *
- * Copyright (C) 2001-2012,2015,2016 Paul Boersma
+ * Copyright (C) 2001-2007,2009,2011-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,13 @@
 /* 24 May 2011: C++ */
 /* 5 June 2015: char32 */
 
+#include "FileInMemoryManager.h"
 #include "Praat_tests.h"
 
 #include "Graphics.h"
 #include "praat.h"
+#include "NUM2.h"
+#include "Sound.h"
 
 #include "enums_getText.h"
 #include "Praat_tests_enums.h"
@@ -34,20 +37,25 @@
 #include <string>
 
 static void testAutoData (autoDaata data) {
-	fprintf (stderr, "testAutoData: %p %p\n", data.get(), data -> name);
+	fprintf (stderr, "testAutoData: %p %p\n", data.get(), data -> name.get());
 }
 static void testAutoDataRef (autoDaata& data) {
-	fprintf (stderr, "testAutoDataRef: %p %p\n", data.get(), data -> name);
+	fprintf (stderr, "testAutoDataRef: %p %p\n", data.get(), data -> name.get());
 }
 static void testData (Daata data) {
-	fprintf (stderr, "testData: %p %s\n", data, Melder_peek32to8 (data -> name));
+	fprintf (stderr, "testData: %p %s\n", data, Melder_peek32to8 (data -> name.get()));
 }
 static autoDaata newAutoData () {
 	autoDaata data (Thing_new (Daata));
 	return data;
 }
+static int length (conststring32 s) {
+	int result = str32len (s);
+	Melder_free (s);
+	return result;
+}
 
-int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *arg4) {
+int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, conststring32 arg3, conststring32 arg4) {
 	int64 n = Melder_atoi (arg1);
 	double t = 0.0;
 	(void) arg1;
@@ -57,74 +65,74 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 	Melder_clearInfo ();
 	Melder_stopwatch ();
 	switch (itest) {
-		case kPraatTests_TIME_RANDOM_FRACTION: {
+		case kPraatTests::TIME_RANDOM_FRACTION: {
 			for (int64 i = 1; i <= n; i ++)
 				(void) NUMrandomFraction ();
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_RANDOM_GAUSS: {
+		case kPraatTests::TIME_RANDOM_GAUSS: {
 			for (int64 i = 1; i <= n; i ++)
 				(void) NUMrandomGauss (0.0, 1.0);
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_SORT: {
-			long m = Melder_atoi (arg2);
-			long *array = NUMvector <long> (1, m);
-			for (int64 i = 1; i <= m; i ++)
-				array [i] = NUMrandomInteger (1, 100);
+		case kPraatTests::TIME_SORT: {
+			integer size = Melder_atoi (arg2);
+			autoVEC array = newVECraw (size);
 			Melder_stopwatch ();
-			for (int64 i = 1; i <= n; i ++)
-				NUMsort_l (m, array);
-			t = Melder_stopwatch ();
-			NUMvector_free (array, 1);
+			for (int64 iteration = 1; iteration <= n; iteration ++) {
+				for (int64 i = 1; i <= size; i ++)
+					array [i] = NUMrandomFraction ();
+				VECsort_inplace (array.get());
+			}
+			t = Melder_stopwatch () / (size * log2 (size));
 		} break;
-		case kPraatTests_TIME_INTEGER: {
+		case kPraatTests::TIME_INTEGER: {
 			int64 sum = 0;
 			for (int64 i = 1; i <= n; i ++)
 				sum += i * (i - 1) * (i - 2);
 			t = Melder_stopwatch ();
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_FLOAT: {
+		case kPraatTests::TIME_FLOAT: {
 			double sum = 0.0, fn = n;
-			for (double fi = 1.0; fi <= fn; fi = fi + 1.0)
+			for (double fi = 1.0; fi <= fn; fi += 1.0)
 				sum += fi * (fi - 1.0) * (fi - 2.0);
-			t = Melder_stopwatch ();
+			t = Melder_stopwatch ();   // 2.02 ns
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_FLOAT_TO_UNSIGNED_BUILTIN: {
-			uint64_t sum = 0;
+		case kPraatTests::TIME_FLOAT_TO_UNSIGNED_BUILTIN: {
+			uint64 sum = 0;
 			double fn = n;
-			for (double fi = 1.0; fi <= fn; fi = fi + 1.0)
+			for (double fi = 1.0; fi <= fn; fi += 1.0)
 				sum += (uint32) fi;
-			t = Melder_stopwatch ();   // 2.59   // 1.60
+			t = Melder_stopwatch ();   // 1.45 ns
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_FLOAT_TO_UNSIGNED_EXTERN: {
-			uint64_t sum = 0;
+		case kPraatTests::TIME_FLOAT_TO_UNSIGNED_EXTERN: {
+			uint64 sum = 0;
 			double fn = n;
-			for (double fi = 1.0; fi <= fn; fi = fi + 1.0)
+			for (double fi = 1.0; fi <= fn; fi += 1.0)
 				sum += (uint32) ((int32) (fi - 2147483648.0) + 2147483647L + 1);
-			t = Melder_stopwatch ();   // 1.60
+			t = Melder_stopwatch ();   // 1.47 ns
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_UNSIGNED_TO_FLOAT_BUILTIN: {
+		case kPraatTests::TIME_UNSIGNED_TO_FLOAT_BUILTIN: {
 			double sum = 0.0;
 			uint32 nu = (uint32) n;
 			for (uint32 iu = 1; iu <= nu; iu ++)
 				sum += (double) iu;
-			t = Melder_stopwatch ();   // 1.35
+			t = Melder_stopwatch ();   // 0.88 ns
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_UNSIGNED_TO_FLOAT_EXTERN: {
+		case kPraatTests::TIME_UNSIGNED_TO_FLOAT_EXTERN: {
 			double sum = 0.0;
 			uint32 nu = (uint32) n;
 			for (uint32 iu = 1; iu <= nu; iu ++)
 				sum += (double) (int32) (iu - 2147483647L - 1) + 2147483648.0;
-			t = Melder_stopwatch ();   // 0.96
+			t = Melder_stopwatch ();   // 0.87 ns
 			MelderInfo_writeLine (sum);
 		} break;
-		case kPraatTests_TIME_STRING_MELDER_32: {
+		case kPraatTests::TIME_STRING_MELDER_32: {
 			autoMelderString string;
 			char32 word [] { U"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -135,7 +143,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_MELDER_32_ALLOC: {
+		case kPraatTests::TIME_STRING_MELDER_32_ALLOC: {
 			char32 word [] { U"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
 			for (int64 i = 1; i <= n; i ++) {
@@ -146,7 +154,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_S: {
+		case kPraatTests::TIME_STRING_CPP_S: {
 			std::string s = "";
 			char word [] { "abc" };
 			word [2] = (char) NUMrandomInteger ('a', 'z');
@@ -157,7 +165,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_C: {
+		case kPraatTests::TIME_STRING_CPP_C: {
 			std::basic_string<char> s = "";
 			char word [] { "abc" };
 			word [2] = (char) NUMrandomInteger ('a', 'z');
@@ -168,7 +176,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_WS: {
+		case kPraatTests::TIME_STRING_CPP_WS: {
 			std::wstring s = L"";
 			wchar_t word [] { L"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -179,7 +187,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_WC: {
+		case kPraatTests::TIME_STRING_CPP_WC: {
 			std::basic_string<wchar_t> s = L"";
 			wchar_t word [] { L"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -190,7 +198,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_32: {
+		case kPraatTests::TIME_STRING_CPP_32: {
 			std::basic_string<char32_t> s = U"";
 			char32 word [] { U"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -201,7 +209,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRING_CPP_U32STRING: {
+		case kPraatTests::TIME_STRING_CPP_U32STRING: {
 			std::u32string s = U"";
 			char32 word [] { U"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -212,7 +220,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STRCPY: {
+		case kPraatTests::TIME_STRCPY: {
 			char buffer [100];
 			char word [] { "abc" };
 			word [2] = (char) NUMrandomInteger ('a', 'z');
@@ -224,7 +232,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			t = Melder_stopwatch ();
 			MelderInfo_writeLine (Melder_peek8to32 (buffer));
 		} break;
-		case kPraatTests_TIME_WCSCPY: {
+		case kPraatTests::TIME_WCSCPY: {
 			wchar_t buffer [100];
 			wchar_t word [] { L"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -235,7 +243,7 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_TIME_STR32CPY: {
+		case kPraatTests::TIME_STR32CPY: {
 			char32 buffer [100];
 			char32 word [] { U"abc" };
 			word [2] = NUMrandomInteger ('a', 'z');
@@ -247,14 +255,223 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 			t = Melder_stopwatch ();
 			MelderInfo_writeLine (buffer);
 		} break;
-		case kPraatTests_TIME_GRAPHICS_TEXT_TOP: {
+		case kPraatTests::TIME_GRAPHICS_TEXT_TOP: {
 			autoPraatPicture picture;
 			for (int64 i = 1; i <= n; i ++) {
 				Graphics_textTop (GRAPHICS, false, U"hello world");
 			}
 			t = Melder_stopwatch ();
 		} break;
-		case kPraatTests_THING_AUTO: {
+		case kPraatTests::TIME_UNDEFINED_NUMUNDEFINED: {
+			bool isAllDefined = true;
+			double x = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				x += (double) i;
+				isAllDefined &= ( x != undefined );
+			}
+			t = Melder_stopwatch ();   // 0.86 ns
+			MelderInfo_writeLine (isAllDefined, U" ", x);
+		} break;
+		case kPraatTests::TIME_UNDEFINED_ISINF_OR_ISNAN: {
+			bool isAllDefined = true;
+			double x = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				x += (double) i;
+				isAllDefined &= ! isinf (x) && ! isnan (x);
+				//isAllDefined &= ! isfinite (x);   // same
+			}
+			t = Melder_stopwatch ();   // 1.29 ns
+			MelderInfo_writeLine (isAllDefined, U" ", x);
+		} break;
+		case kPraatTests::TIME_UNDEFINED_0x7FF: {
+			bool isAllDefined = true;
+			double x = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				x += (double) i;
+				isAllDefined &= ((* (uint64 *) & x) & 0x7FF0'0000'0000'0000) != 0x7FF0'0000'0000'0000;
+			}
+			t = Melder_stopwatch ();   // 0.90 ns
+			MelderInfo_writeLine (isAllDefined, U" ", x);
+		} break;
+		case kPraatTests::TIME_INNER: {
+			integer size = Melder_atoi (arg2);
+			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC y = newVECrandomGauss (size, 0.0, 1.0);
+			double z = 0.0;
+			for (int64 i = 1; i <= n; i ++)
+				z += NUMinner (x.get(), y.get());
+			t = Melder_stopwatch () / size;   // 0.43 ns per multiplication-addition pair
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_OUTER_NUMMAT: {
+			integer nrow = 100, ncol = 100;
+			autoVEC x = newVECrandomGauss (nrow, 0.0, 1.0);
+			autoVEC y = newVECrandomGauss (ncol, 0.0, 1.0);
+			for (int64 i = 1; i <= n; i ++)
+				const autoMAT mat = newMATouter (x.get(), y.get());
+			t = Melder_stopwatch () / nrow / ncol;   // 0.29 ns, i.e. less than one clock cycle per cell
+		} break;
+		case kPraatTests::CHECK_INVFISHERQ: {
+			MelderInfo_writeLine (NUMinvFisherQ (0.003, 1, 100000));
+		} break;
+		case kPraatTests::TIME_AUTOSTRING: {
+			conststring32 strings [6] = { U"ghdg", U"jhd", U"hkfjjd", U"fhfj", U"jhksfd", U"hfjs" };
+			int64 sumOfLengths = 0;
+			for (int64 i = 1; i <= n; i ++) {
+				int istring = i % 6;
+				autostring32 s = Melder_dup (strings [istring]);
+				sumOfLengths += length (s.transfer());
+			}
+			t = Melder_stopwatch ();   // 72 ns (but 152 bytes more)
+			MelderInfo_writeLine (sumOfLengths);
+		} break;
+		case kPraatTests::TIME_CHAR32: {
+			conststring32 strings [6] = { U"ghdg", U"jhd", U"hkfjjd", U"fhfj", U"jhksfd", U"hfjs" };
+			int64 sumOfLengths = 0;
+			for (int64 i = 1; i <= n; i ++) {
+				int istring = i % 6;
+				char32 *s = Melder_dup (strings [istring]).transfer();
+				sumOfLengths += length (s);
+			}
+			t = Melder_stopwatch ();   // 72 ns
+			MelderInfo_writeLine (sumOfLengths);
+		} break;
+		case kPraatTests::TIME_SUM: {
+			integer size = Melder_atoi (arg2);
+			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			double z = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				double sum = NUMsum (x.get());
+				z += sum;
+			}
+			t = Melder_stopwatch () / size;   // for size == 100: 0.31 ns
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_MEAN: {
+			integer size = Melder_atoi (arg2);
+			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			double z = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				double sum = NUMmean (x.get());
+				z += sum;
+			}
+			t = Melder_stopwatch () / size;   // for size == 100: 0.34 ns
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_STDEV: {
+			integer size = 10000;
+			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			double z = 0.0;
+			for (int64 i = 1; i <= n; i ++) {
+				double stdev = NUMstdev (x.get());
+				z += stdev;
+			}
+			t = Melder_stopwatch () / size;
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_ALLOC: {
+			integer size = Melder_atoi (arg2);
+			for (int64 iteration = 1; iteration <= n; iteration ++) {
+				autoVEC result = newVECraw (size);
+				for (integer i = 1; i <= size; i ++)
+					result [i] = 0.0;
+			}
+			t = Melder_stopwatch () / size;   // 10^0..7: 70/6.9/1.08 / 0.074/0.0074/0.0091 / 0.51/0.00026 ns
+		} break;
+		case kPraatTests::TIME_ALLOC0: {
+			integer size = Melder_atoi (arg2);
+			for (int64 iteration = 1; iteration <= n; iteration ++)
+				autoVEC result = newVECzero (size);
+			t = Melder_stopwatch () / size;   // 10^0..7: 76/7.7/1.23 / 0.165/0.24/0.25 / 1.30/1.63 ns
+		} break;
+		case kPraatTests::TIME_ZERO: {
+			integer size = Melder_atoi (arg2);
+			autoVEC result { size, kTensorInitializationType::RAW };
+			double z = 0.0;
+			for (int64 iteration = 1; iteration <= n; iteration ++) {
+				for (integer i = 1; i <= size; i ++)
+					result [i] = (double) i;
+				z += result [size - 1];
+			}
+			t = Melder_stopwatch () / size;
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_MALLOC: {
+			integer size = Melder_atoi (arg2);
+			double value = Melder_atof (arg3);
+			double z = 0.0;
+			for (int64 iteration = 1; iteration <= n; iteration ++) {
+				double *result = (double *) malloc (sizeof (double) * (size_t) size);
+				for (integer i = 0; i < size; i ++)
+					result [i] = value;
+				z += result [size / 2];
+				free (result);
+			}
+			t = Melder_stopwatch () / size;
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_CALLOC: {
+			integer size = Melder_atoi (arg2);
+			double z = 0.0;
+			for (integer iteration = 1; iteration <= n; iteration ++) {
+				double *result = (double *) calloc (sizeof (double), (size_t) size);
+				z += result [size / 2];
+				free (result);
+			}
+			t = Melder_stopwatch () / size;
+			MelderInfo_writeLine (z);
+		} break;
+		case kPraatTests::TIME_ADD: {
+			integer size = Melder_atoi (arg2);
+			autoMAT result = newMATrandomGauss (size, size, 0.0, 1.0);
+			Melder_stopwatch ();
+			for (integer iteration = 1; iteration <= n; iteration ++)
+				result.all() <<= 5.0;
+			t = Melder_stopwatch () / size / size;   // 10^0..4: 2.7/0.16/0.24 / 0.38/0.98
+			double sum = NUMsum (result.get());
+			MelderInfo_writeLine (sum);
+		} break;
+		case kPraatTests::TIME_SIN: {
+			integer size = Melder_atoi (arg2);
+			autoMAT result = newMATrandomGauss (size, size, 0.0, 1.0);
+			Melder_stopwatch ();
+			for (integer iteration = 1; iteration <= n; iteration ++)
+				MATsin_inplace (result.get());
+			t = Melder_stopwatch () / size / size;   // 10^0..4: 18/5.3/5.2 / 5.3/12
+			double sum = NUMsum (result.get());
+			MelderInfo_writeLine (sum);
+		} break;
+		case kPraatTests::TIME_VECADD: {
+			integer size = Melder_atoi (arg2);
+			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC y = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC result = newVECraw (size);
+			Melder_stopwatch ();
+			for (integer iteration = 1; iteration <= n; iteration ++)
+				//VECVUadd (result.all(), x.all(), y.all());
+				result.all() <<= x.all() + y.all();
+			t = Melder_stopwatch () / size;
+			double sum = NUMsum (result.get());
+			MelderInfo_writeLine (sum);
+		} break;
+		case kPraatTests::TIME_MATMUL: {
+			const integer size = Melder_atoi (arg2);
+			autoMAT const x = newMATrandomGauss (size, size, 0.0, 1.0);
+			autoMAT const y = newMATrandomGauss (size, size, 0.0, 1.0);
+			autoMAT const result = newMATraw (size, size);
+			//MAT resultget = result.get();
+			//constMAT xget = x.get(), yget = y.get();
+			MATVU const result_all = result.all();
+			constMATVU const x_all = x.all();
+			constMATVU const y_all = y.all();
+			Melder_stopwatch ();
+			for (integer iteration = 1; iteration <= n; iteration ++)
+				MATVUmul_forceMetal_ (result_all, x_all, y_all);
+			t = Melder_stopwatch () / size / size / size;
+			const double sum = NUMsum (result.get());
+			MelderInfo_writeLine (sum);
+		} break;
+		case kPraatTests::THING_AUTO: {
 			int numberOfThingsBefore = theTotalNumberOfThings;
 			{
 				Melder_casual (U"1\n");
@@ -311,9 +528,10 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 				//data11 = nullptr;   // disabled implicit assignment of pointer to autopointer
 				fprintf (stderr, "21\n");
 			}
-			int numberOfThingsAfter = theTotalNumberOfThings;
-			fprintf (stderr, "Number of things: before %d, after %d\n", numberOfThingsBefore, numberOfThingsAfter);
-			#if 1
+			integer numberOfThingsAfter = theTotalNumberOfThings;
+			fprintf (stderr, "Number of things: before %ld, after %ld\n",
+					(long_not_integer) numberOfThingsBefore, (long_not_integer) numberOfThingsAfter);
+			#if 0
 				MelderCallback<void,structDaata>::FunctionType f;
 				typedef void (*DataFunc) (Daata);
 				typedef void (*OrderedFunc) (Ordered);
@@ -326,9 +544,90 @@ int Praat_tests (int itest, char32 *arg1, char32 *arg2, char32 *arg3, char32 *ar
 				autoDaata data = Thing_new (Daata);
 				dataFun3 (data.get());
 			#endif
+			{
+				#if 1
+				autoMelderAsynchronous x;
+				//autoMelderAsynchronous y = x;   // deleted copy constructor
+				autoMelderAsynchronous y = x.move();   // defined move constructor
+				//x = y;   // deleted copy assignment
+				x = y.move();   // defined move assignment
+				autoVEC a;
+				autoVEC b = a.move();
+				const autoVEC c;
+				const autoVEC d { };
+				#if 0
+				double *e;
+				const autoVEC f { e, 10 };
+				#endif
+				{
+					autoVEC g { 100, kTensorInitializationType::ZERO };
+					g [1] = 3.0;
+					VEC gg = g.get();
+					gg [2] = 4.0;
+					constVEC ggg = g.get();
+					//ggg [3] = 5.0;   // should be refused by the compiler
+					const VEC gggg = g.get();
+					//gggg [3] = 6.0;   // should be refused by the compiler
+					//return f;   // call to deleted constructor
+					//gggg.reset();   // should be refused by the compiler
+					//ggg.reset();   // should be refused by the compiler
+					//gg.reset();
+				}
+				{
+					double x [1+2], *px = & x [0];
+					const double *cpx = px;
+					VEC vx { px, 2 };
+					constVEC cvx { px, 2 };
+					const VEC c_vx { px, 2 };
+					double a = c_vx [1];
+					const double b = c_vx [2];
+					const double y = 0.0, *py = & y;
+					//VEC vy { py, 0 };   // should be refused by the compiler
+					constVEC cvy { py, 2 };
+					//const VEC c_vy = VEC (py, 2);
+					const VEC c_vy = (const VEC) VEC (const_cast<double *> (py), 2);
+					double c = c_vy [1];
+					const double d = c_vy [2];
+					//VEC c_vy2 = VEC (py, 2);
+				}
+
+				VEC h;
+				autoVEC j;
+				//VEC jh = j;
+				//VEC zero = newVECzero (10);   // should be ruled out
+				//constVEC zero = newVECzero (10);   // should be ruled out
+				//j = h;   // up assignment standardly correctly ruled out
+				//h = j;   // down assignment was explicitly ruled out as well
+				//h = VEC (j);
+				VEC & jref = j;   // (in)correctly? accepted
+				VEC *ph = & h;
+				autoVEC *pj = & j;
+				ph = pj;   // (in)correctly? accepted
+				//pj = ph;   // correctly ruled out
+				#endif
+				autoSound sound = Sound_create (1, 0.0, 1.0, 10000, 0.0001, 0.0);
+				sound = Sound_create (1, 0.0, 1.0, 10000, 0.0001, 0.00005);
+				Melder_casual (U"hello ", sound -> dx);
+				autostring32vector v;
+				mutablestring32 *pm = v.peek2();
+				const mutablestring32 *pcm = v.peek2();
+				//conststring32 *pc = v.peek2();
+				const conststring32 *pcc = v.peek2();
+				{
+					vector<double> aa, bb;
+					vector<const double> aac, bbc;
+					//aa = aac;
+					aa = bb;
+					aac = bbc;
+					bbc.at = bb.at;
+				}
+			}
+		} break;
+		case kPraatTests::FILEINMEMORYMANAGER_IO: {
+			test_FileInMemoryManager_io ();
 		} break;
 	}
-	MelderInfo_writeLine (Melder_single (t / n * 1e9), U" nanoseconds");
+	MelderInfo_writeLine (Melder_single (n / t * 1e-9), U" Gflop/s");
 	MelderInfo_close ();
 	return 1;
 }
@@ -398,5 +697,46 @@ autoPitch_ structSound_::toPitch () {   // this requires the prior definition of
 }
 
 #endif
+
+/*
+	An attempt to not have VEC and constVEC, but VEC and const VEC instead.
+*/
+
+class Vec {
+public:
+	double *at;
+	integer size;
+	const double *const_propagate_at () const { return at; }
+	double *const_propagate_at () { return at; }
+public:
+	Vec (double *initialAt, integer initialSize) : at (initialAt), size (initialSize) { }
+	double& operator[] (integer index) { return at [index]; }   // selected for Vec (1)
+	const double& operator[] (integer index) const { return at [index]; }   // selected for const Vec (2)
+	//Vec (Vec& other) : at (other.const_propagate_at()), size (other.size) { };   // can assign Vec to Vec (3)
+	//Vec (Vec&& other) : at (other.at), size (other.size) { };   // can assign Vec to Vec (3)
+	Vec (Vec& other) : at (other.at), size (other.size) { };   // can assign Vec to Vec (3)
+	Vec (const Vec& other) = delete;   // cannot assign const Vec to Vec (4)
+		/* unfortunately, this also precludes initializing a *const* Vec from a const Vec */
+	//Vec (const Vec& other) const = default;   // attempt to copy a const Vec to a const Vec, but constructors cannot be const
+	//const Vec (const Vec& other) = default;   // attempt to copy a const Vec to a const Vec, but constructors cannot have a return type
+};
+
+static Vec copy (Vec x) {
+	return x;
+}
+
+/*static void tryVec () {
+	Vec x = Vec (nullptr, 0);
+	x [1] = 3.0;
+	double a = x [2];
+	const Vec cx = Vec (nullptr, 0);
+	//cx [1] = 3.0;   // should be refused by compiler, because operator[] returns a const value that cannot be assigned to (2)
+	a = cx [2];   // should be allowed by compiler, because not an assignment (2)
+	const Vec cy = x;   // should be allowed (3)
+	//Vec y = cx;   // should be refused (4)
+	const Vec cz = copy (x);
+	//cx.at [1] = 3.0;
+	////const Vec ca = cy;   // should be allowed
+}*/
 
 /* End of file Praat_tests.cpp */

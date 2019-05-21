@@ -345,7 +345,7 @@ MAN_BEGIN (U"LPC: To Spectrum (slice)...", U"djmw", 20071120)
 INTRO (U"You can choose this command after selecting 1 or more @LPC objects.")
 ENTRY (U"Settings")
 TAG (U"##Time (s)")
-DEFINITION (U"the time at which the Spectrum must be calculated.")
+DEFINITION (U"the time at which the Spectrum should be calculated.")
 TAG (U"##Minimum frequency resolution (Hz)")
 DEFINITION (U"successive frequencies in the @Spectrum "
 	"will be maximally this distance apart.")
@@ -691,11 +691,5 @@ NORMAL (U"H. Wakita (1977): \"Normalization of vowels by vocal-tract "
 MAN_END
 
 }
-
-/*
- BUGS:
- 19980217 djmw LPC_and_Sound_filter ilast was not always defined.
- 19980322 djmw Sound_into_LPC_Frame_auto did not return (nCoefficients == 0) when (r[1] == 0).
-*/
 
 /* End of file manual_LPC.cpp */

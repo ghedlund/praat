@@ -2,7 +2,7 @@
 #define _longchar_h_
 /* longchar.h
  *
- * Copyright (C) 1992-2011,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1992-2008,2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <wchar.h>
+#include "../melder/melder.h"
 
 /********** NON-ASCII CHARACTERS **********/
 
@@ -79,8 +79,7 @@ typedef struct structLongchar_Info {
 	unsigned short winEncoding;   /* The one-byte encoding for Windows (ISO8859-1 for Roman; SILDoulosIPA 1993). */
 	unsigned short macEncoding;   /* The one-byte encoding for Macintosh (Mac for Roman; SILDoulosIPA 1993). */
 	unsigned short psEncoding;   /* The one-byte encoding for PostScript (Mac-Praat, TeX-xipa-Praat). */
-	unsigned long unicode;   /* The four-byte encoding for Unicode. */
-	unsigned short unicodeDecomposition [6];   /* Diacritics decoupled from the base character. */
+	char32 unicode;   /* The four-byte encoding for Unicode. */
 }
 	*Longchar_Info;
 
@@ -111,6 +110,8 @@ Longchar_Info Longchar_getInfoFromNative (char32_t kar);
 inline static bool Longchar_Info_isDiacritic (Longchar_Info me) {
 	return me -> isDiacritic;
 }
+
+void Longchar_init ();
 
 /* End of file longchar.h */
 #endif

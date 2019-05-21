@@ -1,6 +1,6 @@
 /* VocalTract.cpp
  *
- * Copyright (C) 1992-2012,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2012,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ void structVocalTract :: v_info () {
 	MelderInfo_writeLine (U"Section length: ", Melder_single (dx), U" metres");
 }
 
-autoVocalTract VocalTract_create (long nx, double dx) {
+autoVocalTract VocalTract_create (integer nx, double dx) {
 	try {
 		autoVocalTract me = Thing_new (VocalTract);
 		Matrix_init (me.get(), 0.0, nx * dx, nx, dx, 0.5 * dx, 1.0, 1.0, 1, 1.0, 1.0);
@@ -39,7 +39,7 @@ autoVocalTract VocalTract_create (long nx, double dx) {
 
 namespace theVocalTract {
 	constexpr double minimumWidth { 0.0001 };
-	struct { const char32 *phone; int numberOfSections; double area [40]; }
+	struct { conststring32 phone; int numberOfSections; double area [40]; }
 		data [] = {
 	{ U"a", 34, { 1.7, 1.2, 1.6, 3.39, 2.1, 1.4, 1, 0.8, 0.8, 0.8, 1, 1.4,
 		2.1, 2.9, 3.09, 2.1, 2.5, 4, 5.3, 6.16, 7, 7.6, 8.15, 8.5, 8.6,
@@ -118,7 +118,7 @@ namespace theVocalTract {
 	{ nullptr, 0, { 0 } } };
 }
 
-autoVocalTract VocalTract_createFromPhone (const char32 *phone) {
+autoVocalTract VocalTract_createFromPhone (conststring32 phone) {
 	try {
 		int i = 0;
 		for (;; i ++) {
@@ -143,7 +143,7 @@ void VocalTract_draw (VocalTract me, Graphics g) {
 autoMatrix VocalTract_to_Matrix (VocalTract me) {
 	try {
 		autoMatrix thee = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, my ymin, my ymax, my ny, my dy, my y1);
-		NUMvector_copyElements (my z [1], thy z [1], 1, my nx);
+		NUMvector_copyElements (& my z [1] [0], & thy z [1] [0], 1, my nx);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Matrix.");
@@ -153,7 +153,7 @@ autoMatrix VocalTract_to_Matrix (VocalTract me) {
 autoVocalTract Matrix_to_VocalTract (Matrix me) {
 	try {
 		autoVocalTract thee = VocalTract_create (my nx, my dx);
-		NUMvector_copyElements (my z [1], thy z [1], 1, my nx);
+		NUMvector_copyElements (& my z [1] [0], & thy z [1] [0], 1, my nx);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to VocalTract.");

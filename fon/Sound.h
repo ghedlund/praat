@@ -2,7 +2,7 @@
 #define _Sound_h_
 /* Sound.h
  *
- * Copyright (C) 1992-2011,2012,2014,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2012,2014,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ Thing_define (Sound, Vector) {
 		override;
 	bool v_hasGetMatrix ()
 		override { return true; }
-	double v_getMatrix (long irow, long icol)
+	double v_getMatrix (integer irow, integer icol)
 		override;
 	bool v_hasGetFunction2 ()
 		override { return true; }
@@ -55,7 +55,7 @@ Thing_define (Sound, Vector) {
 	z may be replaced (e.g., in pasting).
 */
 
-PRAAT_LIB_EXPORT autoSound Sound_create (long numberOfChannels, double xmin, double xmax, long nx, double dx, double x1);
+PRAAT_LIB_EXPORT autoSound Sound_create (integer numberOfChannels, double xmin, double xmax, integer nx, double dx, double x1);
 /*
 	Function:
 		return a new silent Sound.
@@ -77,7 +77,7 @@ PRAAT_LIB_EXPORT autoSound Sound_create (long numberOfChannels, double xmin, dou
 		thy z [i] [1..nx] == 0.0;
 */
 
-PRAAT_LIB_EXPORT autoSound Sound_createSimple (long numberOfChannels, double duration, double samplingFrequency);
+PRAAT_LIB_EXPORT autoSound Sound_createSimple (integer numberOfChannels, double duration, double samplingFrequency);
 /*
 	Function:
 		return a new silent Sound.
@@ -87,7 +87,7 @@ PRAAT_LIB_EXPORT autoSound Sound_createSimple (long numberOfChannels, double dur
 	Postconditions:
 		thy xmin == 0.0;
 		thy xmax == duration;
-		thy nx == round (duration * samplingFrequency);
+		thy nx == Melder_iround (duration * samplingFrequency);
 		thy dx == 1 / samplingFrequency;
 		thy x1 == 0.5 * thy dx;		// Centre of first sampling period.
 		thy ymin = 1.0;
@@ -100,8 +100,9 @@ PRAAT_LIB_EXPORT autoSound Sound_createSimple (long numberOfChannels, double dur
 
 PRAAT_LIB_EXPORT autoSound Sound_convertToMono (Sound me);
 PRAAT_LIB_EXPORT autoSound Sound_convertToStereo (Sound me);
-PRAAT_LIB_EXPORT autoSound Sound_extractChannel (Sound me, long ichannel);
-PRAAT_LIB_EXPORT autoSound Sounds_combineToStereo (OrderedOf<structSound>* me);
+PRAAT_LIB_EXPORT autoSound Sound_extractChannel (Sound me, integer ichannel);
+autoSound Sound_extractChannels (Sound me, constVEC channelNumbers);
+autoSound Sounds_combineToStereo (OrderedOf<structSound>* me);
 
 /* Levels for Sampled_getValueAtSample (me, index, level, unit) */
 #define Sound_LEVEL_MONO  0
@@ -110,7 +111,7 @@ PRAAT_LIB_EXPORT autoSound Sounds_combineToStereo (OrderedOf<structSound>* me);
 
 PRAAT_LIB_EXPORT autoSound Sound_upsample (Sound me);   /* By a factor 2. */
 
-PRAAT_LIB_EXPORT autoSound Sound_resample (Sound me, double samplingFrequency, long precision);
+PRAAT_LIB_EXPORT autoSound Sound_resample (Sound me, double samplingFrequency, integer precision);
 /*
 	Method:
 		precision <= 1: linear interpolation.
@@ -126,16 +127,16 @@ PRAAT_LIB_EXPORT autoSound Sounds_append (Sound me, double silenceDuration, Soun
 	Postconditions:
 		result -> xmin == 0;
 		result -> xmax == result -> nx * my dx;
-		result -> nx == my nx + thy nx + round (silenceDuration / my dx);
+		result -> nx == my nx + thy nx + Melder_iround (silenceDuration / my dx);
 		result -> dx == my dx;
 		result -> x1 == 0.5 * my dx;
 		for (i = 1..my nx)
 			result -> z [1] [i] == my z [1] [i]
 		for (i = 1..thy nx)
-		result -> z [1] [i + my nx + round (silenceDuration / my dx)] == thy z [1] [i]
+		result -> z [1] [i + my nx + Melder_iround (silenceDuration / my dx)] == thy z [1] [i]
 */
  
-PRAAT_LIB_EXPORT autoSound Sounds_convolve (Sound me, Sound thee, enum kSounds_convolve_scaling scaling, enum kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
+PRAAT_LIB_EXPORT autoSound Sounds_convolve (Sound me, Sound thee, kSounds_convolve_scaling scaling, kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
 /*
 	Function:
 		convolve two Sounds.
@@ -151,9 +152,9 @@ PRAAT_LIB_EXPORT autoSound Sounds_convolve (Sound me, Sound thee, enum kSounds_c
 			result -> z [1] [i] == result -> dx *
 				sum (j = 1..i, my z [1] [j] * thy z [1] [i - j + 1])
 */
-PRAAT_LIB_EXPORT autoSound Sounds_crossCorrelate (Sound me, Sound thee, enum kSounds_convolve_scaling scaling, enum kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
-PRAAT_LIB_EXPORT autoSound Sounds_crossCorrelate_short (Sound me, Sound thee, double tmin, double tmax, int normalize);
-PRAAT_LIB_EXPORT autoSound Sound_autoCorrelate (Sound me, enum kSounds_convolve_scaling scaling, enum kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
+PRAAT_LIB_EXPORT autoSound Sounds_crossCorrelate (Sound me, Sound thee, kSounds_convolve_scaling scaling, kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
+PRAAT_LIB_EXPORT autoSound Sounds_crossCorrelate_short (Sound me, Sound thee, double tmin, double tmax, bool normalize);
+PRAAT_LIB_EXPORT autoSound Sound_autoCorrelate (Sound me, kSounds_convolve_scaling scaling, kSounds_convolve_signalOutsideTimeDomain signalOutsideTimeDomain);
 
 PRAAT_LIB_EXPORT double Sound_getRootMeanSquare (Sound me, double xmin, double xmax);
 PRAAT_LIB_EXPORT double Sound_getEnergy (Sound me, double xmin, double xmax);
@@ -162,35 +163,35 @@ PRAAT_LIB_EXPORT double Sound_getEnergyInAir (Sound me);
 PRAAT_LIB_EXPORT double Sound_getPowerInAir (Sound me);
 PRAAT_LIB_EXPORT double Sound_getIntensity_dB (Sound me);
 
-PRAAT_LIB_EXPORT double Sound_getNearestZeroCrossing (Sound me, double position, long ichannel);
+PRAAT_LIB_EXPORT double Sound_getNearestZeroCrossing (Sound me, double position, integer ichannel);
 PRAAT_LIB_EXPORT void Sound_setZero (Sound me, double tmin, double tmax, bool roundTimesToNearestZeroCrossing);
 
-PRAAT_LIB_EXPORT autoSound Sound_createAsPureTone (long numberOfChannels, double startingTime, double endTime,
+PRAAT_LIB_EXPORT autoSound Sound_createAsPureTone (integer numberOfChannels, double startingTime, double endTime,
 	double sampleRate, double frequency, double amplitude, double fadeInDuration, double fadeOutDuration);
 PRAAT_LIB_EXPORT autoSound Sound_createAsToneComplex (double startingTime, double endTime,
 	double sampleRate, int phase, double frequencyStep,
-	double firstFrequency, double ceiling, long numberOfComponents);
+	double firstFrequency, double ceiling, integer numberOfComponents);
 /* Values for `phase' parameter: */
 #define Sound_TONE_COMPLEX_SINE  0
 #define Sound_TONE_COMPLEX_COSINE  1
 
-PRAAT_LIB_EXPORT autoSound Sounds_concatenate (OrderedOf<structSound>& list, double overlapTime);
-PRAAT_LIB_EXPORT void Sound_multiplyByWindow (Sound me, enum kSound_windowShape windowShape);
+autoSound Sounds_concatenate (OrderedOf<structSound>& list, double overlapTime);
+PRAAT_LIB_EXPORT void Sound_multiplyByWindow (Sound me, kSound_windowShape windowShape);
 PRAAT_LIB_EXPORT void Sound_scaleIntensity (Sound me, double newAverageIntensity);
 PRAAT_LIB_EXPORT void Sound_overrideSamplingFrequency (Sound me, double newSamplingFrequency);
-PRAAT_LIB_EXPORT autoSound Sound_extractPart (Sound me, double t1, double t2, enum kSound_windowShape windowShape, double relativeWidth, bool preserveTimes);
+PRAAT_LIB_EXPORT autoSound Sound_extractPart (Sound me, double t1, double t2, kSound_windowShape windowShape, double relativeWidth, bool preserveTimes);
 PRAAT_LIB_EXPORT autoSound Sound_extractPartForOverlap (Sound me, double t1, double t2, double overlap);
 PRAAT_LIB_EXPORT void Sound_filterWithFormants (Sound me, double tmin, double tmax,
 	int numberOfFormants, double formant [], double bandwidth []);
 PRAAT_LIB_EXPORT autoSound Sound_filter_oneFormant (Sound me, double frequency, double bandwidth);
-PRAAT_LIB_EXPORT void Sound_filterWithOneFormantInline (Sound me, double frequency, double bandwidth);
+PRAAT_LIB_EXPORT void Sound_filterWithOneFormantInplace (Sound me, double frequency, double bandwidth);
 PRAAT_LIB_EXPORT autoSound Sound_filter_preemphasis (Sound me, double frequency);
 PRAAT_LIB_EXPORT autoSound Sound_filter_deemphasis (Sound me, double frequency);
 
 PRAAT_LIB_EXPORT void Sound_reverse (Sound me, double tmin, double tmax);
 
 void Sound_draw (Sound me, Graphics g,
-	double tmin, double tmax, double minimum, double maximum, bool garnish, const char32 *method);
+	double tmin, double tmax, double minimum, double maximum, bool garnish, conststring32 method);
 /* For method, see Vector_draw. */
 
 PRAAT_LIB_EXPORT autoMatrix Sound_to_Matrix (Sound me);
@@ -201,7 +202,7 @@ PRAAT_LIB_EXPORT autoMatrix Sound_to_Matrix (Sound me);
 
 PRAAT_LIB_EXPORT autoSound Matrix_to_Sound (Matrix me);
 
-PRAAT_LIB_EXPORT autoSound Matrix_to_Sound_mono (Matrix me, long row);
+PRAAT_LIB_EXPORT autoSound Matrix_to_Sound_mono (Matrix me, integer row);
 /*
 	Function:
 		create a Sound from one row of a Matrix.

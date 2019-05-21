@@ -1,6 +1,6 @@
 /* Photo_def.h
  *
- * Copyright (C) 2013,2014,2015 Paul Boersma
+ * Copyright (C) 2013,2014,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@
 #define ooSTRUCT Photo
 oo_DEFINE_CLASS (Photo, SampledXY)
 
-	oo_AUTO_OBJECT (Matrix, 2, d_red)
-	oo_AUTO_OBJECT (Matrix, 2, d_green)
-	oo_AUTO_OBJECT (Matrix, 2, d_blue)
-	oo_AUTO_OBJECT (Matrix, 2, d_transparency)
+	oo_OBJECT (Matrix, 2, d_red)
+	oo_OBJECT (Matrix, 2, d_green)
+	oo_OBJECT (Matrix, 2, d_blue)
+	oo_OBJECT (Matrix, 2, d_transparency)
 
 	#if oo_DECLARING
 		void v_info ()
@@ -54,7 +54,7 @@ oo_DEFINE_CLASS (Photo, SampledXY)
 			override { return dy; }
 		bool v_hasGetY ()
 			override { return true; }
-		double v_getY (long iy)
+		double v_getY (integer iy)
 			override { return y1 + (iy - 1) * dy; }
 	#endif
 

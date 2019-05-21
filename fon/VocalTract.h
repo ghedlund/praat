@@ -2,7 +2,7 @@
 #define _VocalTract_h_
 /* VocalTract.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ Thing_define (VocalTract, Vector) {
 		z [1] [1..nx]		// The area, in square metres.
 */
 
-autoVocalTract VocalTract_create (long nx, double dx);
+autoVocalTract VocalTract_create (integer nx, double dx);
 /*
 	Function:
 		create a VocalTract.
@@ -55,7 +55,7 @@ autoVocalTract VocalTract_create (long nx, double dx);
 		my z [1] [1..nx] == 1e-4; // straight tube, area 1 cm2.
  */
 
-autoVocalTract VocalTract_createFromPhone (const char32 *phone);
+autoVocalTract VocalTract_createFromPhone (conststring32 phone);
 /* 'phone' is one of the following: a e i o u y1 y2 y3 jery p t k x pa ta ka pi ti ki pu tu ku */
 
 void VocalTract_draw (VocalTract me, Graphics g);   /* Draw a VocalTract into a Graphics. */

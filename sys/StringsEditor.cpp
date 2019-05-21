@@ -38,8 +38,8 @@ void structStringsEditor :: v_createHelpMenuItems (EditorMenu menu) {
 static void updateList (StringsEditor me) {
 	Strings strings = (Strings) my data;
 	GuiList_deleteAllItems (my list);
-	for (long i = 1; i <= strings -> numberOfStrings; i ++)
-		GuiList_insertItem (my list, strings -> strings [i], 0);
+	for (integer i = 1; i <= strings -> numberOfStrings; i ++)
+		GuiList_insertItem (my list, strings -> strings [i].get(), 0);
 }
 
 static void gui_button_cb_insert (StringsEditor me, GuiButtonEvent /* event */) {
@@ -47,50 +47,48 @@ static void gui_button_cb_insert (StringsEditor me, GuiButtonEvent /* event */) 
 	/*
 	 * Find the first selected item.
 	 */
-	long numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
-	long position = selected ? selected [1] : strings -> numberOfStrings + 1;
+	integer numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
+	integer position = selected ? selected [1] : strings -> numberOfStrings + 1;
 	NUMvector_free (selected, 1);
-	char32 *text = GuiText_getString (my text);
+	autostring32 text = GuiText_getString (my text);
 	/*
-	 * Change the data.
-	 */
-	Strings_insert (strings, position, text);
+		Change the data.
+	*/
+	Strings_insert (strings, position, text.get());
 	/*
-	 * Change the list.
-	 */
-	GuiList_insertItem (my list, text, position);
+		Change the list.
+	*/
+	GuiList_insertItem (my list, text.get(), position);
 	GuiList_deselectAllItems (my list);
 	GuiList_selectItem (my list, position);
 	/*
-	 * Clean up.
-	 */
-	Melder_free (text);
+		Clean up.
+	*/
 	Editor_broadcastDataChanged (me);
 }
 
 static void gui_button_cb_append (StringsEditor me, GuiButtonEvent /* event */) {
 	Strings strings = (Strings) my data;
-	char32 *text = GuiText_getString (my text);
+	autostring32 text = GuiText_getString (my text);
 	/*
-	 * Change the data.
-	 */
-	Strings_insert (strings, 0, text);
+		Change the data.
+	*/
+	Strings_insert (strings, 0, text.get());
 	/*
-	 * Change the list.
-	 */
-	GuiList_insertItem (my list, text, 0);
+		Change the list.
+	*/
+	GuiList_insertItem (my list, text.get(), 0);
 	GuiList_deselectAllItems (my list);
 	GuiList_selectItem (my list, strings -> numberOfStrings);
 	/*
-	 * Clean up.
-	 */
-	Melder_free (text);
+		Clean up.
+	*/
 	Editor_broadcastDataChanged (me);
 }
 
 static void gui_button_cb_remove (StringsEditor me, GuiButtonEvent /* event */) {
-	long numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
-	for (long iselected = numberOfSelected; iselected >= 1; iselected --) {
+	integer numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
+	for (integer iselected = numberOfSelected; iselected >= 1; iselected --) {
 		Strings_remove ((Strings) my data, selected [iselected]);
 	}
 	NUMvector_free (selected, 1);
@@ -100,13 +98,12 @@ static void gui_button_cb_remove (StringsEditor me, GuiButtonEvent /* event */) 
 
 static void gui_button_cb_replace (StringsEditor me, GuiButtonEvent /* event */) {
 	Strings strings = (Strings) my data;
-	long numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
-	char32 *text = GuiText_getString (my text);
-	for (long iselected = 1; iselected <= numberOfSelected; iselected ++) {
-		Strings_replace (strings, selected [iselected], text);
-		GuiList_replaceItem (my list, text, selected [iselected]);
+	integer numberOfSelected, *selected = GuiList_getSelectedPositions (my list, & numberOfSelected);
+	autostring32 text = GuiText_getString (my text);
+	for (integer iselected = 1; iselected <= numberOfSelected; iselected ++) {
+		Strings_replace (strings, selected [iselected], text.get());
+		GuiList_replaceItem (my list, text.get(), selected [iselected]);
 	}
-	Melder_free (text);
 	Editor_broadcastDataChanged (me);
 }
 
@@ -132,7 +129,7 @@ void structStringsEditor :: v_dataChanged () {
 	updateList (this);
 }
 
-autoStringsEditor StringsEditor_create (const char32 *title, Strings data) {
+autoStringsEditor StringsEditor_create (conststring32 title, Strings data) {
 	try {
 		autoStringsEditor me = Thing_new (StringsEditor);
 		Editor_init (me.get(), 20, 40, 600, 600, title, data);

@@ -30,20 +30,31 @@ Thing_declare (Interpreter);
 
 #if 1
 template <typename T, typename... Args>
-	_Thing_auto <T> Thing_create (Args ... args) {
-		_Thing_auto <T> me (new T);   // this `new` has to set classInfo
+	autoSomeThing <T> Thing_create (Args ... args) {
+		autoSomeThing <T> me (new T);   // this `new` has to set classInfo
 		my T::init (args...);
 		return me;
 	}
+
+template <typename... ArgumentTypes>
+autoMatrix CreateMatrix (ArgumentTypes... arguments) {
+	try {
+		autoMatrix me = Thing_new (Matrix);
+		Matrix_init (me.get(), arguments...);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"Matrix object not created.");
+	}
+}
 #endif
 
-PRAAT_LIB_EXPORT void Matrix_init
-	(Matrix me, double xmin, double xmax, long nx, double dx, double x1,
-	            double ymin, double ymax, long ny, double dy, double y1);
+void Matrix_init
+	(Matrix me, double xmin, double xmax, integer nx, double dx, double x1,
+	            double ymin, double ymax, integer ny, double dy, double y1);
 
 PRAAT_LIB_EXPORT autoMatrix Matrix_create
-	(double xmin, double xmax, long nx, double dx, double x1,
-	 double ymin, double ymax, long ny, double dy, double y1);
+	(double xmin, double xmax, integer nx, double dx, double x1,
+	 double ymin, double ymax, integer ny, double dy, double y1);
 /*
 	Function:
 		return a new empty Matrix.
@@ -68,7 +79,7 @@ PRAAT_LIB_EXPORT autoMatrix Matrix_create
 		result -> z [1..ny] [1..nx] == 0.0;
 */
 
-PRAAT_LIB_EXPORT autoMatrix Matrix_createSimple (long numberOfRows, long numberOfColumns);
+PRAAT_LIB_EXPORT autoMatrix Matrix_createSimple (integer numberOfRows, integer numberOfColumns);
 /*
 	Function:
 		return a new empty Matrix.
@@ -110,7 +121,7 @@ PRAAT_LIB_EXPORT autoMatrix Matrix_createSimple (long numberOfRows, long numberO
 			you cannot use them to change the meaning or order of the data.
 */
 
-PRAAT_LIB_EXPORT long Matrix_getWindowSamplesX (Matrix me, double xmin, double xmax, long *ixmin, long *ixmax);
+PRAAT_LIB_EXPORT integer Matrix_getWindowSamplesX (Matrix me, double xmin, double xmax, integer *ixmin, integer *ixmax);
 /*
 	Function:
 		return the number of samples with x values in [xmin, xmax].
@@ -127,7 +138,7 @@ PRAAT_LIB_EXPORT double Matrix_getValueAtXY (Matrix me, double x, double y);
 /*
 	Linear interpolation between matrix points,
 	constant extrapolation in cells on the edge,
-	NUMundefined outside the union of the unit squares around the points.
+	undefined outside the union of the unit squares around the points.
 */
 
 PRAAT_LIB_EXPORT double Matrix_getSum (Matrix me);
@@ -139,24 +150,23 @@ PRAAT_LIB_EXPORT double Matrix_rowToY (Matrix me, double row);   // return my y1
 
 PRAAT_LIB_EXPORT double Matrix_xToColumn (Matrix me, double x);   // return (x - xmin) / my dx + 1
 
-PRAAT_LIB_EXPORT long Matrix_xToLowColumn (Matrix me, double x);   // return floor (Matrix_xToColumn (me, x))
+PRAAT_LIB_EXPORT integer Matrix_xToLowColumn (Matrix me, double x);   // return Melder_ifloor (Matrix_xToColumn (me, x))
 
-PRAAT_LIB_EXPORT long Matrix_xToHighColumn (Matrix me, double x);   // return ceil (Matrix_xToColumn (me, x))
+PRAAT_LIB_EXPORT Matrix_xToHighColumn (Matrix me, double x);   // return Melder_iceiling (Matrix_xToColumn (me, x))
 
-PRAAT_LIB_EXPORT long Matrix_xToNearestColumn (Matrix me, double x);   // return floor (Matrix_xToColumn (me, x) + 0.5)
+PRAAT_LIB_EXPORT Matrix_xToNearestColumn (Matrix me, double x);   // return Melder_iround (Matrix_xToColumn (me, x))
 
 PRAAT_LIB_EXPORT double Matrix_yToRow (Matrix me, double y);   // return (y - ymin) / my dy + 1
 
-PRAAT_LIB_EXPORT long Matrix_yToLowRow (Matrix me, double y);   // return floor (Matrix_yToRow (me, y))
+PRAAT_LIB_EXPORT integer Matrix_yToLowRow (Matrix me, double y);   // return Melder_ifloor (Matrix_yToRow (me, y))
 
-PRAAT_LIB_EXPORT long Matrix_yToHighRow (Matrix me, double x);   // return ceil (Matrix_yToRow (me, y))
+PRAAT_LIB_EXPORT integer Matrix_yToHighRow (Matrix me, double x);   // return Melder_iceiling (Matrix_yToRow (me, y))
 
-PRAAT_LIB_EXPORT long Matrix_yToNearestRow (Matrix me, double y);   // return floor (Matrix_yToRow (me, y) + 0.5)
+PRAAT_LIB_EXPORT integer Matrix_yToNearestRow (Matrix me, double y);   // return Melder_iround (Matrix_yToRow (me, y))
 
-PRAAT_LIB_EXPORT long Matrix_getWindowSamplesY (Matrix me, double ymin, double ymax, long *iymin, long *iymax);
+PRAAT_LIB_EXPORT integer Matrix_getWindowSamplesY (Matrix me, double ymin, double ymax, integer *iymin, integer *iymax);
 
-PRAAT_LIB_EXPORT long Matrix_getWindowExtrema (Matrix me, long ixmin, long ixmax, long iymin, long iymax,
-	double *minimum, double *maximum);
+PRAAT_LIB_EXPORT integer Matrix_getWindowExtrema (Matrix me, integer ixmin, integer ixmax, integer iymin, integer iymax, double *minimum, double *maximum);
 /*
 	Function:
 		compute the minimum and maximum values of my z over all samples inside [ixmin, ixmax] * [iymin, iymax].
@@ -168,7 +178,7 @@ PRAAT_LIB_EXPORT long Matrix_getWindowExtrema (Matrix me, long ixmin, long ixmax
 		if result == 0, *minimum and *maximum are not changed;
 */
 
-PRAAT_LIB_EXPORT void Matrix_formula (Matrix me, const char32 *expression, Interpreter interpreter, Matrix target);
+PRAAT_LIB_EXPORT void Matrix_formula (Matrix me, conststring32 expression, Interpreter interpreter, Matrix target);
 /*
 	Arguments:
 		"me" is the Matrix referred to as "self" or with "nx" etc. in the expression
@@ -184,7 +194,7 @@ PRAAT_LIB_EXPORT void Matrix_formula (Matrix me, const char32 *expression, Inter
 		0 in case of failure, otherwise 1.
 */
 PRAAT_LIB_EXPORT void Matrix_formula_part (Matrix me, double xmin, double xmax, double ymin, double ymax,
-	const char32 *expression, Interpreter interpreter, Matrix target);
+	conststring32 expression, Interpreter interpreter, Matrix target);
 
 /***** Graphics routines. *****/
 /*
@@ -245,7 +255,7 @@ PRAAT_LIB_EXPORT autoMatrix Matrix_readAP (MelderFile file);
 PRAAT_LIB_EXPORT autoMatrix Matrix_appendRows (Matrix me, Matrix thee, ClassInfo klas);
 
 PRAAT_LIB_EXPORT void Matrix_eigen (Matrix me, autoMatrix *eigenvectors, autoMatrix *eigenvalues);
-PRAAT_LIB_EXPORT autoMatrix Matrix_power (Matrix me, long power);
+PRAAT_LIB_EXPORT autoMatrix Matrix_power (Matrix me, integer power);
 
 PRAAT_LIB_EXPORT void Matrix_scaleAbsoluteExtremum (Matrix me, double scale);
 

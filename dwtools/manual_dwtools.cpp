@@ -1,6 +1,6 @@
 /* manual_dwtools.cpp
  *
- * Copyright (C) 1993-2017 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
  djmw 20130620 Latest modification
 */
 
+#include "espeak_ng_version.h"
 #include "ManPagesM.h"
 #include "Sound_extensions.h"
 #include "TableOfReal_extensions.h"
@@ -31,9 +32,9 @@
 
 static autoTableOfReal getStandardizedLogFrequencyPolsData (bool includeLevels) {
 	autoTableOfReal me = TableOfReal_create_pols1973 (includeLevels);
-	for (long i = 1; i <= my numberOfRows; i++) {
-		for (long j = 1; j <= 3; j++) {
-			my data[i][j] = log10 (my data[i][j]);
+	for (integer i = 1; i <= my numberOfRows; i ++) {
+		for (integer j = 1; j <= 3; j++) {
+			my data [i] [j] = log10 (my data [i] [j]);
 		}
 	}
 	TableOfReal_standardizeColumns (me.get());
@@ -63,7 +64,7 @@ static void drawPolsF1F2ConcentrationEllipses (Graphics g) {
 static void drawPolsDiscriminantConfiguration (Graphics g) {
 	autoTableOfReal me = getStandardizedLogFrequencyPolsData (0);
 	autoDiscriminant d = TableOfReal_to_Discriminant (me.get());
-	autoConfiguration c = Discriminant_and_TableOfReal_to_Configuration (d.get(), me.get(), 2);
+	autoConfiguration c = Discriminant_TableOfReal_to_Configuration (d.get(), me.get(), 2);
 	Configuration_draw (c.get(), g, 1, 2, -2.9, 2.9, -2.9, 2.9, 0, 1, U"", 1);
 }
 
@@ -288,6 +289,20 @@ MAN_BEGIN (U"BarkSpectrogram: Paint image...", U"djmw", 20141023)
 INTRO (U"A command to draw the selected @BarkSpectrogram into the @@Picture window@ in shades of grey.")
 MAN_END
 
+MAN_BEGIN (U"biharmonic spline interpolation", U"djmw", 20170915)
+INTRO (U"A biharmonic spline interpolation is an interpolation of irregularly spaced two-dimensional data points. "
+	"The interpolating surface is a linear combination of Green functions centered at each data point. The amplitudes of "
+	"the Green functions are found by solving a linear system of equations.")
+NORMAL (U"The surface %s(#%x) is expressed as")
+FORMULA (U"%s(#%x)=\\Si__%j%=1_^^n^ %w__%j_ %g(#%x, #%x__%j_),")
+NORMAL (U"where %n is the number of data points #%x__%j_ = (%x__%j_, %y__%j_), %g(#%x, #%x__%j_) is Green's function and %w__%j_ is the weight of data point %j. The weights %w__%j_ are determined by requiring that the surface %s(#%x) passes exactly through the %n data points, i.e.")
+FORMULA (U"%s(#%x__%i_)=\\Si__%j%=1_^^n^ %w__%j_ %g(#%x__%i_, #%x__%j_), %i = 1, 2, ..., %n.")
+NORMAL (U"This yields an %n\\xx%n square linear system of equations which can be solved for the %w__%j_.")
+NORMAL (U"For twodimensional data Green's function is:")
+FORMULA (U"%g(#%x__%i_, #%x__%j_) = |#%x__%i_ - #%x__%j_|^^2^ (ln |#%x__%i_ - #%x__%j_| - 1.0).")
+NORMAL (U"See @@Sandwell (1987)@ and @@Deng & Tang (2011)@ for more information.")
+MAN_END
+
 MAN_BEGIN (U"bootstrap", U"djmw", 20141101)
 INTRO (U"The bootstrap data set is a random sample of size %n "
 	"drawn %%with% replacement from the sample (%x__1_,...%x__n_). This "
@@ -303,7 +318,7 @@ NORMAL (U"A ##canonical variate# is a new variable (variate) formed by making a 
 	"A linear combination of variables is the same as a weighted sum of variables. "
 	"Because we can in infinitely many ways choose combinations of weights between variables in a data set, "
 	"there are also infinitely many canonical variates possible. ")
-NORMAL (U"In general additional constraints must be satisfied by the weights to get a meaningful canonical variate. "
+NORMAL (U"In general additional constraints should be satisfied by the weights to get a meaningful canonical variate. "
 	"For example, in @@Canonical correlation analysis|canonical correlation analyis@ a data set is split up into two parts, a %%dependent% and an %%independent% part. "
 	"In both parts we can form a canonical variate and we choose weights that maximize the correlation between these canonical variates "
 	"(there is an @@TableOfReal: To CCA...|algorithm@ that calculates these weights).")
@@ -426,7 +441,7 @@ INTRO (U"Determine from the selected @CCA and @Correlation objects the correlati
 	"coefficients%.")
 MAN_END
 
-MAN_BEGIN (U"CCA & Correlation: Get variance fraction...", U"djmw", 20060323)
+MAN_BEGIN (U"CCA & Correlation: Get variance fraction...", U"djmw", 20181112)
 INTRO (U"Determine from the selected @CCA and @Correlation objects the fraction of the variance "
 	"explained by the selected @@canonical variate@ range.")
 ENTRY (U"Settings")
@@ -437,7 +452,7 @@ DEFINITION (U"determines the canonical variates (or canonical variables).")
 ENTRY (U"Remarks")
 NORMAL (U"1. In general the variance fractions for a particular canonical variate in the "
 	"dependent and in the independent set are not the same.")
-NORMAL (U"2. In general, the variance fractions for all canonical variates do not sum to 1.")
+NORMAL (U"2. In general, the variance fractions for all canonical variates do not sum to 1. \n(The technical reason is that for canonical correlation analysis in general the eigenvectors are not orthogonal, i.e. they overlap and therefore, necessarily, also the variance fractions overlap.) ")
 ENTRY (U"Algorithm")
 NORMAL (U"The formula's can be found on page 170 of @@Cooley & Lohnes (1971)@.")
 NORMAL (U"For example, the fraction of the variance explained by the %i^^th^ canonical "
@@ -500,9 +515,9 @@ NORMAL (U"The scores for the dependent data will be in the lower numbered column
 MAN_END
 
 
-MAN_BEGIN (U"Canonical correlation analysis", U"djmw", 20140509)
+MAN_BEGIN (U"Canonical correlation analysis", U"djmw", 20181118)
 INTRO (U"This tutorial will show you how to perform canonical correlation "
-       "analysis with  P\\s{RAAT}.")
+       "analysis with Praat.")
 ENTRY (U"1. Objective of canonical correlation analysis")
 NORMAL (U"In canonical correlation analysis we try to find the correlations between "
 	"two data sets. One data set is called the %dependent set, the other the "
@@ -523,7 +538,7 @@ NORMAL (U"As an example, we will use the dataset from @@Pols et al. (1973)@ "
 	"how to take the logarithm of the formant frequency values and how to "
 	"standardize them. The following script summarizes:")
 CODE (U"pols50m = Create TableOfReal (Pols 1973): \"yes\"")
-CODE (U"Formula: \"if col < 4 then log10 (self) else self endif\"")
+CODE (U"Formula: ~ if col < 4 then log10 (self) else self endif")
 CODE (U"Standardize columns")
 NORMAL (U"Before we start with the %canonical correlation analysis we will first have "
 	"a look at the %Pearson correlations of this table and  "
@@ -549,7 +564,7 @@ NORMAL (U"In a canonical correlation analysis of the dataset above, we try "
 	"When we have found these %u__1_ and %v__1_ we next try to find a new "
 	"combination %u__2_ of the formant frequencies and a new combination "
 	"%v__2_ of the levels that have maximum correlation. These %u__2_ and "
-	"%v__2_ must be uncorrelated with %u__1_ and %v__1_. "
+	"%v__2_ should be uncorrelated with %u__1_ and %v__1_. "
 	"When we express the above with formulas we have:")
 FORMULA (U"%u__1_ = %y__11_%F__1_+%y__12_%F__2_ + %y__13_%F__3_")
 FORMULA (U"%v__1_ = %x__11_%L__1_+%x__12_%L__2_ + %x__13_%L__3_")
@@ -593,7 +608,7 @@ CODE (U"u1     1      .      .     0.860   .      .")
 CODE (U"u2     .      1      .      .     0.531   .")
 CODE (U"u3     .      .      1      .      .     0.070")
 CODE (U"v1    0.860   .      .      1      .      .")
-CODE (U"v2     .     0.1     .      .      1      .")
+CODE (U"v2     .     0.531     .      .      1      .")
 CODE (U"v3     .      .     0.070   .      .      1")
 NORMAL (U"The scores with a dot are zero to numerical precision. In this table the "
 	"only correlations that differ from zero are the canonical correlations. "
@@ -601,7 +616,7 @@ NORMAL (U"The scores with a dot are zero to numerical precision. In this table t
 CODE (U"selectObject: cca, pols50m")
 CODE (U"To TableOfReal (scores): 3)")
 CODE (U"To Correlation")
-CODE (U"Draw as numbers if: 1, 0, \"decimal\", 2, \"abs(self) > 1e-14")
+CODE (U"Draw as numbers if: 1, 0, \"decimal\", 2, ~ abs(self) > 1e-14")
 ENTRY (U"5. How to predict one dataset from the other")
 NORMAL (U"@@CCA & TableOfReal: Predict...@")
 NORMAL (U"Additional information can be found in @@Weenink (2003)@.")
@@ -1011,8 +1026,8 @@ INTRO (U"Input @@Covariance@ matrix cell values.")
 ENTRY (U"Constraints on input values")
 TAG (U"A covariance matrix is a %%symmetric% matrix: values input at cell [%i,%j] will be automatically input at "
 	"cell [%j,%i] too.")
-TAG (U"All values on the diagonal must be positive numbers.")
-TAG (U"The absolute value of an off-diagonal element at cell [%i,%j] must be smaller than the corresponding diagonal "
+TAG (U"All values on the diagonal should be positive numbers.")
+TAG (U"The absolute value of an off-diagonal element at cell [%i,%j] should be smaller than the corresponding diagonal "
 	"elements at cells [%i,%i] and [%j,%j].")
 MAN_END
 
@@ -1203,7 +1218,7 @@ INTRO (U"Extract those rows from the selected @TableOfReal object whose @@Mahala
 	"quantile range.")
 MAN_END
 
-MAN_BEGIN (U"Covariance & TableOfReal: To TableOfReal (mahalanobis)...", U"djmw", 20151209)
+MAN_BEGIN (U"Covariance & TableOfReal: To TableOfReal (mahalanobis)...", U"djmw", 20170828)
 INTRO (U"Calculate @@Mahalanobis distance@ for the selected @TableOfReal with respect to the "
 	"selected @Covariance object.")
 ENTRY (U"Setting")
@@ -1216,14 +1231,14 @@ NORMAL (U"We first create a table with only one column and 10000 rows and fill i
 	"one dimensional. We next create a table with Mahalanobis distances.")
 CODE (U"n = 100000")
 CODE (U"t0 = Create TableOfReal: \"table\", n, 1")
-CODE (U"Formula:  \"randomGauss(0,1)\"")
+CODE (U"Formula: ~ randomGauss (0, 1)")
 CODE (U"c = To Covariance")
 CODE (U"selectObject: c, t0")
 CODE (U"ts = To TableOfReal (mahalanobis): \"no\"")
 CODE (U"")
 CODE (U"for nsigma to 5")
 CODE1 (U"  selectObject: ts")
-CODE1 (U"  extraction = Extract rows where:  \"self < nsigma\"")
+CODE1 (U"  extraction = Extract rows where:  ~ self < nsigma")
 CODE1 (U"  nr = Get number of rows")
 CODE1 (U"  nrp = nr / n * 100")
 CODE1 (U"  expect = (1 - 2 * gaussQ (nsigma)) * 100")
@@ -1242,16 +1257,16 @@ DEFINITION (U"define the coefficients of each @@Chebyshev polynomials|Chebyshev 
 	"The coefficient of the polynomial with the highest degree comes last.")
 MAN_END
 
-MAN_BEGIN (U"Create ISpline...", U"djmw", 20040407)
+MAN_BEGIN (U"Create ISpline...", U"djmw", 20181224)
 INTRO (U"A command to create an @ISpline from a list of coefficients.")
 ENTRY (U"Settings")
 TAG (U"##Xmin# and ##Xmax#")
 DEFINITION (U"define the domain of the polynomial @spline.")
-TAG (U"%Degree")
+TAG (U"##Degree")
 DEFINITION (U"defines the degree of the polynomial @spline.")
-TAG (U"%Coefficients")
+TAG (U"##Coefficients")
 DEFINITION (U"define the coefficients of the basis polynomials.")
-TAG (U"%%Interior knots")
+TAG (U"##Interior knots")
 DEFINITION (U"define the positions in the domain where continuity conditions are defined.")
 ENTRY (U"Behaviour")
 NORMAL (U"The number of coefficients and the number of interior knots must satisfy "
@@ -1499,6 +1514,18 @@ NORMAL (U"More details about these data and how they were measured can be found 
 	"@@Pols et al. (1973)@.")
 MAN_END
 
+MAN_BEGIN (U"Create TableOfReal (Sandwell 1987)", U"djmw", 20170917)
+INTRO (U"A command to create a @TableOfReal filled with the data point of Fig. 2 in the article of @@Sandwell (1987)@.")
+NORMAL (U"These arbitrary sampled data points are often used in testing interpolation algorithms.")
+SCRIPT (6, 6, U" "
+	"tor = Create TableOfReal (Sandwell 1987)\n"
+	"Draw scatter plot: 1, 2, 0, 0, -0.5, 10.5, -6, 16, 10, \"no\", \"0\", \"no\"\n"
+	"Draw inner box\n"
+	"Marks bottom every: 1, 2, \"yes\", \"yes\", \"no\"\n"
+	"Marks left every: 1, 4, \"yes\", \"yes\", \"no\"\n"
+	"removeObject: tor")
+MAN_END
+
 MAN_BEGIN (U"Create TableOfReal (Van Nierop 1973)...", U"djmw", 20041217)
 INTRO (U"A command to create a @TableOfReal filled with the first three formant "
 	"frequency values and (optionally) the levels from the 12 Dutch monophthongal "
@@ -1545,8 +1572,8 @@ LIST_ITEM (U"\\bu Draw eigenvector...")
 LIST_ITEM (U"\\bu @@Discriminant: Draw sigma ellipses...|Draw sigma ellipses...@")
 MAN_END
 
-MAN_BEGIN (U"Discriminant analysis", U"djmw", 20151224)
-INTRO (U"This tutorial will show you how to perform discriminant analysis with P\\s{RAAT}")
+MAN_BEGIN (U"Discriminant analysis", U"djmw", 20170829)
+INTRO (U"This tutorial will show you how to perform discriminant analysis with Praat.")
 NORMAL (U"As an example, we will use the dataset from @@Pols et al. (1973)@ "
 	"with the frequencies and levels of the first three formants from the 12 "
 	"Dutch monophthongal vowels as spoken in /h_t/ context by 50 male speakers. "
@@ -1566,7 +1593,7 @@ NORMAL (U"Pols et al. use logarithms of frequency values, we will too. Because "
 	"three columns in dB, it is probably better to standardize the columns. "
 	"The following script summarizes our achievements up till now:")
 CODE (U"table = Create TableOfReal (Pols 1973): \"yes\"")
-CODE (U"Formula: \"if col < 4 then log10 (self) else self fi\"")
+CODE (U"Formula: ~ if col < 4 then log10 (self) else self fi")
 CODE (U"Standardize columns")
 CODE (U"\\#  change the column labels too, for nice plot labels.")
 CODE (U"Set column label (index): 1, \"standardized log (\\% F\\_ \\_ 1\\_ )\"")
@@ -1645,9 +1672,9 @@ CODE (U"selectObject: table")
 CODE (U"numberOfRows = Get number of rows")
 CODE (U"for irow to numberOfRows")
 	CODE1 (U"selectObject: table")
-	CODE1 (U"rowi = Extract rows where: \"row = irow\"")
+	CODE1 (U"rowi = Extract rows where: ~ row = irow")
 	CODE1 (U"selectObject: table")
-	CODE1 (U"rest = Extract rows where: \"row <> irow\"")
+	CODE1 (U"rest = Extract rows where: ~ row <> irow")
 	CODE1 (U"discriminant = To Discriminant")
 	CODE1 (U"plusObject: rowi")
 	CODE1 (U"classification = To ClassificationTable: \"yes\", \"yes\"")
@@ -1816,11 +1843,11 @@ DEFINITION (U"specifies the dimension of the resulting @Configuration. This dime
 	"given the resulting Configuration will have the maximum dimension as allowed by Discrimininant. "
 	"(Technically speaking: the number of eigenvectors (or eigenvalues) in the selected Discriminant is equal to the maximum allowed dimension.)")
 ENTRY (U"Precondition")
-NORMAL (U"The dimension of the Discriminant and the Configuration must conform in the sense that the number of columns in the TableOfReal and the length of an eigenvector in the Discriminant must be equal.")
+NORMAL (U"The dimension of the Discriminant and the Configuration must conform in the sense that the number of columns in the TableOfReal and the length of an eigenvector in the Discriminant should be equal.")
 NORMAL (U"See also @@Eigen & TableOfReal: Project...@.")
 MAN_END
 
-MAN_BEGIN (U"Discriminant & TableOfReal: To TableOfReal (mahalanobis)...", U"djmw", 20140509)
+MAN_BEGIN (U"Discriminant & TableOfReal: To TableOfReal (mahalanobis)...", U"djmw", 20170828)
 INTRO (U"Calculate @@Mahalanobis distance@s for the selected @TableOfReal with respect to one group in the "
 	"selected @Discriminant object.")
 ENTRY (U"Settings")
@@ -1835,7 +1862,7 @@ NORMAL (U"Calculate the number of datapoints that are within the one-sigma elips
 	"the number of data points that are in the overlapping area. ")
 NORMAL (U"Suppose the group labels are \\o/ and \\yc.")
 CODE (U"pols50m = Create TableOfReal (Pols 1973): \"no\"")
-CODE (U"Formula: \"log10(self)\"")
+CODE (U"Formula: ~ log10 (self)")
 CODE (U"discriminant = To Discriminant")
 CODE (U"selectObject: pols50m, discriminant")
 CODE (U"t1 = To TableOfReal (mahalanobis): \"\\bso/\", \"no\"")
@@ -1843,7 +1870,7 @@ CODE (U"selectObject: pols50m, discriminant")
 CODE (U"t2 = To TableOfReal (mahalanobis): \"\\bsyc\", \"no\"")
 NORMAL (U"Now we count when both the t1 and t2 values are smaller than 1 (sigma):")
 CODE (U"Copy: \"tr\"")
-CODE (U"Formula: \"Object_'t1'[] < 1 and Object_'t2'[] < 1\"")
+CODE (U"Formula: ~ object [t1] < 1 and object [t2] < 1")
 CODE (U"Extract rows where column: 1, \"equal to\", 1")
 CODE (U"no = Get number of rows\"")
 MAN_END
@@ -2167,7 +2194,7 @@ DEFINITION (U"when on, the eigenvector is multiplied with the square root of the
 	"the %i-th element in the %j-th component loading vector gives the covariance between the %i-th "
 	"original variable and the %j-th principal component.)")
 TAG (U"##Element range#")
-DEFINITION (U"determine the first and last element of the vector that must be drawn.")
+DEFINITION (U"determine the first and last element of the vector that should be drawn.")
 TAG (U"##Minimum# and ##Maximum#")
 DEFINITION (U"determine the lower and upper bounds of the plot (choosing #Maximum smaller than #Minimum "
 	"will draw the %%inverted% eigenvector). ")
@@ -2629,6 +2656,10 @@ NORMAL (U"An object of type MSpline represents a linear combination of basis "
 FORMULA (U"MSpline (%x) = \\Si__%k=1..%numberOfCoefficients_ %c__%k_ %mspline__%k_(%x)")
 MAN_END
 
+MAN_BEGIN (U"pairwise algorithm for computing sample variances", U"djmw", 20170806)
+INTRO (U"An algorithm to compute the mean and the variance of an array of numbers. By pairwise combining array elements, the total number of arithmetic operations is reduced and therefore also the noise due to finite precision arithmetic. The algorithm is described in @@Chan, Golub & LeVeque (1979)@ and a comparison with other algorithms is presented in @@Chan, Golub & LeVeque (1983)@.")
+MAN_END
+
 MAN_BEGIN (U"PatternList", U"djmw", 20160524)
 INTRO (U"One of the @@types of objects@ in P\\s{RAAT}.")
 INTRO (U"An object of type PatternList is a list of patterns that can serve as "
@@ -2718,7 +2749,7 @@ INTRO (U"A command to ask the selected @PCA for the minimum number of "
 	"to explain the given fraction %%variance accounted for%.")
 ENTRY (U"Setting")
 TAG (U"##Variance accounted for (fraction)")
-DEFINITION (U"the fraction variance accounted for that must be explained.")
+DEFINITION (U"the fraction variance accounted for that should be explained.")
 MAN_END
 
 MAN_BEGIN (U"PCA: To TableOfReal (reconstruct 1)...", U"djmw", 20030108)
@@ -2810,6 +2841,126 @@ MAN_END
 
 MAN_BEGIN (U"PitchTier: To Pitch...", U"djmw", 20061128)
 INTRO (U"Synthesizes a new @Pitch from the selected @PitchTier.")
+MAN_END
+
+MAN_BEGIN (U"PitchTier: Modify interval...", U"djmw", 20170801)
+INTRO (U"Modifies a selected interval from the chosen @PitchTier by replacing the contents of the interval by newly defined pitch points.")
+ENTRY (U"Settings")
+SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (12), U""
+	Manual_DRAW_SETTINGS_WINDOW (U"PitchTier: Modify interval", 12)
+	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Time range (s)", U"0.0", U"0.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"Relative times", U"0.0 0.5 1.0")
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"...are...", U"fractions")
+	"Text... 50 left y half ...of the interval duration which will be added...\n" \
+	"y += 40\n" \
+	"Text... 50 left y half ...to the start time of the interval.\n" \
+	"y += 40\n" \
+	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"The \"pitch\" values", U"100.0 200.0 100.0")
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"...are...", U"frequencies")
+	"Text... 50 left y half ...to be added to the anchor value (if used)...\n" \
+	"y += 40\n" \
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"...which is the...",U"not used")
+	"Text... 50 left y half ...frequency value in the interval...\n" \
+	"y += 40\n" \
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"Pitch frequency unit",U"Hertz")
+)
+TAG (U"##Time range (s)")
+DEFINITION (U"the start and end time of the interval where the changes will be applied.")
+TAG (U"##Relative times")
+DEFINITION (U"determine, together with the following option, the times of the new pitch points with respect to the start time of the interval.")
+TAG (U"##...are...")
+DEFINITION (U"determines how the times %t__%i_ of the new pitch points are calculated. The time of each new pitch point is determined by adding to the start time of the interval a time calculated from the relative time value. If %%t%__min_ and %%t%__max_ are the start and end time of the interval and %%r%__i_ is the %%i%^^th^ relative time, the times %t__%i_ are calculated according to the options as:")
+TAG1 (U"%%fractions%")
+DEFINITION (U"%%t%__%i_ = %t__min_ + %r__%i_ (%t__max_ \\-- %t__min_). The relative time values are fractions of the interval duration. Normally fractions are numbers in the range 0.0 to 1.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%percentages%")
+DEFINITION (U"%%t%__%i_ = %t__min_+ 0.01 %r__%i_ (%t__max_ \\-- %t__min_). The relative time values are percentages of the interval duration. Normally percentages are numbers in the range 0.0 to 100.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%independent%")
+DEFINITION (U"%%t%__%i_ = %t__min_ + %r__%i_. The relative time values specify an offset in seconds here. ")
+TAG (U"##The \"pitch\" values")
+DEFINITION (U"determine, together with the next two options, the frequency value of the new pitch points. Each value here must link to the corresponding time value.")
+TAG (U"##...are...")
+DEFINITION (U"determines the interpretation of the \"pitch\" value. Possible choices are")
+TAG1 (U"%%frequencies%")
+DEFINITION (U"the values are frequencies in hertz.")
+TAG1 (U"%%fractions%")
+DEFINITION (U"the values are fractions of a pitch value that is specified by the next option. Normally fractions are numbers in the range 0.0 to 1.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%percentages%")
+DEFINITION (U"the values are percentages of a pitch value that is specified by the next option. Normally percentages are numbers in the range 0.0 to 100.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%start and slopes%")
+DEFINITION (U"the values are a start frequency followed by slopes in Herz per second.")
+TAG1 (U"%%slopes and end%")
+DEFINITION (U"the values are slopes in herz per second followed by an end frequency in herz.")
+TAG1 (U"%%music notes%")
+DEFINITION (U"the values are music notes specified on the twelve tone scale as a0, a\\# 0, b0, c0, c\\# 0, d0, d\\# 0, e0, f0, f\\# 0, g0, g\\# 0, a1, a\\# 1, ... a4, ..., or g\\# 9. Here the octave is indicated by the number, 0 being the lowest octave and 9 the highest. The a4 is choosen to be at 440 Hz. Therefore, a0 is the note with the lowest frequency, four octaves below the a4 and corresponds to a frequency of 27.5 Hz. As a scale of reference we give a0 = 27.5 Hz, a1 = 55 Hz, a2 = 110 Hz, a3 = 220 Hz, a4 = 440 Hz, a5 = 880 Hz, a6 = 1760 Hz, a7 = 3520 Hz, a8 = 7040 Hz and a9 = 14080 Hz.")
+TAG (U"##...which is the...")
+DEFINITION (U"the anchor point value, if used. The following options may be given for the anchor point frequency value:")
+TAG1 (U"%%not used%")
+DEFINITION (U"no anchor point frequency value is necessary. The previous two options are sufficient to determine the new pitch frequencies. This means that the \"pitch\" values given cannot be %%fractions% or %%percentages%.")
+TAG1 (U"%%current%")
+DEFINITION (U"the current pitch frequency at the corresponding time.")
+TAG1 (U"%%start%")
+DEFINITION (U"the pitch frequency at the start of the interval.")
+TAG1 (U"%%end%")
+DEFINITION (U"the pitch frequency at the end of the interval.")
+TAG1 (U"%%mean of the curve%")
+DEFINITION (U"the @@PitchTier: Get mean (curve)...|mean of the curve@ within the interval.")
+TAG1 (U" %%mean of the points%")
+DEFINITION (U"the @@PitchTier: Get mean (points)...|mean of the points@ within the interval.")
+TAG1 (U"%%maximum%")
+DEFINITION (U"the maximum pitch frequency in the interval.")
+TAG1 (U"%%minimum%")
+DEFINITION (U"the minimum pitch frequency in the interval.")
+TAG (U"##Pitch frequency unit")
+DEFINITION (U"Hertz")
+MAN_END
+
+MAN_BEGIN (U"PitchTier: Modify interval (tone levels)...", U"djmw", 20170801)
+INTRO (U"Modifies a selected interval from the chosen @PitchTier by replacing the contents of the interval by newly defined pitch points.")
+NORMAL (U"For tone languages the pitch contours of the tones are often expressed as a sequence of tone levels instead of a sequence of real frequency values in hertz because tone levels abstract away from the possibly different pitch ranges of individual speakers.")
+NORMAL (U"The tone levels %T are calculated from a given pitch %%frequency% in hertz as:")
+FORMULA (U"%T = %%numberOfToneLevels% \\.c log (%%frequency% / %F__min_) / log (%F__max_ / %F__min_),")
+NORMAL (U"where %F__min_ and %F__max_ are the minimum and the maximum frequency of a speaker's pitch range and %%numberOfToneLevels% is the number of levels into which the pitch range is divided. "
+	"This formula maps any frequency between %F__min_ and %F__max_ to a number between 0 and %%numberOfToneLevels%.")
+NORMAL (U"To get the frequency in hertz from a specified tone level %T we have to use the inverse formula:")
+FORMULA (U"%%frequency% = %F__min_ \\.c 10^^(%T \\.c log (%F__max_ / %F__min_)) / %%numberOfToneLevels%)^.")
+ENTRY (U"Settings")
+SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (9), U""
+	Manual_DRAW_SETTINGS_WINDOW (U"PitchTier: Modify interval (tone levels)", 9)
+	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Time range (s)", U"0.0", U"0.0")
+	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Pitch range (Hz)", U"80.0", U"200.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"Number of tone levels", U"5")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"Relative times", U"0.0 0.5 1.0")
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"...are...",U"fractions")
+	"Text... 50 left y half ...of the interval duration which will be added...\n" \
+	"y += 40\n" \
+	"Text... 50 left y half ...to the start time of the interval.\n" \
+	"y += 40\n" \
+	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"Tone levels", U"2.1 2.1 5.0")
+)
+TAG (U"##Time range (s)")
+DEFINITION (U"the start and end time of the interval where the changes will be applied.")
+TAG (U"##Pitch range (Hz)")
+DEFINITION (U"The minimum and maximum frequency to which the tone levels refer.")
+TAG (U"##Number of tone levels")
+DEFINITION (U"The number of levels into which the pitch range is divided.")
+TAG (U"##Relative times")
+DEFINITION (U"determine, together with the following option, the times of the new pitch points with respect to the start time of the interval.")
+DEFINITION (U"determines how the times %t__%i_ of the new pitch points are calculated. The time of each new pitch point is determined by adding to the start time of the interval a time calculated from the relative time value. If %%t%__min_ and %%t%__max_ are the start and end time of the interval and %%r%__i_ is the %%i%^^th^ relative time, the times %t__%i_ are calculated according to the options as:")
+TAG1 (U"%%fractions%")
+DEFINITION (U"%%t%__%i_ = %t__min_ + %r__%i_ (%t__max_ \\-- %t__min_). The relative time values are fractions of the interval duration. Normally fractions are numbers in the range 0.0 to 1.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%percentages%")
+DEFINITION (U"%%t%__%i_ = %t__min_+ 0.01 %r__%i_ (%t__max_ \\-- %t__min_). The relative time values are percentages of the interval duration. Normally percentages are numbers in the range 0.0 to 100.0, although smaller and larger numbers are allowed.")
+TAG1 (U"%%independent%")
+DEFINITION (U"%%t%__%i_ = %t__min_ + %r__%i_. The relative time values specify an offset in seconds here. ")
+
+TAG (U"##Tone levels")
+DEFINITION (U"specify the frequencies at the corresponding time points as tone levels.")
+ENTRY (U"Algorithm")
+NORMAL (U"1. The real times are calculated from the relative times.")
+NORMAL (U"2. The frequencies are calculated from the tone levels.")
+NORMAL (U"3. The real times and the frequencies are sorted together by time.")
+NORMAL (U"4. All pitch points in the PitchTier between the first and the last time of the sorted time array are removed.")
+NORMAL (U"5. The newly calculated pitch points are added to the PitchTier.")
 MAN_END
 
 MAN_BEGIN (U"Polygon: Rotate...", U"djmw", 20100418)
@@ -3070,24 +3221,24 @@ INTRO (U"A command to project the @SSCP object onto the eigenspace of "
 NORMAL (U"Further details can be found in @@Eigen & SSCP: Project@.")
 MAN_END
 
-MAN_BEGIN (U"Regular expressions", U"djmw", 20010706)
-INTRO (U"This tutorial describes the %syntax of regular expressions in P\\s{RAAT} ")
+MAN_BEGIN (U"Regular expressions", U"David Weenink & Paul Boersma", 20180401)
+INTRO (U"This tutorial describes the syntax of regular expressions in Praat. ")
 ENTRY (U"Introduction")
-NORMAL (U"A %%regular expression% is a text string that describes a %set "
-	"of strings. Regular expressions (regex) are useful as a way to search "
+NORMAL (U"A %%regular expression% (regex) is a text string that describes a %set "
+	"of strings. Regular expressions are useful as a way to search "
 	"for patterns in text strings and, optionally, replace them by another "
 	"pattern.")
-NORMAL (U"Some regex match only one string, i.e., the set they describe has "
+NORMAL (U"Some regular expressions match only one string, i.e., the set they describe has "
 	"only one member. For example, the regex \"ab\" matches the string \"ab\" "
-	"and no others. Other regex match more than one string, i.e., the set "
+	"and no others. Other regular expressions match more than one string, i.e., the set "
 	"they describe has more than one member. For example, the regex \"a*\" "
 	"matches the string made up of any number (including zero) of \"a\"s. "
 	"As you can see, some characters match themselves (such as \"a\" and "
-	"\"b\") and these characters are called %ordinary characters. The "
-	"characters that don't match themselves, such as \"*\", are called "
-	"%special characters or %meta characters. Many special characters are only "
+	"\"b\"), and these characters are called %ordinary characters. The "
+	"characters that do not match themselves, such as \"*\", are called "
+	"%special characters or %metacharacters. Many special characters are only "
 	"special characters in the %search regex and are ordinary characters in "
-	"the substitution regex. ")
+	"the substitution regex.")
 NORMAL (U"You can read the rest of this tutorial sequentially with the help of "
 	"the \"<1\" and \">1\" buttons.")
 LIST_ITEM (U"1. @@Regular expressions 1. Special characters|Special characters@ "
@@ -3095,8 +3246,8 @@ LIST_ITEM (U"1. @@Regular expressions 1. Special characters|Special characters@ 
 LIST_ITEM (U"2. @@Regular expressions 2. Quantifiers|Quantifiers@ "
 	"(how often do we match).")
 LIST_ITEM (U"3. @@Regular expressions 3. Anchors|Anchors@ (where do we match)")
-LIST_ITEM (U"4. @@Regular expressions 4. Special constructs with parenthesis|"
-	"Special constructs with parenthesis@ (grouping constructs)")
+LIST_ITEM (U"4. @@Regular expressions 4. Special constructs with parentheses|"
+	"Special constructs with parentheses@ (grouping constructs)")
 LIST_ITEM (U"5. @@Regular expressions 5. Special control characters|"
 	"Special control characters@ (difficult-to-type characters like \\bsn)")
 LIST_ITEM (U"6. @@Regular expressions 6. Convenience escape sequences|"
@@ -3128,67 +3279,67 @@ LIST_ITEM1 (U"Example: The regex \"aa\\bsn\" tries to match two consecutive "
 	"\"a\"s at the end of a line, inclusive the newline character itself.")
 LIST_ITEM1 (U"Example: \"a\\bs+\" matches \"a+\" and not a series of one or "
 	"\"a\"s.")
-TAG (U"##\\^ #    the caret is the start of line @@Regular expressions 3. "
-	"Anchors|anchor@ or the negate symbol.")
-LIST_ITEM1 (U"Example: \"\\^ a\" matches \"a\" at the start of a line.")
+TAG (U"##\\^ #    the caret is the @@Regular expressions 3. "
+	"Anchors|anchor@ for the start of the string, or the negation symbol.")
+LIST_ITEM1 (U"Example: \"\\^ a\" matches \"a\" at the start of the string.")
 LIST_ITEM1 (U"Example: \"[\\^ 0-9]\" matches any non digit.")
-TAG (U"##\\$ #    the dollar is the end of line @@Regular expressions 3. "
-	"Anchors|anchor@.")
+TAG (U"##\\$ #    the dollar sign is the @@Regular expressions 3. "
+	"Anchors|anchor@ for the end of the string.")
 LIST_ITEM1 (U"Example: \"b\\$ \" matches a \"b\" at the end of a line.")
-LIST_ITEM1 (U"Example: \"\\^ b\\$ \" matches the empty line.")
-TAG (U"##{ }#    the open and close curly bracket are used as range @@Regular "
+LIST_ITEM1 (U"Example: \"\\^ \\$ \" matches the empty string.")
+TAG (U"##{ }#    the opening and closing curly brackets are used as range @@Regular "
 	"expressions 2. Quantifiers|quantifiers@.")
 LIST_ITEM1 (U"Example: \"a{2,3}\" matches \"aa\" or \"aaa\".")
-TAG (U"##[ ]#    the open and close square bracket define a character class to "
+TAG (U"##[ ]#    the opening and closing square brackets define a character class to "
 	"match a %single character.")
-DEFINITION (U"The \"\\^ \" as the first character following the \"[\" negates "
+DEFINITION (U"The \"\\^ \" as the first character following the \"[\" negates, "
 	"and the match is for the characters %not listed. "
 	"The \"-\" denotes a range of characters. Inside a \"[  ]\" character "
-	"class construction most special characters are interpreted as ordinary "
-	"characters. ")
+	"class construction, most special characters are interpreted as ordinary "
+	"characters.")
 LIST_ITEM1 (U"Example: \"[d-f]\" is the same as \"[def]\" and matches \"d\", "
 	"\"e\" or \"f\".")
-LIST_ITEM1 (U"Example: \"[a-z]\" matches any lowercase characters in the "
-	"alfabet.")
-LIST_ITEM1 (U"Example: \"[\\^ 0-9]\" matches any character that is not a digit.")
-LIST_ITEM1 (U"Example: A search for \"[][()?<>$^.*?^]\" in the string "
-	"\"[]()?<>$^.*?^\" followed by a replace string \"r\" has the result "
+LIST_ITEM1 (U"Example: \"[a-z]\" matches any lower-case characters in the "
+	"alphabet.")
+LIST_ITEM1 (U"Example: \"[\\^ 0-9]\" matches any character that is not an ASCII digit.")
+LIST_ITEM1 (U"Example: A search for \"[][()?<>\\$ \\^ .*?\\^ ]\" in the string "
+	"\"[]()?<>\\$ \\^ .*?\\^ \" followed by a replace string \"r\" has the result "
 	"\"rrrrrrrrrrrrr\". Here the search string is %one character class and "
 	"all the meta characters are interpreted as ordinary characters without "
 	"the need to escape them.")
-TAG (U"##( )#    the open and close parenthesis are used for grouping "
-	"characters (or other regex).")
+TAG (U"##( )#    the opening and closing parenthes3s are used for grouping "
+	"characters (or other regexes).")
 DEFINITION (U"The groups can be referenced in "
 	"both the search and the @@Regular expressions 8. Substitution special "
 	"characters|substitution@ phase. There also exist some @@Regular "
-	"expressions 4. Special constructs with parenthesis|special constructs "
-	"with parenthesis@.")
+	"expressions 4. Special constructs with parentheses|special constructs "
+	"with parentheses@.")
 LIST_ITEM1 (U"Example: \"(ab)\\bs1\" matches \"abab\".")
-TAG (U"##.#    the dot matches any character except the newline.")
+TAG (U"##.#    the dot matches any character except the newline symbol.")
 LIST_ITEM1 (U"Example: \".a\" matches two consecutive characters where "
 	"the last one is \"a\".")
 LIST_ITEM1 (U"Example: \".*\\bs.txt\\$ \" matches all strings that end in "
 	"\".txt\".")
-TAG (U"##*#    the star is the match-zero-or-more @@Regular expressions 2. "
+TAG (U"##*#    the asterisk is the match-zero-or-more @@Regular expressions 2. "
 	"Quantifiers|quantifier@.")
 LIST_ITEM1 (U"Example: \"\\^ .*\\$ \" matches an entire line. ")
-TAG (U"##+#    the plus is the match-one-or-more quantifier.")
+TAG (U"##+#    the plus sign is the match-one-or-more quantifier.")
 TAG (U"##?#    the question mark is the match-zero-or-one "
 	"quantifier. The question mark is also used in  "
-	"@@Regular expressions 4. Special constructs with parenthesis|special "
-	"constructs with parenthesis@ and in @@Regular expressions 2. "
+	"@@Regular expressions 4. Special constructs with parentheses|special "
+	"constructs with parentheses@ and in @@Regular expressions 2. "
 	"Quantifiers|changing match behaviour@.")
 TAG (U"##\\| #    the vertical pipe separates a series of alternatives.")
 LIST_ITEM1 (U"Example: \"(a|b|c)a\" matches \"aa\" or \"ba\" or \"ca\".")
 TAG (U"##< >#    the smaller and greater signs are @@Regular expressions 3. "
 	"Anchors|anchors@ that specify a left or right word boundary.")
-TAG (U"##-#    the minus indicates a range in a character class (when it is "
+TAG (U"##-#    the minus sign indicates a range in a character class (when it is "
 	"not at the first position after the \"[\" opening bracket or the last "
 	"position before the \"]\" closing bracket.")
 LIST_ITEM1 (U"Example: \"[A-Z]\" matches any uppercase character.")
 LIST_ITEM1 (U"Example: \"[A-Z-]\" or \"[-A-Z]\" match any uppercase character "
 	"or \"-\".")
-TAG (U"##&#    the and is the \"substitute complete match\" symbol.")
+TAG (U"##&#    the ampersand is the \"substitute complete match\" symbol.")
 MAN_END
 
 MAN_BEGIN (U"Regular expressions 2. Quantifiers", U"djmw", 20010708)
@@ -3220,25 +3371,24 @@ LIST_ITEM1 (U"Example: In the string \"cabddde\", the search \"abd+\" "
 	"matches \"abddd\", while the search for \"abd+?\" matches \"abd\".")
 MAN_END
 
-MAN_BEGIN (U"Regular expressions 3. Anchors", U"djmw", 20010708)
+MAN_BEGIN (U"Regular expressions 3. Anchors", U"DAvid Weenink & Paul Boersma", 20180401)
 INTRO (U"Anchors let you specify a very specific position within the search "
 	"text.")
-TAG (U"##\\^ #   Try to match the (following) regex at the beginning of a line.")
+TAG (U"##\\^ #   Try to match the (following) regex at the beginning of the string.")
 LIST_ITEM1 (U"Example: \"\\^ ab\" matches \"ab\" only at the beginning of a "
 	"line and not, for example, in the line \"cab\".")
-TAG (U"##\\$ #   Try to match the (following) regex at the end of a line.")
+TAG (U"##\\$ #   Try to match the (following) regex at the end of the string.")
 TAG (U"##<#    Try to match the regex at the %start of a word.")
 DEFINITION (U"The character class that defines a %word can be found at the "
 	"@@Regular expressions 6. Convenience escape sequences|convenience escape "
 	"sequences@ page.")
 TAG (U"##>#    Try to match the regex at the %end of a word.")
 TAG (U"##\\bsB#   Not a word boundary")
-DEFINITION (U"")
 MAN_END
 
-MAN_BEGIN (U"Regular expressions 4. Special constructs with parenthesis", U"djmw",
+MAN_BEGIN (U"Regular expressions 4. Special constructs with parentheses", U"djmw",
 	20010710)
-INTRO (U"Some special constructs exist with parenthesis. ")
+INTRO (U"Some special constructs exist with parentheses. ")
 TAG (U"##(?:#%regex#)#   is a grouping-only construct.")
 DEFINITION (U"They exist merely for efficiency reasons and facilitate grouping.")
 TAG (U"##(?=#%regex#)#   is a positive look-ahead.")
@@ -3258,9 +3408,9 @@ LIST_ITEM1 (U"Example: \"(?iaa)\" matches \"aa\", \"aA\", \"Aa\" and \"AA\".")
 TAG (U"##(?n#%regex#)#   matches newlines.")
 TAG (U"##(?N#%regex#)#   doesn't match newlines.")
 NORMAL (U"All the constructs above do not capture text and cannot be "
-	"referenced, i.e., the parenthesis are not counted. However, you "
+	"referenced, i.e., the parentheses are not counted. However, you "
 	"can make them capture text by surrounding them with %ordinary "
-	"parenthesis.")
+	"parentheses.")
 MAN_END
 
 MAN_BEGIN (U"Regular expressions 5. Special control characters", U"djmw", 20010708)
@@ -3363,9 +3513,9 @@ NORMAL (U"A scree plot shows the sorted eigenvalues, from large to "
 	"small, as a function of the eigenvalue index.")
 MAN_END
 
-MAN_BEGIN (U"singular value decomposition", U"djmw", 20120510)
+MAN_BEGIN (U"singular value decomposition", U"djmw", 20171217)
 INTRO (U"The %%singular value decomposition% (SVD) is a matrix factorization algorithm.")
-NORMAL (U"For %m > %n, the singular value decomposition of a real %m \\xx %n matrix #A is the "
+NORMAL (U"For %m >= %n, the singular value decomposition of a real %m \\xx %n matrix #A is the "
 	"factorization")
 FORMULA (U"#A = #U #\\Si #V\\'p,")
 NORMAL (U"The matrices in this factorization have the following properties:")
@@ -3376,7 +3526,37 @@ DEFINITION (U"are orthogonal matrices. The columns #u__%i_ of #U =[#u__1_, ..., 
 TAG (U"#\\Si [%n \\xx %n] = diag (%\\si__1_, ..., %\\si__%n_)")
 DEFINITION (U"is a real, nonnegative, and diagonal matrix. Its diagonal contains the so called "
 	"%%singular values% %\\si__%i_, where %\\si__1_ \\>_ ... \\>_ %\\si__%n_ \\>_ 0.")
-NORMAL (U"If %m < %n, the decomposition results in #U [%m \\xx %m] and #V [%n \\xx %m].")
+MAN_END
+
+MAN_BEGIN (U"SVD", U"djmw", 20171214)
+INTRO (U"An object of type ##SVD# represents the @@singular value decomposition@ of a matrix.")
+ENTRY (U"SVD internals")
+NORMAL (U"Given #A, an %m \\xx %n matrix with %m >= %n, the decomposition will be #A = #U #\\Si #V\\'p. ")
+NORMAL (U"In the SVD object we store the %m \\xx %n matrix #U, the %n \\xx %n matrix #V and the %%n%-dimensional vector with the singular values. ")
+NORMAL (U"If it happens that for the #A matrix %m < %n, i.e. the number of rows is less than the number of columns, then we store "
+	"the SVD of the transpose of #A and flag this internally. "
+	"In this way we can make sure that for the matrix #U the number of columns never exceeds the number of rows and at the same time that the dimension of the matrix #V never exceeds the dimension of the matrix #U. ")
+NORMAL (U"For example the SVD of a 100 \\xx 20 matrix will result in a 100 \\xx 20 matrix #U, a 20 \\ 20 matrix #V and 20 singular values, "
+	"the SVD of a 20 \\xx 100 matrix will also result in a 100 \\xx 20 matrix #U, a 20 \\ 20 matrix #V and 20 singular values, however it will be internally flagged as being transposed.")
+MAN_END
+
+MAN_BEGIN (U"SVD: Get minimum number of singular values...", U"djmw", 20171214)
+INTRO (U"A command to get the minimum number of singular values (s.v.'s) whose sum, divided by the sum of all singular values, is smaller than the given fraction.")
+ENTRY (U"Examples")
+NORMAL (U"Given an SVD with four s.v's 10.0, 6.0, 3.0 and 1.0. The sum of the s.v's is 20.0.")
+CODE (U"Get minimum number of singular values: 0.5")
+DEFINITION (U"The returned value would be 1. The first s.v. divided by the sum is 0.5 (= 10.0 / 20.0). "
+	"For any fraction lower than 0.5 the query would also return 1, because the first s.v. already covers half of the total sum.")
+CODE (U"Get minimum number of singular values: 0.8")
+DEFINITION (U"The returned value would be 2. The sum of first two s.v.'s divided by the sum is 0.8 (= (10.0 + 6.0) / 20.0). "
+	" For any fraction between 0.5 and 0.8 the query would also return 2.")
+CODE (U"Get minimum number of singular values: 0.95")
+DEFINITION (U"The returned value would be 3. The sum of first three s.v.'s divided by the sum is 0.95 (= (10.0 + 6.0 + 3.0) / 20.0)."
+	" For any fraction between 0.8 and 0.95 the query would also return 3.")
+CODE (U"Get minimum number of singular values: 0.96")
+DEFINITION (U"The returned value would be 4.")
+CODE (U"Get minimum number of singular values: 0.99")
+DEFINITION (U"The returned value would be 4.")
 MAN_END
 
 MAN_BEGIN (U"Sound & Pitch: Change speaker...", U"djmw", 20070722)
@@ -3519,7 +3699,7 @@ DEFINITION (U"The method of %%spectral subtraction% was defined in @@Boll (1979)
 	"after a script by Ton Wempe.")
 MAN_END
 
-MAN_BEGIN (U"Sound: Draw where...", U"djmw", 20140509)
+MAN_BEGIN (U"Sound: Draw where...", U"djmw", 20170829)
 INTRO (U"A command to draw only those parts of a @Sound where a condition holds.")
 ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
@@ -3540,38 +3720,38 @@ DEFINITION (U"determines the part of the sound that will be drawn. All parts whe
 	"This formula may ##not# contain references to the sampling of the sound, i.e. don't use 'col', 'x1', 'dx' and 'ncol' in it.")
 ENTRY (U"Example 1")
 NORMAL (U"The following script draws all amplitudes larger than one in red.")
-CODE (U"Create Sound from formula: \"s\", \"Mono\", 0, 1, 2000, \"1.8*sin(2*pi*5*x)+randomGauss(0,0.1)\"")
+CODE (U"Create Sound from formula: \"s\", \"Mono\", 0, 1, 2000, ~ 1.8*sin(2*pi*5*x)+randomGauss(0,0.1)")
 CODE (U"Colour: \"Red\"")
-CODE (U"Draw where: 0, 0, -2, 2, \"no\", \"Curve\", \"abs(self)>1\"")
+CODE (U"Draw where: 0, 0, -2, 2, \"no\", \"Curve\", ~ abs(self)>1")
 CODE (U"Colour: \"Black\"")
-CODE (U"Draw where: 0, 0, -2, 2, \"yes\", \"Curve\", \"not (abs(self)>1)\"")
+CODE (U"Draw where: 0, 0, -2, 2, \"yes\", \"Curve\", ~ not (abs(self)>1)")
 SCRIPT (8, 3,
-	U"Create Sound from formula: \"s\", \"Mono\", 0, 1, 2000, \"1.8*sin(2*pi*5*x)+randomGauss(0,0.1)\"\n"
+	U"Create Sound from formula: \"s\", \"Mono\", 0, 1, 2000, ~ 1.8*sin(2*pi*5*x)+randomGauss(0,0.1)\n"
 	"Colour: \"Red\"\n"
-	"Draw where: 0, 0, -2, 2, \"no\", \"Curve\", \"abs(self)>1\"\n"
+	"Draw where: 0, 0, -2, 2, \"no\", \"Curve\", ~ abs(self)>1\n"
 	"Colour: \"Black\"\n"
-	"Draw where:  0, 0, -2, 2, \"yes\", \"Curve\", \"not (abs(self)>1)\"\n"
+	"Draw where:  0, 0, -2, 2, \"yes\", \"Curve\", ~ not (abs(self)>1)\n"
 	"Remove\n"
 )
 ENTRY (U"Example 2")
 NORMAL (U"Draw the second half of a sound:")
-CODE (U"Draw where: 0, 0, -1, 1, \"no\", \"Curve\", \"x > xmin + (xmax - xmin) / 2\"")
+CODE (U"Draw where: 0, 0, -1, 1, \"no\", \"Curve\", ~ x > xmin + (xmax - xmin) / 2")
 ENTRY (U"Example 3")
 NORMAL (U"Draw only positive amplitudes:")
-CODE (U"Draw where: 0, 0, -1, 1, \"no\", \"Curve\", \"self>0\"")
+CODE (U"Draw where: 0, 0, -1, 1, \"no\", \"Curve\", ~ self > 0")
 ENTRY (U"Example 4")
 NORMAL (U"Draw parts where pitch is larger than 300 Hz in red:")
 CODE (U"s = selected (\"Sound\")")
 CODE (U"p = To Pitch: 0, 75, 600")
-CODE (U"pt = Down to PitchTier\"")
+CODE (U"pt = Down to PitchTier")
 CODE (U"selectObject: s")
-CODE (U"Colour: \"Red\"")
-CODE (U"Draw where: 0, 0, -1, 1, \"yes\", \"Curve\", \"Object_'pt'(x) > 300\"")
-CODE (U"Colour: \"Black\"")
-CODE (U"Draw where: 0, 0, -1, 1, \"yes\", \"Curve\", \"not (Object_'pt'(x) > 300)\"")
+CODE (U"Colour: ~ Red")
+CODE (U"Draw where: 0, 0, -1, 1, \"yes\", \"Curve\", ~ object (pt, x) > 300")
+CODE (U"Colour: ~ Black")
+CODE (U"Draw where: 0, 0, -1, 1, \"yes\", \"Curve\", ~ not (object (pt, x) > 300)")
 MAN_END
 
-MAN_BEGIN (U"Sound: Fade in...", U"djmw", 20140117)
+MAN_BEGIN (U"Sound: Fade in...", U"djmw", 20170829)
 INTRO (U"A command to gradually increase the amplitude of a selected @Sound.")
 ENTRY (U"Settings")
 TAG (U"##Channel")
@@ -3589,11 +3769,11 @@ ENTRY (U"Cross-fading two sounds")
 NORMAL (U"The following script cross-fades two sounds s1 and s2 at time 1 second and leaves the result in s2.")
 CODE1 (U"crossFTime = 0.5")
 CODE1 (U"t = 1")
-CODE1 (U"Create Sound from formula: \"s1\", 1, 0, 2, 44100, \"sin(2*pi*500*x)\"")
+CODE1 (U"s = Create Sound from formula: \"s1\", 1, 0, 2, 44100, ~ sin(2*pi*500*x)")
 CODE1 (U"Fade out: 0, t-crossFTime/2, crossFTime, \"yes\"")
-CODE1 (U"Create Sound from formula: \"s2\", 1, 0, 2, 44100, \"sin(2*pi*1000*x)\"")
+CODE1 (U"Create Sound from formula: \"s2\", 1, 0, 2, 44100, ~ sin(2*pi*1000*x)")
 CODE1 (U"Fade in.: 0, t-crossFTime/2, crossFTime, \"yes\"")
-CODE1 (U"Formula: \"self+Sound_s1[]\"")
+CODE1 (U"Formula: ~ self + object [s]")
 MAN_END
 
 MAN_BEGIN (U"Sound: Fade out...", U"djmw", 20121010)
@@ -3611,21 +3791,19 @@ ENTRY (U"Algorithm")
 NORMAL (U"Multiplication with the first half period of a (1+cos(%%x%))/2 function.")
 MAN_END
 
-MAN_BEGIN (U"Sound: Filter (gammatone)...", U"djmw", 19980712)
+MAN_BEGIN (U"Sound: Filter (gammatone)...", U"djmw", 20170829)
 INTRO (U"A command to filter a Sound by a fourth order gammatone bandpass filter.")
 ENTRY (U"Settings")
 TAG (U"##Centre frequency (Hz)#, ##Bandwidth (Hz)#")
 DEFINITION (U"determine the passband of the filter.")
 ENTRY (U"Algorithm")
-NORMAL (U"The impulse response of the filter is a 4-th order @@gammatone@. This "
-	"filter is implemented as a simple 8-th order recursive digital filter with "
-	"4 zeros and 8 poles (these 8 poles consist of one conjugate pole pair to the "
-	"4-th power). In the Z-domain its formula is: ")
-FORMULA (U"%#H (%z) = (1 + \\su__%i=1..4_ %a__%i_%z^^%\\--i^) / "
-	"(1 + \\su__%j=1..8_ %b__%j_%z^^%\\--j^)")
-NORMAL (U"The derivation of the filter coefficients %a__%i_ and %b__%j_ is "
-	"according to @@Slaney (1993)@. "
+NORMAL (U"The impulse response of the filter is a 4-th order @@gammatone@. The "
+	"filter is implemented as the convolution of the gammatone with the sound. "
 	"The gain of the filter is scaled to unity at the centre frequency.")
+ENTRY (U"Remark")
+NORMAL (U"The old implementation with a simple 8-th order recursive digital filter with "
+	"4 zeros and 8 poles (these 8 poles consist of one conjugate pole pair to the "
+	"4-th power) as suggested by  @@Slaney (1993)@ was not stable for low frequencies. ")
 MAN_END
 
 MAN_BEGIN (U"Sound: Play as frequency shifted...", U"djmw", 20140106)
@@ -3674,7 +3852,7 @@ LIST_ITEM (U"2. We perform a filter bank analysis on a linear frequency scale. "
 	"The bandwidth of the filters depends on the measured pitch (see @@Sound & Pitch: To Spectrogram...@ for details).")
 MAN_END
 
-MAN_BEGIN (U"Sound: Paint where...", U"djmw", 20140509)
+MAN_BEGIN (U"Sound: Paint where...", U"djmw", 20170829)
 INTRO (U"A command to paint only those parts of a @Sound where a condition holds. The painted area is the area "
 	"between the Sound and a horizontal line at a certain level.")
 ENTRY (U"Settings")
@@ -3703,39 +3881,39 @@ ENTRY (U"Example 1")
 NORMAL (U"The following script paints the area under a sine curve in red and the area above in green."
 	"For the first paint the horizontal line is at y=-1, for the second paint the line is at y=+1. "
 	"The formula always evaluates to true.")
-CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"")
-CODE (U"Paint where: \"Red\", 0, 0, -1, 1, -1, \"yes\", \"1\"")
-CODE (U"Paint where: \"Green\", 0, 0, -1, 1, 1, \"no\", \"1\"")
+CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)")
+CODE (U"Paint where: \"Red\", 0, 0, -1, 1, -1, \"yes\", ~ 1")
+CODE (U"Paint where: \"Green\", 0, 0, -1, 1, 1, \"no\", ~ 1 ")
 SCRIPT (8, 5,
-	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"\n"
-	"Paint where: \"Red\", 0, 0, -1, 1, -1, \"no\", \"1\"\n"
-	"Paint where: \"Green\", 0, 0, -1, 1, 1, \"yes\", \"1\"\n"
+	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)\n"
+	"Paint where: \"Red\", 0, 0, -1, 1, -1, \"no\", ~ 1\n"
+	"Paint where: \"Green\", 0, 0, -1, 1, 1, \"yes\", ~ 1\n"
 	"Remove\n")
 ENTRY (U"Example 2")
 NORMAL (U"The following script paints the area below zero in red and the area above in green."
 	"The horizontal line is now always at y=0 and we use the formula to differentiate the areas.")
-CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"")
-CODE (U"Paint where: \"Red\", 0, 0, -1, 1, 0, \"no\", \"self>0\"")
-CODE (U"Paint where: \"Green\", 0, 0, -1, 1, 0, \"yes\", \"self<0\"")
+CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)")
+CODE (U"Paint where: \"Red\", 0, 0, -1, 1, 0, \"no\", ~ self > 0")
+CODE (U"Paint where: \"Green\", 0, 0, -1, 1, 0, \"yes\", ~ self < 0")
 SCRIPT (8, 5,
-	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"\n"
-	"Paint where: \"Red\", 0, 0, -1, 1, 0, \"no\", \"self<0\"\n"
-	"Paint where: \"Green\", 0, 0, -1, 1, 0, \"yes\", \"self>0\"\n"
+	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)\n"
+	"Paint where: \"Red\", 0, 0, -1, 1, 0, \"no\", ~ self < 0\n"
+	"Paint where: \"Green\", 0, 0, -1, 1, 0, \"yes\", ~ self > 0\n"
 	"removeObject: s\n")
 ENTRY (U"Example 3")
 NORMAL (U"To give an indication that the area under a 1/x curve between the points %a and %b and the area "
 	"between %c and %d are equal if %b/%a = %d/%c. For example, for %a=1, %b=2, %c=4 and %d=8: ")
-CODE (U"Create Sound from formula: \"1dx\", \"Mono\", 0, 20, 100, \"1/x\"")
+CODE (U"Create Sound from formula: \"1dx\", \"Mono\", 0, 20, 100, ~ 1.0 / x ")
 CODE (U"Draw: 0, 20, 0, 1.5, \"yes\", \"Curve\"")
-CODE (U"Paint where: \"Grey\", 0, 20, 0, 1.5, 0, \"yes\", \"(x >= 1 and x <2) or (x>=4 and x<8)\"")
+CODE (U"Paint where: \"Grey\", 0, 20, 0, 1.5, 0, \"yes\", ~ (x >= 1 and x < 2) or (x >= 4 and x < 8)")
 CODE (U"One mark bottom: 1, \"yes\", \"yes\", \"no\", \"\"")
 CODE (U"One mark bottom: 2, \"yes\", \"yes\", \"no\", \"\"")
 CODE (U"One mark bottom: 4, \"yes\", \"yes\", \"no\", \"\"")
 CODE (U"One mark bottom: 8, \"yes\", \"yes\", \"no\", \"\"")
 SCRIPT (8, 5,
-	U"s = Create Sound from formula: \"1dx\", \"Mono\", 0, 20, 100, \"1/x\"\n"
+	U"s = Create Sound from formula: \"1dx\", \"Mono\", 0, 20, 100, ~ 1.0 / x\n"
 	"Draw: 0, 20, 0, 1.5, \"yes\", \"Curve\"\n"
-	"Paint where: \"Grey\", 0, 20, 0, 1.5, 0, \"yes\", \"(x >= 1 and x <2) or (x>=4 and x<8)\"\n"
+	"Paint where: \"Grey\", 0, 20, 0, 1.5, 0, \"yes\", ~ (x >= 1 and x < 2) or (x >= 4 and x < 8)\n"
 	"One mark bottom: 1, \"yes\", \"yes\", \"no\", \"\"\n"
 	"One mark bottom: 2, \"yes\", \"yes\", \"no\", \"\"\n"
 	"One mark bottom: 4, \"yes\", \"yes\", \"no\", \"\"\n"
@@ -3743,7 +3921,7 @@ SCRIPT (8, 5,
 	"removeObject: s\n")
 MAN_END
 
-MAN_BEGIN (U"Sounds: Paint enclosed...", U"djmw", 20140509)
+MAN_BEGIN (U"Sounds: Paint enclosed...", U"djmw", 20170829)
 INTRO (U"Paints the area between the two selected @@Sound@s. ")
 ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (4), U""
@@ -3761,19 +3939,19 @@ TAG (U"##Vertical range")
 DEFINITION (U"defines the vertical limits, larger amplitudes will be clipped.")
 ENTRY (U"Example")
 NORMAL (U"The following script paints the area enclosed between a sine tone of 5 Hz and the straight line %y = %x/2.")
-CODE (U"s1 = Create Sound from formula: \"sine\", \"Mono\", 0, 1, 10000, \"1/2 * sin(2*pi*5*x)\"")
-CODE (U"s2 = Create Sound from formula: \"line\", \"Mono\", 0, 1, 10000, \"x / 2\"")
+CODE (U"s1 = Create Sound from formula: \"sine\", \"Mono\", 0, 1, 10000, ~ 1/2 * sin(2*pi*5*x)\"")
+CODE (U"s2 = Create Sound from formula: \"line\", \"Mono\", 0, 1, 10000, ~ x / 2")
 CODE (U"plusObject (s1)")
-CODE (U"Paint enclosed: \"Grey\", 0, 0, -1, 1, \"yes\"")
+CODE (U"Paint enclosed: \"Grey\", 0, 0, -1, 1, ~ yes")
 SCRIPT ( 4, 2,
-	 U"s1 = Create Sound from formula: \"sine\", \"Mono\", 0, 1, 10000, \"1/2 * sin(2*pi*5*x)\"\n"
-	"s2 = Create Sound from formula: \"line\", \"Mono\", 0, 1, 10000, \"x / 2\"\n"
+	 U"s1 = Create Sound from formula: \"sine\", \"Mono\", 0, 1, 10000, ~ 1/2 * sin(2*pi*5*x)\n"
+	"s2 = Create Sound from formula: \"line\", \"Mono\", 0, 1, 10000, ~ x / 2\n"
 	"selectObject: s1, s2\n"
 	"Paint enclosed: \"Grey\", 0, 0, -1, 1, \"yes\"\n"
 	"removeObject: s1, s2\n")
 MAN_END
 
-MAN_BEGIN (U"Sound: To Polygon...", U"djmw", 20140509)
+MAN_BEGIN (U"Sound: To Polygon...", U"djmw", 20170829)
 INTRO (U"A command that creates a @@Polygon@ from a selected @@Sound@, where the Polygon's "
 	" points are defined by the (%time, %amplitude) pairs of the sound. ")
 ENTRY (U"Settings")
@@ -3788,7 +3966,7 @@ DEFINITION (U"defines the y-value of the first and last point of the Polygon. Th
 	" draw a closed Polygon with the horizontal connection line at any position you like. ")
 ENTRY (U"Example")
 NORMAL (U"The following script paints the area under a sound curve in red and the area above in green.")
-CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"")
+CODE (U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)")
 CODE (U"\\# Connection y-value is at amplitude -1: area under the curve.")
 CODE (U"p1 = To Polygon: 1, 0, 0, -1, 1, -1")
 CODE (U"Paint: \"{1,0,0}\", 0, 0, -1, 1")
@@ -3797,7 +3975,7 @@ CODE (U"\\# Connection y-value is now at amplitude 1: area above the curve.")
 CODE (U"p2 = To Polygon: 1, 0, 0, -1, 1, 1")
 CODE (U"Paint: \"{0,1,0}\", 0, 0, -1, 1")
 SCRIPT (4.5, 2,
-	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, \"0.5*sin(2*pi*5*x)\"\n"
+	U"s = Create Sound from formula: \"s\", 1, 0, 1, 10000, ~ 0.5*sin(2*pi*5*x)\n"
 	"p1 = To Polygon: 1, 0, 0, -1, 1, -1\n"
 	"Paint: \"{1,0,0}\", 0, 0, -1, 1\n"
 	"selectObject: s\n"
@@ -3965,7 +4143,7 @@ DEFINITION (U"the number of neighbouring frequency points that are used in the c
 MAN_END
 
 MAN_BEGIN (U"SpeechSynthesizer", U"djmw", 20120413)
-INTRO (U"The SpeechSynthesizer is one of the @@types of objects@ in Praat. It creates a speech sound from text. The actual text-to-speech synthesis is performed by the @@Espeak@ speech synthsizer and therefore our SpeechSynthsizer is merely an interface to Espeak.")
+INTRO (U"The SpeechSynthesizer is one of the @@types of objects@ in Praat. It creates a speech sound from text. The actual text-to-speech synthesis is performed by the @@Espeak|eSpeak NG@ speech synthsizer and therefore our SpeechSynthsizer is merely an interface to Espeak.")
 ENTRY (U"Commands")
 NORMAL (U"Creation:")
 LIST_ITEM (U"\\bu @@Create SpeechSynthesizer...@")
@@ -3977,8 +4155,8 @@ LIST_ITEM (U"\\bu @@SpeechSynthesizer: Set text input settings...|Set text input
 LIST_ITEM (U"\\bu @@SpeechSynthesizer: Set speech output settings...|Set speech output settings...@")
 MAN_END
 
-MAN_BEGIN (U"Create SpeechSynthesizer...", U"djmw", 20120221)
-INTRO (U"Creates the @@Espeak@ speech synthesizer.")
+MAN_BEGIN (U"Create SpeechSynthesizer...", U"djmw", 20171101)
+INTRO (U"Creates the @@Espeak|eSpeak NG@ speech synthesizer.")
 ENTRY (U"Settings")
 TAG (U"##Language#")
 DEFINITION (U"determines the language of the synthesizer.")
@@ -3986,47 +4164,53 @@ TAG (U"##Voice variant#")
 DEFINITION (U"determines which voice type the synthesizer uses (male, female or whispered voices).")
 MAN_END
 
-MAN_BEGIN (U"SpeechSynthesizer: Play text...", U"djmw", 20120413)
-INTRO (U"The selected @@SpeechSynthesizer@ plays a text")
+MAN_BEGIN (U"SpeechSynthesizer: Play text...", U"djmw", 20171101)
+INTRO (U"The selected @@SpeechSynthesizer@ plays a text.")
 ENTRY (U"Settings")
 TAG (U"##Text#")
 DEFINITION (U"is the text to be played. Text within [[ ]] is treated as phonemes codes in @@Kirshenbaum phonetic encoding@. For example, besides a text like \"This is text\", you might also input \"This [[Iz]] text\".")
 MAN_END
 
-MAN_BEGIN (U"SpeechSynthesizer: To Sound...", U"djmw", 20120414)
+MAN_BEGIN (U"SpeechSynthesizer: To Sound...", U"djmw", 20171101)
 INTRO (U"The selected @@SpeechSynthesizer@ converts a text to the corresponding speech sound.")
 ENTRY (U"Settings")
 TAG (U"##Text#")
 DEFINITION (U"is the text to be played. Text within [[ ]] is treated as phonemes codes in @@Kirshenbaum phonetic encoding@. For example, besides a text like \"This is text\", you might also input \"This [[Iz]] text\".")
 TAG (U"##Create TextGrid with annotations#")
-DEFINITION (U"determines whether, besides the sound, a TextGrid with multiple-tier annotations will appear.")
+DEFINITION (U"determines whether, besides the sound, a @@TextGrid@ with multiple-tier annotations will appear.")
 MAN_END
 
-MAN_BEGIN (U"SpeechSynthesizer: Set text input settings...", U"djmw", 20120414)
+MAN_BEGIN (U"SpeechSynthesizer: Set text input settings...", U"djmw", 20171101)
 INTRO (U"A command available in the ##Modify# menu when you select a @@SpeechSynthesizer@.")
 ENTRY (U"Settings")
 TAG (U"##Input text format is#")
 DEFINITION (U"determines how the input text will be synthesized.")
 TAG (U"##Input phoneme codes are#")
-DEFINITION (U"")
+DEFINITION (U"currently only @@Kirshenbaum phonetic encoding@ is available.")
 MAN_END
 
-MAN_BEGIN (U"SpeechSynthesizer: Set speech output settings...", U"djmw", 20120414)
+MAN_BEGIN (U"SpeechSynthesizer: Set speech output settings...", U"djmw", 20171102)
 INTRO (U"A command available in the ##Modify# menu when you select a @@SpeechSynthesizer@.")
 ENTRY (U"Settings")
 TAG (U"##Sampling frequency#")
 DEFINITION (U"determines how the sampling frequency of the sound.")
 TAG (U"##Gap between words#")
 DEFINITION (U"determines the amount of silence between words.")
-TAG (U"##Pitch adjustment#")
-DEFINITION (U"")
-TAG (U"##Pitch range#")
-DEFINITION (U"")
+TAG (U"##Pitch multiplier (0.5-2.0)#")
+DEFINITION (U"determines how much the pitch will be changed. The extremes 0.5 and 2.0 represent, respectively, one octave "
+	"below and one octave above the default pitch. ")
+TAG (U"##Pitch range multiplier (0.0-2.0)#")
+DEFINITION (U"determines how much the pitch range will be scaled. A value of 0.0 means monotonous pitch while a value of 2.0 means twice the default range.")
 TAG (U"##Words per minute#")
 DEFINITION (U"determines the speaking rate in words per minute.")
-TAG (U"##estimate words per minute from data#")
-DEFINITION (U"")
 TAG (U"##Output phoneme codes are#")
+MAN_END
+
+MAN_BEGIN (U"SpeechSynthesizer: Set speech rate from speech...", U"djmw", 20171102)
+INTRO (U"A command available in the ##Modify# menu when you select a @@SpeechSynthesizer@.")
+ENTRY (U"Settings")
+TAG (U"##Estimate speech rate from speech#")
+DEFINITION (U"determines how speech rate is chosen. This is only used for the alignment of speech with text. If on, the speech rate is estimated from the part of speech that has to be aligned. ")
 MAN_END
 
 MAN_BEGIN (U"SSCP", U"djmw", 19981103)
@@ -4367,7 +4551,7 @@ SCRIPT (5,3, U"pb = Create formant table (Peterson & Barney 1952)\n"
 )
 MAN_END
 
-MAN_BEGIN (U"Table: Line graph where...", U"djmw", 20140509)
+MAN_BEGIN (U"Table: Line graph where...", U"djmw", 20170829)
 INTRO (U"Draws a line graph from the data in a column of the selected @Table. In a line plot the horizontal axis can have a nominal scale or a numeric scale. The data point are connected by line segments.")
 ENTRY (U"Settings")
 SCRIPT (7, Manual_SETTINGS_WINDOW_HEIGHT (8), U""
@@ -4427,9 +4611,9 @@ CODE (U"Text left: 1, \"Prop. of voiced responses\"")
 
 SCRIPT (5,3, U"ganong = Create Table (Ganong 1980)\n"
 	"Dotted line\n"
-	"Line graph where: \"dash-tash\", 0, 1, \"VOT\", -20, 20, \"wn\", 0, 0, \"1\"\n"
+	"Line graph where: \"dash-tash\", 0, 1, \"VOT\", -20, 20, \"wn\", 0, 0, ~1\n"
 	"Dashed line\n"
-	"Line graph where: \"dask-task\", 0, 1, \"VOT\", -20, 20, \"nw\", 0, 0, \"1\"\n"
+	"Line graph where: \"dask-task\", 0, 1, \"VOT\", -20, 20, \"nw\", 0, 0, ~1\n"
 	"Draw inner box\n"
 	"One mark bottom: 2.5, 0, 1, 0, \"+2.5\"\n"
 	"One mark bottom: -2.5, 1, 1, 0, \"\"\n"
@@ -4445,11 +4629,11 @@ SCRIPT (5,3, U"ganong = Create Table (Ganong 1980)\n"
 )
 NORMAL (U"As an example of what happens if you don't supply an argument for the \"Horizontal column\" we will use the same table as for the previous plot. However the resulting plot may not be as meaningful (note that the horizontal nominal scale makes all points equidistant in the horizontal direction.)")
 CODE (U"Dotted line\")\n")
-CODE (U"Line graph where: \"dash-tash\", 0, 1, \"\", 0, 0, \"wn\", 0, 1, \"1\"")
+CODE (U"Line graph where: \"dash-tash\", 0, 1, \"\", 0, 0, \"wn\", 0, 1, ~ 1")
 CODE (U"One mark bottom: 1, 0, 1, 0, \"Short VOT\"")
 SCRIPT (5,3, U"ganong = Create Table (Ganong 1980)\n"
 	"Dotted line\n"
-	"Line graph where: \"dash-tash\", 0, 1, \"\", 0, 0, \"wn\", 0, 1, \"1\"\n"
+	"Line graph where: \"dash-tash\", 0, 1, \"\", 0, 0, \"wn\", 0, 1, ~1\n"
 	"One mark bottom: 1, 0, 1, 0, \"Short VOT\"\n"
 	"removeObject: ganong\n"
 )
@@ -4659,6 +4843,31 @@ TAG (U"%Ymin and %Ymax")
 DEFINITION (U"determine the drawing boundaries.")
 MAN_END
 
+MAN_BEGIN (U"TableOfReal: Draw as scalable squares...", U"djmw", 20180304)
+INTRO (U"A command to draw the cells of the table as squares whose areas conform to the cell's value. ")
+ENTRY (U"Settings")
+TAG (U"##From row#, ##To row#")
+DEFINITION (U"determine the rows to be drawn.")
+TAG (U"##From column#, ##To column#")
+DEFINITION (U"determine the columns to be drawn.")
+TAG (U"##Origin")
+DEFINITION (U"determines the drawing orientation. For a table with %%nrow% rows and %%ncol% columns:")
+TAG1 (U"%%top-left%: cel [1][1] will be at the top left position in the drawing, cell [%%nrow%][%%ncol%] will be at bottom right position.")
+TAG1 (U"%%top-right%: cel [1][1] will be at the top right position in the drawing, cell [%%nrow%][%%ncol%] will be at bottom left position.")
+TAG1 (U"%%bottom-left%: cel [1][1] will be at the bottom left position in the drawing, cell [%%nrow%][%%ncol%] will be at top right position.")
+TAG1 (U"%%bottom-right%: cel [1][1] will be at the bottom right position in the drawing, cell [%%nrow%][%%ncol%] will be at top left position.")
+TAG (U"##Cell area scale factor#")
+DEFINITION (U"multiplies the area of each cell's square. If this factor is larger than 1.0 some of the squares might overlap.")
+TAG (U"##Filling order#")
+DEFINITION (U"determines in what order the squares will be drawn. The order is only important if some of the squares overlap, "
+	"i.e. if the cell area scale factor is larger than 1.0.")
+TAG1 (U"%%rows%: start with the first row, cell [1][1] to cell [1][%%ncol%], next the second row, etc...")
+TAG1 (U"%%columns% start with column 1, cell [1][1] to cell [%%nrow%][1], next column 2 etc...")
+TAG1 (U"%%increasing-values%: first sort the cell values in increasing order and then start drawing them, the cell with the smallest value first. ")
+TAG1 (U"%%decreasing-values%: first sort the cell values in decreasing order and then start drawing them, the cell with the largest value first.")
+TAG1 (U"%%random%: draw cells in random order. If the cell area scale factor is larger than 1.0 this may result in a different graph of the same table for each successive call.")
+MAN_END
+
 MAN_BEGIN (U"TableOfReal: Draw rows as histogram...", U"djmw", 20030619)
 INTRO (U"A command to draw a histogram from the rows in the selected "
 	"@TableOfReal object.")
@@ -4734,6 +4943,8 @@ FORMULA (U"(%x__%ij_ \\-- %\\mu__%j_) / %\\si__%j_, ")
 NORMAL (U"where %\\mu__%j_ and %\\si__%j_ are the mean and the standard deviation as calculated "
 	"from the %j^^th^ column, respectively. After standardization all column means will equal zero "
 	"and all column standard deviations will equal one.")
+ENTRY (U"Algorithm")
+NORMAL (U"Standard deviations are calculated with the corrected two-pass algorithm as described in @@Chan, Golub & LeVeque (1983)@.")
 MAN_END
 
 MAN_BEGIN (U"TableOfReal: To Configuration (lda)...", U"djmw", 19981103)
@@ -4863,9 +5074,9 @@ INTRO (U"A command that creates a @CCA object from the selected "
 ENTRY (U"Settings")
 TAG (U"%%Dimension of dependent variate (ny)")
 DEFINITION (U"defines the partition of the table into the two parts whose "
-	"correlations will be determined. The first %ny columns must be the "
+	"correlations will be determined. The first %ny columns should be the "
 	"dependent part, the rest of the columns will be interpreted as the "
-	"independent part (%nx columns). In general %nx must be larger than or "
+	"independent part (%nx columns). In general %nx should be larger than or "
 	"equal to %ny.")
 ENTRY (U"Behaviour")
 NORMAL (U"Calculates canonical correlations between the %dependent and the "
@@ -5171,6 +5382,14 @@ NORMAL (U"A. Boomsma (1977): \"Comparing approximations of confidence intervals 
 	"#31: 179-186.")
 MAN_END
 
+MAN_BEGIN (U"Chan, Golub & LeVeque (1983)", U"djmw", 20170802)
+NORMAL (U"T.F. Chan, G.H. Golub & R.J. LeVeque (1983): \"Algorithms for computing the sample variance: Analysis and recommendations.\" %%The American Statistician% #37: 242\\--247.")
+MAN_END
+
+MAN_BEGIN (U"Chan, Golub & LeVeque (1979)", U"djmw", 20170802)
+NORMAL (U"T.F. Chan, G.H. Golub & R.J. LeVeque (1979): \"Updating formulae and an pairwise algorithm for computing sample variances.\" %%Stanford working paper STAN-CS-79-773%, 1\\--22.")
+MAN_END
+
 MAN_BEGIN (U"Cooley & Lohnes (1971)", U"djmw", 20060322)
 NORMAL (U"W.W. Colley & P.R. Lohnes (1971): %%Multivariate data analysis%. "
 	"John Wiley & Sons.")
@@ -5178,9 +5397,13 @@ MAN_END
 
 MAN_BEGIN (U"Davis & Mermelstein (1980)", U"djmw", 20010419)
 NORMAL (U"S.B. Davis & P. Mermelstein (1980), \"Comparison of parametric "
-	"representations for monosyllabic word recognition in continuously "
-	"spoken sentences.\" "
+	"representations for monosyllabic word recognition in continuously spoken sentences.\" "
 	"%%IEEE Transactions on ASSP% #28: 357\\--366.")
+MAN_END
+
+MAN_BEGIN (U"Deng & Tang (2011)", U"djmw", 20170915)
+NORMAL (U"X. Deng & Z. Tang (2011). \"Moving surface spline interpolation based on Green's function\": "
+	"%%Mathematical Geosciences% #43: 663\\--680.")
 MAN_END
 
 MAN_BEGIN (U"Efron & Tibshirani (1993)", U"djmw", 20031103)
@@ -5188,8 +5411,13 @@ NORMAL (U"B. Efron & R.J. Tibshirani (1993): %%An introduction "
 	"to the bootstrap%. Chapman & Hall.")
 MAN_END
 
-MAN_BEGIN (U"Espeak", U"djmw", 20111217)
-NORMAL (U"Jonathan Duddington's Espeak speech synthesizer, available via http://espeak.sourceforge.net/")
+#define xstr(s) str(s)
+#define str(s) #s
+MAN_BEGIN (U"Espeak", U"djmw", 20171101)
+NORMAL (U"Espeak is a free text to speech synthesizer. It was developed by Jonathan Duddington and its development has stopped in 2015. "
+	"In 2015 Reece Dunn has taken a copy of espeak and together with a group of developers they maintain and actualize their version of espeak which they call \"eSpeak NG\". eSpeak NG uses formant synthesis. "
+	"Currently it supports 100 languages with varying quality of the voices. The current version of eSpeakNG incorporated in Praat is " xstr(ESPEAK_NG_VERSIONX) ".")
+NORMAL (U"The wikipedia page https://en.wikipedia.org/wiki/ESpeakNG gives more details.")
 MAN_END
 
 MAN_BEGIN (U"Flanagan (1960)", U"djmw", 19980713)
@@ -5302,6 +5530,11 @@ NORMAL (U"H. Sakoe & S. Chiba (1978): \"Dynamic programming algorithm optimizati
 	"%%Transactions on ASSP% #26: 43\\--49.")
 MAN_END
 
+MAN_BEGIN (U"Sandwell (1987)", U"djmw", 20170915)
+NORMAL (U"D.T. Sandwell (1987): \"Biharmonic spline interpolation of GEOS-3 and SEASAT altimeter data.\", "
+		"%%Geophysica Research Letters% #14: 139\\--142.")
+MAN_END
+
 MAN_BEGIN (U"Sekey & Hanson (1984)", U"djmw", 20050302)
 NORMAL (U"A. Sekey & B.A. Hanson (1984): \"Improved 1-Bark bandwidth auditory filter.\" "
 	"%%Journal of the Acoustical Society of America% #75: 1902\\--1904.")
@@ -5362,6 +5595,10 @@ NORMAL (U"D.J.M. Weenink (2003): \"Canonical correlation analysis.\" "
 		"University of Amsterdam% #25: 81\\--99.")
 MAN_END
 
+MAN_BEGIN (U"Wessel & Bercovici (1989)", U"djmw", 20170917)
+NORMAL (U"P. Wessel & D. Bercovici (1998): \"Interpolation with splines in tension: a Green's function approach.\" "
+	"%%Mathematical Geology% #30: 77\\--93.")
+MAN_END
 }
 
 /* End of file manual_dwtools.cpp */

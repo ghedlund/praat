@@ -2,7 +2,7 @@
 #define _RealTier_h_
 /* RealTier.h
  *
- * Copyright (C) 1992-2011,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,13 +47,13 @@ autoRealTier RealTier_createWithClass (double tmin, double tmax, ClassInfo klas)
 		result -> points.size == 0;
 */
 
-double RealTier_getValueAtIndex (RealTier me, long point);
-/* No points or 'point' out of range: NUMundefined. */
+double RealTier_getValueAtIndex (RealTier me, integer point);
+/* No points or 'point' out of range: undefined. */
 
 double RealTier_getValueAtTime (RealTier me, double t);
 /* Inside points: linear intrapolation. */
 /* Outside points: constant extrapolation. */
-/* No points: NUMundefined. */
+/* No points: undefined. */
 
 double RealTier_getMinimumValue (RealTier me);
 double RealTier_getMaximumValue (RealTier me);
@@ -65,18 +65,18 @@ double RealTier_getStandardDeviation_points (RealTier me, double tmin, double tm
 
 void RealTier_addPoint (RealTier me, double t, double value);
 void RealTier_draw (RealTier me, Graphics g, double tmin, double tmax,
-	double ymin, double ymax, int garnish, const char32 *method, const char32 *quantity);
-autoTableOfReal RealTier_downto_TableOfReal (RealTier me, const char32 *timeLabel, const char32 *valueLabel);
+	double ymin, double ymax, int garnish, conststring32 method, conststring32 quantity);
+autoTableOfReal RealTier_downto_TableOfReal (RealTier me, conststring32 timeLabel, conststring32 valueLabel);
 
-void RealTier_interpolateQuadratically (RealTier me, long numberOfPointsPerParabola, int logarithmically);
+void RealTier_interpolateQuadratically (RealTier me, integer numberOfPointsPerParabola, int logarithmically);
 
-autoTable RealTier_downto_Table (RealTier me, const char32 *indexText, const char32 *timeText, const char32 *valueText);
-autoRealTier Vector_to_RealTier (Vector me, long channel, ClassInfo klas);
-autoRealTier Vector_to_RealTier_peaks (Vector me, long channel, ClassInfo klas);
-autoRealTier Vector_to_RealTier_valleys (Vector me, long channel, ClassInfo klas);
+autoTable RealTier_downto_Table (RealTier me, conststring32 indexText, conststring32 timeText, conststring32 valueText);
+autoRealTier Vector_to_RealTier (Vector me, integer channel, ClassInfo klas);
+autoRealTier Vector_to_RealTier_peaks (Vector me, integer channel, ClassInfo klas);
+autoRealTier Vector_to_RealTier_valleys (Vector me, integer channel, ClassInfo klas);
 autoRealTier PointProcess_upto_RealTier (PointProcess me, double value, ClassInfo klas);
 
-void RealTier_formula (RealTier me, const char32 *expression, Interpreter interpreter, RealTier thee);
+void RealTier_formula (RealTier me, conststring32 expression, Interpreter interpreter, RealTier thee);
 void RealTier_multiplyPart (RealTier me, double tmin, double tmax, double factor);
 void RealTier_removePointsBelow (RealTier me, double level);
 

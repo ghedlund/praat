@@ -1,6 +1,6 @@
 /* Sampled_def.h
  *
- * Copyright (C) 1992-2011,2014,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2011,2014-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,20 +20,17 @@
 #define ooSTRUCT Sampled
 oo_DEFINE_CLASS (Sampled, Function)
 
-	oo_INT32 (nx)
+	oo_INTEGER (nx)
 	oo_DOUBLE (dx)
 	oo_DOUBLE (x1)
 
 	#if oo_READING
-		if (xmin > xmax) {
-			Melder_throw (U"xmax should be greater than xmin.");
-		}
-		if (nx < 1) {
-			Melder_throw (U"nx should be at least 1.");
-		}
-		if (dx <= 0.0) {
-			Melder_throw (U"dx should be positive.");
-		}
+		Melder_require (xmax >= xmin,
+			U"xmax should be at least as great as xmin.");
+		Melder_require (nx >= 1,
+			U"nx should be at least 1.");
+		Melder_require (dx > 0.0,
+			U"dx should be positive.");
 	#endif
 
 	#if oo_DECLARING
@@ -47,15 +44,15 @@ oo_DEFINE_CLASS (Sampled, Function)
 			override { return dx; }
 		bool v_hasGetX ()
 			override { return true; }
-		double v_getX (long ix)
+		double v_getX (integer ix)
 			override { return x1 + (ix - 1) * dx; }
 		void v_shiftX (double xfrom, double xto)
 			override;
 		void v_scaleX (double xminfrom, double xmaxfrom, double xminto, double xmaxto)
 			override;
 
-		virtual double v_getValueAtSample (long /* isamp */, long /* ilevel */, int /* unit */)
-			{ return NUMundefined; }
+		virtual double v_getValueAtSample (integer /* isamp */, integer /* ilevel */, int /* unit */)
+			{ return undefined; }
 	#endif
 
 oo_END_CLASS (Sampled)

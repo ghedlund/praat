@@ -1,6 +1,6 @@
 /* OTMultiEditor.cpp
  *
- * Copyright (C) 2005-2011,2012,2013,2014,2015,2016,2017 Paul Boersma
+ * Copyright (C) 2005-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,11 +31,11 @@ Thing_implement (OTMultiEditor, HyperPage, 0);
 
 static void menu_cb_evaluate (OTMultiEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Evaluate", nullptr)
-		REAL (U"Evaluation noise", U"2.0")
+		REAL (evaluationNoise, U"Evaluation noise", U"2.0")
 	EDITOR_OK
 	EDITOR_DO
 		Editor_save (me, U"Evaluate");
-		OTMulti_newDisharmonies ((OTMulti) my data, GET_REAL (U"Evaluation noise"));
+		OTMulti_newDisharmonies ((OTMulti) my data, evaluationNoise);
 		Graphics_updateWs (my graphics.get());
 		Editor_broadcastDataChanged (me);
 	EDITOR_END
@@ -57,24 +57,24 @@ static void menu_cb_evaluate_tinyNoise (OTMultiEditor me, EDITOR_ARGS_DIRECT) {
 
 static void menu_cb_editRanking (OTMultiEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Edit ranking", nullptr)
-		LABEL (U"constraint", U"");
-		REAL (U"Ranking value", U"100.0");
-		REAL (U"Disharmony", U"100.0");
+		MUTABLE_LABEL (constraintLabel, U"")
+		REAL (rankingValue, U"Ranking value", U"100.0")
+		REAL (disharmony, U"Disharmony", U"100.0")
 	EDITOR_OK
 		OTMulti grammar = (OTMulti) my data;
 		OTConstraint constraint;
 		if (my selectedConstraint < 1 || my selectedConstraint > grammar -> numberOfConstraints)
 			Melder_throw (U"Select a constraint first.");
 		constraint = & grammar -> constraints [grammar -> index [my selectedConstraint]];
-		SET_STRING (U"constraint", constraint -> name)
-		SET_REAL (U"Ranking value", constraint -> ranking)
-		SET_REAL (U"Disharmony", constraint -> disharmony)
+		SET_STRING (constraintLabel, constraint -> name.get())
+		SET_REAL (rankingValue, constraint -> ranking)
+		SET_REAL (disharmony, constraint -> disharmony)
 	EDITOR_DO
 		OTMulti grammar = (OTMulti) my data;
 		OTConstraint constraint = & grammar -> constraints [grammar -> index [my selectedConstraint]];
 		Editor_save (me, U"Edit ranking");
-		constraint -> ranking = GET_REAL (U"Ranking value");
-		constraint -> disharmony = GET_REAL (U"Disharmony");
+		constraint -> ranking = rankingValue;
+		constraint -> disharmony = disharmony;
 		OTMulti_sort (grammar);
 		Graphics_updateWs (my graphics.get());
 		Editor_broadcastDataChanged (me);
@@ -83,23 +83,22 @@ static void menu_cb_editRanking (OTMultiEditor me, EDITOR_ARGS_FORM) {
 
 static void menu_cb_learnOne (OTMultiEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Learn one", U"OTGrammar: Learn one...")
-		OPTIONMENU_ENUM (U"Update rule", kOTGrammar_rerankingStrategy, kOTGrammar_rerankingStrategy_SYMMETRIC_ALL)
-		OPTIONMENU (U"Direction", 3)
+		OPTIONMENU_ENUM (kOTGrammar_rerankingStrategy, updateRule,
+				U"Update rule", kOTGrammar_rerankingStrategy::SYMMETRIC_ALL)
+		OPTIONMENU (direction, U"Direction", 3)
 			OPTION (U"forward")
 			OPTION (U"backward")
 			OPTION (U"bidirectionally")
-		REAL (U"Plasticity", U"0.1")
-		REAL (U"Rel. plasticity spreading", U"0.1")
+		REAL (plasticity, U"Plasticity", U"0.1")
+		REAL (relativePlasticitySpreading, U"Rel. plasticity spreading", U"0.1")
 	EDITOR_OK
 	EDITOR_DO
 		Editor_save (me, U"Learn one");
-		Melder_free (my form1);
-		Melder_free (my form2);
 		my form1 = GuiText_getString (my form1Text);
 		my form2 = GuiText_getString (my form2Text);
-		OTMulti_learnOne ((OTMulti) my data, my form1, my form2,
-			GET_ENUM (kOTGrammar_rerankingStrategy, U"Update rule"), GET_INTEGER (U"Direction"),
-			GET_REAL (U"Plasticity"), GET_REAL (U"Rel. plasticity spreading"));
+		OTMulti_learnOne ((OTMulti) my data, my form1.get(), my form2.get(),
+			updateRule, direction,
+			plasticity, relativePlasticitySpreading);
 		Graphics_updateWs (my graphics.get());
 		Editor_broadcastDataChanged (me);
 	EDITOR_END
@@ -111,18 +110,18 @@ static void menu_cb_removeConstraint (OTMultiEditor me, EDITOR_ARGS_DIRECT) {
 		Melder_throw (U"Select a constraint first.");
 	OTConstraint constraint = & grammar -> constraints [grammar -> index [my selectedConstraint]];
 	Editor_save (me, U"Remove constraint");
-	OTMulti_removeConstraint (grammar, constraint -> name);
+	OTMulti_removeConstraint (grammar, constraint -> name.get());
 	Graphics_updateWs (my graphics.get());
 	Editor_broadcastDataChanged (me);
 }
 
 static void menu_cb_resetAllRankings (OTMultiEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Reset all rankings", nullptr)
-		REAL (U"Ranking", U"100.0")
+		REAL (ranking, U"Ranking", U"100.0")
 	EDITOR_OK
 	EDITOR_DO
 		Editor_save (me, U"Reset all rankings");
-		OTMulti_reset ((OTMulti) my data, GET_REAL (U"Ranking"));
+		OTMulti_reset ((OTMulti) my data, ranking);
 		Graphics_updateWs (my graphics.get());
 		Editor_broadcastDataChanged (me);
 	EDITOR_END
@@ -133,8 +132,6 @@ static void menu_cb_OTLearningTutorial (OTMultiEditor, EDITOR_ARGS_DIRECT) {
 }
 
 static void do_limit (OTMultiEditor me) {
-	Melder_free (my form1);
-	Melder_free (my form2);
 	my form1 = GuiText_getString (my form1Text);
 	my form2 = GuiText_getString (my form2Text);
 	Graphics_updateWs (my graphics.get());
@@ -179,7 +176,7 @@ void structOTMultiEditor :: v_createHelpMenuItems (EditorMenu menu) {
 }
 
 static OTMulti drawTableau_grammar;
-static const char32 *drawTableau_form1, *drawTableau_form2;
+static conststring32 drawTableau_form1, drawTableau_form2;
 static bool drawTableau_constraintsAreDrawnVertically;
 static void drawTableau (Graphics g) {
 	OTMulti_drawTableau (drawTableau_grammar, g, drawTableau_form1, drawTableau_form2, drawTableau_constraintsAreDrawnVertically, true);
@@ -187,14 +184,14 @@ static void drawTableau (Graphics g) {
 
 void structOTMultiEditor :: v_draw () {
 	OTMulti grammar = (OTMulti) data;
-	static MelderString buffer { 0 };
+	static MelderString buffer { };
 	double rowHeight = 0.25, tableauHeight = 2 * rowHeight;
 	Graphics_clearWs (graphics.get());
 	HyperPage_listItem (this, U"\t\t      %%ranking value\t      %disharmony\t      %plasticity");
-	for (long icons = 1; icons <= grammar -> numberOfConstraints; icons ++) {
+	for (integer icons = 1; icons <= grammar -> numberOfConstraints; icons ++) {
 		OTConstraint constraint = & grammar -> constraints [grammar -> index [icons]];
 		MelderString_copy (& buffer, U"\t", ( icons == selectedConstraint ? U"♠︎ " : U"   " ), U"@@", icons,
-			U"|", constraint -> name, U"@\t      ", Melder_fixed (constraint -> ranking, 3),
+			U"|", constraint -> name.get(), U"@\t      ", Melder_fixed (constraint -> ranking, 3),
 			U"\t      ", Melder_fixed (constraint -> disharmony, 3),
 			U"\t      ", Melder_fixed (constraint -> plasticity, 6)
 		);
@@ -202,25 +199,25 @@ void structOTMultiEditor :: v_draw () {
 	}
 	Graphics_setAtSignIsLink (graphics.get(), false);
 	drawTableau_grammar = grammar;
-	for (long icand = 1; icand <= grammar -> numberOfCandidates; icand ++) {
-		if (OTMulti_candidateMatches (grammar, icand, form1, form2)) {
+	for (integer icand = 1; icand <= grammar -> numberOfCandidates; icand ++) {
+		if (OTMulti_candidateMatches (grammar, icand, our form1.get(), our form2.get())) {
 			tableauHeight += rowHeight;
 		}
 	}
-	drawTableau_form1 = form1;
-	drawTableau_form2 = form2;
+	drawTableau_form1 = our form1.get();   // BUG: dangle
+	drawTableau_form2 = our form2.get();
 	drawTableau_constraintsAreDrawnVertically = d_constraintsAreDrawnVertically;
 	HyperPage_picture (this, 20, tableauHeight, drawTableau);
 	Graphics_setAtSignIsLink (graphics.get(), true);
 }
 
-int structOTMultiEditor :: v_goToPage (const char32 *title) {
+int structOTMultiEditor :: v_goToPage (conststring32 title) {
 	if (! title) return 1;
 	selectedConstraint = Melder_atoi (title);
 	return 1;
 }
 
-autoOTMultiEditor OTMultiEditor_create (const char32 *title, OTMulti grammar) {
+autoOTMultiEditor OTMultiEditor_create (conststring32 title, OTMulti grammar) {
 	try {
 		autoOTMultiEditor me = Thing_new (OTMultiEditor);
 		my data = grammar;

@@ -1,6 +1,6 @@
 /* SVD.h
  *
- * Copyright (C) 1994-2011, 2015 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,24 +28,17 @@
 
 #include "SVD_def.h"
 
-void SVD_init (SVD me, long numberOfRows, long numberOfColumns);
+void SVD_init (SVD me, integer numberOfRows, integer numberOfColumns);
 
-autoSVD SVD_create (long numberOfRows, long numberOfColumns);
+autoSVD SVD_create (integer numberOfRows, integer numberOfColumns);
 /*
 	my tolerance = eps * MAX (numberOfRows, numberOfColumns)
 	where eps is the floating point precision, approximately 2.2e-16
 */
 
-autoSVD SVD_create_d (double **m, long numberOfRows, long numberOfColumns);
+autoSVD SVD_createFromGeneralMatrix (constMAT m);
 
-autoSVD SVD_create_f (float **m, long numberOfRows, long numberOfColumns);
-/*
-	Copy matrix into svd->u and calculate U D V'
-*/
-
-void SVD_svd_d (SVD me, double **m);
-
-void SVD_svd_f (SVD me, float **m);
+void SVD_svd_d (SVD me, constMAT m);
 /*
 	Perform SVD analysis on matrix M, i.e., decompose M as M = UDV'.
 	Watch out: dataType contains V, not V' !!
@@ -53,8 +46,10 @@ void SVD_svd_f (SVD me, float **m);
 
 void SVD_compute (SVD me);
 
-void SVD_solve (SVD me, double b[], double x[]);
+autoVEC SVD_solve (SVD me, constVEC b);
 /* Solve Ax = b */
+
+void SVD_solve2 (SVD me, double b[], double x[], double fractionOfSumOfSingularValues);
 
 void SVD_sort (SVD me);
 /*
@@ -65,30 +60,39 @@ void SVD_setTolerance (SVD me, double tolerance);
 
 double SVD_getTolerance (SVD me);
 
-long SVD_zeroSmallSingularValues (SVD me, double tolerance);
+double SVD_getConditionNumber (SVD me);
+
+double SVD_getSumOfSingularValuesAsFractionOfTotal (SVD me, integer from, integer to);
+
+integer SVD_getMinimumNumberOfSingularValues (SVD me, double fractionOfSumOfSingularValues);
+
+double SVD_getSumOfSingularValues (SVD me, integer from, integer to);
+
+integer SVD_zeroSmallSingularValues (SVD me, double tolerance);
 /*
 	Zero singular values smaller than maximum_singular_value * tolerance
 	If tolerance == 0 then then my tolerance will be used.
 	Return the number of s.v.'s zeroed.
 */
 
-void SVD_synthesize (SVD me, long sv_from, long sv_to, double **m);
+autoMAT SVD_synthesize (SVD me, integer sv_from, integer sv_to);
 /*
 	Synthesize matrix as U D(sv_from:sv_to) V'.
-	(The synthesized matrix is an approximation of the svd'ed matrix with
-	only a selected number of sv's).
+	(The synthesized matrix is an approximation of the svd'ed matrix if
+	only a selected number of sv's is used).
 	Matrix m is [numberOfRows x numberOfColumns] and must be allocated
 	by caller!
 */
 
-void SVD_getSquared (SVD me, double **m, bool inverse);
+autoMAT SVD_getSquared (SVD me, bool inverse);
+void SVD_getSquared_preallocated (MAT m, SVD me, bool inverse);
 // compute V D^2 V' or V D^-2 V'
 
-long SVD_getRank (SVD me);
+integer SVD_getRank (SVD me);
 
-autoGSVD GSVD_create (long numberOfColumns);
+autoGSVD GSVD_create (integer numberOfColumns);
 
-autoGSVD GSVD_create_d (double **m1, long numberOfRows1, long numberOfColumns, double **m2, long numberOfRows2);
+autoGSVD GSVD_create_d (constMAT m1, constMAT m2);
 
 void GSVD_setTolerance (GSVD me, double tolerance);
 

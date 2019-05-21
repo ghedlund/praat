@@ -1,6 +1,6 @@
 /* FFNet_def.h
  *
- * Copyright (C) 1994-2008 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,57 +26,65 @@
 #define ooSTRUCT FFNet
 oo_DEFINE_CLASS (FFNet, Daata)
 
-	oo_LONG (nLayers)	/* number of layers */
-	
-	oo_LONG_VECTOR_FROM (nUnitsInLayer, 0, nLayers)
-
+	oo_INTEGER (numberOfLayers)	/* number of layers */
+	oo_FROM (1)
+		oo_INTEGER (numberOfInputs)
+		oo_INTEGER (numberOfOutputs)
+	oo_ENDFROM
+	#if oo_READING
+		oo_VERSION_UNTIL (1)
+			oo_INTVEC (numberOfUnitsInLayer, numberOfLayers + 1)
+			numberOfInputs = numberOfUnitsInLayer [1];
+			numberOfOutputs = numberOfUnitsInLayer [numberOfLayers + 1];
+			for (integer ilayer = 1; ilayer <= numberOfLayers; ilayer ++)
+				numberOfUnitsInLayer [ilayer] = numberOfUnitsInLayer [ilayer + 1];
+			numberOfUnitsInLayer.resize (numberOfLayers);
+		oo_VERSION_ELSE
+			oo_INTVEC (numberOfUnitsInLayer, numberOfLayers)
+		oo_VERSION_END
+	#else
+		oo_INTVEC (numberOfUnitsInLayer, numberOfLayers)
+	#endif
 	oo_INT (outputsAreLinear)
-
 	oo_INT (nonLinearityType)
-
 	oo_INT (costFunctionType)
-
-	oo_AUTO_COLLECTION (Categories, outputCategories, SimpleString, 0)
-
-	oo_LONG (nWeights)	/* number of weights */
-
-	oo_DOUBLE_VECTOR (w, nWeights)
+	oo_COLLECTION (Categories, outputCategories, SimpleString, 0)
+	oo_INTEGER (numberOfWeights)	/* number of weights */
+	oo_VEC (w, numberOfWeights)
 	
 	#if ! oo_READING && ! oo_WRITING && ! oo_COMPARING
-		oo_LONG (nNodes)
-		oo_LONG (nInputs)
-		oo_LONG (nOutputs)
-		oo_LONG (dimension)
+		oo_INTEGER (numberOfNodes)
+		oo_INTEGER (dimension)
 
 		#if oo_DECLARING
 			double (*nonLinearity) (FFNet /* me */, double /* x */, double * /* deriv */);
     		void *nlClosure;
-    		double (*costFunction) (FFNet /* me */, const double * /* target */);
+    		double (*costFunction) (FFNet /* me */, constVEC& /* target */);
 			void *cfClosure;
 		#endif
 		
 		#if oo_DECLARING
 			oo_DOUBLE (accumulatedCost)
-			oo_LONG (nPatterns)
-			oo_LONG (currentPattern)
-			double **inputPattern, **targetActivation;
+			oo_INTEGER (numberOfPatterns)
+			oo_INTEGER (currentPattern)
+			MAT inputPattern, targetActivation;
 		#endif
 		#if oo_DECLARING || oo_DESTROYING
-			oo_AUTO_OBJECT (Minimizer, 0, minimizer)
+			oo_OBJECT (Minimizer, 0, minimizer)
 		#endif
 
-		oo_DOUBLE_VECTOR (activity, nNodes)
-		oo_LONG_VECTOR (isbias, nNodes)
-		oo_LONG_VECTOR (nodeFirst, nNodes)
-		oo_LONG_VECTOR (nodeLast, nNodes)
-		oo_LONG_VECTOR (wFirst, nNodes)
-		oo_LONG_VECTOR (wLast, nNodes)
+		oo_VEC (activity, numberOfNodes)
+		oo_INTVEC (isbias, numberOfNodes)
+		oo_INTVEC (nodeFirst, numberOfNodes)
+		oo_INTVEC (nodeLast, numberOfNodes)
+		oo_INTVEC (wFirst, numberOfNodes)
+		oo_INTVEC (wLast, numberOfNodes)
 			
-		oo_DOUBLE_VECTOR (deriv, nNodes)	
-		oo_DOUBLE_VECTOR (error, nNodes)	
-		oo_LONG_VECTOR (wSelected, nWeights)
-		oo_DOUBLE_VECTOR (dw, nWeights)
-		oo_DOUBLE_VECTOR (dwi, nWeights)
+		oo_VEC (deriv, numberOfNodes)	
+		oo_VEC (error, numberOfNodes)	
+		oo_INTVEC (wSelected, numberOfWeights)
+		oo_VEC (dw, numberOfWeights)
+		oo_VEC (dwi, numberOfWeights)
 	#endif
 
 	#if oo_READING
@@ -86,10 +94,10 @@ oo_DEFINE_CLASS (FFNet, Daata)
 	#endif
 
 	#if oo_COPYING
-		thy nonLinearity = nonLinearity;
-    	thy nlClosure = nlClosure;
-    	thy costFunction = costFunction;
-		thy cfClosure = cfClosure;
+		thy nonLinearity = our nonLinearity;
+    	thy nlClosure = our nlClosure;
+    	thy costFunction = our costFunction;
+		thy cfClosure = our cfClosure;
 	#endif
 
 	#if oo_DECLARING

@@ -2,7 +2,7 @@
 #define _GuiP_h_
 /* GuiP.h
  *
- * Copyright (C) 1993-2011,2012,2013,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1993-2013,2015-2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,10 +56,10 @@ class GuiControlBlockValueChangedCallbacks {
 
 	class structGuiObject {
 	public:
-		long magicNumber;
-		unsigned long widgetClass;
+		integer magicNumber;
+		uinteger widgetClass;
 		GuiObject parent, previousSibling, nextSibling, firstChild;
-		char32 *name;
+		autostring32 name;
 		bool inMenu, nativized, managed, insensitive;
 		GuiObject textFocus;   /* For shells. */
 		GuiObject shell;   /* My shell ancestor. */
@@ -84,7 +84,7 @@ class GuiControlBlockValueChangedCallbacks {
 			struct { GuiObject horizontalBar, verticalBar, clipWindow, workWindow; } scrolledWindow;
 			struct { XtCallbackList moveCallbacks; } drawingArea;
 			struct { bool active, isDialog, canFullScreen;
-				unsigned long lowAccelerators [8]; XtCallbackProc goAwayCallback; XtPointer goAwayClosure; } shell;
+				uinteger lowAccelerators [8]; XtCallbackProc goAwayCallback; XtPointer goAwayClosure; } shell;
 			struct { unsigned char acceleratorChar; int acceleratorModifiers; } pushButton;
 			struct { int inBar; } cascadeButton;
 			struct { unsigned char acceleratorChar; int acceleratorModifiers; XtCallbackList valueChangedCallbacks; } toggleButton;
@@ -102,8 +102,8 @@ class GuiControlBlockValueChangedCallbacks {
 		GuiObject messageText;   /* For message boxes. */
 		bool autoUnmanage;   /* For bulletin boards. */
 		GuiObject subMenuId, popUpButton;   /* For cascade buttons and their menus. */
-		long increment, pageIncrement, sliderSize;   /* For scroll bars. */
-		long minimum, maximum, value;   /* For scales and scroll bars. */
+		integer increment, pageIncrement, sliderSize;   /* For scroll bars. */
+		integer minimum, maximum, value;   /* For scales and scroll bars. */
 
 		XtCallbackProc activateCallback, destroyCallback;
 		XtPointer activateClosure, destroyClosure;
@@ -113,8 +113,6 @@ class GuiControlBlockValueChangedCallbacks {
 		int deleteResponse;   /* For shells. */
 		void *userData;
 	};
-
-	#define my  me ->
 
 	extern struct Gui {
 		GuiObject textFocus;
@@ -126,7 +124,7 @@ class GuiControlBlockValueChangedCallbacks {
 	void _Gui_callCallbacks (GuiObject w, XtCallbackList *callbacks, XtPointer call);
 	char32 * _GuiWin_getDrawingAreaClassName (void);
 
-	GuiObject _Gui_initializeWidget (int widgetClass, GuiObject parent, const char32 *name);
+	GuiObject _Gui_initializeWidget (int widgetClass, GuiObject parent, conststring32 name);
 	void _Gui_invalidateWidget (GuiObject me);
 	void _Gui_validateWidget (GuiObject me);
 	void _Gui_manageScrolledWindow (GuiObject me);
@@ -136,7 +134,7 @@ class GuiControlBlockValueChangedCallbacks {
 	void _GuiNativeControl_show (GuiObject me);
 	void _GuiNativeControl_hide (GuiObject me);
 	void _GuiNativeControl_setSensitive (GuiObject me);
-	char32 * _GuiWin_expandAmpersands (const char32 *title);
+	char32 * _GuiWin_expandAmpersands (conststring32 title);
 
 	/********** GuiButton.cpp **********/
 	void _GuiWinButton_destroy (GuiObject widget);

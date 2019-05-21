@@ -1,6 +1,6 @@
 /* SSCP.cpp
  *
- * Copyright (C) 1993-2016 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
  djmw 20010906 TableOfReal_to_SSCP.
  djmw 20020212 +getEllipse(s)BoundingBoxCoordinates.
  djmw 20020313 corrected SSCP_Eigen_project.
- djmw 20020327 Moved SSCP_and_Eigen_project to Eigen_and_SSCP.c.
+ djmw 20020327 Moved SSCP_Eigen_project to Eigen_SSCP.c.
  djmw 20020418 Removed some causes for compiler warnings.
  djmw 20020430 Changed explicit calculation of SSCP to svd in
  		TableOfReal_to_SSCP.
@@ -33,7 +33,7 @@
  djmw 20030825 Replaced gsl_sf_beta_inc with NUMincompletebeta.
  djmw 20031104 Added SSCP_to_CCA.
  djmw 20031117 Added SSCP_extractCentroid.
- djmw 20031127 Added Covariance_and_TableOfReal_extractDistanceQuantileRange.
+ djmw 20031127 Added Covariance_TableOfReal_extractDistanceQuantileRange.
  djmw 20040211 Better warnings in TableOfReal_to_SSCPs_byLabel for single cases.
  djmw 20040214 Fixed some compiler warnings.
  djmw 20040219 SSCP_getTraceFraction added.
@@ -42,8 +42,7 @@
  djmw 20060202 Removed a bug in TableOfReal_to_SSCP that could crash Praat (if nrows < ncols).
  djmw 20060503 Covariance_getSignificanceOfMeansDifference: set probability = 0 if
  	var_pooled = 0 and paired.
- djmw 20060811 Removed bug in SSCP_and_TableOfReal_to_MahalanobisDistances that caused column labels always to be copied.
- djmw 20061021 printf expects %ld for 'long int'
+ djmw 20060811 Removed bug in SSCP_TableOfReal_to_MahalanobisDistances that caused column labels always to be copied.
  djmw 20061214 Corrected possible integer overflow in ellipseScalefactor.
  djmw 20071012 Added: o_CAN_WRITE_AS_ENCODING.h
  djmw 20071016 To Melder_error<n>
@@ -52,7 +51,7 @@
  djmw 20081119 TableOfReal_to_SSCP check if numbers are defined
  djmw 20090617 TableOfReal_to_SSCPs_byLabel better warnings for singular cases.
  djmw 20090629 +Covariances_getMultivariateCentroidDifference, Covariances_equality.
- djmw 20100106 +Covariance_and_TableOfReal_mahalanobis.
+ djmw 20100106 +Covariance_TableOfReal_mahalanobis.
  djmw 20101019 Reduced storage Covariance.
   djmw 20110304 Thing_new
 */
@@ -60,7 +59,6 @@
 #include "SSCP.h"
 #include "Eigen.h"
 #include "NUMclapack.h"
-#include "NUMlapack.h"
 #include "NUM2.h"
 #include "SVD.h"
 
@@ -83,10 +81,6 @@
 #include "oo_DESCRIPTION.h"
 #include "SSCP_def.h"
 
-#undef MAX
-#undef MIN
-#define MAX(m,n) ((m) > (n) ? (m) : (n))
-#define MIN(m,n) ((m) < (n) ? (m) : (n))
 #define TOVEC(x) (&(x) - 1)
 
 Thing_implement (SSCP, TableOfReal, 0);
@@ -97,8 +91,8 @@ Thing_implement (Correlation, SSCP, 0);
 
 void structSSCP :: v_info () {
 	structTableOfReal :: v_info ();
-	double zmin, zmax;
-	NUMmatrix_extrema<double> (data, 1, numberOfRows, 1, numberOfColumns, &zmin, &zmax);
+	double zmin = NUMmin (asvector (data.get()));
+	double zmax = NUMmax (asvector (data.get()));
 	MelderInfo_writeLine (U"Minimum value: ", zmin);
 	MelderInfo_writeLine (U"Maximum value: ", zmax);
 }
@@ -108,18 +102,13 @@ void structSSCP :: v_info () {
 	be multiplied to obtain the length of an ellipse axis.
 */
 double SSCP_getEllipseScalefactor (SSCP me, double scale, bool confidence) {
-	long n = (long) floor (SSCP_getNumberOfObservations (me));
+	integer n = Melder_ifloor (SSCP_getNumberOfObservations (me));
 
 	if (confidence) {
-		long p = my numberOfColumns;
-		double f;
-
-		if (n - p < 1) {
-			return -1.0;
-		}
-		/* D.E. Johnson (1998), Applied Multivariate methods, page 410 */
-		f = NUMinvFisherQ (1.0 - scale, p, n - p);
-		scale = 2.0 * sqrt (f * p * (n - 1) / ( ((double) n) * (n - p)));
+		if (n - my numberOfColumns < 1) return -1.0;
+		// D.E. Johnson (1998), Applied Multivariate methods, page 410
+		double f = NUMinvFisherQ (1.0 - scale, my numberOfColumns, n - my numberOfColumns);
+		scale = 2.0 * sqrt (f * my numberOfColumns * (n - 1) / ( ((double) n) * (n - my numberOfColumns)));
 	} else {
 		// very ugly, temporary hack
 		scale *= 2.0 / (scale < 0.0 ? -1.0 : sqrt (n - 1));
@@ -128,77 +117,60 @@ double SSCP_getEllipseScalefactor (SSCP me, double scale, bool confidence) {
 }
 
 static void getEllipseBoundingBoxCoordinates (SSCP me, double scale, bool confidence, double *xmin, double *xmax, double *ymin, double *ymax) {
-	double a, b, cs, sn, width, height;
-	double lscale = SSCP_getEllipseScalefactor (me, scale, confidence);
-
-	NUMeigencmp22 (my data[1][1], my data[1][2], my data[2][2], &a, &b, &cs, &sn);
+	double a, b, cs, width, height;
+	NUMeigencmp22 (my data [1] [1], my data [1] [2], my data [2] [2], & a, & b, & cs, nullptr);
 	NUMgetEllipseBoundingBox (sqrt (a), sqrt (b), cs, & width, & height);
 
-	*xmin = my centroid[1] - lscale * width / 2.0;
+	double lscale = SSCP_getEllipseScalefactor (me, scale, confidence);
+	*xmin = my centroid [1] - lscale * width / 2.0;
 	*xmax = *xmin + lscale * width;
-	*ymin = my centroid[2] - lscale * height / 2.0;
+	*ymin = my centroid [2] - lscale * height / 2.0;
 	*ymax = *ymin + lscale * height;
 }
 
-void SSCPList_getEllipsesBoundingBoxCoordinates (SSCPList me, double scale, bool confidence, double *p_xmin, double *p_xmax, double *p_ymin, double *p_ymax) {
+void SSCPList_getEllipsesBoundingBoxCoordinates (SSCPList me, double scale, bool confidence, double *out_xmin, double *out_xmax, double *out_ymin, double *out_ymax) {
 	double xmin = 1e308, xmax = -xmin, ymin = xmin, ymax = -ymin;
 
-	for (long i = 1; i <= my size; i ++) {
+	for (integer i = 1; i <= my size; i ++) {
 		SSCP s = my at [i];
 		double xmn, xmx, ymn, ymx;
-		getEllipseBoundingBoxCoordinates (s, scale, confidence, &xmn, &xmx, &ymn, &ymx);
-		if (xmn < xmin) {
-			xmin = xmn;
-		}
-		if (xmx > xmax) {
-			xmax = xmx;
-		}
-		if (ymn < ymin) {
-			ymin = ymn;
-		}
-		if (ymx > ymax) {
-			ymax = ymx;
-		}
+		getEllipseBoundingBoxCoordinates (s, scale, confidence, & xmn, & xmx, & ymn, & ymx);
+		if (xmn < xmin) xmin = xmn;
+		if (xmx > xmax) xmax = xmx;
+		if (ymn < ymin) ymin = ymn;
+		if (ymx > ymax) ymax = ymx;
 	}
-	if (p_xmin) {
-		*p_xmin = xmin;
-	}
-	if (p_xmax) {
-		*p_xmax = xmax;
-	}
-	if (p_ymin) {
-		*p_ymin = ymin;
-	}
-	if (p_ymax) {
-		*p_ymax = ymax;
-	}
+	if (out_xmin) *out_xmin = xmin;
+	if (out_xmax) *out_xmax = xmax;
+	if (out_ymin) *out_ymin = ymin;
+	if (out_ymax) *out_ymax = ymax;
 }
 
-static autoSSCP _SSCP_extractTwoDimensions (SSCP me, long d1, long d2) {
+static autoSSCP _SSCP_extractTwoDimensions (SSCP me, integer d1, integer d2) {
 	autoSSCP thee = SSCP_create (2);
 	if (my numberOfRows == 1) { // diagonal
-		thy data [1][1] = my data [1][d1];
-		thy data [2][2] = my data [1][d2];
+		thy data [1] [1] = my data [1] [d1];
+		thy data [2] [2] = my data [1] [d2];
 	} else {
-		thy data [1][1] = my data [d1][d1];
-		thy data [2][2] = my data [d2][d2];
-		thy data [2][1] = thy data [1][2] = my data [d1][d2];
+		thy data [1] [1] = my data [d1] [d1];
+		thy data [2] [2] = my data [d2] [d2];
+		thy data [2] [1] = thy data [1] [2] = my data [d1] [d2];
 	}
-	thy centroid[1] = my centroid[d1];
-	thy centroid[2] = my centroid[d2];
+	thy centroid [1] = my centroid [d1];
+	thy centroid [2] = my centroid [d2];
 	thy numberOfObservations = my numberOfObservations;
 
-	TableOfReal_setColumnLabel (thee.get(), 1, my columnLabels[d1]);
-	TableOfReal_setColumnLabel (thee.get(), 2, my columnLabels[d2]);
-	TableOfReal_setRowLabel (thee.get(), 1, my columnLabels[d1]);
-	TableOfReal_setRowLabel (thee.get(), 2, my columnLabels[d2]);
+	TableOfReal_setColumnLabel (thee.get(), 1, my columnLabels [d1].get());
+	TableOfReal_setColumnLabel (thee.get(), 2, my columnLabels [d2].get());
+	TableOfReal_setRowLabel (thee.get(), 1, my columnLabels [d1].get());
+	TableOfReal_setRowLabel (thee.get(), 2, my columnLabels [d2].get());
 	return thee;
 }
 
-autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, long d1, long d2) {
+autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, integer d1, integer d2) {
 	try {
 		autoSSCPList thee = SSCPList_create ();
-		for (long i = 1; i <= my size; i ++) {
+		for (integer i = 1; i <= my size; i ++) {
 			autoSSCP t = _SSCP_extractTwoDimensions (my at [i], d1, d2);
 			Thing_setName (t.get(), Thing_getName (my at [i]));
 			thy addItem_move (t.move());
@@ -209,38 +181,38 @@ autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, long d1, long d2) {
 	}
 }
 
-void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, char32 * label, int fontSize) {
+void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, conststring32 label, int fontSize) {
 	try {
-		long nsteps = 100;
-		autoNUMvector<double> x (0L, nsteps);
-		autoNUMvector<double> y (0L, nsteps);
+		integer nsteps = 100;
+		autoVEC x = newVECraw (nsteps + 1);
+		autoVEC y = newVECraw (nsteps + 1);
 		// Get principal axes and orientation for the ellipse by performing the
 		// eigen decomposition of a symmetric 2-by-2 matrix.
 		// Principal axes are a and b with eigenvector/orientation (cs, sn).
 
 		double a, b, cs, sn;
-		NUMeigencmp22 (my data[1][1], my data[1][2], my data[2][2], &a, &b, &cs, &sn);
+		NUMeigencmp22 (my data [1] [1], my data [1] [2], my data [2] [2], & a, & b, & cs, & sn);
 		// 1. Take sqrt to get units of 'std_dev'
 
 		a = scale * sqrt (a) / 2.0;
 		b = scale * sqrt (b) / 2.0;
-		x[nsteps] = x[0] = my centroid[1] + cs * a;
-		y[nsteps] = y[0] = my centroid[2] + sn * a;
+		x [nsteps + 1] = x [1] = my centroid [1] + cs * a;
+		y [nsteps + 1] = y [1] = my centroid [2] + sn * a;
 		double angle = 0.0;
 		double angle_inc = NUM2pi / nsteps;
-		for (long i = 1; i < nsteps; i++, angle += angle_inc) {
+		for (integer i = 2; i <= nsteps; i ++, angle += angle_inc) {
 			double xc = a * cos (angle);
 			double yc = b * sin (angle);
 			double xt = xc * cs - yc * sn;
-			y[i] = my centroid[2] + xc * sn + yc * cs;
-			x[i] = my centroid[1] + xt;
+			y [i] = my centroid [2] + xc * sn + yc * cs;
+			x [i] = my centroid [1] + xt;
 		}
-		Graphics_polyline (g, nsteps + 1, x.peek(), y.peek());
-		if (label) {
+		Graphics_polyline (g, nsteps + 1, & x [1], & y [1]);
+		if (label && fontSize > 0) {
 			int oldFontSize = Graphics_inqFontSize (g);
 			Graphics_setFontSize (g, fontSize);
 			Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_HALF);
-			Graphics_text (g, my centroid[1], my centroid[2], label);
+			Graphics_text (g, my centroid [1], my centroid [2], label);
 			Graphics_setFontSize (g, oldFontSize);
 		}
 	} catch (MelderError) {
@@ -248,89 +220,31 @@ void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, c
 	}
 }
 
-static void _SSCP_drawTwoDimensionalEllipse (SSCP me, Graphics g, double scale, int fontSize) {
-	long nsteps = 100;
-	char32 *name;
-
-	autoNUMvector<double> x (0L, nsteps);
-	autoNUMvector<double> y (0L, nsteps);
-
-	// Get principal axes and orientation for the ellipse by performing the
-	// eigen decomposition of a symmetric 2-by-2 matrix.
-	// Principal axes are a and b with eigenvector/orientation (cs, sn).
-
-	double a, b, cs, sn;
-	NUMeigencmp22 (my data[1][1], my data[1][2], my data[2][2], &a, &b, &cs, &sn);
-
-	// 1. Take sqrt to get units of 'std_dev'
-
-	a = scale * sqrt (a) / 2.0;
-	b = scale * sqrt (b) / 2.0;
-	x[nsteps] = x[0] = my centroid[1] + cs * a;
-	y[nsteps] = y[0] = my centroid[2] + sn * a;
-	double angle = 0.0;
-	double angle_inc = NUM2pi / nsteps;
-	for (long i = 1; i < nsteps; i++, angle += angle_inc) {
-		double xc = a * cos (angle);
-		double yc = b * sin (angle);
-		double xt = xc * cs - yc * sn;
-		y[i] = my centroid[2] + xc * sn + yc * cs;
-		x[i] = my centroid[1] + xt;
-	}
-	Graphics_polyline (g, nsteps + 1, x.peek(), y.peek());
-	if (fontSize > 0 && (name = Thing_getName (me)) != nullptr) {
-		int oldFontSize = Graphics_inqFontSize (g);
-		Graphics_setFontSize (g, fontSize);
-		Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_HALF);
-		Graphics_text (g, my centroid[1], my centroid[2], name);
-		Graphics_setFontSize (g, oldFontSize);
-	}
-}
-
-autoSSCP SSCP_toTwoDimensions (SSCP me, double *v1, double *v2) {
+autoSSCP SSCP_toTwoDimensions (SSCP me, constVEC v1, constVEC v2) {
 	try {
-		double *vec[3];
+		Melder_assert (v1.size == v2.size && v1.size == my numberOfColumns);
 		autoSSCP thee = SSCP_create (2);
 
 		// Projection P of S on v1 and v2 (given matrix V' with 2 rows) is P = V'SV
-		// P[i][j] = sum(k) sum(m) V'[i][k]*S[k][m]*V[m][j] = V'[i][k]*S[k][m]*V'[j][m]
+		// P [i] [j] = sum(k) sum(m) V' [i] [k]*S [k] [m]*V [m] [j] = V' [i] [k]*S [k] [m]*V' [j] [m]
 
-		// For the new centroids cnew[i] = sum(m) V'[i][m]*c[m]
+		// For the new centroids cnew [i] = sum(m) V' [i] [m]*c [m]
 
-		vec[1] = v1; vec[2] = v2;
 		if (my numberOfRows == 1) { // 1xn diagonal matrix
-			for (long k = 1; k <= my numberOfColumns; k++) {
-				thy data[1][1] += v1[k] * my data[1][k] * v1[k];
+			for (integer k = 1; k <= my numberOfColumns; k ++) {
+				thy data [1] [1] += v1 [k] * my data [1] [k] * v1 [k];
+				thy data [1] [2] += v1 [k] * my data [1] [k] * v2 [k];
+				thy data [2] [2] += v2 [k] * my data [1] [k] * v2 [k];
 			}
-			for (long k = 1; k <= my numberOfColumns; k++) {
-				thy data[1][2] += v1[k] * my data[1][k] * v2[k];
-			}
-			for (long k = 1; k <= my numberOfColumns; k++) {
-				thy data[2][2] += v2[k] * my data[1][k] * v2[k];
-			}
-			thy data[2][1] = thy data[1][2];
+			thy data [2] [1] = thy data [1] [2];
 		} else {
-			for (long i = 1; i <= 2; i++) {
-				for (long j = i; j <= 2; j++) {
-					double sum = 0;
-					for (long k = 1; k <= my numberOfRows; k++) {
-						for (long m = 1; m <= my numberOfRows; m++) {
-							sum += vec[i][k] * my data[k][m] * vec[j][m];
-						}
-					}
-					thy data[j][i] = thy data[i][j] = sum;
-				}
-			}
+			thy data [1] [1] = NUMmul_vtmv (v1, my data.get(), v1);
+			thy data [2] [2] = NUMmul_vtmv (v2, my data.get(), v2);
+			thy data [1] [2] = thy data [2] [1] = NUMmul_vtmv (v1, my data.get(), v2);
 		}
 
-		// centroids
-
-		for (long m = 1; m <= my numberOfColumns; m++) {
-			thy centroid[1] += v1[m] * my centroid[m];
-		}
-		for (long m = 1; m <= my numberOfColumns; m++) {
-			thy centroid[2] += v2[m] * my centroid[m];
-		}
+		thy centroid [1] = NUMinner (v1, my centroid.get());
+		thy centroid [2] = NUMinner (v2, my centroid.get());
 
 		thy numberOfObservations = SSCP_getNumberOfObservations (me);
 
@@ -340,12 +254,12 @@ autoSSCP SSCP_toTwoDimensions (SSCP me, double *v1, double *v2) {
 	}
 }
 
-void SSCP_init (SSCP me, long dimension, long storage) {
+void SSCP_init (SSCP me, integer dimension, integer storage) {
 	TableOfReal_init (me, storage, dimension);
-	my centroid = NUMvector<double> (1, dimension);
+	my centroid = newVECzero (dimension);
 }
 
-autoSSCP SSCP_create (long dimension) {
+autoSSCP SSCP_create (integer dimension) {
 	try {
 		autoSSCP me = Thing_new (SSCP);
 		SSCP_init (me.get(), dimension, dimension);
@@ -355,20 +269,23 @@ autoSSCP SSCP_create (long dimension) {
 	}
 }
 
-double SSCP_getConcentrationEllipseArea (SSCP me, double scale, bool confidence, long d1, long d2) {
-	long p = my numberOfRows;
+void SSCP_reset (SSCP me) {
+	my data.all() <<= 0.0;
+	my centroid.all() <<= 0.0;
+	my numberOfObservations = 0;
+}
 
-	if (d1 < 1 || d1 > p || d2 < 1 || d2 > p || d1 == d2) {
-		Melder_throw (U"Incorrect axes.");
-	}
+double SSCP_getConcentrationEllipseArea (SSCP me, double scale, bool confidence, integer d1, integer d2) {
+
+	Melder_require (d1 > 0 && d1 <= my numberOfRows && d2 > 0 && d2 <= my numberOfRows && d1 != d2,
+		U"Incorrect axes.");
+
 	autoSSCP thee = _SSCP_extractTwoDimensions (me, d1, d2);
 	scale = SSCP_getEllipseScalefactor (thee.get(), scale, confidence);
-	if (scale < 0.0) {
-		Melder_throw (U"Invalid scale factor.");
-	}
+	Melder_require (scale > 0, U"The scale factor should be larger than zero.");
 
-	double a, b, cs, sn;
-	NUMeigencmp22 (thy data[1][1], thy data[1][2], thy data[2][2], &a, &b, &cs, &sn);
+	double a, b;
+	NUMeigencmp22 (thy data [1] [1], thy data [1] [2], thy data [2] [2], & a, & b, nullptr, nullptr);
 
 	// 1. Take sqrt to get units of 'std_dev'
 
@@ -377,51 +294,47 @@ double SSCP_getConcentrationEllipseArea (SSCP me, double scale, bool confidence,
 	return NUMpi * a * b;
 }
 
-double SSCP_getFractionVariation (SSCP me, long from, long to) {
-	long n = my numberOfRows;
+double SSCP_getFractionVariation (SSCP me, integer from, integer to) {
+	integer n = my numberOfRows;
 
-	if (from < 1 || from > to || to > n) {
-		return NUMundefined;
-	}
+	if (from < 1 || from > to || to > n)
+		return undefined;
 
 	double sum = 0.0, trace = 0.0;
-	for (long i = 1; i <= n; i++) {
-		trace += my numberOfRows == 1 ? my data[1][i] : my data[i][i];
-		if (i >= from && i <= to) {
-			sum += my numberOfRows == 1 ? my data[1][i] : my data[i][i];
-		}
+	for (integer i = 1; i <= n; i ++) {
+		trace += my numberOfRows == 1 ? my data [1] [i] : my data [i] [i];
+		if (i >= from && i <= to)
+			sum += my numberOfRows == 1 ? my data [1] [i] : my data [i] [i];
 	}
-	return trace > 0.0 ? sum / trace : NUMundefined;
+	return trace > 0.0 ? sum / trace : undefined;
 }
 
-void SSCP_drawConcentrationEllipse (SSCP me, Graphics g, double scale, int confidence, long d1, long d2, double xmin, double xmax, double ymin, double ymax, int garnish) {
-	long p = my numberOfColumns;
+void SSCP_drawConcentrationEllipse (SSCP me, Graphics g, double scale, int confidence, integer d1, integer d2, double xmin, double xmax, double ymin, double ymax, int garnish) {
 
-	if (d1 < 1 || d1 > p || d2 < 1 || d2 > p || d1 == d2) {
-		Melder_throw (U"Incorrect axes.");
-	}
+	Melder_require (d1 > 0 && d1 <= my numberOfRows && d2 > 0 && d2 <= my numberOfRows && d1 != d2, U"Incorrect axes.");
 
 	autoSSCP thee = _SSCP_extractTwoDimensions (me, d1, d2);
 
 	double xmn, xmx, ymn, ymx;
-	getEllipseBoundingBoxCoordinates (thee.get(), scale, confidence, &xmn, &xmx, &ymn, &ymx);
+	getEllipseBoundingBoxCoordinates (thee.get(), scale, confidence, & xmn, & xmx, & ymn, & ymx);
 
 	if (xmax == xmin) {
-		xmin = xmn; xmax = xmx;
+		xmin = xmn;
+		xmax = xmx;
 	}
 
 	if (ymax == ymin) {
-		ymin = ymn; ymax = ymx;
+		ymin = ymn;
+		ymax = ymx;
 	}
 
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 	Graphics_setInner (g);
 
 	scale = SSCP_getEllipseScalefactor (thee.get(), scale, confidence);
-	if (scale < 0) {
-		Melder_throw (U"Invalid scale factor.");
-	}
-	_SSCP_drawTwoDimensionalEllipse (thee.get(), g, scale, 0);
+	Melder_require (scale > 0, U"The scale factor should be larger than zero.");
+	
+	SSCP_drawTwoDimensionalEllipse_inside (thee.get(), g, scale, nullptr, 0);
 
 	Graphics_unsetInner (g);
 	if (garnish) {
@@ -444,132 +357,75 @@ double SSCP_getDegreesOfFreedom (SSCP me) {
 }
 
 double SSCP_getTotalVariance (SSCP me) {
-	double trace = 0.0;
-	for (long i = 1; i <= my numberOfColumns; i++) {
-		trace += my numberOfRows == 1 ? my data[1][i] : my data[i][i];
-	}
-	return trace;
+	return my numberOfRows == 1 ? NUMsum (my data.row (1)) : NUMtrace (my data.get());
 }
 
-double SSCP_getCumulativeContributionOfComponents (SSCP me, long from, long to) {
-	double sum = NUMundefined;
-	if (to == 0) {
-		to = my numberOfRows;
-	}
+double SSCP_getCumulativeContributionOfComponents (SSCP me, integer from, integer to) {
+	double ccoc = undefined;
+	if (to == 0) to = my numberOfRows;
 	if (from > 0 && to <= my numberOfRows && from <= to) {
-		sum = SSCP_getTotalVariance (me);
-		double partial = 0.0;
-		for (long i = from; i <= to; i++) {
-			partial += my numberOfRows == 1 ? my data[1][i] : my data[i][i];
-		}
+		double sum = SSCP_getTotalVariance (me);
 		if (sum > 0.0) {
-			sum = partial / sum;
+			double partial = 0.0;
+			for (integer i = from; i <= to; i ++)
+				partial += my numberOfRows == 1 ? my data [1] [i] : my data [i] [i];
+			ccoc = partial / sum;
 		}
 	}
-	return sum;
+	return ccoc;
 }
 
 /* For nxn matrix only ! */
-void Covariance_and_PCA_generateOneVector (Covariance me, PCA thee, double *vec, double *buf) {
+void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VEC vec, VEC buf) {
 	// Generate the multi-normal vector elements N(0,sigma)
-
-	for (long j = 1; j <= my numberOfColumns; j++) {
-		buf[j] = NUMrandomGauss (0.0, sqrt (thy eigenvalues[j]));
-	}
+	Melder_require (thy dimension == my numberOfRows, 
+		U"The PCA must have the same dimension as the Covariance.");
+	Melder_require (vec.size == buf.size && my numberOfColumns == buf.size, 
+		U"The vectors and the PCA must have the same dimension.");
+	for (integer j = 1; j <= my numberOfColumns; j ++)
+		buf [j] = NUMrandomGauss (0.0, sqrt (thy eigenvalues [j]));
 
 	// Rotate back
-
-	for (long j = 1; j <= my numberOfColumns; j++) {
-		vec[j] = 0.0;
-		for (long k = 1; k <= my numberOfColumns; k++) {
-			vec[j] += buf[k] * thy eigenvectors[k][j];
-		}
-	}
-
-	// Restore the centroid
-
-	for (long j = 1; j <= my numberOfColumns; j++) {
-		vec[j] += my centroid[j];
-	}
+	
+	VECmul_preallocated (vec, buf, thy eigenvectors.get());
+	vec  +=  my centroid.get();
 }
 
-autoTableOfReal Covariance_to_TableOfReal_randomSampling (Covariance me, long numberOfData) {
+autoTableOfReal Covariance_to_TableOfReal_randomSampling (Covariance me, integer numberOfData) {
 	try {
-		if (numberOfData <= 0) {
-			numberOfData = (long) floor (my numberOfObservations);
-		}
+		if (numberOfData <= 0)
+			numberOfData = Melder_ifloor (my numberOfObservations);
 		autoPCA pca = SSCP_to_PCA (me);
 		autoTableOfReal thee = TableOfReal_create (numberOfData, my numberOfColumns);
-		autoNUMvector<double> buf (1, my numberOfColumns);
-
-		for (long i = 1; i <= numberOfData; i++) {
-			Covariance_and_PCA_generateOneVector (me, pca.get(), thy data[i], buf.peek());
-		}
-
-		NUMstrings_copyElements (my columnLabels, thy columnLabels, 1, my numberOfColumns);
+		autoVEC buf = newVECraw (my numberOfColumns);
+		for (integer i = 1; i <= numberOfData; i ++)
+			Covariance_PCA_generateOneVector_inline (me, pca.get(), thy data.row (i), buf.get());
+		thy columnLabels.all() <<= my columnLabels.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not random sampled.");
 	}
 }
 
-autoSSCP TableOfReal_to_SSCP (TableOfReal me, long rowb, long rowe, long colb, long cole) {
+autoSSCP TableOfReal_to_SSCP (TableOfReal me, integer rowb, integer rowe, integer colb, integer cole) {
 	try {
-		
-		if (! NUMdmatrix_hasFiniteElements(my data, 1, my numberOfRows, 1, my numberOfColumns)) {
-			Melder_throw (U"At least one of the table's elements is not finite or undefined.");
-		}
-
-		if (rowb == 0 && rowe == 0) {
-			rowb = 1;
-			rowe = my numberOfRows;
-		} else if (rowe < rowb || rowb < 1 || rowe > my numberOfRows) {
-			Melder_throw (U"Invalid row number.");
-		}
-
-		if (colb == 0 && cole == 0) {
-			colb = 1;
-			cole = my numberOfColumns;
-		} else if (cole < colb || colb < 1 || cole > my numberOfColumns) {
-			Melder_throw (U"Invalid column number.");
-		}
-
-		long numberOfRows = rowe - rowb + 1; /* m */
-		long numberOfColumns = cole - colb + 1; /* n */
-
-		if (numberOfRows < numberOfColumns) {
-			Melder_warning (U"The SSCP will not have \n"
-				"full dimensionality. This may be a problem in following analysis steps. \n"
-				"(The number of data points was less than the number of variables.)");
-		}
-		autoSSCP thee = SSCP_create (numberOfColumns);
-		autoNUMmatrix<double> v (1, numberOfRows, 1, numberOfColumns);
-
-		long nvalidrows = 0;
-		for (long i = 1; i <= numberOfRows; i++) {
-			nvalidrows++;
-			for (long j = 1; j <= numberOfColumns; j++) {
-				v[i][j] = my data[rowb + i - 1][colb + j - 1];
-			}
-		}
-
-		NUMcentreColumns (v.peek(), 1, numberOfRows, 1, numberOfColumns, thy centroid);
-
-		SSCP_setNumberOfObservations (thee.get(), numberOfRows);
-
-		// sum of squares and cross products = T'T
-
-		for (long i = 1; i <= numberOfColumns; i++) {
-			for (long j = i; j <= numberOfColumns; j++) {
-				double t = 0.0;
-				for (long k = 1; k <= numberOfRows; k++) {
-					t += v[k][i] * v[k][j];
-				}
-				thy data[i][j] = thy data[j][i] = t;
-			}
-		}
-		for (long j = 1; j <= numberOfColumns; j++) {
-			char32 *label = my columnLabels[colb + j - 1];
+		Melder_require (NUMdefined (my data.get()),
+			U"All the table's elements should be defined.");
+		fixAndCheckRowRange (& rowb, & rowe, my data.get(), 1);
+		fixAndCheckColumnRange (& colb, & cole, my data.get(), 1);
+		autoMAT part = newMATpart (my data.get(), rowb, rowe, colb, cole);
+		if (part.nrow < part.ncol)
+			Melder_warning (U"The selected number of rows (", part.nrow,
+				U") is less than the selected number of columns (", part.ncol,
+				U").\nThe SSCP will not have full dimensionality. This may be a problem in later analysis steps."
+			);
+		autoSSCP thee = SSCP_create (part.ncol);
+		VECcolumnMeans_preallocated (thy centroid.get(), part.get());
+		part.all()  -=  thy centroid.all();
+		SSCP_setNumberOfObservations (thee.get(), part.nrow);
+		MATmtm_preallocated (thy data.get(), part.get());   // sum of squares and cross products = T'T
+		for (integer j = 1; j <= part.ncol; j ++) {
+			conststring32 label = my columnLabels [colb - 1 + j].get();
 			TableOfReal_setColumnLabel (thee.get(), j, label);
 			TableOfReal_setRowLabel (thee.get(), j, label);
 		}
@@ -579,45 +435,78 @@ autoSSCP TableOfReal_to_SSCP (TableOfReal me, long rowb, long rowe, long colb, l
 	}
 }
 
-autoTableOfReal SSCP_and_TableOfReal_extractDistanceQuantileRange (SSCP me, TableOfReal thee, double qlow, double qhigh) {
+autoSSCP TableOfReal_to_SSCP_rowWeights (TableOfReal me, integer rowb, integer rowe, integer colb, integer cole, integer weightColumnNumber) {
+	try {
+		Melder_require (NUMdefined (my data.get()),
+			U"All the table's elements should be defined.");
+		fixAndCheckRowRange (& rowb, & rowe, my data.get(), 1);
+		fixAndCheckColumnRange (& colb, & cole, my data.get(), 1);
+		if (weightColumnNumber != 0) 
+			Melder_require (weightColumnNumber < colb || weightColumnNumber > cole, 
+				U"The weight columns must be outside the selected block.");
+		autoMAT part = newMATpart (my data.get(), rowb, rowe, colb, cole);
+		if (part.nrow < part.ncol)
+			Melder_warning (U"The selected number of data points (", part.nrow,
+				U") is less than the selected number of variables (", part.ncol,
+				U").\nThe SSCP will not have full dimensionality. This may be a problem in later analysis steps."
+			);
+		autoSSCP thee = SSCP_create (part.ncol);
+		VECcolumnMeans_preallocated (thy centroid.get(), part.get());
+		part.all()  -=  thy centroid.all();
+		SSCP_setNumberOfObservations (thee.get(), part.nrow);
+		if (weightColumnNumber != 0) {
+			autoVEC rowWeights = newVECcolumn (my data.horizontalBand (rowb, rowe), weightColumnNumber);
+			MATmtm_weighRows_preallocated (thy data.get(), part.get(), rowWeights.get());
+		} else
+			MATmtm_preallocated (thy data.get(), part.get());   // sum of squares and cross products = T'T
+		for (integer j = 1; j <= part.ncol; j ++) {
+			conststring32 label = my columnLabels [colb - 1 + j].get();
+			TableOfReal_setColumnLabel (thee.get(), j, label);
+			TableOfReal_setRowLabel (thee.get(), j, label);
+		}
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": SSCP not created.");
+	}
+}
+
+autoTableOfReal SSCP_TableOfReal_extractDistanceQuantileRange (SSCP me, TableOfReal thee, double qlow, double qhigh) {
 	try {
 		autoCovariance cov = SSCP_to_Covariance (me, 1);
-		autoTableOfReal him = Covariance_and_TableOfReal_extractDistanceQuantileRange (cov.get(), thee, qlow, qhigh);
+		autoTableOfReal him = Covariance_TableOfReal_extractDistanceQuantileRange (cov.get(), thee, qlow, qhigh);
 		return him;
 	} catch (MelderError) {
 		Melder_throw (me, U": no distance quantile ranges created.");
 	}
 }
 
-autoTableOfReal Covariance_and_TableOfReal_mahalanobis (Covariance me, TableOfReal thee, bool useTableCentroid) {
+autoTableOfReal Covariance_TableOfReal_mahalanobis (Covariance me, TableOfReal thee, bool useTableCentroid) {
 	try {
 		autoTableOfReal him = TableOfReal_create (thy numberOfRows, 1);
-		autoNUMvector<double> centroid (NUMvector_copy (my centroid, 1, thy numberOfColumns), 1);
-		autoNUMmatrix<double> covari (NUMmatrix_copy (my data, 1, my numberOfRows, 1, my numberOfRows), 1, 1);
+		/*
+			ppgb
+			ik kom er niet achter of onderstaande de hele vector kopieert of niet;
+			in elk geval zijn hier enkele asserts nodig
+		*/
+		autoVEC centroid = newVECcopy (my centroid.get());
+		autoMAT covari = newMATcopy (my data.get());
 
-		// Mahalanobis distance calculation. S = L.L' -> S**-1 = L**-1' . L**-1
-		// (x-m)'S**-1 (x-m) = (x-m)'L**-1' . L**-1. (x-m) =
-		//	(L**-1.(x-m))' . (L**-1.(x-m))
+		/*
+			Mahalanobis distance calculation. S = L.L' -> S**-1 = L**-1' . L**-1
+				(x-m)'S**-1 (x-m) = (x-m)'L**-1' . L**-1. (x-m) =
+				(L**-1.(x-m))' . (L**-1.(x-m))
 
-		// Get inverse of covari in lower triangular part.
-		double lndet;
-		NUMlowerCholeskyInverse (covari.peek(), my numberOfRows, &lndet);
+			Get inverse of covari in lower triangular part.
+		*/
 
-		if (useTableCentroid) {
-			for (long icol = 1; icol <= thy numberOfColumns; icol++) {
-				double mean = 0.0;
-				for (long irow = 1; irow <= thy numberOfRows; irow++) {
-					mean += thy data[irow][icol];
-				}
-				centroid[icol] = mean / thy numberOfRows;
-			}
-		}
+		MATlowerCholeskyInverse_inplace (covari.get(), nullptr);
 
-		for (long k = 1; k <= thy numberOfRows; k++) {
-			his data[k][1] = sqrt (NUMmahalanobisDistance_chi (covari.peek(), thy data[k], centroid.peek(), my numberOfRows, my numberOfRows));
-			if (thy rowLabels[k]) {
-				TableOfReal_setRowLabel (him.get(), k, thy rowLabels[k]);
-			}
+		if (useTableCentroid)
+			VECcolumnMeans_preallocated (centroid.get(), thy data.get());
+		for (integer k = 1; k <= thy numberOfRows; k ++) {
+			his data [k] [1] = sqrt (NUMmahalanobisDistance (covari.get(), thy data.row (k), centroid.get()));
+			if (thy rowLabels [k])
+				TableOfReal_setRowLabel (him.get(), k, thy rowLabels [k].get());
 		}
 		TableOfReal_setColumnLabel (him.get(), 1, U"d");
 		return him;
@@ -626,9 +515,9 @@ autoTableOfReal Covariance_and_TableOfReal_mahalanobis (Covariance me, TableOfRe
 	}
 }
 
-autoTableOfReal Covariance_and_TableOfReal_extractDistanceQuantileRange (Covariance me, TableOfReal thee, double qlow, double qhigh) {
+autoTableOfReal Covariance_TableOfReal_extractDistanceQuantileRange (Covariance me, TableOfReal thee, double qlow, double qhigh) {
 	try {
-		autoTableOfReal him = Covariance_and_TableOfReal_mahalanobis (me, thee, false);
+		autoTableOfReal him = Covariance_TableOfReal_mahalanobis (me, thee, false);
 
 		double low = TableOfReal_getColumnQuantile (him.get(), 1, qlow);
 		double high = TableOfReal_getColumnQuantile (him.get(), 1, qhigh);
@@ -636,28 +525,20 @@ autoTableOfReal Covariance_and_TableOfReal_extractDistanceQuantileRange (Covaria
 		// Count the number filtered.
 		// nsel = (qhigh - qlow) * nrows is sometimes one off
 
-		long nsel = 0;
-		for (long i = 1; i <= thy numberOfRows; i++) {
-			if (low <= his data[i][1] && his data[i][1] < high) {
-				nsel++;
-			}
-		}
+		integer nsel = 0;
+		for (integer i = 1; i <= thy numberOfRows; i ++)
+			if (low <= his data [i] [1] && his data [i] [1] < high)
+				nsel ++;
 
-		if (nsel < 1) {
-			Melder_throw (U"Not enough data in quantile interval.");
-		}
-
+		Melder_require (nsel > 0, U"Not enough data in quantile interval.");
+		
 		autoTableOfReal r = TableOfReal_create (nsel, thy numberOfColumns);
-		NUMstrings_copyElements (thy columnLabels, r -> columnLabels, 1, thy numberOfColumns);
-		//((r -> columnLabels = NUMstrings_copy (thy columnLabels, 1, thy numberOfColumns)) == nullptr)) goto end;
+		r -> columnLabels.all() <<= thy columnLabels.all();
 
-		long k = 0;
-		for (long i = 1; i <= thy numberOfRows; i++) {
-			if (low <= his data[i][1] && his data[i][1] < high) {
-				k++;
-				TableOfReal_copyOneRowWithLabel (thee, r.get(), i, k);
-			}
-		}
+		integer k = 0;
+		for (integer i = 1; i <= thy numberOfRows; i ++)
+			if (low <= his data [i] [1] && his data [i] [1] < high)
+				TableOfReal_copyOneRowWithLabel (thee, r.get(), i, ++ k);
 		return r;
 	} catch (MelderError) {
 		Melder_throw (U"TableOfReal with distance quantile range not created.");
@@ -686,7 +567,7 @@ autoCorrelation TableOfReal_to_Correlation (TableOfReal me) {
 
 autoCorrelation TableOfReal_to_Correlation_rank (TableOfReal me) {
 	try {
-		autoTableOfReal t = TableOfReal_rankColumns (me);
+		autoTableOfReal t = TableOfReal_rankColumns (me, 1, my numberOfColumns);
 		autoCorrelation thee = TableOfReal_to_Correlation (t.get());
 		return thee;
 	} catch (MelderError) {
@@ -700,11 +581,11 @@ autoSSCPList TableOfReal_to_SSCPList_byLabel (TableOfReal me) {
 		autoTableOfReal mew = TableOfReal_sortOnlyByRowLabels (me);
 
 		Melder_warningOff ();
-		long lastrow = 0, numberOfMatrices = 0, numberOfSingularMatrices = 0, index = 1;
-		const char32 *label = mew -> rowLabels[1];
-		for (long i = 2; i <= my numberOfRows; i++) {
-			long numberOfRowsInCurrent = 0;
-			const char32 *currentLabel = mew -> rowLabels[i];
+		integer lastrow = 0, numberOfMatrices = 0, numberOfSingularMatrices = 0, index = 1;
+		conststring32 label = mew -> rowLabels [1].get();
+		for (integer i = 2; i <= my numberOfRows; i ++) {
+			integer numberOfRowsInCurrent = 0;
+			conststring32 currentLabel = mew -> rowLabels [i].get();
 			if (Melder_cmp (currentLabel, label) != 0) {
 				// current label different from previous one(s)
 				numberOfRowsInCurrent = i - index;
@@ -718,15 +599,13 @@ autoSSCPList TableOfReal_to_SSCPList_byLabel (TableOfReal me) {
 				continue;
 			}
 			// We found a new group
-			         numberOfMatrices++;
+			         numberOfMatrices ++;
 			if (numberOfRowsInCurrent > 1) { // We need at least two rows for an SSCP
-				if (numberOfRowsInCurrent < my numberOfColumns) {
-					numberOfSingularMatrices++;
-				}
+				if (numberOfRowsInCurrent < my numberOfColumns)
+					numberOfSingularMatrices ++;
 				autoSSCP t = TableOfReal_to_SSCP (mew.get(), index, lastrow, 0, 0);
-				if (! (label = mew -> rowLabels[index])) {
+				if (! (label = mew -> rowLabels [index].get())) 
 					label = U"?";
-				}
 				Thing_setName (t.get(), label);
 				thy addItem_move (t.move());
 			}
@@ -734,11 +613,11 @@ autoSSCPList TableOfReal_to_SSCPList_byLabel (TableOfReal me) {
 			index = i;
 		}
 		if (lastrow != my numberOfRows) {
-			numberOfMatrices++;
+			numberOfMatrices ++;
 		}
 		Melder_warningOn ();
 		if (numberOfSingularMatrices > 0 || thy size != numberOfMatrices) {
-			long notIncluded = numberOfMatrices - thy size;
+			integer notIncluded = numberOfMatrices - thy size;
 			Melder_warning (numberOfMatrices, U" different groups detected: ", numberOfSingularMatrices + notIncluded,
 				U" group(s) with less rows than columns (of which ", notIncluded, U" with only one row).");
 		}
@@ -750,109 +629,79 @@ autoSSCPList TableOfReal_to_SSCPList_byLabel (TableOfReal me) {
 
 autoPCA SSCP_to_PCA (SSCP me) {
 	try {
-		double **data = my data;
-		autoNUMmatrix<double> adata;
+		Melder_assert (my data.ncol == my numberOfColumns);
+		autoMAT mat;
+		if (my numberOfRows == 1) {
+			mat = newMATzero (my numberOfColumns, my numberOfColumns);
+			mat.diagonal() <<= my data.row (1); // 1xn matrix -> nxn
+		} else if (my data.nrow == my numberOfColumns && my data.ncol == my numberOfColumns)
+			mat = newMATcopy (my data.get());
+		else
+			Melder_throw (me, U": the SSCP has the wrong dimensions.");
 		autoPCA thee = PCA_create (my numberOfColumns, my numberOfColumns);
-
-		if (my numberOfRows == 1) { // 1xn matrix -> nxn
-			// ugly hack
-			adata.reset (1, my numberOfColumns, 1, my numberOfColumns);
-			for (long i = 1; i <= my numberOfColumns; i++) {
-				data[i][i] = my data[1][i];
-			}
-			data = adata.peek();
-		}
-		NUMstrings_copyElements (my columnLabels, thy labels, 1, my numberOfColumns);
-		Eigen_initFromSymmetricMatrix (thee.get(), data, my numberOfColumns);
-		NUMvector_copyElements (my centroid, thy centroid, 1, my numberOfColumns);
-		PCA_setNumberOfObservations (thee.get(), (long) floor (my numberOfObservations));
+		Eigen_initFromSymmetricMatrix (thee.get(), mat.get());
+		thy centroid.all() <<= my centroid.all();
+		PCA_setNumberOfObservations (thee.get(), Melder_ifloor (my numberOfObservations));
+		thy labels.all() <<= my columnLabels.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": PCA not created.");
 	}
 }
 
-void SSCP_setValue (SSCP me, long row, long col, double value) {
-	if (col < 0 || col > my numberOfColumns) {
-		Melder_throw (U"Illegal column number.");
-	}
-	if (row < 0 || row > my numberOfColumns) {
-		Melder_throw (U"Illegal row number.");    // ! yes numberOfColumns
-	}
-	if (row == col && value <= 0) {
-		Melder_throw (U"Diagonal element must always be a positive number.");
-	}
-	if (my numberOfRows == 1) { // diagonal
-		if (row != col) {
-			Melder_throw (U"Row and column number must be equal for a diagonal matrix.");
-		}
-		my data[1][row] = value;
+void SSCP_setValue (SSCP me, integer rowNumber, integer columnNumber, double value) {
+	checkColumnNumber (columnNumber, my numberOfColumns);
+	checkRowNumber (rowNumber, my numberOfRows);
+	Melder_require (! (rowNumber == columnNumber && value <= 0.0), U"Diagonal element should always be a positive number.");
+	
+	if (my numberOfRows == 1) {   // diagonal
+		Melder_require (rowNumber == columnNumber, U"Row and column number should be equal for a diagonal matrix.");
+		my data [1] [rowNumber] = value;
 	} else {
-		if (row != col && (fabs (value) > my data[row][row] || fabs (value) > my data[row][row])) Melder_throw
-			(U"The off-diagonal cannot be larger than the diagonal values. Input diagonal elements first, or change this value.");
-		my data[row][col] = my data[col][row] = value;
+		Melder_require (! (rowNumber != columnNumber && (fabs (value) > my data [rowNumber] [rowNumber] || fabs (value) > my data [columnNumber] [columnNumber])),
+			U"The off-diagonal values should not be larger than the diagonal values. Input diagonal elements first, or change this value.");
+		my data [rowNumber] [columnNumber] = my data [columnNumber] [rowNumber] = value;
 	}
 }
 
-void SSCP_setCentroid (SSCP me, long component, double value) {
-	if (component < 1 || component > my numberOfColumns) {
-		Melder_throw (U"Illegal component number.");
-	}
-	my centroid[component] = value;
+void SSCP_setCentroid (SSCP me, integer component, double value) {
+	Melder_require (component > 0 && component <= my numberOfColumns, U"Component number should not exceed ", my numberOfColumns, U".");
+	my centroid [component] = value;
 }
 
-autoCCA SSCP_to_CCA (SSCP me, long ny) {
+autoCCA SSCP_to_CCA (SSCP me, integer ny) {
 	try {
 		char upper = 'L', diag = 'N';
-		long info;
+		integer info;
+		Melder_require (ny > 0 && ny < my numberOfRows, U"Invalid split.");
+		Melder_require (my numberOfRows > 1, U"Matrix should not be diagonal.");
 
-		if (ny < 1 || ny >= my numberOfRows) {
-			Melder_throw (U"ny < 1 || ny >= my numberOfRows");
-		}
-		if (my numberOfRows == 1) {
-			Melder_throw (U"Matrix is diagonal.");
-		}
-
-		long m = my numberOfRows, nx = m - ny, xy_interchanged = nx < ny, yof = 0, xof = ny;
+		integer m = my numberOfRows, nx = m - ny;
+		bool xy_interchanged = ( nx < ny );
+		integer yof = 0, xof = ny;
 		if (xy_interchanged) {
-			yof = ny; xof = 0;
-			nx = ny; ny = m - nx;
+			yof = ny; 
+			xof = 0;
+			nx = ny;
+			ny = m - nx;
 		}
-
-		autoCCA thee = Thing_new (CCA);
-		autoNUMmatrix<double> sxx (1, nx, 1, nx);
-		autoNUMmatrix<double> syy (1, ny, 1, ny);
-		autoNUMmatrix<double> syx (1, ny, 1, nx);
 
 		// Copy Syy and Sxx into upper part of syy and sxx matrices.
 
-		for (long i = 1; i <= ny; i++) {
-			for (long j = i; j <= ny; j++) {
-				syy[i][j] = my data[yof + i][yof + j];
-			}
-		}
-		for (long i = 1; i <= nx; i++) {
-			for (long j = i; j <= nx; j++) {
-				sxx[i][j] = my data[xof + i][xof + j];
-			}
-		}
-
-		for (long i = 1; i <= nx; i++) {
-			for (long j = 1; j <= ny; j++) {
-				syx[i][j] = my data[yof + i][xof + j];
-			}
-		}
+		autoMAT syy = newMATpart (my data.get(), yof, yof + ny - 1, yof, yof + ny - 1);
+		autoMAT sxx = newMATpart (my data.get(), xof, xof + nx - 1, xof, xof + nx - 1);
+		autoMAT syx = newMATpart (my data.get(), yof, yof + ny - 1, xof, xof + nx - 1);
 
 		// Cholesky decomposition: Syy = Uy'*Uy and Sxx = Ux'*Ux.
 		// (Pretend as if colum-major storage)
 
-		(void) NUMlapack_dpotf2 (&upper, &ny, &syy[1][1], &ny, &info);
+		(void) NUMlapack_dpotf2 (& upper, & ny, & syy [1] [1], & ny, & info);
 		if (info != 0) Melder_throw (U"The leading minor of order ", info, U" is not positive definite, and the "
-			                             U"factorization of Syy could not be completed.");
+			U"factorization of Syy could not be completed.");
 
-		(void) NUMlapack_dpotf2 (&upper, &nx, &sxx[1][1], &nx, &info);
+		(void) NUMlapack_dpotf2 (& upper, & nx, & sxx [1] [1], & nx, & info);
 		if (info != 0) Melder_throw (U"The leading minor of order ", info, U" is not positive definite, and the "
-			                             U"factorization of Sxx could not be completed.");
+			U"factorization of Sxx could not be completed.");
 
 		/*
 			With Cholesky decomps Sxx = Ux'* Ux, Syy = Uy * Uy'
@@ -881,79 +730,70 @@ autoCCA SSCP_to_CCA (SSCP me, long ny) {
 				We switch the role of x and y.
 		*/
 
-		autoNUMmatrix<double> a (1, nx, 1, ny);
-
 		// Uxi = inverse(Ux)
 
-		(void) NUMlapack_dtrti2 (&upper, &diag, &nx, &sxx[1][1], &nx, &info);
-		if (info != 0) {
-			Melder_throw (U"Error in inverse for Sxx.");
-		}
+		(void) NUMlapack_dtrti2 (& upper, & diag, & nx, & sxx [1] [1], & nx, & info);
+		Melder_require (info == 0, U"Error in inverse for Sxx.");
 
 		// Prepare Uxi' * Syx' = (Syx * Uxi)'
 
-		for (long i = 1; i <= ny; i++) {
-			for (long j = 1; j <= nx; j++) {
-				double t = 0.0;
-				for (long k = 1; k <= j; k++) {
-					t += syx[i][k] * sxx[k][j];
-				}
-				a[j][i] = t;
-			}
-		}
+		autoMAT a = newMATmul (sxx.transpose(), syx.transpose());
+		Melder_assert (a.nrow == nx && a.ncol == ny);
 
-		autoGSVD gsvd = GSVD_create_d (a.peek(), nx, ny, syy.peek(), ny);
-		autoNUMmatrix<double> ri (NUMmatrix_copy (gsvd -> r, 1, gsvd -> numberOfColumns, 1, gsvd -> numberOfColumns), 1, 1);
+		autoGSVD gsvd = GSVD_create_d (a.get(), syy.get());
+		autoMAT ri = newMATcopy (gsvd -> r.get());
+		
+		autoCCA thee = Thing_new (CCA);
+
 		thy y = Eigen_create (gsvd -> numberOfColumns, gsvd -> numberOfColumns);
 		thy x = Eigen_create (thy y -> numberOfEigenvalues, nx);
 
 		// Get X=Q*R**-1
 
-		(void) NUMlapack_dtrti2 (&upper, &diag, &gsvd -> numberOfColumns, &ri[1][1], &gsvd -> numberOfColumns, &info);
-		if (info != 0) {
-			Melder_throw (U"Error in inverse for R.");
-		}
-
-		for (long i = 1; i <= gsvd -> numberOfColumns; i++) {
-			double t = gsvd -> d1[i] / gsvd -> d2[i];
-			thy y -> eigenvalues[i] = t * t;
-			for (long j = 1; j <= gsvd -> numberOfColumns; j++) {
-				t = 0.0;
-				for (long k = 1; k <= j; k++) {
-					t += gsvd -> q[i][k] * ri[k][j];
+		(void) NUMlapack_dtrti2 (& upper, & diag, & gsvd -> numberOfColumns, &  ri [1] [1], & gsvd -> numberOfColumns, & info);
+		Melder_require (info == 0, U"Error in inverse for R.");
+		
+		for (integer i = 1; i <= gsvd -> numberOfColumns; i ++) {
+			double t = gsvd -> d1 [i] / gsvd -> d2 [i];
+			thy y -> eigenvalues [i] = t * t;
+			for (integer j = 1; j <= gsvd -> numberOfColumns; j ++) {
+				longdouble sum = 0.0;
+				for (integer k = 1; k <= j; k ++) {
+					sum += gsvd -> q [i] [k] * ri [k] [j];
 				}
-				thy y -> eigenvectors[j][i] = t;
+				thy y -> eigenvectors [j] [i] = double (sum);
 			}
 		}
 
-		NUMnormalizeRows (thy y -> eigenvectors, thy y -> numberOfEigenvalues, thy y -> numberOfEigenvalues, 1);
+		MATnormalizeRows_inplace (thy y -> eigenvectors.get(), 2.0, 1.0);
 
 		thy numberOfCoefficients = thy y -> numberOfEigenvalues;
-		thy numberOfObservations = (long) floor (my numberOfObservations);
+		thy numberOfObservations = Melder_ifloor (my numberOfObservations);
 
 		// x = Sxx**-1 * Syx' * y
 
-		for (long i = 1; i <= thy numberOfCoefficients; i++) {
-			double *evecy = thy y -> eigenvectors[i];
-			double *evecx = thy x -> eigenvectors[i];
-			for (long j = 1; j <= nx; j++) {
-				double t = 0.0;
-				for (long k = j; k <= nx; k++) {
-					for (long l = 1; l <= nx; l++) {
-						for (long n = 1; n <= ny; n++) {
-							t += sxx[j][k] * sxx[l][k] * syx[n][l] * evecy[n];
+		for (integer i = 1; i <= thy numberOfCoefficients; i ++) {
+			constVEC evecy = thy y -> eigenvectors.row (i);
+			VEC evecx = thy x -> eigenvectors.row (i);
+			for (integer j = 1; j <= nx; j ++) {
+				longdouble t = 0.0;
+				for (integer k = j; k <= nx; k ++) {
+					for (integer l = 1; l <= nx; l ++) {
+						for (integer n = 1; n <= ny; n ++) {
+							t += sxx [j] [k] * sxx [l] [k] * syx [n] [l] * evecy [n];
 						}
 					}
 				}
-				evecx[j] = t;
+				evecx [j] = double (t);
 			}
 		}
 
-		NUMnormalizeRows (thy x -> eigenvectors, thy x -> numberOfEigenvalues, nx, 1);
+		MATnormalizeRows_inplace (thy x -> eigenvectors.get(), 2.0, 1.0);
 
 		if (ny < nx) {
 			autoEigen t = thy x.move();
-			thy x = thy y.move(); thy y = t.move();
+			thy x = thy y.move();
+			thy y = t.move();
 		}
 		return thee;
 	} catch (MelderError) {
@@ -965,98 +805,110 @@ autoCCA SSCP_to_CCA (SSCP me, long ny) {
 
 autoSSCP SSCPList_to_SSCP_pool (SSCPList me) {
 	try {
-		autoSSCP thee = Data_copy (my at [1]);
+		autoSSCP pool = Data_copy (my at [1]);
 
-		for (long k = 2; k <= my size; k ++) {
+		for (integer k = 2; k <= my size; k ++) {
 			SSCP t = my at [k];
-			if (t -> numberOfRows != thy numberOfRows) {
-				Melder_throw (U"The dimension of item ", k, U" does not agree.");
-			}
-
-			thy numberOfObservations += t -> numberOfObservations;
+			Melder_require (t -> numberOfRows == pool -> numberOfRows, U"The dimension of item ", k, U" should agree.");
+			
+			pool -> numberOfObservations += t -> numberOfObservations;
 
 			// Sum the sscp's and weigh the centroid.
-
-			for (long i = 1; i <= thy numberOfRows; i ++) {   // if 1xn
-				for (long j = 1; j <= thy numberOfColumns; j ++) {
-					thy data [i] [j] += t -> data [i] [j];
-				}
-			}
-
-			for (long j = 1; j <= thy numberOfRows; j ++) {
-				thy centroid [j] += t -> numberOfObservations * t -> centroid [j];
-			}
-		}
-
-		for (long i = 1; i <= thy numberOfRows; i ++) {
-			thy centroid [i] /= thy numberOfObservations;
+			pool -> data.all()  +=  t -> data.all();
+			pool -> centroid.all()  +=  t->centroid.all()  *  t -> numberOfObservations;
 		}
 		
-		return thee;
+		pool -> centroid.all()  *=  1.0 / pool -> numberOfObservations;
+		
+		return pool;
 	} catch (MelderError) {
 		Melder_throw (me, U": not pooled.");
+	}
+}
+
+autoCovariance CovarianceList_to_Covariance_within (CovarianceList me) {
+	try {
+		autoCovariance thee = Data_copy (my at[1]);
+		SSCP_reset (thee.get());
+		for (integer i = 1; i <= my size; i ++) {
+			Covariance covi = my at [i];
+			Melder_require (thy numberOfColumns == covi -> numberOfColumns && thy numberOfRows == covi -> numberOfRows, 
+				U"The dimensions of item ", i, U" does not conform.");
+			thy data.all()  +=  covi -> data.all()  *  (covi -> numberOfObservations - 1.0);
+			thy numberOfObservations += covi -> numberOfObservations;
+		}
+		thy data.all()  *=  1.0 / (thy numberOfObservations - 1.0);
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": no Covariance (within) created.");
+	}
+}
+
+autoCovariance CovarianceList_to_Covariance_between (CovarianceList me) {
+	try {
+		autoCovariance thee = Data_copy (my at[1]);
+		SSCP_reset (thee.get());
+
+		//	First the new centroid,
+
+		for (integer i = 1; i <= my size; i ++) {
+			Covariance covi = my at [i];
+			Melder_require (thy numberOfColumns == covi -> numberOfColumns && thy numberOfRows == covi -> numberOfRows, 
+				U"The dimensions of item ", i, U" does not conform.");
+			thy centroid.all()  +=  covi -> centroid.all()  *  covi -> numberOfObservations;
+			thy numberOfObservations += covi -> numberOfObservations;
+		}
+		thy centroid.all()  *=  1.0 / thy numberOfObservations;
+		
+		autoVEC mean = newVECraw (thy numberOfColumns);
+		autoMAT outer = newMATraw (thy numberOfColumns, thy numberOfColumns);
+		for (integer i = 1; i <= my size; i ++) {
+			Covariance covi = my at [i];
+			mean.all() <<= covi -> centroid.all()  -  thy centroid.all();
+			MATouter_preallocated (outer.get(), mean.get(), mean.get());
+			thy data.all()  +=  outer.all()  *  covi -> numberOfObservations; // Y += aX
+		}
+		thy data.all()  *=  1.0 / (thy numberOfObservations - 1.0);
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": no Covariance (between) created.");
 	}
 }
 
 autoCovariance CovarianceList_to_Covariance_pool (CovarianceList me) { // Morrison sec 3.5, page 100
 	try {
 		autoCovariance thee = Data_copy (my at [1]);
-		double scaleFactor = thy numberOfObservations - 1.0;
-		
-		for (long i = 1; i <= thy numberOfRows; i++) {
-			for (long j = 1; j <= thy numberOfColumns; j++) {
-				thy data[i][j] *= scaleFactor;
-			}
-		}
-		
-		for (long k = 2; k <= my size; k ++) {
-			Covariance t = my at [k];
-			if (t -> numberOfRows != thy numberOfRows) {
-				Melder_throw (U"The dimension of item ", k, U" does not agree.");
-			}
+		SSCP_reset (thee.get());
+		for (integer i = 1; i <= my size; i ++) {
+			Covariance covi = my at [i];
+			Melder_require (covi -> numberOfRows == thy numberOfRows, U"The dimension of item ", i, U" should agree.");
 
-			thy numberOfObservations += t -> numberOfObservations;
+			thy numberOfObservations += covi -> numberOfObservations;
 
 			// Sum the sscp's and weigh the centroid.
-			scaleFactor = t -> numberOfObservations - 1.0;
-			for (long i = 1; i <= thy numberOfRows; i++) { // if 1xn
-				for (long j = 1; j <= thy numberOfColumns; j++) {
-					thy data[i][j] += scaleFactor * t -> data[i][j];
-				}
-			}
+			for (integer k = 1; k <= thy numberOfRows; k ++) // catch 1xn
+				thy data.row (k)  +=  covi -> data.row (k)  *  (covi -> numberOfObservations - 1.0);
 
-			for (long j = 1; j <= thy numberOfRows; j++) {
-				thy centroid[j] += t -> numberOfObservations * t -> centroid[j];
-			}
+			thy centroid.all()  +=  covi -> centroid.all()  *  covi -> numberOfObservations;
 		}
-
-		for (long i = 1; i <= thy numberOfRows; i++) {
-			thy centroid[i] /= thy numberOfObservations;
-		}
-		
-		scaleFactor = 1.0 / (thy numberOfObservations - my size);
-		for (long i = 1; i <= thy numberOfRows; i++) { // if 1xn
-			for (long j = 1; j <= thy numberOfColumns; j++) {
-				thy data[i][j] *= scaleFactor;
-			}
-		}
-
+		thy centroid.all()  *=  1.0 / thy numberOfObservations;
+		thy data.all()  *=  1.0 / (thy numberOfObservations - my size);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not pooled.");
 	}
 }
 
-void SSCPList_getHomegeneityOfCovariances_box (SSCPList me, double *p_prob, double *p_chisq, double *p_df) {
-	double chisq = 0.0, df = NUMundefined;
+void SSCPList_getHomegeneityOfCovariances_box (SSCPList me, double *out_prob, double *out_chisq, double *out_df) {
+	double chisq = 0.0, df = undefined;
 
 	autoSSCP pooled = SSCPList_to_SSCP_pool (me);
-	long p = pooled -> numberOfColumns;
+	integer p = pooled -> numberOfColumns;
 	double ln_determinant, inv = 0.0, sum = 0.0, g = my size;
-	for (long i = 1; i <= g; i ++) {
+	for (integer i = 1; i <= g; i ++) {
 		SSCP t = my at [i];
 		double ni = t -> numberOfObservations - 1.0;
-		NUMdeterminant_cholesky (t -> data, p, & ln_determinant);
+		ln_determinant = MATdeterminant_fromSymmetricMatrix (t -> data.get());
 
 		// Box-test is for covariance matrices -> scale determinant.
 
@@ -1066,27 +918,22 @@ void SSCPList_getHomegeneityOfCovariances_box (SSCPList me, double *p_prob, doub
 		chisq -= ni * ln_determinant;
 	}
 
-	NUMdeterminant_cholesky (pooled -> data, p, & ln_determinant);
+	ln_determinant = MATdeterminant_fromSymmetricMatrix (pooled -> data.get());
 	ln_determinant -= p * log (pooled -> numberOfObservations - g);
 	chisq += sum * ln_determinant;
 
 	chisq *= 1.0 - (inv - 1.0 / sum) * (2.0 * p * p + 3.0 * p - 1.0) / (6.0 * (p + 1) * (g - 1.0));
 	df = (g - 1.0) * p * (p + 1) / 2.0;
-	if (p_prob) {
-		*p_prob = NUMchiSquareQ (chisq, df);
-	}
-	if (p_chisq) {
-		*p_chisq = chisq;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	
+	if (out_prob) *out_prob = NUMchiSquareQ (chisq, df);
+	if (out_chisq) *out_chisq = chisq;
+	if (out_df) *out_df = df;
 }
 
-autoSSCPList SSCPList_toTwoDimensions (SSCPList me, double v1[], double v2[]) {
+autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVEC v1, constVEC v2) {
 	try {
 		autoSSCPList thee = SSCPList_create ();
-		for (long i = 1; i <= my size; i ++) {
+		for (integer i = 1; i <= my size; i ++) {
 			autoSSCP t = SSCP_toTwoDimensions (my at [i], v1, v2);
 			Thing_setName (t.get(), Thing_getName (my at [i]));
 			thy addItem_move (t.move());
@@ -1098,14 +945,14 @@ autoSSCPList SSCPList_toTwoDimensions (SSCPList me, double v1[], double v2[]) {
 }
 
 
-void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g, double scale, bool confidence, const char32 *label, long d1, long d2, double xmin, double xmax, double ymin, double ymax, int fontSize, bool garnish) {
+void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g,
+	double scale, bool confidence, conststring32 label,
+	integer d1, integer d2, double xmin, double xmax, double ymin, double ymax,
+	int fontSize, bool garnish)
+{
 	SSCP t = my at [1];
 
-	long p = t -> numberOfColumns;
-
-	if (d1 < 1 || d1 > p || d2 < 1 || d2 > p || d1 == d2) {
-		Melder_throw (U"Incorrect axes.");
-	}
+	Melder_require (d1 > 0 && d1 <= t -> numberOfColumns && d2 > 0 && d2 <= t -> numberOfColumns && d1 != d2, U"Incorrect axes.");
 
 	autoSSCPList thee = SSCPList_extractTwoDimensions (me, d1, d2);
 
@@ -1130,15 +977,13 @@ void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g, double scale, 
 	Graphics_setInner (g);
 
 
-	for (long i = 1; i <= thy size; i ++) {
+	for (integer i = 1; i <= thy size; i ++) {
 		t = thy at [i];
 		double lscale = SSCP_getEllipseScalefactor (t, scale, confidence);
-		if (lscale < 0.0) {
+		if (lscale < 0.0)
 			continue;
-		}
-		if (! label || Melder_cmp (label, Thing_getName (t)) == 0) {
-			_SSCP_drawTwoDimensionalEllipse (t, g, lscale, fontSize);
-		}
+		if (! label || Melder_cmp (label, Thing_getName (t)) == 0)
+			SSCP_drawTwoDimensionalEllipse_inside (t, g, lscale, Thing_getName (t), fontSize);
 	}
 
 	Graphics_unsetInner (g);
@@ -1146,9 +991,9 @@ void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g, double scale, 
 		t = my at [1];
 		Graphics_drawInnerBox (g);
 		Graphics_marksLeft (g, 2, true, true, false);
-		Graphics_textLeft (g, true, t -> columnLabels[d2] ? t -> columnLabels[d2] : Melder_cat (U"Dimension ", d2));
+		Graphics_textLeft (g, true, t -> columnLabels [d2] ? t -> columnLabels [d2].get() : Melder_cat (U"Dimension ", d2));
 		Graphics_marksBottom (g, 2, true, true, false);
-		Graphics_textBottom (g, true, t -> columnLabels[d1] ? t -> columnLabels[d1] : Melder_cat (U"Dimension ", d1));
+		Graphics_textBottom (g, true, t -> columnLabels [d1] ? t -> columnLabels [d1].get() : Melder_cat (U"Dimension ", d1));
 	}
 }
 
@@ -1164,18 +1009,16 @@ autoTableOfReal SSCP_to_TableOfReal (SSCP me) {
 
 autoTableOfReal SSCP_extractCentroid (SSCP me) {
 	try {
-		long n = my numberOfColumns;
-
-		autoTableOfReal thee = TableOfReal_create (1, n);
-		NUMvector_copyElements (my centroid, thy data[1], 1, n);
-		thy columnLabels = NUMstrings_copy (my columnLabels, 1, n);
+		autoTableOfReal thee = TableOfReal_create (1, my numberOfColumns);
+		thy data.row (1) <<= my centroid.all();
+		thy columnLabels.all() <<= my columnLabels.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": centroid not extracted.");
 	}
 }
 
-autoCovariance Covariance_create (long dimension) {
+autoCovariance Covariance_create (integer dimension) {
 	try {
 		autoCovariance me = Thing_new (Covariance);
 		SSCP_init (me.get(), dimension, dimension);
@@ -1185,12 +1028,11 @@ autoCovariance Covariance_create (long dimension) {
 	}
 }
 
-autoCovariance Covariance_create_reduceStorage (long dimension, long storage) {
+autoCovariance Covariance_create_reduceStorage (integer dimension, integer storage) {
 	try {
 		autoCovariance me = Thing_new (Covariance);
-		if (storage <= 0 || storage >= dimension) {
+		if (storage <= 0 || storage >= dimension)
 			storage = dimension;
-		}
 		SSCP_init (me.get(), dimension, storage);
 		return me;
 	} catch (MelderError) {
@@ -1200,52 +1042,44 @@ autoCovariance Covariance_create_reduceStorage (long dimension, long storage) {
 
 
 
-autoCovariance Covariance_createSimple (char32 *s_covariances, char32 *s_centroid, long numberOfObservations) {
+autoCovariance Covariance_createSimple (conststring32 s_covariances, conststring32 s_centroid, integer numberOfObservations) {
 	try {
-		long dimension, numberOfCovariances;
-		autoNUMvector<double> centroid (NUMstring_to_numbers (s_centroid, & dimension), 1);
-		autoNUMvector<double> covariances (NUMstring_to_numbers (s_covariances, & numberOfCovariances), 1);
-		long numberOfCovariances_wanted = dimension * (dimension + 1) / 2;
-		if (numberOfCovariances != numberOfCovariances_wanted) {
-			Melder_throw (U"The number of covariance matrix elements and the number of centroid elements are not in "
-				" concordance. There should be d(d+1)/2 covariance values and d centroid values.");
-		}
+		autoVEC centroid = VEC_createFromString (s_centroid);
+		autoVEC covariances = VEC_createFromString (s_covariances);
+		integer numberOfCovariances_wanted = centroid.size * (centroid.size + 1) / 2;
+		Melder_require (covariances.size == numberOfCovariances_wanted,
+			U"The number of covariance matrix elements and the number of centroid elements (d) should conform. "
+			"There should be d(d+1)/2 covariance values and d centroid values.");
 		
-		autoCovariance me = Covariance_create (dimension);
+		autoCovariance me = Covariance_create (centroid.size);
 
 		// Construct the full covariance matrix from the upper-diagonal elements
 
-		long rowNumber = 1;
-		for (long inum = 1; inum <= numberOfCovariances; inum ++) {
-			long nmissing = (rowNumber - 1) * rowNumber / 2;
-			long inumc = inum + nmissing;
-			rowNumber = (inumc - 1) / dimension + 1;
-			long icol = ((inumc - 1) % dimension) + 1;
+		integer rowNumber = 1;
+		for (integer inum = 1; inum <= covariances.size; inum ++) {
+			integer nmissing = (rowNumber - 1) * rowNumber / 2;
+			integer inumc = inum + nmissing;
+			rowNumber = (inumc - 1) / centroid.size + 1;
+			integer icol = ((inumc - 1) % centroid.size) + 1;
 			my data [rowNumber] [icol] = my data [icol] [rowNumber] = covariances [inum];
-			if (icol == dimension) {
+			if (icol == centroid.size)
 				rowNumber ++;
-			}
 		}
 
 		// Check if a valid covariance, first check variances then covariances
 
-		for (long irow = 1; irow <= dimension; irow ++) {
-			if (my data [irow] [irow] <= 0) {
-				Melder_throw (U"The diagonal matrix elements, must all be positive numbers.");
-			}
-		}
-		for (long irow = 1; irow <= dimension; irow ++) {
-			for (long icol = irow + 1; icol <= dimension; icol ++) {
+		for (integer irow = 1; irow <= centroid.size; irow ++)
+			Melder_require (my data [irow] [irow] > 0.0,
+				U"The diagonal matrix elements should all be positive numbers.");
+
+		for (integer irow = 1; irow <= centroid.size; irow ++)
+			for (integer icol = irow + 1; icol <= centroid.size; icol ++)
 				if (fabs (my data [irow] [icol] / sqrt (my data [irow] [irow] * my data [icol] [icol])) > 1) {
-					long nmissing = (irow - 1) * irow / 2;
-					long inum = (irow - 1) * dimension + icol - nmissing;
+					integer nmissing = (irow - 1) * irow / 2;
+					integer inum = (irow - 1) * centroid.size + icol - nmissing;
 					Melder_throw (U"The covariance in cell [", irow, U",", icol, U"], i.e. input item ", inum, U" is too large.");
 				}
-			}
-		}
-		for (long inum = 1; inum <= dimension; inum ++) {
-			my centroid [inum] = centroid [inum];
-		}
+		my centroid.all() <<= centroid.all();
 		my numberOfObservations = numberOfObservations;
 		return me;
 	} catch (MelderError) {
@@ -1253,49 +1087,46 @@ autoCovariance Covariance_createSimple (char32 *s_covariances, char32 *s_centroi
 	}
 }
 
-autoCorrelation Correlation_createSimple (char32 *s_correlations, char32 *s_centroid, long numberOfObservations) {
+autoCorrelation Correlation_createSimple (conststring32 s_correlations, conststring32 s_centroid, integer numberOfObservations) {
 	try {
-		long dimension, numberOfCorrelations;
-		autoNUMvector<double> centroids (NUMstring_to_numbers (s_centroid, & dimension), 1);
-		autoNUMvector<double> correlations (NUMstring_to_numbers (s_correlations, & numberOfCorrelations), 1);
-		long numberOfCorrelations_wanted = dimension * (dimension + 1) / 2;
-		if (numberOfCorrelations != numberOfCorrelations_wanted) {
-			Melder_throw (U"The number of correlation matrix elements and the number of centroid elements are not in "
-				" concordance. There should be d(d+1)/2 correlation values and d centroid values.");
-		}
-		autoCorrelation me = Correlation_create (dimension);
+		autoVEC centroids = VEC_createFromString (s_centroid);
+		autoVEC correlations = VEC_createFromString (s_correlations);
+		integer numberOfCorrelations_wanted = centroids.size * (centroids.size + 1) / 2;
+		Melder_require (correlations.size == numberOfCorrelations_wanted,
+			U"The number of correlation matrix elements and the number of centroid elements should agree. "
+			"There should be d(d+1)/2 correlation values and d centroid values.");
+
+		autoCorrelation me = Correlation_create (centroids.size);
 
 		// Construct the full correlation matrix from the upper-diagonal elements
 
-		long rowNumber = 1;
-		for (long inum = 1; inum <= numberOfCorrelations; inum++) {
-			long nmissing = (rowNumber - 1) * rowNumber / 2;
-			long inumc = inum + nmissing;
-			rowNumber = (inumc - 1) / dimension + 1;
-			long icol = ( (inumc - 1) % dimension) + 1;
-			my data [rowNumber][icol] = my data [icol][rowNumber] = correlations [inum];
-			if (icol == dimension) {
-				rowNumber++;
+		integer rowNumber = 1;
+		for (integer inum = 1; inum <= correlations.size; inum ++) {
+			integer nmissing = (rowNumber - 1) * rowNumber / 2;
+			integer inumc = inum + nmissing;
+			rowNumber = (inumc - 1) / centroids.size + 1;
+			integer icol = ( (inumc - 1) % centroids.size) + 1;
+			my data [rowNumber] [icol] = my data [icol] [rowNumber] = correlations [inum];
+			if (icol == centroids.size) {
+				rowNumber ++;
 			}
 		}
 
-		// Check if a valid correlations, first check variances then covariances
+		// Check if a valid correlations, first check diagonal then off-diagonals
 
-		for (long irow = 1; irow <= dimension; irow++) {
-			if (my data [irow][irow] != 1.0) {
-				Melder_throw (U"The diagonal matrix elements, must all equal 1.0.");
-			}
+		for (integer irow = 1; irow <= centroids.size; irow ++) {
+			Melder_require (my data [irow] [irow] == 1.0, U"The diagonal matrix elements should all equal 1.0.");
 		}
-		for (long irow = 1; irow <= dimension; irow++) {
-			for (long icol = irow + 1; icol <= dimension; icol++) {
-				if (fabs (my data[irow][icol]) > 1) {
-					long nmissing = (irow - 1) * irow / 2;
-					long inum = (irow - 1) * dimension + icol - nmissing;
-					Melder_throw (U"The correlation in cell [", irow, U",", icol, U"], i.e. input item ", inum, U" is larger then 1.0.");
+		for (integer irow = 1; irow <= centroids.size; irow ++) {
+			for (integer icol = irow + 1; icol <= centroids.size; icol ++) {
+				if (fabs (my data [irow] [icol]) > 1) {
+					integer nmissing = (irow - 1) * irow / 2;
+					integer inum = (irow - 1) * centroids.size + icol - nmissing;
+					Melder_throw (U"The correlation in cell [", irow, U",", icol, U"], i.e. input item ", inum, U" should not exceed 1.0.");
 				}
 			}
 		}
-		for (long inum = 1; inum <= dimension; inum++) {
+		for (integer inum = 1; inum <= centroids.size; inum ++) {
 			my centroid [inum] = centroids [inum];
 		}
 		my numberOfObservations = numberOfObservations;
@@ -1305,7 +1136,7 @@ autoCorrelation Correlation_createSimple (char32 *s_correlations, char32 *s_cent
 	}
 }
 
-autoCorrelation Correlation_create (long dimension) {
+autoCorrelation Correlation_create (integer dimension) {
 	try {
 		autoCorrelation me = Thing_new (Correlation);
 		SSCP_init (me.get(), dimension, dimension);
@@ -1315,16 +1146,15 @@ autoCorrelation Correlation_create (long dimension) {
 	}
 }
 
-autoCovariance SSCP_to_Covariance (SSCP me, long numberOfConstraints) {
+autoCovariance SSCP_to_Covariance (SSCP me, integer numberOfConstraints) {
 	try {
 		Melder_assert (numberOfConstraints >= 0);
 		autoCovariance thee = Thing_new (Covariance);
 		my structSSCP :: v_copy (thee.get());
 
-		for (long irow = 1; irow <= my numberOfRows; irow ++) {
-			for (long icol = irow; icol <= my numberOfColumns; icol ++) {   // a covariance matrix is symmetric
+		for (integer irow = 1; irow <= my numberOfRows; irow ++) {
+			for (integer icol = irow; icol <= my numberOfColumns; icol ++)   // a covariance matrix is symmetric
 				thy data [icol] [irow] = thy data [irow] [icol] /= my numberOfObservations - numberOfConstraints;
-			}
 		}
 		return thee;
 	} catch (MelderError) {
@@ -1336,10 +1166,9 @@ autoSSCP Covariance_to_SSCP (Covariance me) {
 	try {
 		autoSSCP thee = Thing_new (SSCP);
 		my structSSCP :: v_copy (thee.get());
-		for (long irow = 1; irow <= my numberOfRows; irow ++) {
-			for (long icol = irow; icol <= my numberOfColumns; icol ++) {
+		for (integer irow = 1; irow <= my numberOfRows; irow ++) {
+			for (integer icol = irow; icol <= my numberOfColumns; icol ++)
 				thy data [icol] [irow] = thy data [irow] [icol] *= my numberOfObservations - 1;
-			}
 		}
 		return thee;
 	} catch (MelderError) {
@@ -1351,10 +1180,9 @@ autoCorrelation SSCP_to_Correlation (SSCP me) {
 	try {
 		autoCorrelation thee = Thing_new (Correlation);
 		my structSSCP :: v_copy (thee.get());
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = i; j <= my numberOfColumns; j++) {
-				thy data[j][i] = thy data[i][j] /= sqrt (my data[i][i] * my data[j][j]);
-			}
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			for (integer j = i; j <= my numberOfColumns; j ++)
+				thy data [j] [i] = thy data [i] [j] /= sqrt (my data [i] [i] * my data [j] [j]);
 		}
 		return thee;
 	} catch (MelderError) {
@@ -1364,18 +1192,16 @@ autoCorrelation SSCP_to_Correlation (SSCP me) {
 
 double SSCP_getLnDeterminant (SSCP me) {
 	try {
-		double ln_d;
-		NUMdeterminant_cholesky (my data, my numberOfRows, & ln_d);
-		return ln_d;
+		return MATdeterminant_fromSymmetricMatrix (my data.get());
 	} catch (MelderError) {
-		return NUMundefined;
+		return undefined;
 	}
 }
 
 static autoCovariance Covariances_pool (Covariance me, Covariance thee) {
 	try {
-		if (my numberOfRows != thy numberOfRows || my numberOfColumns != thy numberOfColumns)  Melder_throw
-			(U"Matrices must have equal dimensions.");
+		Melder_require (my numberOfRows == thy numberOfRows && my numberOfColumns == thy numberOfColumns,
+			U"Matrices should have equal dimensions.");
 		autoSSCPList sscps = SSCPList_create ();
 		autoSSCP sscp1 = Covariance_to_SSCP (me);
 		sscps -> addItem_move (sscp1.move());
@@ -1389,52 +1215,38 @@ static autoCovariance Covariances_pool (Covariance me, Covariance thee) {
 	}
 }
 
-static double **productOfSquareMatrices (double **s1, double **s2, long n) {
-	autoNUMmatrix<double> r (1, n, 1, n);
-	for (long i = 1; i <= n; i ++) {
-		for (long j = 1; j <= n; j ++) {
-			double sum = 0;
-			for (long k = 1; k <= n; k ++) {
-				sum += s1 [i] [k] * s2 [k] [j];
-			}
-			r[i][j] = sum;
-		}
-	}
-	return r.transfer();
-}
-
-static double traceOfSquaredMatrixProduct (double **s1, double **s2, long n) {
+static double traceOfSquaredMatrixProduct (constMAT const& s1, constMAT const& s2) {
 	// tr ((s1*s2)^2), s1, s2 are symmetric
-	autoNUMmatrix<double> m (productOfSquareMatrices (s1, s2, n), 1, 1);
-	double trace2 = NUMtrace2 (m.peek(), m.peek(), n);
+	autoMAT m = newMATmul (s1, s2);
+	double trace2 = NUMtrace2_nn (m.get(), m.get());
 	return trace2;
 }
 
-double Covariance_getProbabilityAtPosition_string (Covariance me, char32 *vector) {
-	autoNUMvector<double> v (1, my numberOfColumns);
-	long i = 0;
-	for (char32 *token = Melder_firstToken (vector); token != nullptr; token = Melder_nextToken ()) {
-		v[++i] = Melder_atof (token);
-		if (i == my numberOfColumns) {
+double Covariance_getProbabilityAtPosition_string (Covariance me, conststring32 vector_string) {
+	autostring32vector vector = newSTRVECtokenize (vector_string);
+	autoVEC v = newVECzero (my numberOfColumns);
+	for (integer i = 1; i <= vector.size; i ++) {
+		v [i] = Melder_atof (vector [i].get());
+		if (i == my numberOfColumns)
 			break;
-		}
 	}
-	double p = Covariance_getProbabilityAtPosition (me, v.peek());
+	double p = Covariance_getProbabilityAtPosition (me, v.get());
 	return p;
 }
 
-double Covariance_getProbabilityAtPosition (Covariance me, double x[]) {
-	if (my lowerCholesky == 0) {
-		SSCP_expandLowerCholesky (me);
-	}
+double Covariance_getProbabilityAtPosition (Covariance me, constVEC x) {
+	Melder_require (x.size == my numberOfColumns,
+		U"The dimensions of the Covariance and the vector should agree.");
+	if (NUMisEmpty (my lowerCholeskyInverse.get()))
+		SSCP_expandLowerCholeskyInverse (me);
 	double ln2pid = my numberOfColumns * log (NUM2pi);
-	double dsq = NUMmahalanobisDistance_chi (my lowerCholesky, x, my centroid, my numberOfRows, my numberOfColumns);
+	double dsq = NUMmahalanobisDistance (my lowerCholeskyInverse.get(), x, my centroid.get());
 	double lnN = - 0.5 * (ln2pid + my lnd + dsq);
-	double p =  exp (lnN);
+	double p = exp (lnN);
 	return p;
 }
 
-double Covariance_getMarginalProbabilityAtPosition (Covariance me, double vector[], double x) {
+double Covariance_getMarginalProbabilityAtPosition (Covariance me, constVEC vector, double x) {
 	double mu, stdev;
 	Covariance_getMarginalDensityParameters (me, vector, &mu, &stdev);
 	double dx = (x - mu) / stdev;
@@ -1443,49 +1255,44 @@ double Covariance_getMarginalProbabilityAtPosition (Covariance me, double vector
 }
 
 /* Precondition ||v|| = 1 */
-void Covariance_getMarginalDensityParameters (Covariance me, double v[], double *p_mu, double *p_stdev) {
-	if (p_mu) {
-		double mu = 0.0;
-		for (long m = 1; m <= my numberOfColumns; m++) {
-			mu += v[m] * my centroid[m];
-		}
-		*p_mu = mu;
+void Covariance_getMarginalDensityParameters (Covariance me, constVEC v, double *out_mu, double *out_stdev) {
+	Melder_assert (v.size == my numberOfColumns);
+	if (out_mu) {
+		longdouble mu = 0.0;
+		for (integer m = 1; m <= my numberOfColumns; m ++)
+			mu += v [m] * my centroid [m];
+		*out_mu = double (mu);
 	}
-	if (p_stdev) {
-		double stdev = 0;
+	if (out_stdev) {
+		longdouble stdev = 0.0;
 		if (my numberOfRows == 1) { // 1xn diagonal matrix
-			for (long m = 1; m <= my numberOfColumns; m++) {
-				stdev += v[m] * my data[1][m] * v[m];
-			}
+			for (integer m = 1; m <= my numberOfColumns; m ++)
+				stdev += v [m] * my data [1] [m] * v [m];
 		} else {
-			for (long k = 1; k <= my numberOfRows; k++) {
-				for (long m = 1; m <= my numberOfColumns; m++) {
-					stdev += v[k] * my data[k][m] * v[m];
-				}
-			}
+			for (integer k = 1; k <= my numberOfRows; k ++)
+				for (integer m = 1; m <= my numberOfColumns; m ++)
+					stdev += v [k] * my data [k] [m] * v [m];
 		}
-		*p_stdev = sqrt (stdev);
+		*out_stdev = sqrt (double (stdev));
 	}
 }
 
-double Covariances_getMultivariateCentroidDifference (Covariance me, Covariance thee, int equalCovariances, double *p_prob, double *p_fisher, double *p_df1, double *p_df2) {
-	long p = my numberOfRows, N = (long) floor (my numberOfObservations + thy numberOfObservations);
-	long N1 = (long) floor (my numberOfObservations), n1 = N1 - 1;
-	long N2 = (long) floor (thy numberOfObservations), n2 = N2 - 1;
+double Covariances_getMultivariateCentroidDifference (Covariance me, Covariance thee, int equalCovariances, double *out_prob, double *out_fisher, double *out_df1, double *out_df2) {
+	integer p = my numberOfRows, N = Melder_ifloor (my numberOfObservations + thy numberOfObservations);
+	integer N1 = Melder_ifloor (my numberOfObservations), n1 = N1 - 1;
+	integer N2 = Melder_ifloor (thy numberOfObservations), n2 = N2 - 1;
 
-	double dif = NUMundefined, fisher = NUMundefined;
+	double dif = undefined, fisher = undefined;
 	double df1 = p, df2 = N - p - 1;
 	
-	if (df2 < 1) {
-		Melder_throw (U"Not enough observations (", N, U") for this test.");
-	}
-	if (N1 < p || N2 < p) {
-		Melder_throw (U"At least one of the covariances has less observations than variables.");
-	}
+	Melder_require (df2 >= 1.0, 
+		U"Not enough observations (", N, U") for this test.");
+	Melder_require (p >= N1 && p >= N2,
+		U"The number of observations should be larger than the number of variables.");
 
 	dif = 0;
-	for (long i = 1; i <= p; i++) {
-		double dist = my centroid[i] - thy centroid[i];
+	for (integer i = 1; i <= p; i ++) {
+		double dist = my centroid [i] - thy centroid [i];
 		dif += dist * dist;
 	}
 	dif = sqrt (dif);
@@ -1493,11 +1300,12 @@ double Covariances_getMultivariateCentroidDifference (Covariance me, Covariance 
 	if (equalCovariances) {
 		// Morrison, page 141
 		autoCovariance pool = Covariances_pool (me, thee);
-		autoNUMmatrix<double> s (NUMmatrix_copy (my data, 1, p, 1, p), 1, 1);
+		Melder_assert (my data.ncol == p);   // ppgb 20180913
+		autoMAT s = newMATcopy (my data.get());
 		double lndet;
-		NUMlowerCholeskyInverse (s.peek(), p, &lndet);
+		MATlowerCholeskyInverse_inplace (s.get(), & lndet);
 
-		double mahalanobis = NUMmahalanobisDistance_chi (s.peek(), my centroid, thy centroid, p, p);
+		double mahalanobis = NUMmahalanobisDistance (s.get(), my centroid.get(), thy centroid.get());
 		double hotelling_tsq = mahalanobis * N1 * N2 / N;
 		fisher = hotelling_tsq * df2 / ( (N - 2) * df1);
 	} else {
@@ -1510,93 +1318,82 @@ double Covariances_getMultivariateCentroidDifference (Covariance me, Covariance 
 			the matrices S1 and S2 are the covariance matrices 'my data' and 'thy data' divided by N1 and N2 respectively.
 			S is the pooled covar divided by N.
 		*/
-		autoNUMmatrix<double> s1 (1, p, 1, p);
-		autoNUMmatrix<double> s2 (1, p, 1, p);
-		autoNUMmatrix<double> s (1, p, 1, p);
+		
+		autoMAT s1 = newMATraw (p, p), s2 = newMATraw (p, p), s = newMATraw (p, p);
 
-		for (long i = 1; i <= p; i++) {
-			for (long j = 1; j <= p; j++) {
-				s1[i][j] = my data[i][j] / my numberOfObservations;
-				s2[i][j] = thy data[i][j] / thy numberOfObservations;
-				s[i][j] = s1[i][j] + s2[i][j];
+		for (integer i = 1; i <= p; i ++) {
+			for (integer j = 1; j <= p; j ++) {
+				s1 [i] [j] = my data [i] [j] / my numberOfObservations;
+				s2 [i] [j] = thy data [i] [j] / thy numberOfObservations;
+				s [i] [j] = s1 [i] [j] + s2 [i] [j];
 			}
 		}
 		double lndet;
-		NUMlowerCholeskyInverse (s.peek(), p, &lndet);
+		MATlowerCholeskyInverse_inplace (s.get(), & lndet);
 		// Krishan... formula 2, page 162
-		double hotelling_tsq = NUMmahalanobisDistance_chi (s.peek(), my centroid, thy centroid, p, p);
+		double hotelling_tsq = NUMmahalanobisDistance (s.get(), my centroid.get(), thy centroid.get());
 
-		autoNUMmatrix<double> si (NUMinverseFromLowerCholesky (s.peek(), p), 1, 1);
-		double tr_s1sisqr = traceOfSquaredMatrixProduct (s1.peek(), si.peek(), p);
-		double tr_s1si = NUMtrace2 (s1.peek(), si.peek(), p);
-		double tr_s2sisqr = traceOfSquaredMatrixProduct (s2.peek(), si.peek(), p);
-		double tr_s2si = NUMtrace2 (s2.peek(), si.peek(), p);
+		autoMAT si = MATinverse_fromLowerCholeskyInverse (s.get());
+		double tr_s1sisqr = traceOfSquaredMatrixProduct (s1.get(), si.get());
+		double tr_s1si = NUMtrace2_nn (s1.get(), si.get());
+		double tr_s2sisqr = traceOfSquaredMatrixProduct (s2.get(), si.get());
+		double tr_s2si = NUMtrace2_nn (s2.get(), si.get());
 
 		double nu = (p + p * p) / ( (tr_s1sisqr + tr_s1si * tr_s1si) / n1 + (tr_s2sisqr + tr_s2si * tr_s2si) / n2);
 		df2 = nu - p + 1;
 		fisher =  hotelling_tsq * (nu - p + 1) / (nu * p);
 	}
 
-	if (p_prob) {
-		*p_prob = NUMfisherQ (fisher, df1, df2);
-	}
-	if (p_fisher) {
-		*p_fisher = fisher;
-	}
-	if (p_df1) {
-		*p_df1 = df1;
-	}
-	if (p_df2) {
-		*p_df2 = df2;
-	}
+	if (out_prob) *out_prob = NUMfisherQ (fisher, df1, df2);
+	if (out_fisher) *out_fisher = fisher;
+	if (out_df1) *out_df1 = df1;
+	if (out_df2) *out_df2 = df2;
+ 
 	return dif;
 }
 
 /* Schott 2001 */
-void Covariances_equality (CovarianceList me, int method, double *p_prob, double *p_chisq, double *p_df) {
+void Covariances_equality (CovarianceList me, int method, double *out_prob, double *out_chisq, double *out_df) {
 	try {
 
-		long numberOfMatrices = my size;
-		double chisq = NUMundefined, df = NUMundefined;
-
-		if (numberOfMatrices < 2) {
-			Melder_throw (U"We need at least two matrices");
-		}
+		integer numberOfMatrices = my size;
+		double chisq = undefined, df = undefined;
+		Melder_require (numberOfMatrices > 1, U"We need at least two matrices");
 
 		autoCovariance pool = CovarianceList_to_Covariance_pool (me); 
 		double ns = pool -> numberOfObservations - my size;
-		long p = pool -> numberOfColumns;
+		integer p = pool -> numberOfColumns;
 		
 		if (method == 1) {
 			/* Bartlett (see Morrison page 297)
-			 * The hypothesis H0 : Sigma[1] = .... = Sigma[k] of the equality of the covariance matrices of k p-dimensional
-			 * multinormal populations can be tested against the alternative by a modified generalized likelihood-ratio statistic.
-			 * Let S[i] be the unbiased estimate of Sigma[i] based on n[i] degrees of freedom, where n[i] = N[i]-1 for 
-			 * the usual case of a random sample of N[i] observation vectors from the i-th population. When H0 is true
-			 *     S = 1/(sum(i=1..k, n[i])) sum(i=1..k, n[i]*S[i])
-			 * is the pooled estimate of the common covariance matrix. The test statistic is
-			 *     M = sum(i=1..k,n[i])*ln|S| - sum(i=1..k, n[i]*ln|S[i]|).
-			 * Box (1949), "A general distribution theory for a class of likelihood criteria", 
-			 *  Biomerika, vol 36, pp. 317-346. has shown that if the scale factor
-			 *     C^(-1) = 1 - (2p^2+3p-1)/(6(p+1)(k-1)) * (sum(i=1..k, 1/n[i]) - 1 / sum(i=1..k, n[i])) is introduced,
-			 * the quatity M/C is approximately distributed as a chi-squared variate with (k-1)p(p+1)/2 degrees of freedom 
-			 * as the n[i] become large.
-			 * It is well known that this likelihood ratio test is very sensitive to violations of the normality assumption, 
-			 * and so other more robust procedures have been proposed.
+				The hypothesis H0 : Sigma [1] = .... = Sigma [k] of the equality of the covariance matrices of k p-dimensional
+				multinormal populations can be tested against the alternative by a modified generalized likelihood-ratio statistic.
+				Let S [i] be the unbiased estimate of Sigma [i] based on n [i] degrees of freedom, where n [i] = N [i]-1 for 
+				the usual case of a random sample of N [i] observation vectors from the i-th population. When H0 is true
+					S = 1/(sum(i=1..k, n [i])) sum(i=1..k, n [i]*S [i])
+				is the pooled estimate of the common covariance matrix. The test statistic is
+					M = sum(i=1..k,n [i])*ln|S| - sum(i=1..k, n [i]*ln|S [i]|).
+				Box (1949), "A general distribution theory for a class of likelihood criteria", 
+				Biomerika, vol 36, pp. 317-346. has shown that if the scale factor
+				C^(-1) = 1 - (2p^2+3p-1)/(6(p+1)(k-1)) * (sum(i=1..k, 1/n [i]) - 1 / sum(i=1..k, n [i])) is introduced,
+				the quatity M/C is approximately distributed as a chi-squared variate with (k-1)p(p+1)/2 degrees of freedom 
+				as the n [i] become large.
+				It is well known that this likelihood ratio test is very sensitive to violations of the normality assumption, 
+				and so other more robust procedures have been proposed.
 			 */
 			double lnd;
 			try {
-				NUMdeterminant_cholesky (pool -> data, p, & lnd);
+				lnd = MATdeterminant_fromSymmetricMatrix (pool -> data.get());
 			} catch (MelderError) {
 				Melder_throw (U"Pooled covariance matrix is singular.");
 			}
 
 			double nsi = 0.0, m = ns * lnd; // First part of eq (3) page 297
 
-			for (long i = 1; i <= numberOfMatrices; i ++) {
+			for (integer i = 1; i <= numberOfMatrices; i ++) {
 				Covariance ci = my at [i];
 				try {
-					NUMdeterminant_cholesky (ci -> data, p, & lnd);
+					lnd = MATdeterminant_fromSymmetricMatrix (ci -> data.get());
 				} catch (MelderError) {
 					Melder_throw (U"Covariance matrix ", i, U" is singular.");
 				}
@@ -1610,24 +1407,24 @@ void Covariances_equality (CovarianceList me, int method, double *p_prob, double
 			df = (numberOfMatrices - 1.0) * p * (p + 1) / 2.0;
 			chisq = m * c1;
 		} else if (method == 2) { // Schott (2001) Wald 1
-			// T1 = sum(i=1..k, n[i]/n *tr((S[i]*S^-1)^2)- sum(i=1..k, sum(j=1..k, (n[i]/n)*(n[j]/n) *tr(S[i]*S^-1*S[j]*sS^-1))) =
+			// T1 = sum(i=1..k, n [i]/n *tr((S [i]*S^-1)^2)- sum(i=1..k, sum(j=1..k, (n [i]/n)*(n [j]/n) *tr(S [i]*S^-1*S [j]*sS^-1))) =
 			//	sum(i=1..k, (ni/n -(ni/n)^2) tr((si*s^-1)^2)
 			//	- 2 * sum (i=1..k, sum(j=1..i-1, (ni/n)*(nj/n) *tr(si*s^-1*sj*s^-1)))
 
-			double trace = 0;
-			NUMlowerCholeskyInverse (pool -> data, p, nullptr);
-			autoNUMmatrix<double> si (NUMinverseFromLowerCholesky (pool -> data, p), 1, 1);
-			for (long i = 1; i <= numberOfMatrices; i ++) {
+			double trace = 0.0;
+			MATlowerCholeskyInverse_inplace (pool -> data.get(), nullptr);
+			autoMAT si = MATinverse_fromLowerCholeskyInverse (pool -> data.get());
+			for (integer i = 1; i <= numberOfMatrices; i ++) {
 				Covariance ci = my at [i];
 				double ni = ci -> numberOfObservations - 1;
-				autoNUMmatrix<double> s1 (productOfSquareMatrices (ci -> data, si.peek(), p), 1, 1);
-				double trace_ii = NUMtrace2 (s1.peek(), s1.peek(), p);
+				autoMAT s1 = newMATmul (ci -> data.get(), si.get());
+				double trace_ii = NUMtrace2_nn (s1.get(), s1.get());
 				trace += (ni / ns) * (1 - (ni / ns)) * trace_ii;
-				for (long j = i + 1; j <= numberOfMatrices; j ++) {
+				for (integer j = i + 1; j <= numberOfMatrices; j ++) {
 					Covariance cj = my at [j];
 					double nj = cj -> numberOfObservations - 1;
-					autoNUMmatrix<double> s2 (productOfSquareMatrices (cj -> data, si.peek(), p), 1, 1);
-					double trace_ij = NUMtrace2 (s1.peek(), s2.peek(), p);
+					autoMAT s2 = newMATmul (cj -> data.get(), si.get());
+					double trace_ij = NUMtrace2_nn (s1.get(), s2.get());
 					trace -= 2.0 * (ni / ns) * (nj / ns) * trace_ij;
 				}
 			}
@@ -1636,118 +1433,95 @@ void Covariances_equality (CovarianceList me, int method, double *p_prob, double
 		} else {
 			return;
 		}
-		if (p_prob) {
-			*p_prob = NUMchiSquareQ (chisq, df);
-		}
-		if (p_df) {
-			*p_df = df;
-		}
-		if (p_chisq) {
-			*p_chisq = chisq;
-		}
+		if (out_prob) *out_prob = NUMchiSquareQ (chisq, df);
+		if (out_df)*out_df = df;
+		if (out_chisq) *out_chisq = chisq;
+
 	} catch (MelderError) {
 		Melder_throw (U"Equality coud not be tested.");
 	}
 }
 
-void Covariance_difference (Covariance me, Covariance thee, double *p_prob, double *p_chisq, double *p_df) {
-	long p = my numberOfRows;
-	long numberOfObservations = (long) floor (my numberOfObservations);
+void Covariance_difference (Covariance me, Covariance thee, double *out_prob, double *out_chisq, double *out_df) {
+	integer p = my numberOfRows;
+	integer numberOfObservations = Melder_ifloor (my numberOfObservations);
 	double  ln_me, ln_thee;
-	double chisq = NUMundefined, df = NUMundefined;
-	
-	if (my numberOfRows != thy numberOfRows) {
-		Melder_throw (U"Matrices must have equal dimensions.");
-	}
-	if (my numberOfObservations != thy numberOfObservations) {
-		numberOfObservations = (long) floor (my numberOfObservations > thy numberOfObservations ?
-		                        thy numberOfObservations : my numberOfObservations) - 1;
-		Melder_warning (U"Covariance_difference: number of observations of matrices do not agree.\n"
-		                U" The minimum  size (", numberOfObservations, U") of the two is used.");
-	}
-	if (numberOfObservations < 2) {
-		Melder_throw (U"Number of observations too small.");
-	}
+	double chisq = undefined, df = undefined;
+	Melder_require (my numberOfRows == thy numberOfRows, U"Matrices should have equal dimensions.");
 
-	autoNUMmatrix<double> linv (NUMmatrix_copy (thy data, 1, p, 1, p), 1, 1);
-	NUMlowerCholeskyInverse (linv.peek(), p, & ln_thee);
-	NUMdeterminant_cholesky (my data, p, & ln_me);
+	if (my numberOfObservations != thy numberOfObservations) {
+		numberOfObservations = Melder_ifloor (my numberOfObservations > thy numberOfObservations ?
+			thy numberOfObservations : my numberOfObservations) - 1;
+		Melder_warning (U"Covariance_difference: number of observations of matrices do not agree.\n"
+			U" The minimum  size (", numberOfObservations, U") of the two is used.");
+	}
+	Melder_require (numberOfObservations > 1,
+		U"Number of observations too small.");
+	Melder_assert (thy data.ncol == p);
+	autoMAT linv = newMATcopy (thy data.get());
+	MATlowerCholeskyInverse_inplace (linv.get(), & ln_thee);
+	ln_me = MATdeterminant_fromSymmetricMatrix (my data.get());
 
 	/*
 		We need trace (A B^-1). We have A and the inverse L^(-1) of the
 		cholesky decomposition L^T L of B in the lower triangle + diagonal.
 		Always: tr (A B) = tr (B A)
 		tr (A B^-1) = tr (A (L L^T)^-1) = tr (A L^-1 (L^T)^-1)
-		trace = sum(i=1..p, j=1..p, l=max(i,j)..p, A[i][j]Lm[l][j]Lm[l][i],
+		trace = sum(i=1..p, j=1..p, l=max(i,j)..p, A [i] [j]Lm [l] [j]Lm [l] [i],
 		where Lm = L^(-1)
 	*/
 
 	double trace = 0.0;
-	for (long i = 1; i <= p; i++) {
-		for (long j = 1; j <= p; j++) {
-			long lp = MAX (j, i);
-			for (long l = lp; l <= p; l++) {
-				trace += my data[i][j] * linv[l][j] * linv[l][i];
-			}
+	for (integer i = 1; i <= p; i ++) {
+		for (integer j = 1; j <= p; j ++) {
+			integer lp = std::max (j, i);
+			for (integer l = lp; l <= p; l ++)
+				trace += my data [i] [j] * linv [l] [j] * linv [l] [i];
 		}
 	}
 
 	double l = (numberOfObservations - 1) * fabs (ln_thee - ln_me + trace - p);
 	chisq = l * fabs (1.0 - (2.0 * p + 1.0 - 2.0 / (p + 1)) / (numberOfObservations - 1) / 6.0);
 	df = p * (p + 1) / 2.0;
-	if (p_prob) {
-		*p_prob = NUMchiSquareQ (chisq, df);
-	}
-	if (p_chisq) {
-		*p_chisq = chisq;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	
+	if (out_prob) *out_prob = NUMchiSquareQ (chisq, df);
+	if (out_chisq) *out_chisq = chisq;
+	if (out_df) *out_df = df;
+
 }
 
-static void checkOneIndex (TableOfReal me, long index) {
-	if (index < 1 || index > my numberOfColumns) {
-		Melder_throw (U"Index must be in interval [1, ", my numberOfColumns, U"].");
-	}
+static void checkOneIndex (TableOfReal me, integer index) {
+	Melder_require (index > 0 && index <= my numberOfColumns, U"Index should be in interval [1, ", my numberOfColumns, U"].");
 }
 
-static void checkTwoIndices (TableOfReal me, long index1, long index2) {
-	if (index1 < 1 || index1 > my numberOfColumns || index2 < 1 || index2 > my numberOfColumns) {
-		Melder_throw (U"Index must be in interval [1, ", my numberOfColumns, U"].");
-	}
-	if (index1 == index2) {
-		Melder_throw (U"Indices must be different.");
-	}
+static void checkTwoIndices (TableOfReal me, integer index1, integer index2) {
+	Melder_require (index1 > 0 && index1 <= my numberOfColumns && index2 > 0 && index2 <= my numberOfColumns,
+		U"Index should be in interval [1, ", my numberOfColumns, U"].");
+	Melder_require (index1 != index2, 
+		U"Indices should be different.");
 }
 
-void Covariance_getSignificanceOfOneMean (Covariance me, long index, double mu, double *p_prob, double *p_t, double *p_df) {
-	double var = my data[index][index];
-	double prob = NUMundefined, t = NUMundefined, df = my numberOfObservations - 1.0;
+void Covariance_getSignificanceOfOneMean (Covariance me, integer index, double mu, double *out_prob, double *out_t, double *out_df) {
+	double var = my data [index] [index];
+	double prob = undefined, t = undefined, df = my numberOfObservations - 1.0;
 
 	checkOneIndex (me, index);
 
 	if (var > 0.0) {
-		t = (my centroid[index] - mu) / sqrt (var / my numberOfObservations);
-		if (p_prob) {
-			prob = 2.0 * NUMstudentQ (fabs (t), df);
-		}
+		t = (my centroid [index] - mu) / sqrt (var / my numberOfObservations);
+		if (out_prob) prob = 2.0 * NUMstudentQ (fabs (t), df);
 	}
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_t) {
-		*p_t = t;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	
+	if (out_prob)*out_prob = prob;
+	if (out_t) *out_t = t;
+	if (out_df) *out_df = df;
+
 }
 
-void Covariance_getSignificanceOfMeansDifference (Covariance me, long index1, long index2, double mu, int paired, int equalVariances, double *p_prob, double *p_t, double *p_df) {
-	long n = (long) floor (my numberOfObservations);
+void Covariance_getSignificanceOfMeansDifference (Covariance me, integer index1, integer index2, double mu, int paired, int equalVariances, double *out_prob, double *out_t, double *out_df) {
+	integer n = Melder_ifloor (my numberOfObservations);
 
-	double prob = NUMundefined, t = NUMundefined;
+	double prob = undefined, t = undefined;
 	double df = 2.0 * (n - 1);
 
 	checkTwoIndices (me, index1, index2);
@@ -1761,7 +1535,7 @@ void Covariance_getSignificanceOfMeansDifference (Covariance me, long index1, lo
 		goto end;
 	}
 	if (paired) {
-		var_pooled -= 2.0 * my data[index1][index2];
+		var_pooled -= 2.0 * my data [index1] [index2];
 		df /= 2.0;
 	}
 
@@ -1784,47 +1558,30 @@ void Covariance_getSignificanceOfMeansDifference (Covariance me, long index1, lo
 		prob = NUMincompleteBeta (df / 2.0, 0.5, df / (df + t * t));
 	}
 end:
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_t) {
-		*p_t = t;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	if (out_prob) *out_prob = prob;
+	if (out_t) *out_t = t;
+	if (out_df) *out_df = df;
 }
 
-void Covariance_getSignificanceOfOneVariance (Covariance me, long index, double sigmasq, double *p_prob, double *p_chisq, long *p_df) {
+void Covariance_getSignificanceOfOneVariance (Covariance me, integer index, double sigmasq, double *out_prob, double *out_chisq, double *out_df) {
 	double var = my data [index] [index];
-	double prob = NUMundefined, chisq = NUMundefined;
+	double prob = undefined, chisq = undefined;
 	double df = my numberOfObservations - 1.0;
 
 	checkOneIndex (me, index);
 
 	if (var > 0.0) {
-
 		chisq = df;
-		if (sigmasq > 0.0) {
-			chisq = df * var / sigmasq;
-		}
-		if (p_prob) {
-			prob = NUMchiSquareQ (chisq, df);
-		}
+		if (sigmasq > 0.0) chisq = df * var / sigmasq;
+		if (out_prob) prob = NUMchiSquareQ (chisq, df);
 	}
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_chisq) {
-		*p_chisq = chisq;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	if (out_prob) *out_prob = prob;
+	if (out_chisq) *out_chisq = chisq;
+	if (out_df) *out_df = df;
 }
 
-void Covariance_getSignificanceOfVariancesRatio (Covariance me, long index1, long index2, double ratio, double *p_prob, double *p_f, double *p_df) {
-	double df = my numberOfObservations - 1.0, prob = NUMundefined, f = NUMundefined;
+void Covariance_getSignificanceOfVariancesRatio (Covariance me, integer index1, integer index2, double ratio, double *out_prob, double *out_f, double *out_df) {
+	double df = my numberOfObservations - 1.0, prob = undefined, f = undefined;
 	checkTwoIndices (me, index1, index2);
 
 	double var1 = my data [index1] [index1];
@@ -1833,48 +1590,29 @@ void Covariance_getSignificanceOfVariancesRatio (Covariance me, long index1, lon
 	if (var1 > 0.0 && var2 > 0.0) {
 		double ratio2 = (var1 / var2) / ratio;
 		f = ratio2;
-		if (var2 > var1) {
-			ratio2 = (var2 / var1) * ratio;
-		}
-		if (p_prob) {
+		if (var2 > var1) ratio2 = (var2 / var1) * ratio;
+		if (out_prob) {
 			prob = 2.0 * NUMfisherQ (ratio2, df, df);
-			if (prob > 1.0) {
-				prob = 2.0 - prob;
-			}
+			if (prob > 1.0) prob = 2.0 - prob;
 		}
 	}
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
-	if (p_f) {
-		*p_f = f;
-	}
+	if (out_prob) *out_prob = prob;
+	if (out_df) *out_df = df;
+	if (out_f) *out_f = f;
 }
 
-autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confidenceLevel, long numberOfTests, int method) {
+autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confidenceLevel, integer numberOfTests, int method) {
 	try {
-		long m_bonferroni = my numberOfRows * (my numberOfRows - 1) / 2;
+		integer m_bonferroni = my numberOfRows * (my numberOfRows - 1) / 2;
+		Melder_require (confidenceLevel > 0 && confidenceLevel <= 1.0, U"Confidence level should be in interval (0-1).");
 
-		if (confidenceLevel <= 0 || confidenceLevel > 1.0) {
-			Melder_throw (U"Confidence level must be in interval (0-1).");
-		}
+		Melder_require (my numberOfObservations > 4, U"The number of observations should be greater than 4.");
+		Melder_require (numberOfTests >= 0, U"The \"number of tests\" should not be less than zero.");
 
-		if (my numberOfObservations < 5) {
-			Melder_throw (U"The number of observations must be greater than 4.");
-		}
-
-		if (numberOfTests < 0) {
-			Melder_throw (U"The \"number of tests\" cannot be less than zero.");
-		} else if (numberOfTests == 0) {
+		if (numberOfTests == 0)
 			numberOfTests = m_bonferroni;
-		}
-
-		if (numberOfTests > m_bonferroni) {
-			Melder_warning (U"The \"number of tests\" exceeds the number of elements in the Correlation object.");
-		}
+		if (numberOfTests > m_bonferroni)
+			Melder_warning (U"The \"number of tests\" should not exceed the number of elements in the Correlation object.");
 
 		autoTableOfReal thee = TableOfReal_create (my numberOfRows, my numberOfRows);
 
@@ -1891,9 +1629,9 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 		double zf = z / sqrt (my numberOfObservations - 3.0);
 		double  two_n = 2.0 * my numberOfObservations;
 
-		for (long i = 1; i <= my numberOfRows; i++) {
-			for (long j = i + 1; j <= my numberOfRows; j++) {
-				double rij = my data[i][j], rmin, rmax;
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			for (integer j = i + 1; j <= my numberOfRows; j ++) {
+				double rij = my data [i] [j], rmin, rmax;
 				if (method == 2) {
 					// Fisher's approximation
 
@@ -1914,22 +1652,23 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 
 					double q, d = sqrt (b * b - a * c);
 
-					if (b > 0) {
-						d = - d;
-					}
+					if (b > 0) d = - d;
 					q = b - d;
-					rmin = q / a; rmin /= sqrt (1.0 + rmin * rmin);
-					rmax = c / q; rmax /= sqrt (1.0 + rmax * rmax);
+					rmin = q / a; 
+					rmin /= sqrt (1.0 + rmin * rmin);
+					rmax = c / q; 
+					rmax /= sqrt (1.0 + rmax * rmax);
 					if (rmin > rmax) {
-						double t = rmin; rmin = rmax; rmax = t;
+						double t = rmin; 
+						rmin = rmax; rmax = t;
 					}
 				} else {
 					rmax = rmin = 0;
 				}
-				thy data[i][j] = rmax;
-				thy data[j][i] = rmin;
+				thy data [i] [j] = rmax;
+				thy data [j] [i] = rmin;
 			}
-			thy data[i][i] = 1;
+			thy data [i] [i] = 1;
 		}
 		return thee;
 	} catch (MelderError) {
@@ -1937,40 +1676,33 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 	}
 }
 
-void SSCP_testDiagonality_bartlett (SSCP me, long numberOfContraints, double *chisq, double *prob, double *df) {
+void SSCP_getDiagonality_bartlett (SSCP me, integer numberOfContraints, double *out_chisq, double *out_prob, double *out_df) {
 	autoCorrelation c = SSCP_to_Correlation (me);
-	Correlation_testDiagonality_bartlett (c.get(), numberOfContraints, chisq, prob, df);
+	Correlation_testDiagonality_bartlett (c.get(), numberOfContraints, out_chisq, out_prob, out_df);
 }
 
 /* Morrison, page 118 */
-void Correlation_testDiagonality_bartlett (Correlation me, long numberOfContraints, double *p_chisq, double *p_prob, double *p_df) {
-	long p = my numberOfRows;
-	double chisq = NUMundefined, prob = NUMundefined, df = p * (p -1) / 2.0;
+void Correlation_testDiagonality_bartlett (Correlation me, integer numberOfContraints, double *out_chisq, double *out_prob, double *out_df) {
+	integer p = my numberOfRows;
+	double chisq = undefined, prob = undefined, df = p * (p -1) / 2.0;
 
-	if (numberOfContraints <= 0) {
+	if (numberOfContraints <= 0)
 		numberOfContraints = 1;
-	}
+
 	if (numberOfContraints > my numberOfObservations) {
 		Melder_warning (U"Correlation_testDiagonality_bartlett: number of constraints cannot exceed the number of observations.");
 		return;
 	}
 	if (my numberOfObservations >= numberOfContraints) {
-		double ln_determinant;
-		NUMdeterminant_cholesky (my data, p, & ln_determinant);
+		double ln_determinant = MATdeterminant_fromSymmetricMatrix (my data.get());
 		chisq = - ln_determinant * (my numberOfObservations - numberOfContraints - (2.0 * p + 5.0) / 6.0);
-		if (p_prob) {
+		if (out_prob) {
 			prob = NUMchiSquareQ (chisq, df);
 		}
 	}
-	if (p_chisq) {
-		*p_chisq = chisq;
-	}
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	if (out_chisq) *out_chisq = chisq;
+	if (out_prob) *out_prob = prob;
+	if (out_df) *out_df = df;
 }
 
 void SSCP_expand (SSCP me) {
@@ -1984,62 +1716,52 @@ void SSCP_expand (SSCP me) {
 	// No expansion for a standard matrix or if already expanded and data has not changed!
 
 	if ((my expansionNumberOfRows == 0 && my numberOfRows == my numberOfColumns) ||
-	        (my expansionNumberOfRows > 0 && ! my dataChanged)) {
+	        (my expansionNumberOfRows > 0 && ! my dataChanged))
 		return;
-	}
-	if (my expansion == 0) {
-		my expansion = NUMmatrix<double> (1, my numberOfColumns, 1, my numberOfColumns);
-	}
-	for (long ir = 1; ir <= my numberOfColumns; ir++) {
-		for (long ic = ir; ic <= my numberOfColumns; ic++) {
-			long dij = labs (ir - ic);
-			my expansion[ir][ic] = my expansion[ic][ir] = dij < my numberOfRows ? my data[dij + 1][ic] : 0.0;
+
+	if (NUMisEmpty (my expansion.get()))
+		my expansion = newMATzero (my numberOfColumns, my numberOfColumns);
+	for (integer ir = 1; ir <= my numberOfColumns; ir ++)
+		for (integer ic = ir; ic <= my numberOfColumns; ic ++) {
+			integer dij = labs (ir - ic);
+			my expansion [ir] [ic] = my expansion [ic] [ir] = dij < my numberOfRows ? my data [dij + 1] [ic] : 0.0;
 		}
-	}
+
 	// Now make 'my data' point to 'my expansion'
-	double **tmp = my data; my data = my expansion; my expansion = tmp;
+	std::swap (my data, my expansion);
 	my expansionNumberOfRows = my numberOfRows;
 	my numberOfRows = my numberOfColumns;
 	my dataChanged = 0;
 }
 
 void SSCP_unExpand (SSCP me) {
-	if (my expansionNumberOfRows == 0) {
+	if (my expansionNumberOfRows == 0)
 		return;
-	}
-	NUMmatrix_free (my data, 1, 1);
-	my data = my expansion;
-	my expansion = nullptr;
+	my data = my expansion.move();
 	my numberOfRows = my expansionNumberOfRows;
 	my expansionNumberOfRows = 0;
 	my dataChanged = 0;
 }
 
-void SSCP_expandLowerCholesky (SSCP me) {
-	if (! my lowerCholesky) {
-		my lowerCholesky = NUMmatrix<double> (1, my numberOfRows, 1, my numberOfColumns);
-	}
+void SSCP_expandLowerCholeskyInverse (SSCP me) {
+	if (NUMisEmpty (my lowerCholeskyInverse.get()))
+		my lowerCholeskyInverse = newMATraw (my numberOfColumns, my numberOfColumns);
 	if (my numberOfRows == 1) {   // diagonal
 		my lnd = 0.0;
-		for (long j = 1; j <= my numberOfColumns; j ++) {
-			my lowerCholesky [1] [j] = 1.0 / sqrt (my data[1] [j]);   // inverse is 1/stddev
+		for (integer j = 1; j <= my numberOfColumns; j ++) {
+			my lowerCholeskyInverse [1] [j] = 1.0 / sqrt (my data [1] [j]);   // inverse is 1/stddev
 			my lnd += log (my data [1] [j]);   // diagonal elmnt is variance
 		}
 	} else {
-		for (long i = 1; i <= my numberOfRows; i ++) {
-			for (long j = i; j <= my numberOfColumns; j ++) {
-				my lowerCholesky [j] [i] = my lowerCholesky [i] [j] = my data [i] [j];
-			}
-		}
+		my lowerCholeskyInverse.all() <<= my data.all();
 		try {
-			NUMlowerCholeskyInverse (my lowerCholesky, my numberOfColumns, & (my lnd));
+			MATlowerCholeskyInverse_inplace (my lowerCholeskyInverse.get(), & (my lnd));
 		} catch (MelderError) {
 			// singular matrix: arrange a diagonal only inverse.
 			my lnd = 0.0;
-			for (long i = 1; i <= my numberOfRows; i ++) {
-				for (long j = i; j <= my numberOfColumns; j ++) {
-					my lowerCholesky [i] [j] = my lowerCholesky [j] [i] = ( i == j ? 1.0 / sqrt (my data [i] [i]) : 0.0 );
-				}
+			for (integer i = 1; i <= my numberOfRows; i ++) {
+				for (integer j = i; j <= my numberOfColumns; j ++)
+					my lowerCholeskyInverse [i] [j] = my lowerCholeskyInverse [j] [i] = (i == j ? 1.0 / sqrt (my data [i] [i]) : 0.0);
 				my lnd += log (my data [i] [i]);
 			}
 			my lnd *= 2.0;
@@ -2048,23 +1770,18 @@ void SSCP_expandLowerCholesky (SSCP me) {
 }
 
 void SSCP_unExpandLowerCholesky (SSCP me) {
-	NUMmatrix_free (my lowerCholesky, 1, 1);
+	my lowerCholeskyInverse.reset();
 	my lnd = 0.0;
 }
 
 void SSCP_expandPCA (SSCP me) {
-	if (my pca) {
+	if (my pca)
 		my pca.reset();
-	}
 	my pca = SSCP_to_PCA (me);
 }
 
 void SSCP_unExpandPCA (SSCP me) {
 	my pca.reset();
 }
-
-
-#undef MAX
-#undef MIN
 
 /* End of file SSCP.c */

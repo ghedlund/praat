@@ -2,7 +2,7 @@
 #define _Simple_h_
 /* Simple.h
  *
- * Copyright (C) 1992-2012,2015 Paul Boersma
+ * Copyright (C) 1992-2012,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,9 @@
 
 #include "Simple_def.h"
 
-PRAAT_LIB_EXPORT autoSimpleInt SimpleInt_create (int number);
-PRAAT_LIB_EXPORT autoSimpleLong SimpleLong_create (long number);
+PRAAT_LIB_EXPORT autoSimpleInteger SimpleInteger_create (integer number);
 PRAAT_LIB_EXPORT autoSimpleDouble SimpleDouble_create (double number);
-PRAAT_LIB_EXPORT autoSimpleString SimpleString_create (const char32 *string);
+PRAAT_LIB_EXPORT autoSimpleString SimpleString_create (conststring32 string);
 
 PRAAT_LIB_EXPORT int SimpleString_compare (SimpleString me, SimpleString thee) noexcept;
 

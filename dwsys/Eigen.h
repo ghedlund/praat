@@ -2,7 +2,7 @@
 #define _Eigen_h_
 /* Eigen.h
  *
- * Copyright (C) 1993-2012, 2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@
 
 #include "Eigen_def.h"
 
-autoEigen Eigen_create (long numberOfEigenvalues, long dimension);
+autoEigen Eigen_create (integer numberOfEigenvalues, integer dimension);
 
-void Eigen_init (Eigen me, long numberOfEigenvalues, long dimension);
+void Eigen_init (Eigen me, integer numberOfEigenvalues, integer dimension);
 
-void Eigen_initFromSymmetricMatrix (Eigen me, double **a, long n);
+void Eigen_initFromSymmetricMatrix (Eigen me, constMAT a);
 
-void Eigen_initFromSquareRoot (Eigen me, double **a, long numberOfRows, long numberOfColumns);
+void Eigen_initFromSquareRoot (Eigen me, constMAT a);
 /*
 	Calculate eigenstructure for symmetric matrix A'A (e.g. covariance matrix),
 	when only A is given.
@@ -38,7 +38,7 @@ void Eigen_initFromSquareRoot (Eigen me, double **a, long numberOfRows, long num
 	Method: SVD.
 */
 
-void Eigen_initFromSquareRootPair (Eigen me, double **a, long numberOfRows, long numberOfColumns, double **b, long numberOfRows_b);
+void Eigen_initFromSquareRootPair (Eigen me, constMAT a, constMAT b);
 /*
 	Calculate eigenstructure for A'Ax - lambda B'Bx = 0
 	Preconditions: numberOfRows >= numberOfColumns &&
@@ -46,17 +46,17 @@ void Eigen_initFromSquareRootPair (Eigen me, double **a, long numberOfRows, long
 	Method: Generalized SVD.
 */
 
-long Eigen_getNumberOfEigenvectors (Eigen me);
+integer Eigen_getNumberOfEigenvectors (Eigen me);
 
-long Eigen_getDimensionOfComponents (Eigen me);
+integer Eigen_getDimensionOfComponents (Eigen me);
 
-double Eigen_getCumulativeContributionOfComponents (Eigen me, long from, long to);
+double Eigen_getCumulativeContributionOfComponents (Eigen me, integer from, integer to);
 
-long Eigen_getDimensionOfFraction (Eigen me, double fraction);
+integer Eigen_getDimensionOfFraction (Eigen me, double fraction);
 
-double Eigen_getEigenvectorElement (Eigen me, long ivec, long element);
+double Eigen_getEigenvectorElement (Eigen me, integer ivec, integer element);
 
-double Eigen_getSumOfEigenvalues (Eigen me, long from, long to);
+double Eigen_getSumOfEigenvalues (Eigen me, integer from, integer to);
 
 
 void Eigen_sort (Eigen me);
@@ -64,13 +64,13 @@ void Eigen_sort (Eigen me);
 	Sort eigenvalues and corresponding eigenvectors in decreasing order.
 */
 
-void Eigen_invertEigenvector (Eigen me, long ivec);
+void Eigen_invertEigenvector (Eigen me, integer ivec);
 
-void Eigen_drawEigenvalues (Eigen me, Graphics g, long first, long last, double ymin, double ymax,
-	bool fractionOfTotal, bool cumulative, double size_mm, const char32 *mark, bool garnish);
+void Eigen_drawEigenvalues (Eigen me, Graphics g, integer first, integer last, double ymin, double ymax,
+	bool fractionOfTotal, bool cumulative, double size_mm, conststring32 mark, bool garnish);
 
-void Eigen_drawEigenvector (Eigen me, Graphics g, long ivec, long first, long last, double minimum, double maximum, bool weigh,
-	double size_mm, const char32 *mark, bool connect, char32 **rowLabels, bool garnish);
+void Eigen_drawEigenvector (Eigen me, Graphics g, integer ivec, integer first, integer last, double minimum, double maximum, bool weigh,
+	double size_mm, conststring32 mark, bool connect, char32 **rowLabels, bool garnish);
 /*
 	Draw eigenvector. When rowLabels != nullptr, draw row text labels on bottom axis.
 */
@@ -85,17 +85,6 @@ double Eigens_getAngleBetweenEigenplanes_degrees (Eigen me, Eigen thee);
 /*
 	Get angle between the eigenplanes, spanned by the first two eigenvectors, .
 */
-
-void Eigen_and_matrix_into_matrix_principalComponents (Eigen me, double **from, long numberOfRows, long from_colbegin, double **to, long numberOfDimensionsToKeep, long to_colbegin);
-/*
- * Preconditions:
- * 
- * 	from[numberOfRows, from_colbegin - 1 + my dimension] exists
- * 	to [numberOfRows, to_colbegin - 1 + numberOfDimensionsToKeep] exists
- * 
- * Project the vectors in matrix 'from' along the 'numberOfDimensionsToKeep' eigenvectors into the matrix 'to'.
- */
-
 
 #endif /* _Eigen_h_ */
 

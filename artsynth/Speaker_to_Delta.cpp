@@ -1,6 +1,6 @@
 /* Speaker_to_Delta.cpp
  *
- * Copyright (C) 1992-2011,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2005,2006,2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,12 @@
 autoDelta Speaker_to_Delta (Speaker me) {
 	double f = my relativeSize * 1e-3;   // we shall use millimetres and grams
 	double xe [30], ye [30], xi [30], yi [30], xmm [30], ymm [30], dx, dy;
-	int closed [40];
-	int itube;
 	autoDelta thee = Delta_create (89);
 	Melder_assert (my cord.numberOfMasses == 1 || my cord.numberOfMasses == 2 || my cord.numberOfMasses == 10);
 
 	/* Lungs: tubes 1..23. */
 
-	for (itube = 1; itube <= 23; itube ++) {
+	for (integer itube = 1; itube <= 23; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		t -> Dx = t -> Dxeq = 10.0 * f;
 		t -> Dy = t -> Dyeq = 100.0 * f;
@@ -45,7 +43,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 
 	/* Bronchi: tubes 24..29. */
 
-	for (itube = 24; itube <= 29; itube ++) {
+	for (integer itube = 24; itube <= 29; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		t -> Dx = t -> Dxeq = 10.0 * f;
 		t -> Dy = t -> Dyeq = 15.0 * f;
@@ -58,7 +56,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 
 	/* Trachea: tubes 30..35; four of these may be replaced by conus elasticus (see below). */
 
-	for (itube = 30; itube <= 35; itube ++) {
+	for (integer itube = 30; itube <= 35; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		t -> Dx = t -> Dxeq = 10.0 * f;
 		t -> Dy = t -> Dyeq = 15.0 * f;
@@ -70,28 +68,27 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	}
 
 	if (SMOOTH_LUNGS) {
-		struct { int itube; double Dy, Dz, parallel; } data [] = {
+		struct { integer itube; double Dy, Dz, parallel; } data [] = {
 			{  7, 120.0, 240.0, 5000.0 }, {  8, 120.0, 240.0, 5000.0 }, {  9, 120.0, 240.0, 5000.0 },
 			{ 10, 120.0, 240.0, 5000.0 }, { 11, 120.0, 240.0, 5000.0 }, { 12, 120.0, 240.0, 5000.0 },
 			{ 13, 120.0, 240.0, 2500.0 }, { 14, 120.0, 240.0, 1250.0 }, { 15, 120.0, 240.0,  640.0 },
 			{ 16, 120.0, 240.0,  320.0 }, { 17, 120.0, 240.0,  160.0 }, { 18, 120.0, 140.0,   80.0 },
 			{ 19,  70.0,  70.0,   40.0 }, { 20,  35.0,  35.0,   20.0 }, { 21,  18.0,  18.0,   10.0 },
 			{ 22,  12.0,  12.0,    5.0 }, { 23,  12.0,  12.0,    3.0 }, { 24,  18.0,   9.0,    2.0 },
-			{ 25,  18.0,  19.0,    2.0 }, { 0 } };
-		int i;
-		for (i = 0; data [i]. itube; i ++) {
+			{ 25,  18.0,  19.0,    2.0 }, { } };
+		for (integer i = 0; data [i]. itube; i ++) {
 			Delta_Tube t = thy tube + data [i]. itube;
 			t -> Dy = t -> Dyeq = data [i]. Dy * f;
 			t -> Dz = t -> Dzeq = data [i]. Dz * f;
 			t -> parallel = data [i]. parallel;
 		}
-		for (itube = 26; itube <= 35; itube ++) {
+		for (integer itube = 26; itube <= 35; itube ++) {
 			Delta_Tube t = thy tube + itube;
 			t -> Dy = t -> Dyeq = 11.0 * f;
 			t -> Dz = t -> Dzeq = 14.0 * f;
 			t -> parallel = 1;
 		}
-		for (itube = FIRST_TUBE; itube <= 18; itube ++) {
+		for (integer itube = FIRST_TUBE; itube <= 18; itube ++) {
 			Delta_Tube t = thy tube + itube;
 			t -> Dx = t -> Dxeq = 10.0 * f;
 			t -> mass = 10.0 * my relativeSize * t -> Dx * t -> Dz;   // 10 mm
@@ -99,7 +96,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 			t -> k3 = 0.0;
 			t -> Brel = 1.0;
 		}
-		for (itube = 19; itube <= 35; itube ++) {
+		for (integer itube = 19; itube <= 35; itube ++) {
 			Delta_Tube t = thy tube + itube;
 			t -> Dx = t -> Dxeq = 10.0 * f;
 			t -> mass = 3.0 * my relativeSize * t -> Dx * t -> Dz;   // 3 mm
@@ -187,7 +184,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 		thy tube [85]. Brel = 0.2;
 		thy tube [86]. Brel = 0.2;
 
-		for (itube = 79; itube <= 86; itube ++) {
+		for (integer itube = 79; itube <= 86; itube ++) {
 			Delta_Tube t = thy tube + itube;
 			t -> mass = t -> Dx * t -> Dz / (30.0 * f);
 			t -> k3 = t -> k1 * (20.0 / t -> Dz) * (20.0 / t -> Dz);
@@ -201,7 +198,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	 * Fill in the values of the glottal shunt only if we want to model it.
 	 */
 	if (my shunt.Dx != 0.0) {
-		for (itube = 87; itube <= 89; itube ++) {
+		for (integer itube = 87; itube <= 89; itube ++) {
 			Delta_Tube t = thy tube + itube;
 			t -> Dx = t -> Dxeq = my shunt.Dx;
 			t -> Dy = t -> Dyeq = my shunt.Dy;
@@ -214,6 +211,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	}
 
 	/* Vocal tract from neutral articulation. */
+	bool closed [40];
 	{
 		autoArt art = Art_create ();
 		Art_Speaker_meshVocalTract (art.get(), me, xi, yi, xe, ye, xmm, ymm, closed);
@@ -221,11 +219,15 @@ autoDelta Speaker_to_Delta (Speaker me) {
 
 	/* Pharynx and mouth: tubes 38..64. */
 
-	for (itube = 38; itube <= 64; itube ++) {
+	for (integer itube = 38; itube <= 64; itube ++) {
 		Delta_Tube t = thy tube + itube;
-		int i = itube - 37;
-		t -> Dx = t -> Dxeq = sqrt (( dx = xmm [i] - xmm [i + 1], dx * dx ) + ( dy = ymm [i] - ymm [i + 1], dy * dy ));
-		t -> Dyeq = sqrt (( dx = xe [i] - xi [i], dx * dx ) + ( dy = ye [i] - yi [i], dy * dy ));
+		integer i = itube - 37;
+		dx = xmm [i] - xmm [i + 1];
+		dy = ymm [i] - ymm [i + 1];
+		t -> Dx = t -> Dxeq = sqrt (dx * dx + dy * dy);
+		dx = xe [i] - xi [i];
+		dy = ye [i] - yi [i];
+		t -> Dyeq = sqrt (dx * dx + dy * dy);
 		if (closed [i]) t -> Dyeq = - t -> Dyeq;
 		t -> Dy = t -> Dyeq;
 		t -> Dz = t -> Dzeq = 0.015;
@@ -238,10 +240,10 @@ autoDelta Speaker_to_Delta (Speaker me) {
 
 	/* Nose: tubes 65..78. */
 
-	for (itube = 65; itube <= 78; itube ++) {
+	for (integer itube = 65; itube <= 78; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		t -> Dx = t -> Dxeq = my nose.Dx;
-		t -> Dy = t -> Dyeq = my nose.weq [itube - 65];
+		t -> Dy = t -> Dyeq = my nose.weq [itube - 64];
 		t -> Dz = t -> Dzeq = my nose.Dz;
 		t -> mass = 0.006;
 		t -> k1 = 100.0;
@@ -254,7 +256,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	 * every tube is connected on the left to the previous tube (index one lower).
 	 * This corresponds to a two-mass model of the vocal cords without shunt.
 	 */
-	for (itube = SMOOTH_LUNGS ? FIRST_TUBE : 1; itube <= thy numberOfTubes; itube ++) {
+	for (integer itube = SMOOTH_LUNGS ? FIRST_TUBE : 1; itube <= thy numberOfTubes; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		t -> s1 = 5e6 * t -> Dx * t -> Dz;
 		t -> s3 = t -> s1 / (0.9e-3 * 0.9e-3);
@@ -304,7 +306,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	} else {
 
 		/* Disconnect tubes 79..86 on both sides. */
-		for (itube = 79; itube <= 86; itube ++)
+		for (integer itube = 79; itube <= 86; itube ++)
 			thy tube [itube]. left1 = thy tube [itube]. right1 = nullptr;
 	}
 
@@ -312,7 +314,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	 * Create a side branch from tube 34/35 (or 85/86) to tube 38/39 with tubes 87..89.
 	 */
 	if (my shunt.Dx != 0.0) {
-		int topOfTrachea = ( my cord.numberOfMasses == 10 ? 86 : 35 );
+		integer topOfTrachea = ( my cord.numberOfMasses == 10 ? 86 : 35 );
 
 		/* Create a three-way interface below the shunt.
 		 * Connect lowest shunt tube (87) with top of trachea (34/35 or 85/86).
@@ -332,7 +334,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	} else {
 
 		/* Disconnect tubes 87..89 on both sides. */
-		for (itube = 87; itube <= 89; itube ++)
+		for (integer itube = 87; itube <= 89; itube ++)
 			thy tube [itube]. left1 = thy tube [itube]. right1 = nullptr;
 	}
 
@@ -350,7 +352,7 @@ autoDelta Speaker_to_Delta (Speaker me) {
 	thy tube [64]. right1 = nullptr;   // radiation at the lips
 	thy tube [78]. right1 = nullptr;   // radiation at the nostrils
 
-	for (itube = 1; itube <= thy numberOfTubes; itube ++) {
+	for (integer itube = 1; itube <= thy numberOfTubes; itube ++) {
 		Delta_Tube t = thy tube + itube;
 		Melder_assert (! t->left1 || t->left1->right1 == t || t->left1->right2 == t);
 		Melder_assert (! t->left2 || t->left2->right1 == t);

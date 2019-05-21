@@ -1,6 +1,6 @@
 /* TableEditor.cpp
  *
- * Copyright (C) 2006-2011,2013,2015,2016,2017 Paul Boersma
+ * Copyright (C) 2006-2013,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,12 +45,12 @@ void structTableEditor :: v_info () {
 
 static void updateVerticalScrollBar (TableEditor me) {
 	Table table = static_cast<Table> (my data);
-	GuiScrollBar_set (my verticalScrollBar, NUMundefined, table -> rows.size + 1, my topRow, NUMundefined, NUMundefined, NUMundefined);
+	GuiScrollBar_set (my verticalScrollBar, undefined, table -> rows.size + 1, my topRow, undefined, undefined, undefined);
 }
 
 static void updateHorizontalScrollBar (TableEditor me) {
 	Table table = static_cast<Table> (my data);
-	GuiScrollBar_set (my horizontalScrollBar, NUMundefined, table -> numberOfColumns + 1, my leftColumn, NUMundefined, NUMundefined, NUMundefined);
+	GuiScrollBar_set (my horizontalScrollBar, undefined, table -> numberOfColumns + 1, my leftColumn, undefined, undefined, undefined);
 }
 
 void structTableEditor :: v_dataChanged () {
@@ -66,13 +66,13 @@ void structTableEditor :: v_dataChanged () {
 
 static void menu_cb_preferences (TableEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"TableEditor preferences", nullptr);
-		OPTIONMENU (U"The symbols %#_^ in labels", my default_useTextStyles () + 1)
+		OPTIONMENU (useTextStyles, U"The symbols %#_^ in labels", my default_useTextStyles () + 1)
 			OPTION (U"are shown as typed")
 			OPTION (U"mean italic/bold/sub/super")
 	EDITOR_OK
-		SET_INTEGER (U"The symbols %#_^ in labels", my p_useTextStyles + 1)
+		SET_OPTION (useTextStyles, my p_useTextStyles + 1)
 	EDITOR_DO
-		my pref_useTextStyles () = my p_useTextStyles = GET_INTEGER (U"The symbols %#_^ in labels") - 1;
+		my pref_useTextStyles () = my p_useTextStyles = useTextStyles - 1;
 		Graphics_updateWs (my graphics.get());
 	EDITOR_END
 }
@@ -80,16 +80,19 @@ static void menu_cb_preferences (TableEditor me, EDITOR_ARGS_FORM) {
 /********** EDIT MENU **********/
 
 #ifndef macintosh
-static void menu_cb_Cut (TableEditor me, EDITOR_ARGS_DIRECT) {   // BUG: why only on Mac?
+/*
+	On macOS, Cut/Copy/Paste are already available in the Praat:Edit menu.
+*/
+static void menu_cb_CutText (TableEditor me, EDITOR_ARGS_DIRECT) {
 	GuiText_cut (my text);
 }
-static void menu_cb_Copy (TableEditor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_CopyText (TableEditor me, EDITOR_ARGS_DIRECT) {
 	GuiText_copy (my text);
 }
-static void menu_cb_Paste (TableEditor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_PasteText (TableEditor me, EDITOR_ARGS_DIRECT) {
 	GuiText_paste (my text);
 }
-static void menu_cb_Erase (TableEditor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_EraseText (TableEditor me, EDITOR_ARGS_DIRECT) {
 	GuiText_remove (my text);
 }
 #endif
@@ -111,8 +114,8 @@ void structTableEditor :: v_draw () {
 	/*
 	 * We fit 200 rows in 40 inches, which is 14.4 points per row.
 	 */
-	long rowmin = topRow, rowmax = rowmin + 197;
-	long colmin = leftColumn, colmax = colmin + (kTableEditor_MAXNUM_VISIBLE_COLUMNS - 1);
+	integer rowmin = topRow, rowmax = rowmin + 197;
+	integer colmin = leftColumn, colmax = colmin + (kTableEditor_MAXNUM_VISIBLE_COLUMNS - 1);
 	if (rowmax > table -> rows.size) rowmax = table -> rows.size;
 	if (colmax > table -> numberOfColumns) colmax = table -> numberOfColumns;
 	Graphics_clearWs (graphics.get());
@@ -127,7 +130,7 @@ void structTableEditor :: v_draw () {
 	 * Determine the width of the column with the row numbers.
 	 */
 	columnWidth = Graphics_textWidth (graphics.get(), U"row");
-	for (long irow = rowmin; irow <= rowmax; irow ++) {
+	for (integer irow = rowmin; irow <= rowmax; irow ++) {
 		cellWidth = Graphics_textWidth (graphics.get(), Melder_integer (irow));
 		if (cellWidth > columnWidth) columnWidth = cellWidth;
 	}
@@ -139,14 +142,14 @@ void structTableEditor :: v_draw () {
 	/*
 	 * Determine the width of the columns.
 	 */
-	for (long icol = colmin; icol <= colmax; icol ++) {
-		const char32 *columnLabel = table -> columnHeaders [icol]. label;
+	for (integer icol = colmin; icol <= colmax; icol ++) {
+		conststring32 columnLabel = table -> columnHeaders [icol]. label.get();
 		columnWidth = Graphics_textWidth (graphics.get(), Melder_integer (icol));
 		if (! columnLabel) columnLabel = U"";
 		cellWidth = Graphics_textWidth (graphics.get(), columnLabel);
 		if (cellWidth > columnWidth) columnWidth = cellWidth;
-		for (long irow = rowmin; irow <= rowmax; irow ++) {
-			const char32 *cell = Table_getStringValue_Assert (table, irow, icol);
+		for (integer irow = rowmin; irow <= rowmax; irow ++) {
+			conststring32 cell = Table_getStringValue_Assert (table, irow, icol);
 			Melder_assert (cell);
 			if (cell [0] == U'\0') cell = U"?";
 			cellWidth = Graphics_textWidth (graphics.get(), cell);
@@ -166,15 +169,15 @@ void structTableEditor :: v_draw () {
 	 * Show the row numbers.
 	 */
 	Graphics_text (graphics.get(), columnLeft [0] / 2, rowmin - 1, U"row");
-	for (long irow = rowmin; irow <= rowmax; irow ++) {
+	for (integer irow = rowmin; irow <= rowmax; irow ++) {
 		Graphics_text (graphics.get(), columnLeft [0] / 2, irow, irow);
 	}
 	/*
 	 * Show the column labels.
 	 */
-	for (long icol = colmin; icol <= colmax; icol ++) {
+	for (integer icol = colmin; icol <= colmax; icol ++) {
 		double mid = (columnLeft [icol - colmin] + columnRight [icol - colmin]) / 2;
-		const char32 *columnLabel = table -> columnHeaders [icol]. label;
+		conststring32 columnLabel = table -> columnHeaders [icol]. label.get();
 		if (! columnLabel || columnLabel [0] == U'\0') columnLabel = U"?";
 		Graphics_text (graphics.get(), mid, rowmin - 2, icol);
 		Graphics_text (graphics.get(), mid, rowmin - 1, columnLabel);
@@ -182,10 +185,17 @@ void structTableEditor :: v_draw () {
 	/*
 	 * Show the cell contents.
 	 */
-	for (long irow = rowmin; irow <= rowmax; irow ++) {
-		for (long icol = colmin; icol <= colmax; icol ++) {
+	for (integer irow = rowmin; irow <= rowmax; irow ++) {
+		for (integer icol = colmin; icol <= colmax; icol ++) {
+			if (irow == selectedRow && icol == selectedColumn) {
+				Graphics_setColour (graphics.get(), Graphics_YELLOW);
+				double dx = Graphics_dxMMtoWC (graphics.get(), 0.3);
+				Graphics_fillRectangle (graphics.get(),
+					columnLeft [icol - colmin] + dx, columnRight [icol - colmin] - dx, irow - 0.45, irow + 0.55);
+				Graphics_setColour (graphics.get(), Graphics_BLACK);
+			}
 			double mid = (columnLeft [icol - colmin] + columnRight [icol - colmin]) / 2;
-			const char32 *cell = Table_getStringValue_Assert (table, irow, icol);
+			conststring32 cell = Table_getStringValue_Assert (table, irow, icol);
 			Melder_assert (cell);
 			if (cell [0] == U'\0') cell = U"?";
 			Graphics_text (graphics.get(), mid, irow, cell);
@@ -193,8 +203,10 @@ void structTableEditor :: v_draw () {
 	}
 }
 
-bool structTableEditor :: v_click (double xclick, double yWC, bool shiftKeyPressed) {
+bool structTableEditor :: v_clickCell (integer row, integer column, bool /* shiftKeyPressed */) {
 	Table table = static_cast<Table> (our data);
+	our selectedRow = row;
+	our selectedColumn = column;
 	return true;
 }
 
@@ -208,10 +220,25 @@ static void gui_drawingarea_cb_expose (TableEditor me, GuiDrawingArea_ExposeEven
 }
 
 static void gui_drawingarea_cb_click (TableEditor me, GuiDrawingArea_ClickEvent event) {
-	if (! my graphics) return;
+	Table table = static_cast<Table> (my data);
+	if (! my graphics) return;   // could be the case in the very beginning
+	integer rowmin = my topRow, rowmax = rowmin + 197;
+	integer colmin = my leftColumn, colmax = colmin + (kTableEditor_MAXNUM_VISIBLE_COLUMNS - 1);
+	if (rowmax > table -> rows.size) rowmax = table -> rows.size;
+	if (colmax > table -> numberOfColumns) colmax = table -> numberOfColumns;
 	double xWC, yWC;
 	Graphics_DCtoWC (my graphics.get(), event -> x, event -> y, & xWC, & yWC);
-	// TODO: implement selection
+	if (yWC < rowmin - 0.45 || yWC > rowmax + 0.55)
+		return;
+	for (integer icol = colmin; icol <= colmax; icol ++) {
+		if (xWC > my columnLeft [icol - colmin] && xWC < my columnRight [icol - colmin]) {
+			integer selectedRow = Melder_iround (yWC);
+			integer selectedColumn = icol;
+			if (my v_clickCell (selectedRow, selectedColumn, event -> shiftKeyPressed))
+				Graphics_updateWs (my graphics.get());
+			return;
+		}
+	}
 }
 
 static void gui_drawingarea_cb_resize (TableEditor me, GuiDrawingArea_ResizeEvent /* event */) {
@@ -220,7 +247,7 @@ static void gui_drawingarea_cb_resize (TableEditor me, GuiDrawingArea_ResizeEven
 }
 
 static void gui_cb_scrollHorizontal (TableEditor me, GuiScrollBarEvent event) {
-	int value = GuiScrollBar_getValue (event -> scrollBar);
+	integer value = GuiScrollBar_getValue (event -> scrollBar);
 	if (value != my leftColumn) {
 		my leftColumn = value;
 		#if cocoa || gtk || motif
@@ -233,7 +260,7 @@ static void gui_cb_scrollHorizontal (TableEditor me, GuiScrollBarEvent event) {
 }
 
 static void gui_cb_scrollVertical (TableEditor me, GuiScrollBarEvent event) {
-	int value = GuiScrollBar_getValue (event -> scrollBar);
+	integer value = GuiScrollBar_getValue (event -> scrollBar);
 	if (value != my topRow) {
 		my topRow = value;
 		#if cocoa || gtk || motif
@@ -272,15 +299,11 @@ void structTableEditor :: v_createMenus () {
 	Editor_addCommand (this, U"File", U"-- before scripting --", 0, nullptr);
 
 	#ifndef macintosh
-	Editor_addCommand (this, U"Edit", U"-- cut copy paste --", 0, nullptr);
-	Editor_addCommand (this, U"Edit", U"Cut text", 'X', menu_cb_Cut);
-	Editor_addCommand (this, U"Edit", U"Cut", Editor_HIDDEN, menu_cb_Cut);
-	Editor_addCommand (this, U"Edit", U"Copy text", 'C', menu_cb_Copy);
-	Editor_addCommand (this, U"Edit", U"Copy", Editor_HIDDEN, menu_cb_Copy);
-	Editor_addCommand (this, U"Edit", U"Paste text", 'V', menu_cb_Paste);
-	Editor_addCommand (this, U"Edit", U"Paste", Editor_HIDDEN, menu_cb_Paste);
-	Editor_addCommand (this, U"Edit", U"Erase text", 0, menu_cb_Erase);
-	Editor_addCommand (this, U"Edit", U"Erase", Editor_HIDDEN, menu_cb_Erase);
+	Editor_addCommand (this, U"Edit", U"-- cut copy paste text --", 0, nullptr);
+	Editor_addCommand (this, U"Edit", U"Cut text", 'X', menu_cb_CutText);
+	Editor_addCommand (this, U"Edit", U"Copy text", 'C', menu_cb_CopyText);
+	Editor_addCommand (this, U"Edit", U"Paste text", 'V', menu_cb_PasteText);
+	Editor_addCommand (this, U"Edit", U"Erase text", 0, menu_cb_EraseText);
 	#endif
 }
 
@@ -289,7 +312,7 @@ void structTableEditor :: v_createHelpMenuItems (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"TableEditor help", U'?', menu_cb_TableEditorHelp);
 }
 
-autoTableEditor TableEditor_create (const char32 *title, Table table) {
+autoTableEditor TableEditor_create (conststring32 title, Table table) {
 	try {
 		autoTableEditor me = Thing_new (TableEditor);
 		Editor_init (me.get(), 0, 0, 700, 500, title, table);
@@ -305,7 +328,7 @@ autoTableEditor TableEditor_create (const char32 *title, Table table) {
 		Graphics_setWsViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
 		Graphics_setWsWindow (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
 		Graphics_setViewport (my graphics.get(), 0.0, size_pixels, 0.0, size_pixels);
-		Graphics_setFont (my graphics.get(), kGraphics_font_COURIER);
+		Graphics_setFont (my graphics.get(), kGraphics_font::COURIER);
 		Graphics_setFontSize (my graphics.get(), 12);
 		Graphics_setUnderscoreIsSubscript (my graphics.get(), false);
 		Graphics_setAtSignIsLink (my graphics.get(), true);

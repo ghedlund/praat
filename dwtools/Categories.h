@@ -2,7 +2,7 @@
 #define _Categories_h_
 /* Categories.h
  *
- * Copyright (C) 1993-2011, 2015 David Weenink, 2015 Paul Boersma
+ * Copyright (C) 1993-2017 David Weenink, 2015,2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,12 @@
  */
 
 #include "Collection_extensions.h"
-#include "Simple_extensions.h"
 #include "TableOfReal.h"
 #include "Graphics.h"
 
-Thing_define (Categories, OrderedOfString) {
+Thing_define (Categories, StringList) {
+	void v_info ()
+		override;
 	void v_readText (MelderReadText text, int formatVersion)
 		override;
 	void v_writeText (MelderFile file)
@@ -32,16 +33,11 @@ Thing_define (Categories, OrderedOfString) {
 
 autoCategories Categories_create ();
 
-autoCategories Categories_createWithSequentialNumbers (long n);
+autoCategories Categories_createWithSequentialNumbers (integer n);
 
 autoCategories Categories_selectUniqueItems (Categories me);
 
-void Categories_drawItem (Categories me, Graphics g, long position, double xWC, double yWC);
-
-autoCategories OrderedOfString_to_Categories (OrderedOfString me);
-
-long Categories_getSize (Categories me);
-/* return my size */
+void Categories_drawItem (Categories me, Graphics g, integer position, double xWC, double yWC);
 
 autoCategories TableOfReal_to_CategoriesRow (TableOfReal me);
 

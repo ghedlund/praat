@@ -1,6 +1,6 @@
 /* Polygon_extensions.c
  *
- * Copyright (C) 1993-2012, 2014-2016 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@
 // not for self-intesecting polygons!
 static double Polygon_area (Polygon me) {
 	double area = 0;
-	long j = my numberOfPoints;
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		area += (my x[j] + my x[i]) * (my y[j] - my y[i]);
+	integer j = my numberOfPoints;
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		area += (my x [j] + my x [i]) * (my y [j] - my y [i]);
 		j = i;
 	}
 	area *= 0.5;
@@ -42,18 +42,18 @@ static double Polygon_area (Polygon me) {
 }
 
 void Polygon_getExtrema (Polygon me, double *p_xmin, double *p_xmax, double *p_ymin, double *p_ymax) {
-    double xmin = my x[1], xmax = my x[1];
-    double ymin = my y[1], ymax = my y[1];
-    for (long i = 2; i <= my numberOfPoints; i++) {
-        if (my x[i] < xmin) {
-            xmin = my x[i];
-        } else if (my x[i] > xmax) {
-            xmax = my x[i];
+    double xmin = my x [1], xmax = my x [1];
+    double ymin = my y [1], ymax = my y [1];
+    for (integer i = 2; i <= my numberOfPoints; i ++) {
+        if (my x [i] < xmin) {
+            xmin = my x [i];
+        } else if (my x [i] > xmax) {
+            xmax = my x [i];
         }
-        if (my y[i] < ymin) {
-            ymin = my y[i];
-        } else if (my y[i] > ymax) {
-            ymax = my y[i];
+        if (my y [i] < ymin) {
+            ymin = my y [i];
+        } else if (my y [i] > ymax) {
+            ymax = my y [i];
         }
     }
     if (p_xmin) {
@@ -70,24 +70,21 @@ void Polygon_getExtrema (Polygon me, double *p_xmin, double *p_xmax, double *p_y
 	}
 }
 
-autoPolygon Polygon_createSimple (char32 *xystring) {
+autoPolygon Polygon_createSimple (conststring32 xystring) {
 	try {
-		long numberOfPoints;
-		autoNUMvector<double> xys (NUMstring_to_numbers (xystring, &numberOfPoints), 1);
-		if (numberOfPoints < 6) {
-			Melder_throw (U"There must be at least 3 points (= x,y pairs) in the Polygon");
-		}
-		if (numberOfPoints % 2 != 0) {
-			Melder_throw (U"One value is missing.");
-		}
-		numberOfPoints /= 2; // x,y pairs
+		autoVEC xys = VEC_createFromString (xystring);
+		Melder_require (xys.size >= 6,
+			U"There should be at least 3 points (= x,y pairs) in the Polygon");
+		Melder_require (xys.size % 2 == 0,
+			U"One value is missing.");
+		
+		integer numberOfPoints = xys.size / 2;
 		autoPolygon me = Polygon_create (numberOfPoints);
-		for (long i = 1; i <= numberOfPoints; i++) {
-			my x[i] = xys[2 * i - 1];
-			my y[i] = xys[2 * i];
-			if (i > 1 && my x[i] == my x[i - 1] && my y[i] == my y[i - 1]) {
+		for (integer i = 1; i <= numberOfPoints; i ++) {
+			my x [i] = xys [2 * i - 1];
+			my y [i] = xys [2 * i];
+			if (i > 1 && my x [i] == my x [i - 1] && my y [i] == my y [i - 1])
 				Melder_warning (U"Two successives vertices are equal.");
-			}
 		}
 		return me;
 	} catch (MelderError) {
@@ -95,12 +92,12 @@ autoPolygon Polygon_createSimple (char32 *xystring) {
 	}
 }
 
-autoPolygon Polygon_createFromRandomPoints (long numberOfVertices, double xmin, double xmax, double ymin, double ymax) {
+autoPolygon Polygon_createFromRandomPoints (integer numberOfVertices, double xmin, double xmax, double ymin, double ymax) {
 	try {
 		autoPolygon me = Polygon_create (numberOfVertices);
-		for (long i = 1; i <= numberOfVertices; i++) {
-			my x[i] = NUMrandomUniform (xmin, xmax);
-			my y[i] = NUMrandomUniform (ymin, ymax);
+		for (integer i = 1; i <= numberOfVertices; i ++) {
+			my x [i] = NUMrandomUniform (xmin, xmax);
+			my y [i] = NUMrandomUniform (ymin, ymax);
 		}
 		return me;
 	} catch (MelderError) {
@@ -109,9 +106,9 @@ autoPolygon Polygon_createFromRandomPoints (long numberOfVertices, double xmin, 
 }
 
 void Polygon_translate (Polygon me, double xt, double yt) {
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		my x[i] += xt;
-		my y[i] += yt;
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		my x [i] += xt;
+		my y [i] += yt;
 	}
 }
 
@@ -120,70 +117,70 @@ void Polygon_rotate (Polygon me, double alpha, double xc, double yc) {
 	double f = alpha * NUMpi / 180, cosa = cos (f), sina = sin (f);
 
 	Polygon_translate (me, -xc, -yc);
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		double x = my x[i];
-		my x[i] = cosa * my x[i] - sina * my y[i];
-		my y[i] = sina * x       + cosa * my y[i];
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		double x = my x [i];
+		my x [i] = cosa * my x [i] - sina * my y [i];
+		my y [i] = sina * x       + cosa * my y [i];
 	}
 	Polygon_translate (me, xc, yc);
 }
 
 void Polygon_scale (Polygon me, double xs, double ys) {
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		my x[i] *= xs;
-		my y[i] *= ys;
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		my x [i] *= xs;
+		my y [i] *= ys;
 	}
 }
 
 void Polygon_reverseX (Polygon me) {
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		my x[i] = -my x[i];
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		my x [i] = -my x [i];
 	}
 }
 
 void Polygon_reverseY (Polygon me) {
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		my y[i] = -my y[i];
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		my y [i] = -my y [i];
 	}
 }
 
 void Polygon_Categories_draw (Polygon me, Categories thee, Graphics graphics, double xmin, double xmax, double ymin, double ymax, int garnish) {
 	double min, max, tmp;
 
-	if (my numberOfPoints != thy size) {
+	if (my numberOfPoints != thy size)
 		return;
-	}
 
 	if (xmax == xmin) {
-		NUMvector_extrema (my x, 1, my numberOfPoints, & min, & max);
-		tmp = max - min == 0 ? 0.5 : 0.0;
-		xmin = min - tmp; xmax = max + tmp;
+		NUMextrema (my x.get(), & min, & max);
+		tmp = ( max - min == 0 ? 0.5 : 0.0 );
+		xmin = min - tmp;
+		xmax = max + tmp;
 	}
 
 	if (ymax == ymin) {
-		NUMvector_extrema (my y, 1, my numberOfPoints, & min, & max);
-		tmp = max - min == 0 ? 0.5 : 0.0;
-		ymin = min - tmp; ymax = max + tmp;
+		NUMextrema (my y.get(), & min, & max);
+		tmp = ( max - min == 0 ? 0.5 : 0.0 );
+		ymin = min - tmp;
+		ymax = max + tmp;
 	}
 
 	Graphics_setInner (graphics);
 	Graphics_setWindow (graphics, xmin, xmax, ymin, ymax);
 	Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_HALF);
 
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		OrderedOfString_drawItem (thee, graphics, i, my x[i], my y[i]);
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		SimpleString category = thy at [i];
+		Graphics_text (graphics, my x [i], my y [i], category -> string.get());
 	}
 	Graphics_unsetInner (graphics);
 	if (garnish) {
 		Graphics_drawInnerBox (graphics);
 		Graphics_marksLeft (graphics, 2, true, true, false);
-		if (ymin * ymax < 0.0) {
+		if (ymin * ymax < 0.0)
 			Graphics_markLeft (graphics, 0.0, true, true, true, nullptr);
-		}
 		Graphics_marksBottom (graphics, 2, true, true, false);
-		if (xmin * xmax < 0.0) {
+		if (xmin * xmax < 0.0)
 			Graphics_markBottom (graphics, 0.0, true, true, true, nullptr);
-		}
 	}
 }
 
@@ -192,7 +189,7 @@ static void setWindow (Polygon me, Graphics graphics, double xmin, double xmax, 
 
 	if (xmax <= xmin) { /* Autoscaling along x axis. */
 		xmax = xmin = my x [1];
-		for (long i = 2; i <= my numberOfPoints; i ++) {
+		for (integer i = 2; i <= my numberOfPoints; i ++) {
 			if (my x [i] < xmin) {
 				xmin = my x [i];
 			}
@@ -207,7 +204,7 @@ static void setWindow (Polygon me, Graphics graphics, double xmin, double xmax, 
 	}
 	if (ymax <= ymin) { /* Autoscaling along y axis. */
 		ymax = ymin = my y [1];
-		for (long i = 2; i <= my numberOfPoints; i ++) {
+		for (integer i = 2; i <= my numberOfPoints; i ++) {
 			if (my y [i] < ymin) {
 				ymin = my y [i];
 			}
@@ -223,11 +220,11 @@ static void setWindow (Polygon me, Graphics graphics, double xmin, double xmax, 
 	Graphics_setWindow (graphics, xmin, xmax, ymin, ymax);
 }
 
-void Polygon_drawMarks (Polygon me, Graphics g, double xmin, double xmax, double ymin, double ymax, double size_mm, const char32 *mark) {
+void Polygon_drawMarks (Polygon me, Graphics g, double xmin, double xmax, double ymin, double ymax, double size_mm, conststring32 mark) {
 	Graphics_setInner (g);
 	setWindow (me, g, xmin, xmax, ymin, ymax);
-	for (long i = 1; i <= my numberOfPoints; i++) {
-		Graphics_mark (g, my x[i], my y[i], size_mm, mark);
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
+		Graphics_mark (g, my x [i], my y [i], size_mm, mark);
 	}
 	Graphics_unsetInner (g);
 }
@@ -237,9 +234,7 @@ void Polygon_drawMarks (Polygon me, Graphics g, double xmin, double xmax, double
 autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, double ymin, double ymax, double level) {
 	try {
 		bool clip = ymin < ymax;
-		if (channel < 1 || channel > my ny) {
-			Melder_throw (U"Channel does not exist.");
-		}
+		Melder_require (channel > 0 && channel <= my ny, U"Channel does not exist.");
 		if (tmin >= tmax) {
 			tmin = my xmin;
 			tmax = my xmax;
@@ -250,12 +245,12 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 		if (tmax > my xmax) {
 			tmax = my xmax;
 		}
-		if (tmin >= my xmax || tmax < my xmin) {
-			Melder_throw (U"Invalid domain.");
-		}
-		long k = 1, i1 = Sampled_xToHighIndex (me, tmin);
-		long i2 = Sampled_xToLowIndex (me, tmax);
-		long numberOfPoints = i2 - i1 + 1 + 2 + 2; // begin + endpoint + level
+		Melder_require (tmin < my xmax && tmax > my xmin,
+			U"Invalid domain.");
+		
+		integer k = 1, i1 = Sampled_xToHighIndex (me, tmin);
+		integer i2 = Sampled_xToLowIndex (me, tmax);
+		integer numberOfPoints = i2 - i1 + 1 + 2 + 2; // begin + endpoint + level
 		autoPolygon him = Polygon_create (numberOfPoints);
 
 		/*
@@ -270,24 +265,24 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 		*/
 		double xmin = my x1 - 0.5 * my dx;
 		double xmax = xmin + my nx * my dx;
-		tmin = tmin < xmin ? xmin : tmin;
-		tmax = tmax > xmax ? xmax : tmax;
+		tmin = std::max (tmin, xmin); // yes, looks strange
+		tmax = std::min (tmax, xmax);
 		// End of workaround
-		his x[k] = tmin;
-		his y[k++] = CLIP_Y (level, ymin, ymax);
-		his x[k] = tmin;
+		his x [k] = tmin;
+		his y [k ++] = CLIP_Y (level, ymin, ymax);
+		his x [k] = tmin;
 		double y = Vector_getValueAtX (me, tmin, channel, Vector_VALUE_INTERPOLATION_LINEAR);
-		his y[k++] = CLIP_Y (y, ymin, ymax);
-		for (long i = i1; i <= i2; i++) {
-			y = my z[channel][i];
-			his x[k] = my x1 + (i - 1) * my dx;
-			his y[k++] = CLIP_Y (y, ymin, ymax);
+		his y [k ++] = CLIP_Y (y, ymin, ymax);
+		for (integer i = i1; i <= i2; i ++) {
+			y = my z [channel] [i];
+			his x [k] = my x1 + (i - 1) * my dx;
+			his y [k ++] = CLIP_Y (y, ymin, ymax);
 		}
-		his x[k] = tmax;
+		his x [k] = tmax;
 		y = Vector_getValueAtX (me, tmax, channel, Vector_VALUE_INTERPOLATION_LINEAR);
-		his y[k++] = CLIP_Y (y, ymin, ymax);
-		his x[k] = tmax;
-		his y[k++] = CLIP_Y (level, ymin, ymax);
+		his y [k ++] = CLIP_Y (y, ymin, ymax);
+		his x [k] = tmax;
+		his y [k ++] = CLIP_Y (level, ymin, ymax);
 		return him;
 	} catch (MelderError) {
 		Melder_throw (me, U":no Polygon created.");
@@ -299,19 +294,14 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, double tmin, double tmax, double ymin, double ymax) {
 	try {
 		bool clip = ymin < ymax;
-		if (my ny > 1 && thy ny > 1 && my ny != thy ny) {
-			Melder_throw (U"The numbers of channels of the two sounds have to be equal or 1.");
-		}
-
-		long numberOfChannels = my ny > thy ny ? my ny : thy ny;
-
-		if (channel < 1 || channel > numberOfChannels) {
-			Melder_throw (U"Channel does not exist.");
-		}
+		Melder_require (channel > 0 && channel <= my ny && channel <= thy ny, U"Invalid channel."); 
+		
 		// find overlap in the domains  with xmin workaround as in Sound_to_Polygon
 		double xmin1 = my x1 - 0.5 * my dx, xmin2 = thy x1 - 0.5 * thy dx ;
-		double xmin = my xmin > thy xmin ? xmin1 : xmin2;
-		double xmax = my xmax < thy xmax ? xmin1 + my nx * my dx : xmin2 + thy nx * thy dx;
+		double xmin = ( my xmin > thy xmin ? xmin1 : xmin2 );
+		double xmax = ( my xmax < thy xmax ? xmin1 + my nx * my dx : xmin2 + thy nx * thy dx );
+		Melder_require (xmax > xmin,
+			U"Domains must overlap.");
 		if (xmax <= xmin) {
 			Melder_throw (U"Domains must overlap.");
 		}
@@ -325,62 +315,60 @@ autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, doubl
 		if (tmax > xmax) {
 			tmax = xmax;
 		}
-		if (tmin >= xmax || tmax < xmin) {
-			Melder_throw (U"Invalid domain.");
-		}
-
-		long k = 1;
-		long ib1 = Sampled_xToHighIndex (me, tmin);
-		long ie1 = Sampled_xToLowIndex (me, tmax);
-		long n1 = ie1 - ib1 + 1;
-		long ib2 = Sampled_xToHighIndex (thee, tmin);
-		long ie2 = Sampled_xToLowIndex (thee, tmax);
-		long n2 = ie2 - ib2 + 1;
-		long numberOfPoints = n1 + n2 + 4; // me + thee + begin + endpoint + closing
+		Melder_require (tmin < xmax && tmax > xmin, U"Invalid domain.");
+		
+		integer k = 1;
+		integer ib1 = Sampled_xToHighIndex (me, tmin);
+		integer ie1 = Sampled_xToLowIndex (me, tmax);
+		integer n1 = ie1 - ib1 + 1;
+		integer ib2 = Sampled_xToHighIndex (thee, tmin);
+		integer ie2 = Sampled_xToLowIndex (thee, tmax);
+		integer n2 = ie2 - ib2 + 1;
+		integer numberOfPoints = n1 + n2 + 4; // me + thee + begin + endpoint + closing
 
 		autoPolygon him = Polygon_create (numberOfPoints);
 
 		// my starting point at tmin
 
-		double y = Vector_getValueAtX (me, tmin, (my ny == 1 ? 1 : channel), Vector_VALUE_INTERPOLATION_LINEAR);
-		his x[k] = tmin;
-		his y[k++] = CLIP_Y (y, ymin, ymax);
+		double y = Vector_getValueAtX (me, tmin, ( my ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		his x [k] = tmin;
+		his y [k ++] = CLIP_Y (y, ymin, ymax);
 
 		// my samples
 
-		for (long i = ib1; i <= ie1; i++) {
+		for (integer i = ib1; i <= ie1; i ++) {
 			double t = my x1 + (i - 1) * my dx;
-			y = my z[my ny == 1 ? 1 : channel][i];
-			his x[k] = t;
-			his y[k++] = CLIP_Y (y, ymin, ymax);
+			y = ( my z [my ny == 1 ? 1 : channel] [i] );
+			his x [k] = t;
+			his y [k ++] = CLIP_Y (y, ymin, ymax);
 		}
 
 		// my end point at tmax
 
-		y = Vector_getValueAtX (me, tmax, (my ny == 1 ? 1 : channel), Vector_VALUE_INTERPOLATION_LINEAR);
-		his x[k] = tmax;
-		his y[k++] = y;
+		y = Vector_getValueAtX (me, tmax, ( my ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		his x [k] = tmax;
+		his y [k ++] = y;
 
 		// thy starting point at tmax
 
 		y = Vector_getValueAtX (thee, tmax, (thy ny == 1 ? 1 : channel), Vector_VALUE_INTERPOLATION_LINEAR);
-		his x[k] = tmax;
-		his y[k++] = y;
+		his x [k] = tmax;
+		his y [k ++] = y;
 
 		// thy samples
 
-		for (long i = ie2; i >= ib2; i--) {
+		for (integer i = ie2; i >= ib2; i--) {
 			double t = thy x1 + (i - 1) * thy dx;
-			y = thy z[thy ny == 1 ? 1 : channel][i];
-			his x[k] = t;
-			his y[k++] = CLIP_Y (y, ymin, ymax);
+			y = thy z [( thy ny == 1 ? 1 : channel )] [i];
+			his x [k] = t;
+			his y [k ++] = CLIP_Y (y, ymin, ymax);
 		}
 
 		// thy end point at tmin
 
-		y = Vector_getValueAtX (thee, tmin, (thy ny == 1 ? 1 : channel), Vector_VALUE_INTERPOLATION_LINEAR);
-		his x[k] = tmin;
-		his y[k] = y;
+		y = Vector_getValueAtX (thee, tmin, ( thy ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		his x [k] = tmin;
+		his y [k] = y;
 
 		Melder_assert (k == numberOfPoints);
 		return him;
@@ -408,7 +396,7 @@ static int get_collinearIntersectionPoint (double x1, double x2, double x3, doub
 				intersection = INTERSECTION_OUTSIDE;
 			} else if (p3inb12) {
 				// 4 can be inside or outside
-				*xs = p4inb12 ? x4 : x2;
+				*xs = ( p4inb12 ? x4 : x2 );
 			} else if (p4inb12) {
 				// 3 is outside
 				*xs = x4;
@@ -438,7 +426,7 @@ static int get_collinearIntersectionPoint (double x1, double x2, double x3, doub
 			if (x1 < x3 || x4 < x2) {
 				intersection = INTERSECTION_OUTSIDE;
 			} else if (p3inb12) {
-				*xs = p4inb12 ? x4 : x3;
+				*xs = ( p4inb12 ? x4 : x3 );
 			} else if (p4inb12) {
 				// 3 outside
 				*xs = x4;
@@ -484,17 +472,17 @@ static int get_collinearIntersectionPoint (double x1, double x2, double x3, doub
 static int LineSegments_getIntersection (double x1, double y1, double x2, double y2, double x3, double y3,
         double x4, double y4, double *mua, double *mub, double eps) {
 	// bounding box pre-selection
-	double min12 = x1 < x2 ? x1 : x2;
-	double max12 = x1 > x2 ? x1 : x2;
-	double min34 = x3 < x4 ? x3 : x4;
-	double max34 = x3 > x4 ? x3 : x4;
+	double min12 = std::min (x1, x2);
+	double max12 = std::max (x1, x2);
+	double min34 = std::min (x3, x4);
+	double max34 = std::max (x3, x4);
 	if (max12 - min34 < -eps or max34 - min12 < -eps) {
 		return INTERSECTION_OUTSIDE;    // eps?
 	}
-	min12 = y1 < y2 ? y1 : y2;
-	max12 = y1 > y2 ? y1 : y2;
-	min34 = y3 < y4 ? y3 : y4;
-	max34 = y3 > y4 ? y3 : y4;
+	min12 = std::min (y1, y2);
+	max12 = std::max (y1, y2);
+	min34 = std::min (y3, y4);
+	max34 = std::max (y3, y4);
 	if (max12 - min34 < -eps or max34 - min12 < -eps) {
 		return INTERSECTION_OUTSIDE;
 	}
@@ -506,9 +494,8 @@ static int LineSegments_getIntersection (double x1, double y1, double x2, double
 	if (fabs (bd) > eps) {
 		*mua = cad / bd;
 		*mub = cab / bd;
-		if (*mua <= eps || *mua > 1.0 + eps || *mub < eps || *mub > 1.0 + eps) {
+		if (*mua <= eps || *mua > 1.0 + eps || *mub < eps || *mub > 1.0 + eps)
 			return INTERSECTION_OUTSIDE;
-		}
 		if (*mua > eps && *mua <= 1.0 - eps && *mub >= eps && *mub < 1.0 - eps) {
 			// This occurs most of the cases (hopefully)
 			return INTERSECTION_PROPER;
@@ -516,22 +503,18 @@ static int LineSegments_getIntersection (double x1, double y1, double x2, double
 		// Now eps < mua,mub <= 1+eps
 		// and at least one of the mu's is near 1,
 		// the other is in [eps,1]
-		if (fabs (*mua - 1.0) < eps) {
+		if (fabs (*mua - 1.0) < eps)
 			*mua = 1.0;
-		}
-		if (fabs (*mub - 1.0) < eps) {
+		if (fabs (*mub - 1.0) < eps)
 			*mub = 1.0;
-		}
 		// is the intersection at an edge or  at vertex
-		if (*mua == 1.0) { // end of ab touches cd
-			return *mub == 1.0 ? INTERSECTION_AT_VERTEX : INTERSECTION_AT_EDGE;
-		} else { // ab crosses a vertex
+		if (*mua == 1.0) // end of ab touches cd
+			return ( *mub == 1.0 ? INTERSECTION_AT_VERTEX : INTERSECTION_AT_EDGE );
+		else // ab crosses a vertex
 			return INTERSECTION_AT_VERTEX;
-		}
 	} else { // ab and cd are parallel or coplanar
-		if (fabs (cad) > eps and fabs (cab) > eps) {
+		if (fabs (cad) > eps and fabs (cab) > eps)
 			return INTERSECTION_OUTSIDE;
-		}
 		if (x1 == x2) {
 			x1 = y1;
 			x2 = y2;
@@ -556,7 +539,7 @@ static int LineSegments_getIntersection (double x1, double y1, double x2, double
 Thing_define (Vertex, Daata) {
 	double x, y, alpha;
 	DoublyLinkedNode neighbour;
-	long poly_npoints, id;
+	integer poly_npoints, id;
 	int intersect, entry;
 	bool processed;
 
@@ -598,7 +581,7 @@ Thing_implement (Vertices, DoublyLinkedList, 0);
 #define VERTEX(n) ((Vertex) ((n) -> data.get()))
 
 int structVertices :: s_compareHook (DoublyLinkedNode me, DoublyLinkedNode thee) noexcept {
-	return VERTEX (me) -> alpha < VERTEX (thee) -> alpha ? -1 : VERTEX (me) -> alpha > VERTEX (thee) -> alpha ? 1 : 0;
+	return ( VERTEX (me) -> alpha < VERTEX (thee) -> alpha ? -1 : ( VERTEX (me) -> alpha > VERTEX (thee) -> alpha ? 1 : 0 ) );
 }
 
 static void Vertices_addCopyBack (Vertices me, DoublyLinkedNode n) {
@@ -610,39 +593,41 @@ static void Vertices_addCopyBack (Vertices me, DoublyLinkedNode n) {
 	}
 }
 
-static bool pointsInsideInterval (double *x, long n, long istart, long iend, long *jstart, long *jend) {
-	double xmax = x[istart], xmin = x[istart];
-	long imax = istart, imin = istart;
-	long iendmod = iend > istart ? iend : iend + n;   // circular
-	for (long i = istart + 1; i <= iendmod; i++) {
-		long index = (i - 1) % n + 1;   // make it circular
-		if (x[index] > xmax) {
-			xmax = x[index];
+static bool pointsInsideInterval (double *x, integer n, integer istart, integer iend, integer *jstart, integer *jend) {
+	double xmax = x [istart], xmin = x [istart];
+	integer imax = istart, imin = istart;
+	integer iendmod = ( iend > istart ? iend : iend + n );   // circular
+	for (integer i = istart + 1; i <= iendmod; i ++) {
+		integer index = (i - 1) % n + 1;   // make it circular
+		if (x [index] > xmax) {
+			xmax = x [index];
 			imax = index;
-		} else if (x[index] < xmin) {
-			xmin = x[index];
+		} else if (x [index] < xmin) {
+			xmin = x [index];
 			imin = index;
 		}
 	}
-	*jstart = imin; *jend = imax;
-	if (x[istart] > x[iend]) {
+	*jstart = imin;
+	*jend = imax;
+	if (x [istart] > x [iend]) {
 		*jstart = imax;
 		*jend = imin;
 	}
-	if (x[istart] == x[*jstart] and x[iend] == x[*jend]) {   // if there are duplicates of the extrema
-		*jstart = istart; *jend = iend;
+	if (x [istart] == x [*jstart] and x [iend] == x [*jend]) {   // if there are duplicates of the extrema
+		*jstart = istart;
+		*jend = iend;
 	}
 	return *jstart == istart and * jend == iend;
 }
 
-autoPolygon Polygon_circularPermutation (Polygon me, long nshift) {
+autoPolygon Polygon_circularPermutation (Polygon me, integer nshift) {
 	try {
 		autoPolygon thee = Data_copy (me);
 		if (nshift != 0) {
-			for (long i = 1; i <= my numberOfPoints; i ++) {
-				long inew = (i + nshift - 1) % my numberOfPoints + 1;
-				thy x[inew] = my x[i];
-				thy y[inew] = my y[i];
+			for (integer i = 1; i <= my numberOfPoints; i ++) {
+				integer inew = (i + nshift - 1) % my numberOfPoints + 1;
+				thy x [inew] = my x [i];
+				thy y [inew] = my y [i];
 			}
 		}
 		return thee;
@@ -651,12 +636,12 @@ autoPolygon Polygon_circularPermutation (Polygon me, long nshift) {
 	}
 }
 
-static void _Polygons_copyNonCollinearities (Polygon me, Polygon thee, long collstart, long collend) {
+static void _Polygons_copyNonCollinearities (Polygon me, Polygon thee, integer collstart, integer collend) {
 	// Determine if all collinear point are within the interval [colstart,colend]
-	long jstart, jend;
+	integer jstart, jend;
 	bool allPointsInside = ( my x [collstart] != my x [collend] ?
-	                         pointsInsideInterval (my x, my numberOfPoints, collstart, collend, &jstart, &jend) :
-	                         pointsInsideInterval (my y, my numberOfPoints, collstart, collend, &jstart, &jend) );
+	                         pointsInsideInterval (my x.at, my numberOfPoints, collstart, collend, &jstart, &jend) :
+	                         pointsInsideInterval (my y.at, my numberOfPoints, collstart, collend, &jstart, &jend) );
 	if (not allPointsInside) {
 		if (collstart != jstart) { // also include the extreme point at start
 			thy numberOfPoints ++;
@@ -670,7 +655,7 @@ static void _Polygons_copyNonCollinearities (Polygon me, Polygon thee, long coll
 		}
 	}
 	thy numberOfPoints ++;
-	thy x[thy numberOfPoints] = my x[collend]; thy y[thy numberOfPoints] = my y[collend];
+	thy x [thy numberOfPoints] = my x [collend]; thy y [thy numberOfPoints] = my y [collend];
 }
 
 #define AREA(x1,y1,x2,y2,x3,y3) (x1*(y2 - y3)+x2*(y3-y1)+x3*(y1-y2))
@@ -679,10 +664,10 @@ autoPolygon Polygon_simplify (Polygon me) {
 		autoPolygon p1 = Data_copy (me);
 
 		// pass 1: remove doublets
-		long np = 1;
-		for (long i = 2; i <= my numberOfPoints; i ++) {
+		integer np = 1;
+		for (integer i = 2; i <= my numberOfPoints; i ++) {
 			if (my x [i] != p1 -> x [np] || my y [i] != p1 -> y [np]) {
-				p1 -> x [++ np] = my x [i];
+				p1 -> x [ ++ np] = my x [i];
 				p1 -> y [np] = my y [i];
 			}
 		}
@@ -690,9 +675,8 @@ autoPolygon Polygon_simplify (Polygon me) {
 		if (p1 -> x [np] == p1 -> x [1] && p1 -> y [np] == p1 -> y [1]) {
 			np --;
 		}
-		if (np < 3) {
-			Melder_throw (U"Not enough points left after doublet removal.");
-		}
+		Melder_require (np > 2, U"Not enough points left after doublet removal.");
+		
 		p1 -> numberOfPoints = np;
 
 		// pass 2: remove collinearities
@@ -701,18 +685,18 @@ autoPolygon Polygon_simplify (Polygon me) {
 		p -> numberOfPoints = 0;
 		// is there collinearity between the first and the last points of p1?
 		double  eps = 1e-15;
-		double area  = AREA (p1 -> x[np], p1 -> y[np], p1 -> x[1], p1 -> y[1], p1 -> x[2], p1 -> y[2]);
-		long collend = 2;
+		double area  = AREA (p1 -> x [np], p1 -> y [np], p1 -> x [1], p1 -> y [1], p1 -> x [2], p1 -> y [2]);
+		integer collend = 2;
 		while (fabs (area) < eps && collend < np) {
-			collend++;
-			area = AREA (p1 -> x[collend - 2], p1 -> y[collend - 2], p1 -> x[collend - 1], p1 -> y[collend - 1], p1 -> x[collend], p1 -> y[collend]);
+			collend ++;
+			area = AREA (p1 -> x [collend - 2], p1 -> y [collend - 2], p1 -> x [collend - 1], p1 -> y [collend - 1], p1 -> x [collend], p1 -> y [collend]);
 		}
 		collend--;
-		area = AREA (p1 -> x[np - 1], p1 -> y[np - 1], p1 -> x[np], p1 -> y[np], p1 -> x[1], p1 -> y[1]);
-		long collstart = np - 1;
+		area = AREA (p1 -> x [np - 1], p1 -> y [np - 1], p1 -> x [np], p1 -> y [np], p1 -> x [1], p1 -> y [1]);
+		integer collstart = np - 1;
 		while (fabs (area) < eps && collstart > collend) {
 			collstart --;
-			area = AREA (p1 -> x[collstart], p1 -> y[collstart], p1 -> x[collstart + 1], p1 -> y[collstart + 1], p1 -> x[collstart + 2], p1 -> y[collstart + 2]);
+			area = AREA (p1 -> x [collstart], p1 -> y [collstart], p1 -> x [collstart + 1], p1 -> y [collstart + 1], p1 -> x [collstart + 2], p1 -> y [collstart + 2]);
 		}
 		collstart ++;
 		if (collend - collstart + p1 -> numberOfPoints > 1) {
@@ -723,11 +707,11 @@ autoPolygon Polygon_simplify (Polygon me) {
 			p -> y [1] = p1 -> y [1];
 		}
 		bool collinearity = false;
-		long endpos = collstart - 1;
-		for (long i = collend + 1; i <= endpos; i ++) { // start was < numberOfPoints
+		integer endpos = collstart - 1;
+		for (integer i = collend + 1; i <= endpos; i ++) { // start was < numberOfPoints
 			// if i-1, i, i+1 are coplanar, remove i
 			// area = x1*(y2 - y3)+x2*(y3-y1)+x3*(y1-y2)
-			area = AREA (p1 -> x[i - 1], p1 -> y[i - 1], p1 -> x[i], p1 -> y[i], p1 -> x[i + 1], p1 -> y[i + 1]);
+			area = AREA (p1 -> x [i - 1], p1 -> y [i - 1], p1 -> x [i], p1 -> y [i], p1 -> x [i + 1], p1 -> y [i + 1]);
 			if (fabs (area) < eps) {
 				if (collinearity) {
 					collend = i + 1;
@@ -753,9 +737,7 @@ autoPolygon Polygon_simplify (Polygon me) {
 			p -> x [p -> numberOfPoints] = p1 -> x [endpos + 1];
 			p -> y [p -> numberOfPoints] = p1 -> y [endpos + 1];
 		}
-		if (p -> numberOfPoints < 3) {
-			Melder_throw (U"Not enough points left after collinear points removal.");
-		}
+		Melder_require (p -> numberOfPoints > 2, U"Not enough points left after collinear points removal.");
 
 		autoPolygon thee = Data_copy (p.get()); //
 		return thee;
@@ -769,9 +751,9 @@ autoPolygon Polygon_simplify (Polygon me) {
 static autoVertices Polygon_to_Vertices (Polygon me, bool close) {
 	try {
 		autoVertices thee = Vertices_create ();
-		for (long i = 1 ; i <= my numberOfPoints; i++) {
+		for (integer i = 1 ; i <= my numberOfPoints; i ++) {
 			autoVertex v = Vertex_create ();
-			v -> x = my x[i]; v -> y = my y[i];
+			v -> x = my x [i]; v -> y = my y [i];
 			autoDoublyLinkedNode n = DoublyLinkedNode_create (v.move());
 			DoublyLinkedList_addBack (thee.get(), n.releaseToAmbiguousOwner());
 		}
@@ -789,17 +771,23 @@ static autoVertices Polygon_to_Vertices (Polygon me, bool close) {
 
 
 static void Vertices_print (Vertices me, Vertices thee) {
-	long ns = 0, nc = 0, nt, nt2;
+	integer ns = 0, nc = 0, nt, nt2;
 	//	MelderInfo_open();
 	DoublyLinkedNode n = my front;
 	MelderInfo_writeLine (U"");
 	while (n != 0) {
 		double x = VERTEX (n) -> x, y = VERTEX (n) -> y, alpha = VERTEX (n) -> alpha;
-		const char32 *type = 0, *itype;
+		conststring32 type, itype;
 		if (VERTEX (n) -> intersect == 0) {
-			type = U"S"; ns++; nt = ns; itype = U"-"; nt2 = 0;
+			type = U"S";
+			ns ++;
+			nt = ns;
+			itype = U"-";
+			nt2 = 0;
 		} else {
-			type = U"I"; nt = VERTEX (n) -> id; nt2 = VERTEX (VERTEX (n) -> neighbour) -> id;
+			type = U"I";
+			nt = VERTEX (n) -> id;
+			nt2 = VERTEX (VERTEX (n) -> neighbour) -> id;
 			itype = Melder_integer (VERTEX (n) -> intersect);
 		}
 		MelderInfo_write (type, nt, U" I", itype, U", (", x, U", ", y, U"), ");
@@ -810,11 +798,17 @@ static void Vertices_print (Vertices me, Vertices thee) {
 	n = thy front;
 	while (n != 0) {
 		double x = VERTEX (n) -> x, y = VERTEX (n) -> y, alpha = VERTEX (n) -> alpha;
-		const char32 *type = 0, *itype;
+		conststring32 type, itype;
 		if (VERTEX (n) -> intersect == 0) {
-			type = U"C"; nc++; nt = nc; itype = U"-"; nt2 = 0;
+			type = U"C";
+			nc ++;
+			nt = nc;
+			itype = U"-";
+			nt2 = 0;
 		} else {
-			type = U"I"; nt = VERTEX (n) -> id; nt2 = VERTEX (VERTEX (n) -> neighbour) -> id;
+			type = U"I";
+			nt = VERTEX (n) -> id;
+			nt2 = VERTEX (VERTEX (n) -> neighbour) -> id;
 			itype = Melder_integer (VERTEX (n) -> intersect);
 		}
 		MelderInfo_write (type, nt, U" I", itype, U", (", x, U", ", y, U"), ");
@@ -851,7 +845,7 @@ static void Vertices_sortIntersections (Vertices me) {
 static void Vertices_addIntersections (Vertices me, Vertices thee) {
 	try {
 		double eps = 1e-15;
-		long id = 0;
+		integer id = 0;
 		if (my numberOfNodes < 4 || thy numberOfNodes < 4) {
 			Melder_throw (U"We need at least three vertices.");
 		}
@@ -867,7 +861,7 @@ static void Vertices_addIntersections (Vertices me, Vertices thee) {
 				double x4 = VERTEX (njn) -> x, y4 = VERTEX (njn) -> y, mua, mub;
 				int intersection = LineSegments_getIntersection (x1, y1, x2, y2, x3, y3, x4, y4, &mua, &mub, eps);
 				if (intersection != INTERSECTION_OUTSIDE) {
-					id++;
+					id ++;
 					// 1. create the vertices
 					autoVertex ins = Vertex_create ();
 					ins -> x = x1 + mua * (x2 - x1);
@@ -917,14 +911,14 @@ static void Vertices_addIntersections (Vertices me, Vertices thee) {
 #define Polygon_EXEN 4
 
 static void Vertices_markEntryPoints (Vertices me, int firstLocation) {
-	int entry = (firstLocation == Polygon_INSIDE) ? Polygon_EX : (firstLocation == Polygon_OUTSIDE) ? Polygon_EN : Polygon_ENEX; // problematic when on boundary
+	int entry = ( firstLocation == Polygon_INSIDE ? Polygon_EX : ( firstLocation == Polygon_OUTSIDE ? Polygon_EN : Polygon_ENEX ) ); // problematic when on boundary
 	// my back/front can never be an intersection node
 	for (DoublyLinkedNode ni = my front -> next; ni != my back; ni = ni -> next) {
 		if (VERTEX (ni) -> intersect == 0) {
 			continue;
 		}
 		VERTEX (ni) -> entry = entry;
-		entry = (entry == Polygon_EN) ? Polygon_EX : (entry == Polygon_EX) ? Polygon_EN : Polygon_ENEX;
+		entry = ( entry == Polygon_EN ? Polygon_EX : ( entry == Polygon_EX ? Polygon_EN : Polygon_ENEX ) );
 	}
 }
 
@@ -950,15 +944,15 @@ static autoVertices Verticeses_connectClippingPathsUnion (Vertices me, Vertices 
 		}
 
 		autoVertices him = Vertices_create ();
-		long poly_npoints = 0;
+		integer poly_npoints = 0;
 		DoublyLinkedNode current = firstOutside;
 		bool inside = false, forward = true;
 		do {
 			if (VERTEX (current) -> intersect == 0) {
-				Vertices_addCopyBack (him.get(), current); poly_npoints++;
+				Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 			} else { // intersection point
 				// store and jump to other polygon
-				Vertices_addCopyBack (him.get(), current); poly_npoints++;
+				Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 				current = VERTEX (current) -> neighbour; inside = not inside;
 				forward = VERTEX (current) ->  entry == Polygon_EX;
 			}
@@ -970,7 +964,7 @@ static autoVertices Verticeses_connectClippingPathsUnion (Vertices me, Vertices 
 			} else {
 				current = current -> prev;
 				if (current == 0) {
-					current = inside ? thy back : my back;
+					current = ( inside ? thy back : my back );
 				}
 			}
 		} while (current != firstOutside and current != 0 and poly_npoints < my numberOfNodes);
@@ -985,8 +979,8 @@ static autoVertices Verticeses_connectClippingPathsUnion (Vertices me, Vertices 
 static autoVertices Verticeses_connectClippingPaths (Vertices me, bool /* use_myinterior */, Vertices thee, bool /* use_thyinterior */) {
 	try {
 		autoVertices him = Vertices_create ();
-		DoublyLinkedNode prevPoly;
-		long poly_npoints = 0;
+		DoublyLinkedNode prevPoly = nullptr;
+		integer poly_npoints = 0;
 		for (DoublyLinkedNode ni = my front; ni != 0; ni = ni -> next) {
 			if ( (VERTEX (ni) -> intersect == 0) || VERTEX (ni) -> processed) {
 				continue;
@@ -994,28 +988,28 @@ static autoVertices Verticeses_connectClippingPaths (Vertices me, bool /* use_my
 			// Intersection found: start new polygon
 			DoublyLinkedNode currentPoly = his back;
 			if (currentPoly == his front) {
-				Vertices_addCopyBack (him.get(), ni); poly_npoints++;
+				Vertices_addCopyBack (him.get(), ni); poly_npoints ++;
 				prevPoly = his front;
 			} else {
-				Vertices_addCopyBack (him.get(), ni); poly_npoints++;
+				Vertices_addCopyBack (him.get(), ni); poly_npoints ++;
 				VERTEX (prevPoly) -> poly_npoints = poly_npoints;
 				poly_npoints = 0;
 				prevPoly = currentPoly;
 			}
 			DoublyLinkedNode current = ni;
 			VERTEX (current) -> processed = true;
-			long jumps = 0;
+			integer jumps = 0;
 			do {
 				if (VERTEX (current) -> entry == Polygon_EN) {
 					while ( (current = current -> next) != 0 and VERTEX (current) -> intersect == 0) {
-						Vertices_addCopyBack (him.get(), current); poly_npoints++;
+						Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 					}
 					if (current == 0) { // back of list? Goto front
-						current = (jumps % 2 == 0) ? my front : thy front;
+						current = ( jumps % 2 == 0 ? my front : thy front );
 						while ( (current = current -> next) != 0 and VERTEX (current) -> intersect == 0) {
-							Vertices_addCopyBack (him.get(), current); poly_npoints++;
+							Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 						}
-						Vertices_addCopyBack (him.get(), current); poly_npoints++; // intersection point
+						Vertices_addCopyBack (him.get(), current); poly_npoints ++; // intersection point
 					} else if (current == ni) {
 						break;    // done
 					} else {
@@ -1023,14 +1017,14 @@ static autoVertices Verticeses_connectClippingPaths (Vertices me, bool /* use_my
 					}
 				} else if (VERTEX (current) -> entry == Polygon_EX) {
 					while ( (current = current -> prev) != 0 and VERTEX (current) -> intersect == 0) {
-						Vertices_addCopyBack (him.get(), current); poly_npoints++;
+						Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 					}
 					if (current == 0) { // start of list? Goto end
-						current = (jumps % 2 == 0) ? my back : thy back;
+						current = ( jumps % 2 == 0 ? my back : thy back );
 						while ( (current = current -> prev) != 0 and VERTEX (current) -> intersect == 0) {
-							Vertices_addCopyBack (him.get(), current); poly_npoints++;
+							Vertices_addCopyBack (him.get(), current); poly_npoints ++;
 						}
-						Vertices_addCopyBack (him.get(), current); poly_npoints++; // intersection point
+						Vertices_addCopyBack (him.get(), current); poly_npoints ++; // intersection point
 					} else if (current == ni) {
 						break;    // done
 					} else {
@@ -1039,7 +1033,7 @@ static autoVertices Verticeses_connectClippingPaths (Vertices me, bool /* use_my
 				} else {
 				}
 				VERTEX (current) -> processed = true;
-				current = VERTEX (current) -> neighbour; jumps++;
+				current = VERTEX (current) -> neighbour; jumps ++;
 				VERTEX (current) -> processed = true;
 			} while (current != ni); // polygon closed
 		}
@@ -1055,16 +1049,16 @@ static autoVertices Verticeses_connectClippingPaths (Vertices me, bool /* use_my
 static autoPolygon Vertices_to_Polygon (Vertices /* me */, DoublyLinkedNode *ni) {
 	DoublyLinkedNode n = *ni;
 	try {
-		long i = 1, nPoints = VERTEX (n) -> poly_npoints;
+		integer i = 1, nPoints = VERTEX (n) -> poly_npoints;
 		if (nPoints == 0) {
 			Melder_throw (U"No number info.");
 		}
 		autoPolygon thee = Polygon_create (nPoints);
-		thy x[i] = VERTEX (n) -> x; thy y[i] = VERTEX (n) -> y;
+		thy x [i] = VERTEX (n) -> x; thy y [i] = VERTEX (n) -> y;
 		while ((n = n -> next) != 0 && VERTEX (n) -> poly_npoints == 0 && i <= nPoints) {
 			i ++;
-			thy x[i] = VERTEX (n) -> x;
-			thy y[i] = VERTEX (n) -> y;
+			thy x [i] = VERTEX (n) -> x;
+			thy y [i] = VERTEX (n) -> y;
 		}
 		*ni =  n;
 		return thee;
@@ -1092,15 +1086,15 @@ static autoPolygonBag Vertices_to_Polygons (Vertices me) {
 static autoPolygonBag Polygons_findClippings (Polygon me, bool use_myinterior, Polygon thee, bool use_thyinterior) {
 	try {
 		autoVertices subject = Polygon_to_Vertices (me, true);
-		long ns = subject -> numberOfNodes;
+		integer ns = subject -> numberOfNodes;
 		autoVertices clip = Polygon_to_Vertices (thee, true);
-		// long nc = clip -> numberOfNodes;
+		// integer nc = clip -> numberOfNodes;
 		double eps = 1e-15;
 
 		// phase 1: Get all intersections and add them to both lists
 
 		Vertices_addIntersections (subject.get(), clip.get());
-		long nnewnodes = subject -> numberOfNodes - ns;
+		integer nnewnodes = subject -> numberOfNodes - ns;
 		int firstLocation = Polygon_getLocationOfPoint (thee, my x [1], my y [1], eps);
 		if (nnewnodes == 0) {   // no crossings, either one completely inside the other or separate
 			autoPolygonBag polygons;
@@ -1118,7 +1112,7 @@ static autoPolygonBag Polygons_findClippings (Polygon me, bool use_myinterior, P
 
 		Vertices_markEntryPoints (subject.get(), firstLocation);
 
-		firstLocation = Polygon_getLocationOfPoint (me, thy x[1], thy y[1], eps);
+		firstLocation = Polygon_getLocationOfPoint (me, thy x [1], thy y [1], eps);
 		Vertices_markEntryPoints (subject.get(), firstLocation);
 		if (Melder_debug == -1) {
 			Vertices_print (subject.get(), clip.get());
@@ -1167,20 +1161,20 @@ autoPolygon Polygons_union (Polygon me, Polygon thee) {
 	}
 }
 
-#define CROSSING (my y[i] < y0) != (my y[ip1] < y0)
-#define AREA { a = (my x[i]-x0)*(my y[ip1]-y0) - (my x[ip1]-x0)*(my y[i]-y0); if (fabs (a) <= eps) return Polygon_EDGE; }
-#define RIGHT_CROSSING (a > 0) == (my y[ip1] > my y[i])
-#define MODIFY_CROSSING_NUMBER { if (my y[ip1] > my y[i]) nup++; else nup--; }
+#define CROSSING (my y [i] < y0) != (my y [ip1] < y0)
+#define AREA { a = (my x [i]-x0)*(my y [ip1]-y0) - (my x [ip1]-x0)*(my y [i]-y0); if (fabs (a) <= eps) return Polygon_EDGE; }
+#define RIGHT_CROSSING (a > 0) == (my y [ip1] > my y [i])
+#define MODIFY_CROSSING_NUMBER { if (my y [ip1] > my y [i]) nup ++; else nup--; }
 
 int Polygon_getLocationOfPoint (Polygon me, double x0, double y0, double eps) {
-	if (my y[1] == y0 and my x[1] == x0) {
+	if (my y [1] == y0 and my x [1] == x0) {
 		return Polygon_VERTEX;
 	}
 
-	long nup = 0;
-	for (long i = 1; i <= my numberOfPoints; i ++) {
+	integer nup = 0;
+	for (integer i = 1; i <= my numberOfPoints; i ++) {
 		double a;
-		long ip1 = i < my numberOfPoints ? i + 1 : 1;
+		integer ip1 = ( i < my numberOfPoints ? i + 1 : 1 );
 		if (my y [ip1] == y0) {
 			if (my x [ip1] == x0) {
 				return Polygon_VERTEX;
@@ -1203,7 +1197,7 @@ int Polygon_getLocationOfPoint (Polygon me, double x0, double y0, double eps) {
 			}
 		}
 	}
-	return nup % 2 == 0 ? Polygon_OUTSIDE : Polygon_INSIDE;
+	return ( nup % 2 == 0 ? Polygon_OUTSIDE : Polygon_INSIDE );
 }
 
 static inline double cross (double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -1213,36 +1207,33 @@ static inline double cross (double x1, double y1, double x2, double y2, double x
 // Code adapted from http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#C
 autoPolygon Polygon_convexHull (Polygon me) {
 	try {
-		if (my numberOfPoints <= 3) {
-			return Data_copy (me);
+		if (my numberOfPoints <= 3) return Data_copy (me);
+		
+		autoVEC x = newVECraw (my numberOfPoints), y = newVECraw (my numberOfPoints);
+		autoINTVEC hull = newINTVECraw (my numberOfPoints + 2);
+		for (integer i = 1; i <= my numberOfPoints; i ++) {
+			x [i] = my x [i];
+			y [i] = my y [i];
 		}
-		autoNUMvector<double> x (1, my numberOfPoints), y (1, my numberOfPoints);
-		autoNUMvector<long> hull (1, my numberOfPoints + 2);
-		for (long i = 1; i <= my numberOfPoints; i++) {
-			x[i] = my x[i];
-			y[i] = my y[i];
-		}
-		NUMsort2 <double, double> (my numberOfPoints, x.peek(), y.peek());
+		NUMsortTogether (x.get(), y.get());
 		// lower hull
-		long n = 1;
-		for (long i = 1; i <= my numberOfPoints; i++) {
-			while (n > 2 && cross (x[hull[n - 2]], y[hull[n - 2]], x[hull[n - 1]], y[hull[n - 1]], x[i], y[i]) <= 0) {
+		integer n = 1;
+		for (integer i = 1; i <= my numberOfPoints; i ++) {
+			while (n > 2 && cross (x [hull [n - 2]], y [hull [n - 2]], x [hull [n - 1]], y [hull [n - 1]], x [i], y [i]) <= 0)
 				--n; // counter clockwise turn
-			}
-    		hull[n++] = i;
+    		hull [n ++] = i;
 		}
 		// upper hull
-		long t = n + 1;
-		for (long i = my numberOfPoints - 1; i >= 1; i--) {
-			while (n >= t && cross (x[hull[n - 2]], y[hull[n - 2]], x[hull[n - 1]], y[hull[n - 1]], x[i], y[i]) <= 0) {
+		integer t = n + 1;
+		for (integer i = my numberOfPoints - 1; i >= 1; i--) {
+			while (n >= t && cross (x [hull [n - 2]], y [hull [n - 2]], x [hull [n - 1]], y [hull [n - 1]], x [i], y [i]) <= 0)
 				--n;
-			}
-    		hull[n++] = i;
+    		hull [n ++] = i;
 		}
 		autoPolygon thee = Polygon_create (n - 1);
-		for (long i = 1; i <= n - 1; i++) {
-			thy x[i] = x[hull[i]];
-			thy y[i] = y[hull[i]];
+		for (integer i = 1; i <= n - 1; i ++) {
+			thy x [i] = x [hull [i]];
+			thy y [i] = y [hull [i]];
 		}
 		return thee;
 	} catch (MelderError) {
@@ -1256,7 +1247,7 @@ double Polygon_getAreaOfConvexHull (Polygon me) {
 		return Polygon_area (thee.get());
 	} catch (MelderError) {
 		Melder_clearError ();
-		return NUMundefined;
+		return undefined;
 	}
 }
 

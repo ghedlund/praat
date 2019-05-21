@@ -1,6 +1,6 @@
 /* Permutation.cpp
  *
- * Copyright (C) 2005-2012, 2015-2016 David Weenink
+ * Copyright (C) 2005-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,27 +48,22 @@
 
 Thing_implement (Permutation, Daata, 0);
 
-static long Permutation_checkRange (Permutation me, long *from, long *to) {
-	if ( (*from < 0 || *from > my numberOfElements) || (*to < 0 || *to > my numberOfElements)) {
-		Melder_throw (U"Range must be in [1, ", my numberOfElements, U"].");
-	}
-	if (*from == 0) {
+static integer Permutation_checkRange (Permutation me, integer *from, integer *to) {
+	if (*from == 0)
 		*from = 1;
-	}
-	if (*to == 0) {
+	if (*to == 0)
 		*to = my numberOfElements;
-	}
+	Melder_require (*from > 0 && *from <= my numberOfElements && *to > 0 && *to <= my numberOfElements,
+		U"Range should be in [1, ", my numberOfElements, U"].");
 	return *to - *from + 1;
 }
 
 void Permutation_checkInvariant (Permutation me) {
 	autoPermutation thee = Data_copy (me);
-	NUMsort_l (thy numberOfElements, thy p);
-	for (long i = 1; i <= my numberOfElements; i++) {
-		if (thy p[i] != i) {
-			Melder_throw (me, U":not a valid permutation.");
-		}
-	}
+	NUMsort_integer (thy numberOfElements, thy p.at);
+	for (integer i = 1; i <= my numberOfElements; i ++)
+		Melder_require (thy p [i] == i,
+			me, U": is not a valid permutation.");
 }
 
 void structPermutation :: v_info () {
@@ -77,69 +72,82 @@ void structPermutation :: v_info () {
 }
 
 void structPermutation :: v_readText (MelderReadText text, int /*formatVersion*/) {
-	numberOfElements = texgeti4 (text);
-	if (numberOfElements < 1) {
-		Melder_throw (U"Found a negative mumber of elements during reading.");
-	}
-	p = NUMvector_readText_i4 (1, numberOfElements, text, "p");
+	numberOfElements = texgeti32 (text);
+	Melder_require (numberOfElements > 0,
+		U"Number of elements should be greater than zero.");
+
+	p.at = NUMvector_readText_integer32BE (1, numberOfElements, text, "p");
 	Permutation_checkInvariant (this);
 }
 
-void Permutation_init (Permutation me, long numberOfElements) {
+void Permutation_init (Permutation me, integer numberOfElements) {
 	my numberOfElements = numberOfElements;
-	my p = NUMvector<long> (1, numberOfElements);
+	my p = newINTVECraw (numberOfElements);
 	Permutation_sort (me);
 }
 
-autoPermutation Permutation_create (long numberOfElements) {
+void Permutation_tableJump_inline (Permutation me, integer jumpSize, integer first) {
+	if (jumpSize >= my numberOfElements || first > my numberOfElements)
+		return;
+	autoINTVEC p_copy = newINTVECcopy (my p.get());
+
+	integer index = first, column = 1;
+	if (first > 1)
+		column = (first - 1) % jumpSize + 1;
+	for (integer i = 1; i <= my numberOfElements; i ++) {
+		my p [i] = p_copy [index];
+		index += jumpSize;
+		if (index > my numberOfElements) {
+			if (++ column > jumpSize)
+				column = 1;
+			index = column;
+		}
+	}
+}
+
+autoPermutation Permutation_create (integer numberOfElements) {
 	try {
 		autoPermutation me = Thing_new (Permutation);
 		Permutation_init (me.get(), numberOfElements);
 		return me;
 	} catch (MelderError) {
-		Melder_throw (U"Permulation not created.");
+		Melder_throw (U"Permutation not created.");
 	}
 }
 
 void Permutation_sort (Permutation me) {
-	for (long i = 1; i <= my numberOfElements; i++) {
-		my p[i] = i;
-	}
+	for (integer i = 1; i <= my numberOfElements; i ++)
+		my p [i] = i;
 }
 
-void Permutation_swapPositions (Permutation me, long i1, long i2) {
+void Permutation_swapPositions (Permutation me, integer i1, integer i2) {
 	try {
-		if (i1 < 1 || i1 > my numberOfElements || i2 < 1 || i2 > my numberOfElements) {
-			Melder_throw (U"Invalid positions.");
-		}
-		long tmp = my p[i1];
-		my p[i1] = my p[i2];
-		my p[i2] = tmp;
+		Melder_require (i1 > 0 && i1 <= my numberOfElements && i2 > 0 && i2 <= my numberOfElements, 
+			U"Positions should be within the range [1, ",  my numberOfElements, U"].");
+		std::swap (my p [i1], my p [i2]);
 	} catch (MelderError) {
 		Melder_throw (me, U":positions not swapped.");
 	}
 }
 
-void Permutation_swapNumbers (Permutation me, long i1, long i2) {
+void Permutation_swapNumbers (Permutation me, integer i1, integer i2) {
 	try {
-		long ip = 0;
-		if (i1 < 1 || i1 > my numberOfElements || i2 < 1 || i2 > my numberOfElements) {
-			Melder_throw (U"");
-		}
-		if (i1 == i2) {
+		integer ip = 0;
+		Melder_require (i1 > 0 && i1 <= my numberOfElements && i2 > 0 && i2 <= my numberOfElements, 
+			U"Positions should be within the range [1, ",  my numberOfElements, U"].");
+		
+		if (i1 == i2)
 			return;
-		}
-		for (long i = 1; i <= my numberOfElements; i++) {
-			if (my p[i] == i1) {
-				my p[i] = i2;
-				ip++;
-			} else if (my p[i] == i2) {
-				my p[i] = i1;
-				ip++;
+		for (integer i = 1; i <= my numberOfElements; i ++) {
+			if (my p [i] == i1) {
+				my p [i] = i2;
+				ip ++;
+			} else if (my p [i] == i2) {
+				my p [i] = i1;
+				ip ++;
 			}
-			if (ip == 2) {
+			if (ip == 2)
 				break;
-			}
 		}
 		Melder_assert (ip == 2);
 	} catch (MelderError) {
@@ -147,71 +155,59 @@ void Permutation_swapNumbers (Permutation me, long i1, long i2) {
 	}
 }
 
-void Permutation_swapBlocks (Permutation me, long from, long to, long blocksize) {
+void Permutation_swapBlocks (Permutation me, integer from, integer to, integer blockSize) {
 	try {
-		if (blocksize < 1 || blocksize > my numberOfElements) {
-			Melder_throw (U"Blocksize must be in [1, %d] range.", my numberOfElements / 2);
-		}
-		if (from < 0 || from + blocksize - 1 > my numberOfElements || to < 0 || to + blocksize - 1 > my numberOfElements) {
-			Melder_throw (U"Start and finish positions of the two blocks must be in [1,", my numberOfElements, U"] range.");
-		}
-		if (from == to) {
-			return;
-		}
+		Melder_require (blockSize > 0 && blockSize <= my numberOfElements / 2,
+			U"The block size should be in the [1, %d] range.", my numberOfElements / 2);
+		Melder_require (from > 0 && to > 0 && from + blockSize <= my numberOfElements && to + blockSize <= my numberOfElements,
+			U"Start and finish positions of the two blocks should be in [1,", my numberOfElements, U"] range.");
 
-		for (long i = 1; i <= blocksize; i++) {
-			long tmp = my p[from + i - 1];
-			my p[from + i - 1] = my p[to + i - 1];
-			my p[to + i - 1] = tmp;
-		}
+		if (from == to)
+			return;
+		for (integer i = 1; i <= blockSize; i ++)
+			std::swap (my p [from + i - 1], my p [to + i - 1]);
 	} catch (MelderError) {
 		Melder_throw (me, U": blocks not swapped.");
 	}
 }
 
-void Permutation_permuteRandomly_inline (Permutation me, long from, long to) {
+void Permutation_permuteRandomly_inplace (Permutation me, integer from, integer to) {
 	try {
-		long n = Permutation_checkRange (me, &from, &to);
-
-		if (n == 1) {
+		integer n = Permutation_checkRange (me, & from, & to);
+		if (n == 1)
 			return;
-		}
-		for (long i = from; i < to; i++) {
-			long newpos = NUMrandomInteger (from, to);
-			long pi = my p[i];
-			my p[i] = my p[newpos];
-			my p[newpos] = pi;
+		for (integer i = from; i < to; i ++) {
+			integer newpos = NUMrandomInteger (from, to);
+			std::swap (my p [i], my p [newpos]);
 		}
 	} catch (MelderError) {
 		Melder_throw (me, U": not permuted randomly.");
 	}
 }
 
-autoPermutation Permutation_permuteRandomly (Permutation me, long from, long to) {
+autoPermutation Permutation_permuteRandomly (Permutation me, integer from, integer to) {
 	try {
 		autoPermutation thee = Data_copy (me);
-		Permutation_permuteRandomly_inline (thee.get(), from, to);
+		Permutation_permuteRandomly_inplace (thee.get(), from, to);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not permuted.");
 	}
 }
 
-autoPermutation Permutation_rotate (Permutation me, long from, long to, long step) {
+autoPermutation Permutation_rotate (Permutation me, integer from, integer to, integer step) {
 	try {
-		long n = Permutation_checkRange (me, &from, &to);
+		integer n = Permutation_checkRange (me, & from, & to);
 		step = (step - 1) % n + 1;
 
 		autoPermutation thee = Data_copy (me);
-		for (long i = from; i <= to; i++) {
-			long ifrom = i + step;
-			if (ifrom > to) {
+		for (integer i = from; i <= to; i ++) {
+			integer ifrom = i + step;
+			if (ifrom > to)
 				ifrom -= n;
-			}
-			if (ifrom < from) {
+			if (ifrom < from)
 				ifrom += n;
-			}
-			thy p[ifrom] = my p[i];
+			thy p [ifrom] = my p[i];
 		}
 		return thee;
 	} catch (MelderError) {
@@ -219,59 +215,55 @@ autoPermutation Permutation_rotate (Permutation me, long from, long to, long ste
 	}
 }
 
-void Permutation_swapOneFromRange (Permutation me, long from, long to, long pos, int forbidsame) {
+void Permutation_swapOneFromRange (Permutation me, integer from, integer to, integer pos, bool forbidsame) {
 	try {
-		long n = Permutation_checkRange (me, &from, &to);
-		long newpos = NUMrandomInteger (from, to);
+		integer n = Permutation_checkRange (me, & from, & to);
+		integer newpos = NUMrandomInteger (from, to);
 		if (newpos == pos && forbidsame) {
-			if (n == 1) {
-				Melder_throw (U"Impossible to satisfy \"forbid same\" constraint within the chosen range.");
-			}
+			Melder_require (n != 1,
+				U"Impossible to satisfy \"forbid same\" constraint within the chosen range.");
+			
 			while ((newpos = NUMrandomInteger (from, to)) == pos) {
 				;
 			}
 		}
-
-		long tmp = my p[pos]; my p[pos] = my p[newpos]; my p[newpos] = tmp;
+		std::swap (my p [pos], my p [newpos]);
 	} catch (MelderError) {
 		Melder_throw (me, U": one from range not swapped.");
 	}
 }
 
-autoPermutation Permutation_permuteBlocksRandomly (Permutation me, long from, long to, long blocksize, int permuteWithinBlocks, int noDoublets) {
+autoPermutation Permutation_permuteBlocksRandomly (Permutation me, integer from, integer to, integer blockSize, bool permuteWithinBlocks, bool noDoublets) {
 	try {
-		long n = Permutation_checkRange (me, &from, &to);
-		if (blocksize == 1 || (blocksize >= n && permuteWithinBlocks)) {
+		integer n = Permutation_checkRange (me, & from, & to);
+		if (blockSize == 1 || (blockSize >= n && permuteWithinBlocks)) {
 			autoPermutation thee = Permutation_permuteRandomly (me, from, to);
 			return thee;
 		}
 		autoPermutation thee = Data_copy (me);
-		if (blocksize >= n) {
+		if (blockSize >= n)
 			return thee;
-		}
 
-		long nblocks  = n / blocksize, nrest = n % blocksize;
-		if (nrest != 0) {
-			Melder_throw (U"It is not possible to fit an integer number of blocks in the range.\n(The last block is only of size ", nrest, U").");
-		}
+		integer nblocks  = n / blockSize, nrest = n % blockSize;
+		Melder_require (nrest == 0,
+			U"There should fit an integer number of blocks in the range.\n(The last block is only of size ", nrest, U").");
+		
 		autoPermutation pblocks = Permutation_create (nblocks);
 
-		Permutation_permuteRandomly_inline (pblocks.get(), 1, nblocks);
-		long first = from;
-		for (long iblock = 1; iblock <= nblocks; iblock++, first += blocksize) {
+		Permutation_permuteRandomly_inplace (pblocks.get(), 1, nblocks);
+		integer first = from;
+		for (integer iblock = 1; iblock <= nblocks; iblock ++, first += blockSize) {
 			/* (n1,n2,n3,...) means: move block n1 to position 1 etc... */
-			long blocktomove = Permutation_getValueAtIndex (pblocks.get(), iblock);
+			integer blocktomove = Permutation_getValueAtIndex (pblocks.get(), iblock);
 
-			for (long j = 1; j <= blocksize; j++) {
-				thy p[first - 1 + j] = my p[from - 1 + (blocktomove - 1) * blocksize + j];
-			}
+			for (integer j = 1; j <= blockSize; j ++)
+				thy p [first - 1 + j] = my p [from - 1 + (blocktomove - 1) * blockSize + j];
 
 			if (permuteWithinBlocks) {
-				long last = first + blocksize - 1;
-				Permutation_permuteRandomly_inline (thee.get(), first, last);
-				if (noDoublets && iblock > 0 && (thy p[first - 1] % blocksize) == (thy p[first] % blocksize)) {
+				integer last = first + blockSize - 1;
+				Permutation_permuteRandomly_inplace (thee.get(), first, last);
+				if (noDoublets && iblock > 0 && thy p [first - 1] % blockSize == thy p [first] % blockSize)
 					Permutation_swapOneFromRange (thee.get(), first + 1, last, first, 0);
-				}
 			}
 		}
 		return thee;
@@ -280,45 +272,41 @@ autoPermutation Permutation_permuteBlocksRandomly (Permutation me, long from, lo
 	}
 }
 
-autoPermutation Permutation_interleave (Permutation me, long from, long to, long blocksize, long offset) {
+autoPermutation Permutation_interleave (Permutation me, integer from, integer to, integer blockSize, integer offset) {
 	try {
-		long n = Permutation_checkRange (me, &from, &to);
-		long nblocks = n / blocksize;
-		long nrest = n % blocksize;
-		if (nrest != 0) {
-			Melder_throw (U"There is not an integer number of blocks in the range.\n"
-				U"(The last block is only of size ", nrest, U" instead of ", blocksize, U").");
-		}
-		if (offset >= blocksize) {
-			Melder_throw (U"Offset must be smaller than blocksize.");
-		}
-
+		Melder_require (offset < blockSize,
+			U"Offset should be smaller than block size.");
+		integer n = Permutation_checkRange (me, & from, & to);
+		integer nblocks = n / blockSize, nrest = n % blockSize;
+		Melder_require (nrest == 0,
+			U"There should fit an integer number of blocks in the range.\n"
+			U"(The last block is only of size ", nrest, U" instead of ", blockSize, U").");
+		
 		autoPermutation thee = Data_copy (me);
 
 		if (nblocks > 1) {
-			autoNUMvector<long> occupied (1, blocksize);
+			autoNUMvector<integer> occupied (1, blockSize);
 
-			long posinblock = 1 - offset;
-			for (long i = 1; i <= n; i++) {
-				long index, rblock = (i - 1) % nblocks + 1;
+			integer posinblock = 1 - offset;
+			for (integer i = 1; i <= n; i ++) {
+				integer index, rblock = (i - 1) % nblocks + 1;
 
 				posinblock += offset;
-				if (posinblock > blocksize) {
-					posinblock -= blocksize;
-				}
+				if (posinblock > blockSize)
+					posinblock -= blockSize;
 
 				if (i % nblocks == 1) {
-					long count = blocksize;
-					while (occupied[posinblock] == 1 && count > 0) {
-						posinblock++; count--;
-						if (posinblock > blocksize) {
-							posinblock -= blocksize;
-						}
+					integer count = blockSize;
+					while (occupied [posinblock] == 1 && count > 0) {
+						posinblock ++;
+						count --;
+						if (posinblock > blockSize)
+							posinblock -= blockSize;
 					}
-					occupied[posinblock] = 1;
+					occupied [posinblock] = 1;
 				}
-				index = from - 1 + (rblock - 1) * blocksize + posinblock;
-				thy p[from - 1 + i] = my p[index];
+				index = from - 1 + (rblock - 1) * blockSize + posinblock;
+				thy p [from - 1 + i] = my p [index];
 			}
 		}
 		return thee;
@@ -327,15 +315,14 @@ autoPermutation Permutation_interleave (Permutation me, long from, long to, long
 	}
 }
 
-long Permutation_getValueAtIndex (Permutation me, long i) {
-	return i > 0 && i <= my numberOfElements ? my p[i] : -1;
+integer Permutation_getValueAtIndex (Permutation me, integer i) {
+	return i > 0 && i <= my numberOfElements ? my p [i] : -1;
 }
 
-long Permutation_getIndexAtValue (Permutation me, long value) {
-	for (long i = 1; i <= my numberOfElements; i++) {
-		if (my p[i] == value) {
+integer Permutation_getIndexAtValue (Permutation me, integer value) {
+	for (integer i = 1; i <= my numberOfElements; i ++) {
+		if (my p [i] == value)
 			return i;
-		}
 	}
 	return -1;
 }
@@ -343,24 +330,26 @@ long Permutation_getIndexAtValue (Permutation me, long value) {
 autoPermutation Permutation_invert (Permutation me) {
 	try {
 		autoPermutation thee = Data_copy (me);
-		for (long i = 1; i <= my numberOfElements; i++) {
-			thy p[my p[i]] = i;
-		}
+		for (integer i = 1; i <= my numberOfElements; i ++)
+			thy p [my p [i]] = i;
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not inverted.");
 	}
 }
 
-autoPermutation Permutation_reverse (Permutation me, long from, long to) {
-	try {
-		long n = Permutation_checkRange (me, &from, &to);
-		autoPermutation thee = Data_copy (me);
-		for (long i = 1; i <= n; i++) {
-			thy p[from + i - 1] = my p[to - i + 1];
-		}
-		return thee;
+void Permutation_reverse_inline (Permutation me, integer from, integer to) {
+	integer n = Permutation_checkRange (me, & from, & to);
+	for (integer i = 1; i <= n / 2; i ++)
+		std::swap (my p [from + i - 1], my p [to - i + 1] );
+}
 
+autoPermutation Permutation_reverse (Permutation me, integer from, integer to) {
+	try {
+		(void) Permutation_checkRange (me, & from, & to);
+		autoPermutation thee = Data_copy (me);
+		Permutation_reverse_inline (thee.get(), from, to);
+		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not reversed.");
 	}
@@ -369,88 +358,59 @@ autoPermutation Permutation_reverse (Permutation me, long from, long to) {
 /* Replaces p with the next permutation (in the standard lexicographical ordering.
    Adapted from the GSL library
 */
-void Permutation_next_inline (Permutation me) {
-	long size = my numberOfElements;
-	long *p = & my p[1];
+void Permutation_next_inplace (Permutation me) {
+	integer size = my numberOfElements;
+	Melder_require (size > 1,
+		U"The permutation should have more than one element.");
 
-	if (size < 2) {
-		Melder_throw (U"Only one element.");
-	}
-
-	long i = size - 2;
-
-	while ((p[i] > p[i + 1]) && (i != 0)) {
-		i--;
-	}
-
-	if ((i == 0) && (p[0] > p[1])) {
-		Melder_throw (U"No next.");
-	}
-
-	long k = i + 1;
-
-	for (long j = i + 2; j < size; j++) {
-		if ((p[j] > p[i]) && (p[j] < p[k])) {
+	integer *p = & my p [1];
+	integer i = size - 2;
+	while (p [i] > p [i + 1] && i != 0)
+		i --;
+	if (i == 0 && p [0] > p [1])
+		Melder_throw (U"No next element.");
+	integer k = i + 1;
+	for (integer j = i + 2; j < size; j ++) {
+		if (p [j] > p [i] && p [j] < p [k])
 			k = j;
-		}
 	}
-
-	long tmp = p[i]; p[i] = p[k]; p[k] = tmp;
-
-	for (long j = i + 1; j <= (size + i) / 2; j++) {
-		tmp = p[j];
-		p[j] = p[size + i - j];
-		p[size + i - j] = tmp;
-	}
+	std::swap (p [i], p [k]);
+	for (integer j = i + 1; j <= (size + i) / 2; j ++)
+		std::swap (p [j], p [size + i - j]);
 }
 
 /* Replaces p with the previous permutation (in the standard lexicographical ordering.
    Adapted from the GSL library
 */
-void Permutation_previous_inline (Permutation me) {
-	long size = my numberOfElements;
-	long *p = & my p[1];
+void Permutation_previous_inplace (Permutation me) {
+	integer size = my numberOfElements;
+	Melder_require (size > 1,
+		U"The permutation should have more than one element.");
 
-	if (size < 2) {
-		Melder_throw (U"Only one element.");
-	}
-
-	long i = size - 2;
-
-	while ((p[i] < p[i + 1]) && (i != 0)) {
-		i--;
-	}
-
-	if ((i == 0) && (p[0] < p[1])) {
-		Melder_throw (U"No previous");
-	}
-
-	long k = i + 1;
-
-	for (long j = i + 2; j < size; j++) {
-		if ((p[j] < p[i]) && (p[j] > p[k])) {
+	integer *p = & my p [1];
+	integer i = size - 2;
+	while ((p [i] < p [i + 1]) && (i != 0))
+		i --;
+	Melder_require (! (i == 0 && p [0] < p [1]),
+		U"No previous element.");
+	integer k = i + 1;
+	for (integer j = i + 2; j < size; j ++) {
+		if (p [j] < p [i] && p [j] > p [k])
 			k = j;
-		}
 	}
-
-	long tmp = p[i]; p[i] = p[k]; p[k] = tmp;
-
-	for (long j = i + 1; j <= ( (size + i) / 2); j++) {
-		tmp = p[j];
-		p[j] = p[size + i - j];
-		p[size + i - j] = tmp;
-	}
+	std::swap (p [i], p [k]);
+	for (integer j = i + 1; j <= (size + i) / 2; j ++)
+		std::swap (p [j], p [size + i - j]);
 }
 
 autoPermutation Permutations_multiply2 (Permutation me, Permutation thee) {
 	try {
-		if (my numberOfElements != thy numberOfElements) {
-			Melder_throw (U"Number of elements must be equal.");
-		}
+		Melder_require (my numberOfElements == thy numberOfElements,
+			U"Number of elements should be equal.");
+		
 		autoPermutation him = Data_copy (me);
-		for (long i = 1; i <= my numberOfElements; i++) {
-			his p[i] = my p[thy p[i]];
-		}
+		for (integer i = 1; i <= my numberOfElements; i ++)
+			his p [i] = my p [thy p [i]];
 		return him;
 	} catch (MelderError) {
 		Melder_throw (me, U" & ", thee, U" not multiplied.");
@@ -459,12 +419,11 @@ autoPermutation Permutations_multiply2 (Permutation me, Permutation thee) {
 
 autoPermutation Permutations_multiply (OrderedOf<structPermutation>* me) {
 	try {
-		if (my size < 2) {
-			Melder_throw (U"There must be at least 2 Permutations in the set.");
-		}
+	Melder_require (my size > 1, U"There should be at least two Permutations to multiply.");
 		autoPermutation thee = Permutations_multiply2 (my at [1], my at [2]);
-		for (long i = 3; i <= my size; i ++) {
-			thee = Permutations_multiply2 (thee.get(), my at [i]);
+		for (integer i = 3; i <= my size; i ++) {
+			autoPermutation him = Permutations_multiply2 (thee.get(), my at [i]);
+			thee = him.move();
 		}
 		return thee;
 	} catch (MelderError) {

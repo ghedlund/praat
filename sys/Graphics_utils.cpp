@@ -46,7 +46,7 @@ void Graphics_drawInnerBox (Graphics me) {
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_textLeft (Graphics me, bool farr, const char32 *text) {
+void Graphics_textLeft (Graphics me, bool farr, conststring32 text) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int vert = farr ? Graphics_TOP : Graphics_BOTTOM;
 	Graphics_Colour colour = my colour;
@@ -62,7 +62,7 @@ void Graphics_textLeft (Graphics me, bool farr, const char32 *text) {
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_textRight (Graphics me, bool farr, const char32 *text) {
+void Graphics_textRight (Graphics me, bool farr, conststring32 text) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int vert = farr ? Graphics_TOP : Graphics_BOTTOM;
 	Graphics_Colour colour = my colour;
@@ -78,7 +78,7 @@ void Graphics_textRight (Graphics me, bool farr, const char32 *text) {
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_textBottom (Graphics me, bool farr, const char32 *text) {
+void Graphics_textBottom (Graphics me, bool farr, conststring32 text) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	Graphics_Colour colour = my colour;
 	Graphics_setColour (me, Graphics_BLACK);
@@ -96,7 +96,7 @@ void Graphics_textBottom (Graphics me, bool farr, const char32 *text) {
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_textTop (Graphics me, bool farr, const char32 *text) {
+void Graphics_textTop (Graphics me, bool farr, conststring32 text) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	Graphics_Colour colour = my colour;
 	Graphics_setColour (me, Graphics_BLACK);
@@ -427,7 +427,7 @@ void Graphics_marksBottomLogarithmic (Graphics me, int numberOfMarksPerDecade, b
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markLeft (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markLeft (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -456,7 +456,7 @@ void Graphics_markLeft (Graphics me, double position, bool hasNumber, bool hasTi
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markRight (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markRight (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -485,7 +485,7 @@ void Graphics_markRight (Graphics me, double position, bool hasNumber, bool hasT
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markTop (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markTop (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -514,7 +514,7 @@ void Graphics_markTop (Graphics me, double position, bool hasNumber, bool hasTic
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markBottom (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markBottom (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -543,7 +543,7 @@ void Graphics_markBottom (Graphics me, double position, bool hasNumber, bool has
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markLeftLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markLeftLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -573,7 +573,7 @@ void Graphics_markLeftLogarithmic (Graphics me, double position, bool hasNumber,
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markRightLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markRightLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -603,7 +603,7 @@ void Graphics_markRightLogarithmic (Graphics me, double position, bool hasNumber
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markTopLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markTopLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -633,7 +633,7 @@ void Graphics_markTopLogarithmic (Graphics me, double position, bool hasNumber, 
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_markBottomLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, const char32 *text /* cattable */) {
+void Graphics_markBottomLogarithmic (Graphics me, double position, bool hasNumber, bool hasTick, bool hasDottedLine, conststring32 text /* cattable */) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
 	int lineType = my lineType;
 	double lineWidth = my lineWidth;
@@ -665,12 +665,13 @@ void Graphics_markBottomLogarithmic (Graphics me, double position, bool hasNumbe
 
 void Graphics_marksLeftEvery (Graphics me, double units, double distance, bool haveNumbers, bool haveTicks, bool haveDottedLines) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
-	int lineType = my lineType, first, last;
+	int lineType = my lineType;
+	integer first, last;
 	double lineWidth = my lineWidth;
 	Graphics_Colour colour = my colour;
 	distance *= units;
-	first = (int) ceil (( y1WC < y2WC ? y1WC : y2WC ) / distance - 1e-5);
-	last = (int) floor (( y1WC < y2WC ? y2WC : y1WC) / distance + 1e-5);
+	first = Melder_iceiling (( y1WC < y2WC ? y1WC : y2WC ) / distance - 1e-5);
+	last  = Melder_ifloor   (( y1WC < y2WC ? y2WC : y1WC ) / distance + 1e-5);
 	Graphics_setColour (me, Graphics_BLACK);
 	Graphics_setWindow (me, 0, 1, y1WC, y2WC);
 	Graphics_setTextAlignment (me, Graphics_RIGHT, Graphics_HALF);
@@ -679,7 +680,7 @@ void Graphics_marksLeftEvery (Graphics me, double units, double distance, bool h
 		Graphics_setLineType (me, Graphics_DRAWN);
 		Graphics_setLineWidth (me, 2.0 * lineWidth);
 	}
-	for (int i = first; i <= last; i ++) {
+	for (integer i = first; i <= last; i ++) {
 		double yWC = i * distance;
 		if (haveNumbers) Graphics_text (me, - my horTick, yWC, Melder_float (Melder_half (yWC / units)));
 		if (haveTicks) Graphics_line (me, - my horTick, yWC, 0.0, yWC);
@@ -688,7 +689,7 @@ void Graphics_marksLeftEvery (Graphics me, double units, double distance, bool h
 	if (haveDottedLines) {
 		Graphics_setLineType (me, Graphics_DOTTED);
 		Graphics_setLineWidth (me, 0.67 * lineWidth);
-		for (int i = first; i <= last; i ++) {
+		for (integer i = first; i <= last; i ++) {
 			double yWC = i * distance;
 			Graphics_line (me, 0.0, yWC, 1.0, yWC);
 		}
@@ -702,12 +703,13 @@ void Graphics_marksLeftEvery (Graphics me, double units, double distance, bool h
 
 void Graphics_marksRightEvery (Graphics me, double units, double distance, bool haveNumbers, bool haveTicks, bool haveDottedLines) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
-	int lineType = my lineType, first, last;
+	int lineType = my lineType;
+	integer first, last;
 	double lineWidth = my lineWidth;
 	Graphics_Colour colour = my colour;
 	distance *= units;
-	first = (int) ceil (( y1WC < y2WC ? y1WC : y2WC ) / distance - 1e-5);
-	last = (int) floor (( y1WC < y2WC ? y2WC : y1WC) / distance + 1e-5);
+	first = Melder_iceiling (( y1WC < y2WC ? y1WC : y2WC ) / distance - 1e-5);
+	last  = Melder_ifloor   (( y1WC < y2WC ? y2WC : y1WC ) / distance + 1e-5);
 	if (first > last) return;
 	Graphics_setColour (me, Graphics_BLACK);
 	Graphics_setWindow (me, 0, 1, y1WC, y2WC);
@@ -717,7 +719,7 @@ void Graphics_marksRightEvery (Graphics me, double units, double distance, bool 
 		Graphics_setLineType (me, Graphics_DRAWN);
 		Graphics_setLineWidth (me, 2.0 * lineWidth);
 	}
-	for (int i = first; i <= last; i ++) {
+	for (integer i = first; i <= last; i ++) {
 		double yWC = i * distance;
 		if (haveNumbers) Graphics_text (me, 1.0 + my horTick, yWC, Melder_float (Melder_half (yWC / units)));
 		if (haveTicks) Graphics_line (me, 1.0, yWC, 1.0 + my horTick, yWC);
@@ -726,7 +728,7 @@ void Graphics_marksRightEvery (Graphics me, double units, double distance, bool 
 	if (haveDottedLines) {
 		Graphics_setLineType (me, Graphics_DOTTED);
 		Graphics_setLineWidth (me, 0.67 * lineWidth);
-		for (int i = first; i <= last; i ++) {
+		for (integer i = first; i <= last; i ++) {
 			double yWC = i * distance;
 			Graphics_line (me, 0.0, yWC, 1.0, yWC);
 		}
@@ -740,12 +742,13 @@ void Graphics_marksRightEvery (Graphics me, double units, double distance, bool 
 
 void Graphics_marksBottomEvery (Graphics me, double units, double distance, bool haveNumbers, bool haveTicks, bool haveDottedLines) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
-	int lineType = my lineType, first, last;
+	int lineType = my lineType;
+	integer first, last;
 	double lineWidth = my lineWidth;
 	Graphics_Colour colour = my colour;
 	distance *= units;
-	first = (int) ceil (( x1WC < x2WC ? x1WC : x2WC ) / distance - 1e-5);
-	last = (int) floor (( x1WC < x2WC ? x2WC : x1WC) / distance + 1e-5);
+	first = Melder_iceiling (( x1WC < x2WC ? x1WC : x2WC ) / distance - 1e-5);
+	last  = Melder_ifloor   (( x1WC < x2WC ? x2WC : x1WC ) / distance + 1e-5);
 	Graphics_setColour (me, Graphics_BLACK);
 	Graphics_setWindow (me, x1WC, x2WC, 0.0, 1.0);
 	Graphics_setTextAlignment (me, Graphics_CENTRE, Graphics_TOP);
@@ -754,7 +757,7 @@ void Graphics_marksBottomEvery (Graphics me, double units, double distance, bool
 		Graphics_setLineType (me, Graphics_DRAWN);
 		Graphics_setLineWidth (me, 2.0 * lineWidth);
 	}
-	for (int i = first; i <= last; i ++) {
+	for (integer i = first; i <= last; i ++) {
 		double xWC = i * distance;
 		if (haveNumbers) Graphics_text (me, xWC, - my vertTick, Melder_float (Melder_half (xWC / units)));
 		if (haveTicks) Graphics_line (me, xWC, - my vertTick, xWC, 0.0);
@@ -763,7 +766,7 @@ void Graphics_marksBottomEvery (Graphics me, double units, double distance, bool
 	if (haveDottedLines) {
 		Graphics_setLineType (me, Graphics_DOTTED);
 		Graphics_setLineWidth (me, 0.67 * lineWidth);
-		for (int i = first; i <= last; i ++) {
+		for (integer i = first; i <= last; i ++) {
 			double xWC = i * distance;
 			Graphics_line (me, xWC, 0.0, xWC, 1.0);
 		}
@@ -777,12 +780,13 @@ void Graphics_marksBottomEvery (Graphics me, double units, double distance, bool
 
 void Graphics_marksTopEvery (Graphics me, double units, double distance, bool haveNumbers, bool haveTicks, bool haveDottedLines) {
 	double x1WC = my d_x1WC, x2WC = my d_x2WC, y1WC = my d_y1WC, y2WC = my d_y2WC;
-	int lineType = my lineType, first, last;
+	int lineType = my lineType;
+	integer first, last;
 	double lineWidth = my lineWidth;
 	Graphics_Colour colour = my colour;
 	distance *= units;
-	first = (int) ceil (( x1WC < x2WC ? x1WC : x2WC ) / distance - 1e-5);
-	last = (int) floor (( x1WC < x2WC ? x2WC : x1WC) / distance + 1e-5);
+	first = Melder_iceiling (( x1WC < x2WC ? x1WC : x2WC ) / distance - 1e-5);
+	last  = Melder_ifloor   (( x1WC < x2WC ? x2WC : x1WC ) / distance + 1e-5);
 	Graphics_setColour (me, Graphics_BLACK);
 	Graphics_setWindow (me, x1WC, x2WC, 0.0, 1.0);
 	Graphics_setTextAlignment (me, Graphics_CENTRE, Graphics_BOTTOM);
@@ -791,7 +795,7 @@ void Graphics_marksTopEvery (Graphics me, double units, double distance, bool ha
 		Graphics_setLineType (me, Graphics_DRAWN);
 		Graphics_setLineWidth (me, 2.0 * lineWidth);
 	}
-	for (int i = first; i <= last; i ++) {
+	for (integer i = first; i <= last; i ++) {
 		double xWC = i * distance;
 		if (haveNumbers) Graphics_text (me, xWC, 1.0 + my vertTick, Melder_float (Melder_half (xWC / units)));
 		if (haveTicks) Graphics_line (me, xWC, 1.0, xWC, 1.0 + my vertTick);
@@ -800,7 +804,7 @@ void Graphics_marksTopEvery (Graphics me, double units, double distance, bool ha
 	if (haveDottedLines) {
 		Graphics_setLineType (me, Graphics_DOTTED);
 		Graphics_setLineWidth (me, 0.67 * lineWidth);
-		for (int i = first; i <= last; i ++) {
+		for (integer i = first; i <= last; i ++) {
 			double xWC = i * distance;
 			Graphics_line (me, xWC, 0.0, xWC, 1.0);
 		}
@@ -812,7 +816,7 @@ void Graphics_marksTopEvery (Graphics me, double units, double distance, bool ha
 	Graphics_setColour (me, colour);
 }
 
-void Graphics_mark (Graphics me, double x, double y, double size_mm, const char32 *markString /* cattable */) {
+void Graphics_mark (Graphics me, double x, double y, double size_mm, conststring32 markString /* cattable */) {
 	int mark;
 	if (! markString || ! markString [0]) mark = 0;
 	else if (! markString [1]) {
@@ -830,7 +834,7 @@ void Graphics_mark (Graphics me, double x, double y, double size_mm, const char3
 		Graphics_setTextAlignment (me, Graphics_CENTRE, Graphics_HALF);
 		Graphics_text (me, x, y, markString);
 		Graphics_setFontSize (me, oldSize);
-		Graphics_setTextAlignment (me, oldHorizontalAlignment, oldVerticalAlignment);
+		Graphics_setTextAlignment (me, (kGraphics_horizontalAlignment) oldHorizontalAlignment, oldVerticalAlignment);
 	} else if (mark == 0) {
 		Graphics_fillCircle_mm (me, x, y, size_mm);
 	} else if (mark == 1) {

@@ -1,6 +1,6 @@
 /* Sound_and_Spectrum.cpp
  *
- * Copyright (C) 1992-2012,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1992-2011,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,20 +34,20 @@
 #include "Sound_and_Spectrum.h"
 #include "NUM2.h"
 
-autoSpectrum Sound_to_Spectrum (Sound me, int fast) {
+autoSpectrum Sound_to_Spectrum (Sound me, bool fast) {
 	try {
-		long numberOfSamples = my nx;
-		const long numberOfChannels = my ny;
+		integer numberOfSamples = my nx;
+		const integer numberOfChannels = my ny;
 		if (fast) {
 			numberOfSamples = 2;
 			while (numberOfSamples < my nx) numberOfSamples *= 2;
 		}
-		long numberOfFrequencies = numberOfSamples / 2 + 1;   // 4 samples -> cos0 cos1 sin1 cos2; 5 samples -> cos0 cos1 sin1 cos2 sin2
+		integer numberOfFrequencies = numberOfSamples / 2 + 1;   // 4 samples -> cos0 cos1 sin1 cos2; 5 samples -> cos0 cos1 sin1 cos2 sin2
 
-		autoNUMvector <double> data (1, numberOfSamples);
+		autoVEC data = newVECzero (numberOfSamples);
 		if (numberOfChannels == 1) {
-			const double *channel = my z [1];
-			for (long i = 1; i <= my nx; i ++) {
+			const double *channel = & my z [1] [0];
+			for (integer i = 1; i <= my nx; i ++) {
 				data [i] = channel [i];
 			}
 			/*
@@ -56,29 +56,29 @@ autoSpectrum Sound_to_Spectrum (Sound me, int fast) {
 			*/
 			// so do nothing
 		} else {
-			for (long ichan = 1; ichan <= numberOfChannels; ichan ++) {
-				const double *channel = my z [ichan];
-				for (long i = 1; i <= my nx; i ++) {
+			for (integer ichan = 1; ichan <= numberOfChannels; ichan ++) {
+				const double *channel = & my z [ichan] [0];
+				for (integer i = 1; i <= my nx; i ++) {
 					data [i] += channel [i];
 				}
 			}
-			for (long i = 1; i <= my nx; i ++) {
+			for (integer i = 1; i <= my nx; i ++) {
 				data [i] /= numberOfChannels;
 			}
 		}
 
 		autoNUMfft_Table fourierTable;
 		NUMfft_Table_init (& fourierTable, numberOfSamples);
-		NUMfft_forward (& fourierTable, data.peek());
+		NUMfft_forward (& fourierTable, data.get());
 
 		autoSpectrum thee = Spectrum_create (0.5 / my dx, numberOfFrequencies);
 		thy dx = 1.0 / (my dx * numberOfSamples);   // override
-		double *re = thy z [1];
-		double *im = thy z [2];
+		double *re = & thy z [1] [0];
+		double *im = & thy z [2] [0];
 		double scaling = my dx;
 		re [1] = data [1] * scaling;
 		im [1] = 0.0;
-		for (long i = 2; i < numberOfFrequencies; i ++) {
+		for (integer i = 2; i < numberOfFrequencies; i ++) {
 			re [i] = data [i + i - 2] * scaling;   // data [2], data [4], ...
 			im [i] = data [i + i - 1] * scaling;   // data [3], data [5], ...
 		}
@@ -99,17 +99,17 @@ autoSpectrum Sound_to_Spectrum (Sound me, int fast) {
 
 autoSound Spectrum_to_Sound (Spectrum me) {
 	try {
-		double *re = my z [1], *im = my z [2];
+		constVEC re = my z.row (1), im = my z.row (2);
 		double lastFrequency = my x1 + (my nx - 1) * my dx;
 		bool originalNumberOfSamplesProbablyOdd = ( im [my nx] != 0.0 || my xmax - lastFrequency > 0.25 * my dx );
 		if (my x1 != 0.0)
 			Melder_throw (U"A Fourier-transformable Spectrum must have a first frequency of 0 Hz, not ", my x1, U" Hz.");
-		long numberOfSamples = 2 * my nx - ( originalNumberOfSamplesProbablyOdd ? 1 : 2 );
+		integer numberOfSamples = 2 * my nx - ( originalNumberOfSamplesProbablyOdd ? 1 : 2 );
 		autoSound thee = Sound_createSimple (1, 1.0 / my dx, numberOfSamples * my dx);
-		double *amp = thy z [1];
+		VEC amp = thy z.row (1);
 		double scaling = my dx;
 		amp [1] = re [1] * scaling;
-		for (long i = 2; i < my nx; i ++) {
+		for (integer i = 2; i < my nx; i ++) {
 			amp [i + i - 1] = re [i] * scaling;
 			amp [i + i] = im [i] * scaling;
 		}
@@ -119,7 +119,7 @@ autoSound Spectrum_to_Sound (Spectrum me) {
 		} else {
 			amp [2] = re [my nx] * scaling;
 		}
-		NUMrealft (amp, numberOfSamples, -1);
+		NUMrealft (amp, -1);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Sound.");
@@ -128,32 +128,31 @@ autoSound Spectrum_to_Sound (Spectrum me) {
 
 autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preemphasisFrequency) {
 	try {
-		double gain, a [100];
-		long numberOfCoefficients = 2 * numberOfPeaks;
+		integer numberOfCoefficients = 2 * numberOfPeaks;
 
 		autoSound sound = Spectrum_to_Sound (me);
-		NUMpreemphasize_f (sound -> z [1], sound -> nx, sound -> dx, preemphasisFrequency);	 	
-		
-		NUMburg (sound -> z [1], sound -> nx, a, numberOfCoefficients, & gain);
-		for (long i = 1; i <= numberOfCoefficients; i ++) a [i] = - a [i];
+		NUMpreemphasize_f (sound -> z.row (1), sound -> dx, preemphasisFrequency);
+		autoVEC a = newVECraw (numberOfCoefficients);
+		double gain = NUMburg_preallocated (a.get(), sound -> z.row(1));
+		for (integer i = 1; i <= numberOfCoefficients; i ++) a [i] = - a [i];
 		autoSpectrum thee = Data_copy (me);
 
-		long nfft = 2 * (thy nx - 1);
-		long ndata = numberOfCoefficients < nfft ? numberOfCoefficients : nfft - 1;
+		integer nfft = 2 * (thy nx - 1);
+		integer ndata = numberOfCoefficients < nfft ? numberOfCoefficients : nfft - 1;
 		double scale = 10.0 * (gain > 0.0 ? sqrt (gain) : 1.0) / numberOfCoefficients;
-		autoNUMvector <double> data (1, nfft);
+		autoVEC data = newVECraw (nfft);
 		data [1] = 1.0;
-		for (long i = 1; i <= ndata; i ++)
+		for (integer i = 1; i <= ndata; i ++)
 			data [i + 1] = a [i];
-		NUMrealft (data.peek(), nfft, 1);
-		double *re = thy z [1];
-		double *im = thy z [2];
+		NUMrealft (data.get(), 1);
+		VEC re = thy z.row (1);
+		VEC im = thy z.row (2);
 		re [1] = scale / data [1];
 		im [1] = 0.0;
-		long halfnfft = nfft / 2;
-		for (long i = 2; i <= halfnfft; i ++) {
-			double real = data [i + i - 1], imag = data [i + i];
-			re [i] = scale / sqrt (real * real + imag * imag) / (1.0 + thy dx * (i - 1) / preemphasisFrequency);
+		integer halfnfft = nfft / 2;
+		for (integer i = 2; i <= halfnfft; i ++) {
+			double realPart = data [i + i - 1], imaginaryPart = data [i + i];
+			re [i] = scale / sqrt (realPart * realPart + imaginaryPart * imaginaryPart) / (1.0 + thy dx * (i - 1) / preemphasisFrequency);
 			im [i] = 0.0;
 		}
 		re [halfnfft + 1] = scale / data [2] / (1.0 + thy dx * halfnfft / preemphasisFrequency);
@@ -164,21 +163,21 @@ autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preem
 	}
 }
 
-autoSound Sound_filter_formula (Sound me, const char32 *formula, Interpreter interpreter) {
+autoSound Sound_filter_formula (Sound me, conststring32 formula, Interpreter interpreter) {
 	try {
 		autoSound thee = Data_copy (me);
 		if (my ny == 1) {
 			autoSpectrum spec = Sound_to_Spectrum (me, true);
 			Matrix_formula (spec.get(), formula, interpreter, nullptr);
 			autoSound him = Spectrum_to_Sound (spec.get());
-			NUMvector_copyElements (his z [1], thy z [1], 1, thy nx);
+			NUMvector_copyElements (& his z [1] [0], & thy z [1] [0], 1, thy nx);
 		} else {
-			for (long ichan = 1; ichan <= my ny; ichan ++) {
+			for (integer ichan = 1; ichan <= my ny; ichan ++) {
 				autoSound channel = Sound_extractChannel (me, ichan);
 				autoSpectrum spec = Sound_to_Spectrum (channel.get(), true);
 				Matrix_formula (spec.get(), formula, interpreter, nullptr);
 				autoSound him = Spectrum_to_Sound (spec.get());
-				NUMvector_copyElements (his z [1], thy z [ichan], 1, thy nx);
+				NUMvector_copyElements (& his z [1] [0], & thy z [ichan] [0], 1, thy nx);
 			}
 		}
 		return thee;
@@ -194,14 +193,14 @@ autoSound Sound_filter_passHannBand (Sound me, double fmin, double fmax, double 
 			autoSpectrum spec = Sound_to_Spectrum (me, true);
 			Spectrum_passHannBand (spec.get(), fmin, fmax, smooth);
 			autoSound him = Spectrum_to_Sound (spec.get());
-			NUMvector_copyElements (his z [1], thy z [1], 1, thy nx);
+			NUMvector_copyElements (& his z [1] [0], & thy z [1] [0], 1, thy nx);
 		} else {
-			for (long ichan = 1; ichan <= my ny; ichan ++) {
+			for (integer ichan = 1; ichan <= my ny; ichan ++) {
 				autoSound channel = Sound_extractChannel (me, ichan);
 				autoSpectrum spec = Sound_to_Spectrum (channel.get(), true);
 				Spectrum_passHannBand (spec.get(), fmin, fmax, smooth);
 				autoSound him = Spectrum_to_Sound (spec.get());
-				NUMvector_copyElements (his z [1], thy z [ichan], 1, thy nx);
+				NUMvector_copyElements (& his z [1] [0], & thy z [ichan] [0], 1, thy nx);
 			}
 		}
 		return thee;
@@ -217,14 +216,14 @@ autoSound Sound_filter_stopHannBand (Sound me, double fmin, double fmax, double 
 			autoSpectrum spec = Sound_to_Spectrum (me, true);
 			Spectrum_stopHannBand (spec.get(), fmin, fmax, smooth);
 			autoSound him = Spectrum_to_Sound (spec.get());
-			NUMvector_copyElements (his z [1], thy z [1], 1, thy nx);
+			NUMvector_copyElements (& his z [1] [0], & thy z [1] [0], 1, thy nx);
 		} else {
-			for (long ichan = 1; ichan <= my ny; ichan ++) {
+			for (integer ichan = 1; ichan <= my ny; ichan ++) {
 				autoSound channel = Sound_extractChannel (me, ichan);
 				autoSpectrum spec = Sound_to_Spectrum (channel.get(), true);
 				Spectrum_stopHannBand (spec.get(), fmin, fmax, smooth);
 				autoSound him = Spectrum_to_Sound (spec.get());
-				NUMvector_copyElements (his z [1], thy z [ichan], 1, thy nx);
+				NUMvector_copyElements (& his z [1] [0], & thy z [ichan] [0], 1, thy nx);
 			}
 		}
 		return thee;

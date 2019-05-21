@@ -2,7 +2,7 @@
 #define _Sampled_h_
 /* Sampled.h
  *
- * Copyright (C) 1992-2011,2014 Paul Boersma
+ * Copyright (C) 1992-2011,2014,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,30 +32,36 @@
 /* and the last at x1 + (nx - 1) * dx. */
 
 #ifdef PRAAT_LIB
-PRAAT_LIB_EXPORT double Sampled_indexToX (Sampled me, long i);
+PRAAT_LIB_EXPORT double Sampled_indexToX (Sampled me, integer i);
 
 PRAAT_LIB_EXPORT double Sampled_xToIndex (Sampled me, double x);
 
-PRAAT_LIB_EXPORT long Sampled_xToLowIndex (Sampled me, double x);
+PRAAT_LIB_EXPORT integer Sampled_xToLowIndex (Sampled me, double x);
 
-PRAAT_LIB_EXPORT long Sampled_xToHighIndex (Sampled me, double x);
+PRAAT_LIB_EXPORT integer Sampled_xToHighIndex (Sampled me, double x);
 
-PRAAT_LIB_EXPORT long Sampled_xToNearestIndex (Sampled me, double x);
+PRAAT_LIB_EXPORT integer Sampled_xToNearestIndex (Sampled me, double x);
 #else
-static inline double Sampled_indexToX (Sampled me, long   index) { return my x1 + (index - 1  ) * my dx; }
-static inline double Sampled_indexToX (Sampled me, double index) { return my x1 + (index - 1.0) * my dx; }
-static inline double Sampled_xToIndex (Sampled me, double x) { return (x - my x1) / my dx + 1.0; }
-static inline long Sampled_xToLowIndex     (Sampled me, double x) { return (long) floor ((x - my x1) / my dx + 1.0); }
-static inline long Sampled_xToHighIndex    (Sampled me, double x) { return (long) ceil  ((x - my x1) / my dx + 1.0); }
-static inline long Sampled_xToNearestIndex (Sampled me, double x) { return (long) round ((x - my x1) / my dx + 1.0); }
+template <typename T> static inline double Sampled_indexToX (Sampled me, T index) { return my x1 + (index - (T) 1) * my dx; }
+static inline double Sampled_xToIndex (Sampled me, double        x) { return (x - my x1) / my dx + 1.0; }
+static inline integer Sampled_xToLowIndex     (Sampled me, double x) { return Melder_ifloor   ((x - my x1) / my dx + 1.0); }
+static inline integer Sampled_xToHighIndex    (Sampled me, double x) { return Melder_iceiling ((x - my x1) / my dx + 1.0); }
+static inline integer Sampled_xToNearestIndex (Sampled me, double x) { return Melder_iround   ((x - my x1) / my dx + 1.0); }
 #endif
 
-PRAAT_LIB_EXPORT long Sampled_getWindowSamples (Sampled me, double xmin, double xmax, long *ixmin, long *ixmax);
+static inline autoVEC Sampled_getAllXValues (Sampled me) {
+	autoVEC result (my nx, kTensorInitializationType::RAW);
+	for (integer i = 1; i <= my nx; i ++)
+		result [i] = my x1 + (i - 1) * my dx;
+	return result;
+}
 
-PRAAT_LIB_EXPORT void Sampled_init (Sampled me, double xmin, double xmax, long nx, double dx, double x1);
+PRAAT_LIB_EXPORT integer Sampled_getWindowSamples (Sampled me, double xmin, double xmax, integer *ixmin, integer *ixmax);
+
+PRAAT_LIB_EXPORT void Sampled_init (Sampled me, double xmin, double xmax, integer nx, double dx, double x1);
 
 PRAAT_LIB_EXPORT void Sampled_shortTermAnalysis (Sampled me, double windowDuration, double timeStep,
-		long *numberOfFrames, double *firstTime);
+	integer *numberOfFrames, double *firstTime);
 /*
 	Function:
 		how to put as many analysis windows of length 'windowDuration' as possible into my duration,
@@ -86,42 +92,51 @@ PRAAT_LIB_EXPORT void Sampled_shortTermAnalysis (Sampled me, double windowDurati
 			result -> x1 == firstTime;
 */
 
-PRAAT_LIB_EXPORT double Sampled_getValueAtSample (Sampled me, long isamp, long ilevel, int unit);
-PRAAT_LIB_EXPORT double Sampled_getValueAtX (Sampled me, double x, long ilevel, int unit, bool interpolate);
-PRAAT_LIB_EXPORT long Sampled_countDefinedSamples (Sampled me, long ilevel, int unit);
-PRAAT_LIB_EXPORT double * Sampled_getSortedValues (Sampled me, long ilevel, int unit, long *numberOfValues);
+PRAAT_LIB_EXPORT double Sampled_getValueAtSample (Sampled me, integer sampleNumber, integer level, int unit);
+PRAAT_LIB_EXPORT double Sampled_getValueAtX (Sampled me, double x, integer level, int unit, bool interpolate);
+
+integer Sampled_countDefinedSamples
+	(Sampled me, double xmin, double xmax, integer level, int unit);
+autoVEC Sampled_getSortedValues
+	(Sampled me, double xmin, double xmax, integer level, int unit);
 
 PRAAT_LIB_EXPORT double Sampled_getQuantile
-	(Sampled me, double xmin, double xmax, double quantile, long ilevel, int unit);
+	(Sampled me, double xmin, double xmax, double quantile, integer level, int unit);
 PRAAT_LIB_EXPORT double Sampled_getMean
-	(Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
 PRAAT_LIB_EXPORT double Sampled_getMean_standardUnit
-	(Sampled me, double xmin, double xmax, long ilevel, int averagingUnit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int averagingUnit, bool interpolate);
 PRAAT_LIB_EXPORT double Sampled_getIntegral
-	(Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
 PRAAT_LIB_EXPORT double Sampled_getIntegral_standardUnit
-	(Sampled me, double xmin, double xmax, long ilevel, int averagingUnit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int averagingUnit, bool interpolate);
 PRAAT_LIB_EXPORT double Sampled_getStandardDeviation
-	(Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
 PRAAT_LIB_EXPORT double Sampled_getStandardDeviation_standardUnit
-	(Sampled me, double xmin, double xmax, long ilevel, int averagingUnit, bool interpolate);
+	(Sampled me, double xmin, double xmax, integer level, int averagingUnit, bool interpolate);
 
-PRAAT_LIB_EXPORT void Sampled_getMinimumAndX (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate,
-	double *return_minimum, double *return_xOfMinimum);
-PRAAT_LIB_EXPORT double Sampled_getMinimum (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
-PRAAT_LIB_EXPORT double Sampled_getXOfMinimum (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
-PRAAT_LIB_EXPORT void Sampled_getMaximumAndX (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate,
-	double *return_maximum, double *return_xOfMaximum);
-PRAAT_LIB_EXPORT double Sampled_getMaximum (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
-PRAAT_LIB_EXPORT double Sampled_getXOfMaximum (Sampled me, double xmin, double xmax, long ilevel, int unit, bool interpolate);
+PRAAT_LIB_EXPORT void Sampled_getMinimumAndX
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate,
+	 double *return_minimum, double *return_xOfMinimum);
+PRAAT_LIB_EXPORT double Sampled_getMinimum
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
+PRAAT_LIB_EXPORT double Sampled_getXOfMinimum
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
+PRAAT_LIB_EXPORT void Sampled_getMaximumAndX
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate,
+	 double *return_maximum, double *return_xOfMaximum);
+PRAAT_LIB_EXPORT double Sampled_getMaximum
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
+PRAAT_LIB_EXPORT double Sampled_getXOfMaximum
+	(Sampled me, double xmin, double xmax, integer level, int unit, bool interpolate);
 
 void Sampled_drawInside
-	(Sampled me, Graphics g, double xmin, double xmax, double ymin, double ymax, bool speckle, long ilevel, int unit);
+	(Sampled me, Graphics g, double xmin, double xmax, double ymin, double ymax, bool speckle, integer level, int unit);
 
 #ifdef PRAAT_LIB
 PRAAT_LIB_EXPORT double Sampled_getXMin(Sampled me);
 PRAAT_LIB_EXPORT double Sampled_getXMax(Sampled me);
-PRAAT_LIB_EXPORT long Sampled_getNx(Sampled me);
+PRAAT_LIB_EXPORT integer Sampled_getNx(Sampled me);
 PRAAT_LIB_EXPORT double Sampled_getDx(Sampled me);
 PRAAT_LIB_EXPORT double Sampled_getX1(Sampled me);
 #endif

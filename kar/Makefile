@@ -1,9 +1,11 @@
 # Makefile of the library "kar"
-# Paul Boersma, 16 July 2015
+# Paul Boersma, 10 August 2018
 
 include ../makefile.defs
 
 OBJECTS = ipaSerifRegularPS.o longchar.o
+
+CPPFLAGS = -I ../melder
 
 .PHONY: all clean
 
@@ -19,4 +21,4 @@ libkar.a: $(OBJECTS)
 	$(AR) cq libkar.a $(OBJECTS)
 	$(RANLIB) libkar.a
 
-$(OBJECTS): *.h
+$(OBJECTS): *.h ../melder/*.h

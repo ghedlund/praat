@@ -2,7 +2,7 @@
 #define _Cepstrum_h_
 /* Cepstrum.h
  *
- * Copyright (C) 1994-2013, 2015-2016 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,27 +25,25 @@
 */
 
 /*
-	The Cepstrum is a sequence of REAL numbers.
+	The Cepstrum is a sequence of real numbers.
 	It is the spectrum of the power spectrum of a (sound) signal.
 */
 
 #include "Matrix.h"
 
 Thing_define (Cepstrum, Matrix) {
-	// overridden methods:
-	public:
-		virtual double v_getValueAtSample (long isamp, long which, int units);
+	double v_getValueAtSample (integer isamp, integer which, int units)
+		override;
 };
 
 /*
-	The Cepstrum is a sequence of REAL numbers.
+	The Cepstrum is a sequence of real numbers.
 	It is the power spectrum of the power spectrum of a (sound) signal.
 */
 
 Thing_define (PowerCepstrum, Cepstrum) {
-	// overridden methods:
-	public:
-		virtual double v_getValueAtSample (long isamp, long which, int units);
+	double v_getValueAtSample (integer isamp, integer which, int units)
+		override;
 };
 
 /*
@@ -59,9 +57,9 @@ Thing_define (PowerCepstrum, Cepstrum) {
 	ny = 1
 */
 
-autoCepstrum Cepstrum_create (double qmax, long nq);
+autoCepstrum Cepstrum_create (double qmax, integer nq);
 
-autoPowerCepstrum PowerCepstrum_create (double qmax, long nq);
+autoPowerCepstrum PowerCepstrum_create (double qmax, integer nq);
 /* Preconditions:
 		nq >= 2;
 	Postconditions:
@@ -97,17 +95,17 @@ double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pit
 
 double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth);
 double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, int interpolation, double qstartFit, double qendFit, int lineType, int fitMethod, double *qpeak);
-void PowerCepstrum_fitTiltLine (PowerCepstrum me, double qmin, double qmax, double *slope, double *intercept, int lineType, int method);
+void PowerCepstrum_fitTiltLine (PowerCepstrum me, double qmin, double qmax, double *out_slope, double *out_intercept, int lineType, int method);
 autoPowerCepstrum PowerCepstrum_subtractTilt (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod);
-void PowerCepstrum_subtractTilt_inline (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod);
+void PowerCepstrum_subtractTilt_inplace (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod);
 
-void PowerCepstrum_smooth_inline (PowerCepstrum me, double quefrencyAveragingWindow, long numberOfIterations);
-autoPowerCepstrum PowerCepstrum_smooth (PowerCepstrum me, double quefrencyAveragingWindow, long numberOfIterations);
+void PowerCepstrum_smooth_inplace (PowerCepstrum me, double quefrencyAveragingWindow, integer numberOfIterations);
+autoPowerCepstrum PowerCepstrum_smooth (PowerCepstrum me, double quefrencyAveragingWindow, integer numberOfIterations);
 
 autoMatrix PowerCepstrum_to_Matrix (PowerCepstrum me);
 autoPowerCepstrum Matrix_to_PowerCepstrum (Matrix me);
-autoPowerCepstrum Matrix_to_PowerCepstrum_row (Matrix me, long row);
-autoPowerCepstrum Matrix_to_PowerCepstrum_column (Matrix me, long col);
+autoPowerCepstrum Matrix_to_PowerCepstrum_row (Matrix me, integer row);
+autoPowerCepstrum Matrix_to_PowerCepstrum_column (Matrix me, integer col);
 autoPowerCepstrum Cepstrum_downto_PowerCepstrum (Cepstrum me);
 
 #endif /* _Cepstrum_h_ */

@@ -1,6 +1,6 @@
 # Praat: doing phonetics by computer
 
-Most information on how the program works is in its manual and on http://www.praat.org,
+Most information on how the program works is in its manual and on http://praat.org,
 which is also where you can download the latest binary executables from.
 
 ## 1. Compiling the source code
@@ -36,7 +36,7 @@ Consult the manual page on [Programming](http://www.fon.hum.uva.nl/praat/manual/
 ### 1.4. The programming language
 
 Most of the source code is written in C++, but some parts are written in C.
-The code requires that your compiler supports C99 and C++11 (for e.g. `char32_t` and rvalue references).
+The code requires that your compiler supports C99 and C++14.
 
 ### 1.5. Compiling for Windows
 
@@ -56,16 +56,6 @@ or if you want to build Praat's 64-bit edition, type
 
 Then type `make` to build `Praat.exe`
 (use `make -j4` to speed this up, i.e. to use 4 processors in parallel).
-
-Cross-compiling for Windows on a Mac or Linux computer is slightly more difficult, but not impossible.
-You can use the [MinGW](http://www.mingw.org) compiler,
-for which you can find 32- and 64-bit toolchains
-[here](http://sourceforge.net/projects/mingw-w64/files/) (look for Automated Builds).
-Install the GDI+ headers and the GDI+ library ([32-bit](http://www.fon.hum.uva.nl/praat/libgdiplus.a-32.zip);
-for 64-bit Windows just extract a GDI+ DLL from somewhere).
-Then copy the file `makefiles/makefile.defs.darmin32` or `makefiles/makefile.defs.darmin64`
-to the sources directory and rename it to `makefile.defs`.
-Then type `make`.
 
 ### 1.6. Compiling for Macintosh
 
@@ -113,16 +103,21 @@ you may have to edit the library names in the makefile (you may need pthread, gt
 pangoft2-1.0, gdk_pixbuf-2.0, m, pangocairo-1.0, cairo, gio-2.0, pango-1.0, freetype, fontconfig, gobject-2.0,
 gmodule-2.0, gthread-2.0, rt, glib-2.0).
 
-When compiling Praat for use as a server for commands from your web pages, you will not need sound, graphics, or a GUI. Do
+When compiling Praat for use as a server for commands from your web pages, you may not need sound or a GUI. Do
+
+    cp makefiles/makefile.defs.linux.nogui ./makefile.defs
+
+which creates the executable `praat_nogui`. If you don't need graphics (e.g. PNG files) either
+(i.e. you need only Praat's computation), you can create an even lighter edition:
 
     cp makefiles/makefile.defs.linux.barren ./makefile.defs
 
-Then type `make` to build the program. If your Unix isn’t Linux,
+which creates the executable `praat_barren`. Then type `make` to build the program. If your Unix isn’t Linux,
 you may have to edit the library names in the makefile.
 
 ## 2. Binary executables
 
-While the [Praat website](http://www.praat.org) contains the latest executable for all platforms that we support
+While the [Praat website](http://praat.org) contains the latest executable for all platforms that we support
 (or used to support), the [releases on GitHub](https://github.com/praat/praat/releases) contain many older executables as well.
 
 The meaning of the names of binary files available on GitHub is as follows:

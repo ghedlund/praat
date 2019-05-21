@@ -1,6 +1,6 @@
 /* praat_Tiers.cpp
  *
- * Copyright (C) 1992-2012,2013,2014,2015,2016 Paul Boersma
+ * Copyright (C) 1992-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,12 +33,13 @@
 // MARK: New
 
 FORM (NEW1_AmplitudeTier_create, U"Create empty AmplitudeTier", nullptr) {
-	WORD4 (name, U"Name", U"empty")
-	REAL4 (startTime, U"Start time (s)", U"0.0")
-	REAL4 (endTime, U"End time (s)", U"1.0")
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"The end time should be greater than the start time.");
+	Melder_require (endTime > startTime,
+		U"The end time should be greater than the start time.");
 	CREATE_ONE
 		autoAmplitudeTier result = AmplitudeTier_create (startTime, endTime);
 	CREATE_ONE_END (name)
@@ -53,18 +54,14 @@ DIRECT (HELP_AmplitudeTier_help) {
 // MARK: View & Edit
 
 DIRECT (WINDOW_AmplitudeTier_viewAndEdit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit an AmplitudeTier from batch.");
-	Sound sound = nullptr;
-	LOOP {
-		if (CLASS == classSound) sound = (Sound) OBJECT;   // may stay null
-	}
-	LOOP if (CLASS == classAmplitudeTier) {
-		iam_LOOP (AmplitudeTier);
-		autoAmplitudeTierEditor editor = AmplitudeTierEditor_create (ID_AND_FULL_NAME, me, sound, true);
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit an AmplitudeTier from batch.");
+	FIND_TWO_WITH_IOBJECT (AmplitudeTier, Sound)   // Sound may be null
+		autoAmplitudeTierEditor editor = AmplitudeTierEditor_create (ID_AND_FULL_NAME, me, you, true);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 DIRECT (HINT_AmplitudeTier_Sound_viewAndEdit) {
 	INFO_NONE
@@ -76,9 +73,9 @@ DIRECT (HINT_AmplitudeTier_Sound_viewAndEdit) {
 // MARK: Query
 
 FORM (REAL_AmplitudeTier_getShimmer_local, U"AmplitudeTier: Get shimmer (local)", U"AmplitudeTier: Get shimmer (local)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -87,9 +84,9 @@ DO
 }
 
 FORM (REAL_AmplitudeTier_getShimmer_local_dB, U"AmplitudeTier: Get shimmer (local, dB)", U"AmplitudeTier: Get shimmer (local, dB)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -98,9 +95,9 @@ DO
 }
 
 FORM (REAL_AmplitudeTier_getShimmer_apq3, U"AmplitudeTier: Get shimmer (apq3)", U"AmplitudeTier: Get shimmer (apq3)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -109,9 +106,9 @@ DO
 }
 
 FORM (REAL_AmplitudeTier_getShimmer_apq5, U"AmplitudeTier: Get shimmer (apq5)", U"AmplitudeTier: Get shimmer (apq5)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -120,9 +117,9 @@ DO
 }
 
 FORM (REAL_AmplitudeTier_getShimmer_apq11, U"AmplitudeTier: Get shimmer (apq11)", U"AmplitudeTier: Get shimmer (apq11)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -131,9 +128,9 @@ DO
 }
 
 FORM (REAL_AmplitudeTier_getShimmer_dda, U"AmplitudeTier: Get shimmer (dda)", U"AmplitudeTier: Get shimmer (dda)...") {
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -143,7 +140,7 @@ DO
 
 /*
 FORM (REAL_AmplitudeTier_getValueAtTime, U"Get AmplitudeTier value", U"AmplitudeTier: Get value at time...") {
-	REAL4 (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -152,7 +149,7 @@ DO
 }
 	
 FORM (REAL_AmplitudeTier_getValueAtIndex, U"Get AmplitudeTier value", U"AmplitudeTier: Get value at index...") {
-	INTEGER4 (pointNumber, U"Point number", U"10")
+	INTEGER (pointNumber, U"Point number", U"10")
 	OK
 DO
 	NUMBER_ONE (AmplitudeTier)
@@ -164,8 +161,8 @@ DO
 // MARK: Modify
 
 FORM (MODIFY_AmplitudeTier_addPoint, U"Add one point", U"AmplitudeTier: Add point...") {
-	REAL4 (time, U"Time (s)", U"0.5")
-	REAL4 (soundPressure, U"Sound pressure (Pa)", U"0.8")
+	REAL (time, U"Time (s)", U"0.5")
+	REAL (soundPressure, U"Sound pressure (Pa)", U"0.8")
 	OK
 DO
 	MODIFY_EACH (AmplitudeTier)
@@ -174,13 +171,13 @@ DO
 }
 
 FORM (MODIFY_AmplitudeTier_formula, U"AmplitudeTier: Formula", U"AmplitudeTier: Formula...") {
-	LABEL (U"", U"# ncol = the number of points")
-	LABEL (U"", U"for col from 1 to ncol")
-	LABEL (U"", U"   # x = the time of the colth point, in seconds")
-	LABEL (U"", U"   # self = the value of the colth point, in Pascal")
-	LABEL (U"", U"   self = `formula'")
-	LABEL (U"", U"endfor")
-	TEXTFIELD4 (formula, U"formula", U"- self ; upside down")
+	LABEL (U"# ncol = the number of points")
+	LABEL (U"for col from 1 to ncol")
+	LABEL (U"   # x = the time of the colth point, in seconds")
+	LABEL (U"   # self = the value of the colth point, in Pascal")
+	LABEL (U"   self = `formula'")
+	LABEL (U"endfor")
+	TEXTFIELD (formula, U"Formula:", U"- self ; upside down")
 	OK
 DO
 	MODIFY_EACH_WEAK (AmplitudeTier)
@@ -191,13 +188,13 @@ DO
 // MARK: Synthesize
 
 FORM (NEW_AmplitudeTier_to_Sound, U"AmplitudeTier: To Sound (pulse train)", U"AmplitudeTier: To Sound (pulse train)...") {
-	POSITIVE4 (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
-	NATURAL4 (interpolationDepth, U"Interpolation depth (samples)", U"2000")
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
+	NATURAL (interpolationDepth, U"Interpolation depth (samples)", U"2000")
 	OK
 DO
 	CONVERT_EACH (AmplitudeTier)
 		autoSound result = AmplitudeTier_to_Sound (me, samplingFrequency, interpolationDepth);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: Convert
@@ -205,22 +202,22 @@ DO
 DIRECT (NEW_AmplitudeTier_downto_PointProcess) {
 	CONVERT_EACH (AmplitudeTier)
 		autoPointProcess result = AnyTier_downto_PointProcess (me->asAnyTier());
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_AmplitudeTier_downto_TableOfReal) {
 	CONVERT_EACH (AmplitudeTier)
 		autoTableOfReal result = AmplitudeTier_downto_TableOfReal (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_AmplitudeTier_to_IntensityTier, U"AmplitudeTier: To IntensityTier", U"AmplitudeTier: To IntensityTier...") {
-	REAL4 (threshold, U"Threshold (dB)", U"-10000.0")
+	REAL (threshold, U"Threshold (dB)", U"-10000.0")
 	OK
 DO
 	CONVERT_EACH (AmplitudeTier)
 		autoIntensityTier result = AmplitudeTier_to_IntensityTier (me, threshold);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - AMPLITUDETIER & SOUND
@@ -228,7 +225,7 @@ DO
 DIRECT (NEW1_Sound_AmplitudeTier_multiply) {
 	CONVERT_TWO (Sound, AmplitudeTier)
 		autoSound result = Sound_AmplitudeTier_multiply (me, you);
-	CONVERT_TWO_END (my name, U"_amp")
+	CONVERT_TWO_END (my name.get(), U"_amp")
 }
 
 // MARK: - DURATIONTIER
@@ -236,12 +233,13 @@ DIRECT (NEW1_Sound_AmplitudeTier_multiply) {
 // MARK: New
 
 FORM (NEW1_DurationTier_create, U"Create empty DurationTier", U"Create DurationTier...") {
-	WORD4 (name, U"Name", U"empty")
-	REAL4 (startTime, U"Start time (s)", U"0.0")
-	REAL4 (endTime, U"End time (s)", U"1.0")
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"Your end time should be greater than your start time.");
+	Melder_require (endTime > startTime,
+		U"Your end time should be greater than your start time.");
 	CREATE_ONE
 		autoDurationTier result = DurationTier_create (startTime, endTime);
 	CREATE_ONE_END (name)
@@ -256,18 +254,14 @@ DIRECT (HELP_DurationTier_help) {
 // MARK: View & Edit
 
 DIRECT (WINDOW_DurationTier_edit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a DurationTier from batch.");
-	Sound sound = nullptr;
-	LOOP {
-		if (CLASS == classSound) sound = (Sound) OBJECT;   // may stay null
-	}
-	LOOP if (CLASS == classDurationTier) {
-		iam_LOOP (DurationTier);
-		autoDurationTierEditor editor = DurationTierEditor_create (ID_AND_FULL_NAME, me, sound, true);
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit a DurationTier from batch.");
+	FIND_TWO_WITH_IOBJECT (DurationTier, Sound)   // Sound may be null
+		autoDurationTierEditor editor = DurationTierEditor_create (ID_AND_FULL_NAME, me, you, true);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 DIRECT (HINT_DurationTier_Sound_edit) {
 	INFO_NONE
@@ -286,8 +280,8 @@ DIRECT (HINT_DurationTier_Manipulation_replace) {
 // MARK: Query
 
 FORM (REAL_DurationTier_getTargetDuration, U"Get target duration", nullptr) {
-	REAL4 (fromSourceTime, U"left Source time range (s)", U"0.0")
-	REAL4 (toSourceTime, U"right Source time range (s)", U"1.0")
+	REAL (fromSourceTime, U"left Source time range (s)", U"0.0")
+	REAL (toSourceTime, U"right Source time range (s)", U"1.0")
 	OK
 DO
 	NUMBER_ONE (DurationTier)
@@ -296,7 +290,7 @@ DO
 }
 
 FORM (REAL_DurationTier_getValueAtTime, U"Get DurationTier value", U"DurationTier: Get value at time...") {
-	REAL4 (sourceTime, U"Source time (s)", U"0.5")
+	REAL (sourceTime, U"Source time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (DurationTier)
@@ -305,7 +299,7 @@ DO
 }
 
 FORM (REAL_DurationTier_getValueAtIndex, U"Get DurationTier value", U"Duration: Get value at index...") {
-	INTEGER4 (pointNumber, U"Point number", U"10")
+	INTEGER (pointNumber, U"Point number", U"10")
 	OK
 DO
 	NUMBER_ONE (DurationTier)
@@ -316,8 +310,8 @@ DO
 // MARK: Modify
 
 FORM (MODIFY_DurationTier_addPoint, U"Add one point to DurationTier", U"DurationTier: Add point...") {
-	REAL4 (time, U"Time (s)", U"0.5")
-	REAL4 (relativeDuration, U"Relative duration", U"1.5")
+	REAL (time, U"Time (s)", U"0.5")
+	REAL (relativeDuration, U"Relative duration", U"1.5")
 	OK
 DO
 	MODIFY_EACH (DurationTier)
@@ -326,13 +320,13 @@ DO
 }
 
 FORM (MODIFY_DurationTier_formula, U"DurationTier: Formula", U"DurationTier: Formula...") {
-	LABEL (U"", U"# ncol = the number of points")
-	LABEL (U"", U"for col from 1 to ncol")
-	LABEL (U"", U"   # x = the time of the colth point, in seconds")
-	LABEL (U"", U"   # self = the value of the colth point, in relative units")
-	LABEL (U"", U"   self = `formula'")
-	LABEL (U"", U"endfor")
-	TEXTFIELD4 (formula, U"formula", U"self * 1.5 ; slow down")
+	LABEL (U"# ncol = the number of points")
+	LABEL (U"for col from 1 to ncol")
+	LABEL (U"   # x = the time of the colth point, in seconds")
+	LABEL (U"   # self = the value of the colth point, in relative units")
+	LABEL (U"   self = `formula'")
+	LABEL (U"endfor")
+	TEXTFIELD (formula, U"Formula:", U"self * 1.5 ; slow down")
 	OK
 DO
 	MODIFY_EACH_WEAK (DurationTier)
@@ -345,7 +339,7 @@ DO
 DIRECT (NEW_DurationTier_downto_PointProcess) {
 	CONVERT_EACH (DurationTier)
 		autoPointProcess result = AnyTier_downto_PointProcess (me->asAnyTier());
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - FORMANTGRID
@@ -353,17 +347,18 @@ DIRECT (NEW_DurationTier_downto_PointProcess) {
 // MARK: New
 
 FORM (NEW1_FormantGrid_create, U"Create FormantGrid", nullptr) {
-	WORD4 (name, U"Name", U"schwa")
-	REAL4 (startTime, U"Start time (s)", U"0.0")
-	REAL4 (endTime, U"End time (s)", U"1.0")
-	NATURAL4 (numberOfFormants, U"Number of formants", U"10")
-	POSITIVE4 (initialFirstFormant, U"Initial first formant (Hz)", U"550.0")
-	POSITIVE4 (initialFormatSpacing, U"Initial formant spacing (Hz)", U"1100.0")
-	REAL4 (initialFirstBandwidth, U"Initial first bandwidth (Hz)", U"60.0")
-	REAL4 (initialBandwidthSpacing, U"Initial bandwidth spacing (Hz)", U"50.0")
+	WORD (name, U"Name", U"schwa")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
+	NATURAL (numberOfFormants, U"Number of formants", U"10")
+	POSITIVE (initialFirstFormant, U"Initial first formant (Hz)", U"550.0")
+	POSITIVE (initialFormatSpacing, U"Initial formant spacing (Hz)", U"1100.0")
+	REAL (initialFirstBandwidth, U"Initial first bandwidth (Hz)", U"60.0")
+	REAL (initialBandwidthSpacing, U"Initial bandwidth spacing (Hz)", U"50.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"Your end time should be greater than your start time.");
+	Melder_require (endTime > startTime,
+		U"Your end time should be greater than your start time.");
 	CREATE_ONE
 		autoFormantGrid result = FormantGrid_create (startTime, endTime, numberOfFormants,
 			initialFirstFormant, initialFormatSpacing, initialFirstBandwidth, initialBandwidthSpacing);
@@ -380,8 +375,8 @@ DIRECT (HELP_FormantGrid_help) {
 
 static void cb_FormantGridEditor_publish (Editor /* me */, autoDaata publish) {
 	/*
-	 * Keep the gate for error handling.
-	 */
+		Keep the gate for error handling.
+	*/
 	try {
 		praat_new (publish.move(), U"fromFormantGridEditor");
 		praat_updateSelection ();
@@ -390,21 +385,22 @@ static void cb_FormantGridEditor_publish (Editor /* me */, autoDaata publish) {
 	}
 }
 DIRECT (WINDOW_FormantGrid_edit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a FormantGrid from batch.");
-	LOOP {
-		iam_LOOP (FormantGrid);
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit a FormantGrid from batch.");
+	FIND_ONE_WITH_IOBJECT (FormantGrid)
 		autoFormantGridEditor editor = FormantGridEditor_create (ID_AND_FULL_NAME, me);
 		Editor_setPublicationCallback (editor.get(), cb_FormantGridEditor_publish);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 // MARK: Modify
 
 FORM (MODIFY_FormantGrid_formula_frequencies, U"FormantGrid: Formula (frequencies)", U"Formant: Formula (frequencies)...") {
-	LABEL (U"", U"row is formant number, col is point number: for row from 1 to nrow do for col from 1 to ncol do F (row, col) :=")
-	TEXTFIELD4 (formula, U"formula", U"if row = 2 then self + 200 else self fi")
+	LABEL (U"row is formant number, col is point number:")
+	LABEL (U"   for row from 1 to nrow do for col from 1 to ncol do F (row, col) :=")
+	TEXTFIELD (formula, U"Formula:", U"if row = 2 then self + 200 else self fi")
 	OK
 DO
 	MODIFY_EACH_WEAK (FormantGrid)
@@ -413,9 +409,10 @@ DO
 }
 
 FORM (MODIFY_FormantGrid_formula_bandwidths, U"FormantGrid: Formula (bandwidths)", U"Formant: Formula (bandwidths)...") {
-	LABEL (U"", U"row is formant number, col is point number: for row from 1 to nrow do for col from 1 to ncol do B (row, col) :=")
-	LABEL (U"", U"self [] is the FormantGrid itself, so it returns frequencies, not bandwidths!")
-	TEXTFIELD4 (formula, U"formula", U"self / 10 ; one tenth of the formant frequency")
+	LABEL (U"row is formant number, col is point number:")
+	LABEL (U"   for row from 1 to nrow do for col from 1 to ncol do B (row, col) :=")
+	LABEL (U"self [] is the FormantGrid itself, so it returns frequencies, not bandwidths!")
+	TEXTFIELD (formula, U"Formula:", U"self / 10 ; one tenth of the formant frequency")
 	OK
 DO
 	MODIFY_EACH_WEAK (FormantGrid)
@@ -425,9 +422,9 @@ DO
 }
 
 FORM (MODIFY_FormantGrid_addFormantPoint, U"FormantGrid: Add formant point", U"FormantGrid: Add formant point...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
-	POSITIVE4 (frequency, U"Frequency (Hz)", U"550.0")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (time, U"Time (s)", U"0.5")
+	POSITIVE (frequency, U"Frequency (Hz)", U"550.0")
 	OK
 DO
 	MODIFY_EACH (FormantGrid)
@@ -436,9 +433,9 @@ DO
 }
 
 FORM (MODIFY_FormantGrid_addBandwidthPoint, U"FormantGrid: Add bandwidth point", U"FormantGrid: Add bandwidth point...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
-	POSITIVE4 (bandwidth, U"Bandwidth (Hz)", U"100.0")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (time, U"Time (s)", U"0.5")
+	POSITIVE (bandwidth, U"Bandwidth (Hz)", U"100.0")
 	OK
 DO
 	MODIFY_EACH (FormantGrid)
@@ -447,9 +444,9 @@ DO
 }
 
 FORM (MODIFY_FormantGrid_removeBandwidthPointsBetween, U"Remove bandwidth points between", U"FormantGrid: Remove bandwidth points between...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (fromTime, U"From time (s)", U"0.3")
-	REAL4 (toTime, U"To time (s)", U"0.7")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (fromTime, U"From time (s)", U"0.3")
+	REAL (toTime, U"To time (s)", U"0.7")
 	OK
 DO
 	MODIFY_EACH (FormantGrid)
@@ -458,9 +455,9 @@ DO
 }
 
 FORM (MODIFY_FormantGrid_removeFormantPointsBetween, U"Remove formant points between", U"FormantGrid: Remove formant points between...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (fromTime, U"From time (s)", U"0.3")
-	REAL4 (toTime, U"To time (s)", U"0.7")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (fromTime, U"From time (s)", U"0.3")
+	REAL (toTime, U"To time (s)", U"0.7")
 	OK
 DO
 	MODIFY_EACH (FormantGrid)
@@ -471,14 +468,15 @@ DO
 // MARK: Convert
 
 FORM (NEW_FormantGrid_to_Formant, U"FormantGrid: To Formant", nullptr) {
-	POSITIVE4 (timeStep, U"Time step (s)", U"0.01")
-	REAL4 (intensity, U"Intensity (Pa\u00B2)", U"0.1")
+	POSITIVE (timeStep, U"Time step (s)", U"0.01")
+	REAL (intensity, U"Intensity (Pa\u00B2)", U"0.1")
 	OK
 DO
-	if (intensity < 0.0) Melder_throw (U"Intensity cannot be negative.");
+	Melder_require (intensity >= 0.0,
+		U"The intensity cannot be negative.");
 	CONVERT_EACH (FormantGrid)
 		autoFormant result = FormantGrid_to_Formant (me, timeStep, intensity);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - FORMANTGRID & SOUND
@@ -486,13 +484,13 @@ DO
 DIRECT (NEW1_Sound_FormantGrid_filter) {
 	CONVERT_TWO (Sound, FormantGrid)
 		autoSound result = Sound_FormantGrid_filter (me, you);
-	CONVERT_TWO_END (my name, U"_filt")
+	CONVERT_TWO_END (my name.get(), U"_filt")
 }
 
 DIRECT (NEW1_Sound_FormantGrid_filter_noscale) {
 	CONVERT_TWO (Sound, FormantGrid)
 		autoSound result = Sound_FormantGrid_filter_noscale (me, you);
-	CONVERT_TWO_END (my name, U"_filt")
+	CONVERT_TWO_END (my name.get(), U"_filt")
 }
 
 // MARK: - FORMANTTIER
@@ -500,12 +498,13 @@ DIRECT (NEW1_Sound_FormantGrid_filter_noscale) {
 // MARK: New
 
 FORM (NEW1_FormantTier_create, U"Create empty FormantTier", nullptr) {
-	WORD4 (name, U"Name", U"empty")
-	REAL4 (startTime, U"Start time (s)", U"0.0")
-	REAL4 (endTime, U"End time (s)", U"1.0")
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"Your end time should be greater than your start time.");
+	Melder_require (endTime > startTime,
+		U"Your end time should be greater than your start time.");
 	CREATE_ONE
 		autoFormantTier result = FormantTier_create (startTime, endTime);
 	CREATE_ONE_END (name)
@@ -515,8 +514,8 @@ DO
 
 FORM (GRAPHICS_FormantTier_speckle, U"Draw FormantTier", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVE4 (maximumFrequency, U"Maximum frequency (Hz)", U"5500.0")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	POSITIVE (maximumFrequency, U"Maximum frequency (Hz)", U"5500.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (FormantTier)
@@ -527,8 +526,8 @@ DO
 // MARK: Query
 
 FORM (REAL_FormantTier_getValueAtTime, U"FormantTier: Get value", U"FormantTier: Get value at time...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (FormantTier)
@@ -537,8 +536,8 @@ DO
 }
 
 FORM (REAL_FormantTier_getBandwidthAtTime, U"FormantTier: Get bandwidth", U"FormantTier: Get bandwidth at time...") {
-	NATURAL4 (formantNumber, U"Formant number", U"1")
-	REAL4 (time, U"Time (s)", U"0.5")
+	NATURAL (formantNumber, U"Formant number", U"1")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (FormantTier)
@@ -549,18 +548,17 @@ DO
 // MARK: Modify
 
 FORM (MODIFY_FormantTier_addPoint, U"Add one point", U"FormantTier: Add point...") {
-	REAL4 (time, U"Time (s)", U"0.5")
-	LABEL (U"", U"Frequencies and bandwidths (Hz):")
-	TEXTFIELD4 (formantBandwidthPairs, U"fb pairs", U"500 50 1500 100 2500 150 3500 200 4500 300")
+	REAL (time, U"Time (s)", U"0.5")
+	TEXTFIELD (formantBandwidthPairs, U"Frequencies and bandwidths (Hz):", U"500 50 1500 100 2500 150 3500 200 4500 300")
 	OK
 DO
-	autoFormantPoint point = FormantPoint_create (time);
-	double *f = point -> formant, *b = point -> bandwidth;
-	char *fbpairs = Melder_peek32to8 (formantBandwidthPairs);
+	autoFormantPoint point = FormantPoint_create (time, 10);
+	double *f = point -> formant.at, *b = point -> bandwidth.at;
+	conststring8 fbpairs = Melder_peek32to8 (formantBandwidthPairs);
 	int numberOfFormants = sscanf (fbpairs, "%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf",
-		f, b, f+1, b+1, f+2, b+2, f+3, b+3, f+4, b+4, f+5, b+5, f+6, b+6, f+7, b+7, f+8, b+8, f+9, b+9) / 2;
-	if (numberOfFormants < 1)
-		Melder_throw (U"Number of formant-bandwidth pairs must be at least 1.");
+		f+1, b+1, f+2, b+2, f+3, b+3, f+4, b+4, f+5, b+5, f+6, b+6, f+7, b+7, f+8, b+8, f+9, b+9, f+10, b+10) / 2;
+	Melder_require (numberOfFormants >= 1,
+		U"The number of formant-bandwidth pairs must be at least 1.");
 	point -> numberOfFormants = numberOfFormants;
 	MODIFY_EACH (FormantTier)
 		autoFormantPoint point2 = Data_copy (point.get());
@@ -571,13 +569,13 @@ DO
 // MARK: Convert
 
 FORM (NEW_FormantTier_downto_TableOfReal, U"Down to TableOfReal", nullptr) {
-	BOOLEAN4 (includeFormants, U"Include formants", true)
-	BOOLEAN4 (includeBandwidths, U"Include bandwidths", false)
+	BOOLEAN (includeFormants, U"Include formants", true)
+	BOOLEAN (includeBandwidths, U"Include bandwidths", false)
 	OK
 DO
 	CONVERT_EACH (FormantTier)
 		autoTableOfReal result = FormantTier_downto_TableOfReal (me, includeFormants, includeBandwidths);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - FORMANTTIER & SOUND
@@ -585,13 +583,13 @@ DO
 DIRECT (NEW1_Sound_FormantTier_filter) {
 	CONVERT_TWO (Sound, FormantTier)
 		autoSound result = Sound_FormantTier_filter (me, you);
-	CONVERT_TWO_END (my name, U"_filt")
+	CONVERT_TWO_END (my name.get(), U"_filt")
 }
 
 DIRECT (NEW1_Sound_FormantTier_filter_noscale) {
 	CONVERT_TWO (Sound, FormantTier)
 		autoSound result = Sound_FormantTier_filter_noscale (me, you);
-	CONVERT_TWO_END (my name, U"_filt")
+	CONVERT_TWO_END (my name.get(), U"_filt")
 }
 
 // MARK: - INTENSITYTIER
@@ -599,12 +597,13 @@ DIRECT (NEW1_Sound_FormantTier_filter_noscale) {
 // MARK: New
 
 FORM (NEW1_IntensityTier_create, U"Create empty IntensityTier", nullptr) {
-	WORD4 (name, U"Name", U"empty")
-	REAL4 (startTime, U"Start time (s)", U"0.0")
-	REAL4 (endTime, U"End time (s)", U"1.0")
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"Your end time should be greater than your start time.");
+	Melder_require (endTime > startTime,
+		U"Your end time should be greater than your start time.");
 	CREATE_ONE
 		autoIntensityTier result = IntensityTier_create (startTime, endTime);
 	CREATE_ONE_END (name)
@@ -619,19 +618,14 @@ DIRECT (HELP_IntensityTier_help) {
 // MARK: View & Edit
 
 DIRECT (WINDOW_IntensityTier_viewAndEdit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit an IntensityTier from batch.");
-	Sound sound = nullptr;
-	LOOP {
-		if (CLASS == classSound) sound = (Sound) OBJECT;   // may stay null
-		if (sound) break;   // OPTIMIZE
-	}
-	LOOP if (CLASS == classIntensityTier) {
-		iam_LOOP (IntensityTier);
-		autoIntensityTierEditor editor = IntensityTierEditor_create (ID_AND_FULL_NAME, me, sound, true);
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit an IntensityTier from batch.");
+	FIND_TWO_WITH_IOBJECT (IntensityTier, Sound)   // Sound may be null
+		autoIntensityTierEditor editor = IntensityTierEditor_create (ID_AND_FULL_NAME, me, you, true);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
-	}
-END }
+	END
+}
 
 DIRECT (HINT_IntensityTier_Sound_viewAndEdit) {
 	INFO_NONE
@@ -643,7 +637,7 @@ DIRECT (HINT_IntensityTier_Sound_viewAndEdit) {
 // MARK: Query
 
 FORM (REAL_IntensityTier_getValueAtTime, U"Get IntensityTier value", U"IntensityTier: Get value at time...") {
-	REAL4 (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (IntensityTier)
@@ -652,7 +646,7 @@ DO
 }
 
 FORM (REAL_IntensityTier_getValueAtIndex, U"Get IntensityTier value", U"IntensityTier: Get value at index...") {
-	INTEGER4 (pointNumber, U"Point number", U"10")
+	INTEGER (pointNumber, U"Point number", U"10")
 	OK
 DO
 	NUMBER_ONE (IntensityTier)
@@ -663,8 +657,8 @@ DO
 // MARK: Modify
 
 FORM (MODIFY_IntensityTier_addPoint, U"Add one point", U"IntensityTier: Add point...") {
-	REAL4 (time, U"Time (s)", U"0.5")
-	REAL4 (intensity, U"Intensity (dB)", U"75")
+	REAL (time, U"Time (s)", U"0.5")
+	REAL (intensity, U"Intensity (dB)", U"75")
 	OK
 DO
 	MODIFY_EACH (IntensityTier)
@@ -673,13 +667,13 @@ DO
 }
 
 FORM (MODIFY_IntensityTier_formula, U"IntensityTier: Formula", U"IntensityTier: Formula...") {
-	LABEL (U"", U"# ncol = the number of points")
-	LABEL (U"", U"for col from 1 to ncol")
-	LABEL (U"", U"   # x = the time of the colth point, in seconds")
-	LABEL (U"", U"   # self = the value of the colth point, in dB")
-	LABEL (U"", U"   self = `formula'")
-	LABEL (U"", U"endfor")
-	TEXTFIELD4 (formula, U"formula", U"self + 3.0")
+	LABEL (U"# ncol = the number of points")
+	LABEL (U"for col from 1 to ncol")
+	LABEL (U"   # x = the time of the colth point, in seconds")
+	LABEL (U"   # self = the value of the colth point, in dB")
+	LABEL (U"   self = `formula`")
+	LABEL (U"endfor")
+	TEXTFIELD (formula, U"Formula:", U"self + 3.0")
 	OK
 DO
 	MODIFY_EACH_WEAK (IntensityTier)
@@ -692,19 +686,19 @@ DO
 DIRECT (NEW_IntensityTier_downto_PointProcess) {
 	CONVERT_EACH (IntensityTier)
 		autoPointProcess result = AnyTier_downto_PointProcess (me->asAnyTier());
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_IntensityTier_downto_TableOfReal) {
 	CONVERT_EACH (IntensityTier)
 		autoTableOfReal result = IntensityTier_downto_TableOfReal (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_IntensityTier_to_AmplitudeTier) {
 	CONVERT_EACH (IntensityTier)
 		autoAmplitudeTier result = IntensityTier_to_AmplitudeTier (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - INTENSITYTIER & POINTPROCESS
@@ -712,7 +706,7 @@ DIRECT (NEW_IntensityTier_to_AmplitudeTier) {
 DIRECT (NEW1_IntensityTier_PointProcess_to_IntensityTier) {
 	CONVERT_TWO (IntensityTier, PointProcess)
 		autoIntensityTier result = IntensityTier_PointProcess_to_IntensityTier (me, you);
-	CONVERT_TWO_END (my name)
+	CONVERT_TWO_END (my name.get())
 }
 
 // MARK: - INTENSITYTIER & SOUND
@@ -720,23 +714,23 @@ DIRECT (NEW1_IntensityTier_PointProcess_to_IntensityTier) {
 DIRECT (NEW1_Sound_IntensityTier_multiply_old) {
 	CONVERT_TWO (Sound, IntensityTier)
 		autoSound result = Sound_IntensityTier_multiply (me, you, true);
-	CONVERT_TWO_END (my name, U"_int")
+	CONVERT_TWO_END (my name.get(), U"_int")
 }
 
 FORM (NEW1_Sound_IntensityTier_multiply, U"Sound & IntervalTier: Multiply", nullptr) {
-	BOOLEANVAR (scaleTo09, U"Scale to 0.9", true)
+	BOOLEAN (scaleTo09, U"Scale to 0.9", true)
 	OK
 DO
 	CONVERT_TWO (Sound, IntensityTier)
 		autoSound result = Sound_IntensityTier_multiply (me, you, scaleTo09);
-	CONVERT_TWO_END (my name, U"_int")
+	CONVERT_TWO_END (my name.get(), U"_int")
 }
 
 // MARK: - PITCHTIER
 
 FORM (MODIFY_PitchTier_addPoint, U"PitchTier: Add point", U"PitchTier: Add point...") {
-	REALVAR (time, U"Time (s)", U"0.5")
-	REALVAR (pitch, U"Pitch (Hz)", U"200.0")
+	REAL (time, U"Time (s)", U"0.5")
+	REAL (pitch, U"Pitch (Hz)", U"200.0")
 	OK
 DO
 	MODIFY_EACH (PitchTier)
@@ -745,12 +739,13 @@ DO
 }
 
 FORM (NEW1_PitchTier_create, U"Create empty PitchTier", nullptr) {
-	WORDVAR (name, U"Name", U"empty")
-	REALVAR (startTime, U"Start time (s)", U"0.0")
-	REALVAR (endTime, U"End time (s)", U"1.0")
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
 	OK
 DO
-	if (endTime <= startTime) Melder_throw (U"Your end time should be greater than your start time.");
+	Melder_require (endTime > startTime,
+		U"Your end time should be greater than your start time.");
 	CREATE_ONE
 		autoPitchTier result = PitchTier_create (startTime, endTime);
 	CREATE_ONE_END (name)
@@ -759,29 +754,29 @@ DO
 DIRECT (NEW_PitchTier_downto_PointProcess) {
 	CONVERT_EACH (PitchTier)
 		autoPointProcess result = AnyTier_downto_PointProcess (me->asAnyTier());
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PitchTier_downto_TableOfReal, U"PitchTier: Down to TableOfReal", nullptr) {
-	RADIO4x (unit, U"Unit", 1, 0)
+	RADIOx (unit, U"Unit", 1, 0)
 		RADIOBUTTON (U"Hertz")
 		RADIOBUTTON (U"Semitones")
 	OK
 DO
 	CONVERT_EACH (PitchTier)
 		autoTableOfReal result = PitchTier_downto_TableOfReal (me, unit);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (GRAPHICS_old_PitchTier_draw, U"PitchTier: Draw", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (Hz)", U"0.0")
-	POSITIVEVAR (toFrequency, U"right Frequency range (Hz)", U"500.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (Hz)", U"0.0")
+	POSITIVE (toFrequency, U"right Frequency range (Hz)", U"500.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
-	if (toFrequency <= fromFrequency)
-		Melder_throw (U"Your maximum frequency should be greater than your minimum frequency.");
+	Melder_require (toFrequency > fromFrequency,
+		U"Your maximum frequency should be greater than your minimum frequency.");
 	GRAPHICS_EACH (PitchTier)
 		PitchTier_draw (me, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency,
 			garnish, U"lines and speckles");
@@ -790,26 +785,27 @@ DO
 
 FORM (GRAPHICS_PitchTier_draw, U"PitchTier: Draw", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	REALVAR (fromFrequency, U"left Frequency range (Hz)", U"0.0")
-	POSITIVEVAR (toFrequency, U"right Frequency range (Hz)", U"500.0")
-	BOOLEANVAR (garnish, U"Garnish", true)
-	LABEL (U"", U"")
-	OPTIONMENUSTRVAR (drawingMethod, U"Drawing method", 1)
+	REAL (fromFrequency, U"left Frequency range (Hz)", U"0.0")
+	POSITIVE (toFrequency, U"right Frequency range (Hz)", U"500.0")
+	BOOLEAN (garnish, U"Garnish", true)
+	LABEL (U"")
+	OPTIONMENUSTR (drawingMethod, U"Drawing method", 1)
 		OPTION (U"lines")
 		OPTION (U"speckles")
 		OPTION (U"lines and speckles")
 	OK
 DO_ALTERNATIVE (GRAPHICS_old_PitchTier_draw)
-	if (toFrequency <= fromFrequency)
-		Melder_throw (U"Your maximum frequency should be greater than your minimum frequency.");
+	Melder_require (toFrequency > fromFrequency,
+		U"Your maximum frequency should be greater than your minimum frequency.");
 	GRAPHICS_EACH (PitchTier)
 		PitchTier_draw (me, GRAPHICS, fromTime, toTime, fromFrequency, toFrequency, garnish, drawingMethod);
 	GRAPHICS_EACH_END
 }
 
 DIRECT (WINDOW_PitchTier_viewAndEdit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a PitchTier from batch.");
-	FIND_TWO (PitchTier, Sound)   // Sound may be null
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit a PitchTier from batch.");
+	FIND_TWO_WITH_IOBJECT (PitchTier, Sound)   // Sound may be null
 		autoPitchTierEditor editor = PitchTierEditor_create (ID_AND_FULL_NAME, me, you, true);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
@@ -817,13 +813,13 @@ DIRECT (WINDOW_PitchTier_viewAndEdit) {
 }
 
 FORM (MODIFY_PitchTier_formula, U"PitchTier: Formula", U"PitchTier: Formula...") {
-	LABEL (U"", U"# ncol = the number of points")
-	LABEL (U"", U"for col from 1 to ncol")
-	LABEL (U"", U"   # x = the time of the colth point, in seconds")
-	LABEL (U"", U"   # self = the value of the colth point, in hertz")
-	LABEL (U"", U"   self = `formula'")
-	LABEL (U"", U"endfor")
-	TEXTFIELD4 (formula, U"formula", U"self * 2 ; one octave up")
+	LABEL (U"# ncol = the number of points")
+	LABEL (U"for col from 1 to ncol")
+	LABEL (U"   # x = the time of the colth point, in seconds")
+	LABEL (U"   # self = the value of the colth point, in hertz")
+	LABEL (U"   self = `formula`")
+	LABEL (U"endfor")
+	TEXTFIELD (formula, U"Formula:", U"self * 2 ; one octave up")
 	OK
 DO
 	MODIFY_EACH_WEAK (PitchTier)
@@ -868,7 +864,7 @@ DO
 }
 	
 FORM (REAL_PitchTier_getValueAtTime, U"PitchTier: Get value at time", U"PitchTier: Get value at time...") {
-	REAL4 (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (PitchTier)
@@ -877,7 +873,7 @@ DO
 }
 	
 FORM (REAL_PitchTier_getValueAtIndex, U"PitchTier: Get value at index", U"PitchTier: Get value at index...") {
-	INTEGER4 (pointNumber, U"Point number", U"10")
+	INTEGER (pointNumber, U"Point number", U"10")
 	OK
 DO
 	NUMBER_ONE (PitchTier)
@@ -896,8 +892,8 @@ DIRECT (PLAY_PitchTier_hum) {
 }
 
 FORM (MODIFY_PitchTier_interpolateQuadratically, U"PitchTier: Interpolate quadratically", nullptr) {
-	NATURAL4 (numberOfPointsPerParabola, U"Number of points per parabola", U"4")
-	RADIO4x (unit, U"Unit", 2, 0)
+	NATURAL (numberOfPointsPerParabola, U"Number of points per parabola", U"4")
+	RADIOx (unit, U"Unit", 2, 0)
 		RADIOBUTTON (U"Hz")
 		RADIOBUTTON (U"Semitones")
 	OK
@@ -920,10 +916,10 @@ DIRECT (PLAY_PitchTier_playSine) {
 }
 
 FORM (MODIFY_PitchTier_shiftFrequencies, U"PitchTier: Shift frequencies", nullptr) {
-	REALVAR (fromTime, U"left Time range (s)", U"0.0")
-	REALVAR (toTime, U"right Time range (s)", U"1000.0")
-	REALVAR (frequencyShift, U"Frequency shift", U"-20.0")
-	OPTIONMENUVAR (unit, U"Unit", 1)
+	REAL (fromTime, U"left Time range (s)", U"0.0")
+	REAL (toTime, U"right Time range (s)", U"1000.0")
+	REAL (frequencyShift, U"Frequency shift", U"-20.0")
+	OPTIONMENU (unit_i, U"Unit", 1)
 		OPTION (U"Hertz")
 		OPTION (U"mel")
 		OPTION (U"logHertz")
@@ -931,21 +927,21 @@ FORM (MODIFY_PitchTier_shiftFrequencies, U"PitchTier: Shift frequencies", nullpt
 		OPTION (U"ERB")
 	OK
 DO
-	unit =
-		unit == 1 ? kPitch_unit_HERTZ :
-		unit == 2 ? kPitch_unit_MEL :
-		unit == 3 ? kPitch_unit_LOG_HERTZ :
-		unit == 4 ? kPitch_unit_SEMITONES_1 :
-		kPitch_unit_ERB;
+	kPitch_unit unit =
+		unit_i == 1 ? kPitch_unit::HERTZ :
+		unit_i == 2 ? kPitch_unit::MEL :
+		unit_i == 3 ? kPitch_unit::LOG_HERTZ :
+		unit_i == 4 ? kPitch_unit::SEMITONES_1 :
+		kPitch_unit::ERB;
 	MODIFY_EACH_WEAK (PitchTier)
 		PitchTier_shiftFrequencies (me, fromTime, toTime, frequencyShift, unit);
 	MODIFY_EACH_WEAK_END
 }
 
 FORM (MODIFY_PitchTier_multiplyFrequencies, U"PitchTier: Multiply frequencies", nullptr){
-	REALVAR (fromTime, U"left Time range (s)", U"0.0")
-	REALVAR (toTime, U"right Time range (s)", U"1000.0")
-	POSITIVEVAR (factor, U"Factor", U"1.2")
+	REAL (fromTime, U"left Time range (s)", U"0.0")
+	REAL (toTime, U"right Time range (s)", U"1000.0")
+	POSITIVE (factor, U"Factor", U"1.2")
 	OK
 DO
 	MODIFY_EACH (PitchTier)
@@ -954,8 +950,8 @@ DO
 }
 
 FORM (MODIFY_PitchTier_stylize, U"PitchTier: Stylize", U"PitchTier: Stylize...") {
-	REALVAR (frequencyResolution, U"Frequency resolution", U"4.0")
-	RADIOVARx (unit, U"Unit", 2, 0)
+	REAL (frequencyResolution, U"Frequency resolution", U"4.0")
+	RADIOx (unit, U"Unit", 2, 0)
 		RADIOBUTTON (U"Hz")
 		RADIOBUTTON (U"Semitones")
 	OK
@@ -968,47 +964,47 @@ DO
 DIRECT (NEW_PitchTier_to_PointProcess) {
 	CONVERT_EACH (PitchTier)
 		autoPointProcess result = PitchTier_to_PointProcess (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PitchTier_to_Sound_phonation, U"PitchTier: To Sound (phonation)", nullptr) {
-	POSITIVEVAR (samplingFrequency, U"Sampling frequency (Hz)", U"44100")
-	POSITIVEVAR (adaptationFactor, U"Adaptation factor", U"1.0")
-	POSITIVEVAR (maximumPeriod, U"Maximum period (s)", U"0.05")
-	POSITIVEVAR (openPhase, U"Open phase", U"0.7")
-	REALVAR (collisionPhase, U"Collision phase", U"0.03")
-	POSITIVEVAR (power1, U"Power 1", U"3.0")
-	POSITIVEVAR (power2, U"Power 2", U"4.0")
-	BOOLEANVAR (hum, U"Hum", false)
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100")
+	POSITIVE (adaptationFactor, U"Adaptation factor", U"1.0")
+	POSITIVE (maximumPeriod, U"Maximum period (s)", U"0.05")
+	POSITIVE (openPhase, U"Open phase", U"0.7")
+	REAL (collisionPhase, U"Collision phase", U"0.03")
+	POSITIVE (power1, U"Power 1", U"3.0")
+	POSITIVE (power2, U"Power 2", U"4.0")
+	BOOLEAN (hum, U"Hum", false)
 	OK
 DO
 	CONVERT_EACH (PitchTier)
 		autoSound result = PitchTier_to_Sound_phonation (me, samplingFrequency,
 			adaptationFactor, maximumPeriod, openPhase, collisionPhase, power1, power2, hum);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PitchTier_to_Sound_pulseTrain, U"PitchTier: To Sound (pulse train)", nullptr) {
-	POSITIVEVAR (samplingFrequency, U"Sampling frequency (Hz)", U"44100")
-	POSITIVEVAR (adaptationFactor, U"Adaptation factor", U"1.0")
-	POSITIVEVAR (adaptationTime, U"Adaptation time", U"0.05")
-	NATURALVAR (interpolationDepth, U"Interpolation depth (samples)", U"2000")
-	BOOLEANVAR (hum, U"Hum", false)
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100")
+	POSITIVE (adaptationFactor, U"Adaptation factor", U"1.0")
+	POSITIVE (adaptationTime, U"Adaptation time", U"0.05")
+	NATURAL (interpolationDepth, U"Interpolation depth (samples)", U"2000")
+	BOOLEAN (hum, U"Hum", false)
 	OK
 DO
 	CONVERT_EACH (PitchTier)
 		autoSound result = PitchTier_to_Sound_pulseTrain (me, samplingFrequency,
 			adaptationFactor, adaptationTime, interpolationDepth, hum);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PitchTier_to_Sound_sine, U"PitchTier: To Sound (sine)", nullptr) {
-	POSITIVEVAR (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
 	OK
 DO
 	CONVERT_EACH (PitchTier)
 		autoSound result = PitchTier_to_Sound_sine (me, 0.0, 0.0, samplingFrequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (HINT_PitchTier_Sound_viewAndEdit) {
@@ -1040,13 +1036,13 @@ DIRECT (INFO_PitchTier_Manipulation_replace) {
 DIRECT (NEW1_PitchTier_PointProcess_to_PitchTier) {
 	CONVERT_TWO (PitchTier, PointProcess)
 		autoPitchTier result = PitchTier_PointProcess_to_PitchTier (me, you);
-	CONVERT_TWO_END (my name)
+	CONVERT_TWO_END (my name.get())
 }
 
 // MARK: - POINTPROCESS
 
 FORM (MODIFY_PointProcess_addPoint, U"PointProcess: Add point", U"PointProcess: Add point...") {
-	REALVAR (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	MODIFY_EACH (PointProcess)
@@ -1054,28 +1050,37 @@ DO
 	MODIFY_EACH_END
 }
 
-FORM (NEW1_PointProcess_createEmpty, U"Create an empty PointProcess", U"Create empty PointProcess...") {
-	WORDVAR (name, U"Name", U"empty")
-	REALVAR (startTime, U"Start time (s)", U"0.0")
-	REALVAR (endTime, U"End time (s)", U"1.0")
+FORM (MODIFY_PointProcess_addPoints, U"PointProcess: Add points", U"PointProcess: Add point...") {
+	NUMVEC (times, U"Times:", U"{ 0.1, 0.2, 0.5 }")
 	OK
 DO
-	if (endTime < startTime)
-		Melder_throw (U"Your end time (", endTime, U") should not be less than your start time (", startTime, U").");
+	MODIFY_EACH (PointProcess)
+		PointProcess_addPoints (me, times);
+	MODIFY_EACH_END
+}
+
+FORM (NEW1_PointProcess_createEmpty, U"Create an empty PointProcess", U"Create empty PointProcess...") {
+	WORD (name, U"Name", U"empty")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
+	OK
+DO
+	Melder_require (endTime >= startTime,
+		U"Your end time (", endTime, U") should not be less than your start time (", startTime, U").");
 	CREATE_ONE
-		autoPointProcess result = PointProcess_create (startTime, endTime, 0L);
+		autoPointProcess result = PointProcess_create (startTime, endTime, 0);
 	CREATE_ONE_END (name)
 }
 
 FORM (NEW1_PointProcess_createPoissonProcess, U"Create Poisson process", U"Create Poisson process...") {
-	WORDVAR (name, U"Name", U"poisson")
-	REALVAR (startTime, U"Start time (s)", U"0.0")
-	REALVAR (endTime, U"End time (s)", U"1.0")
-	POSITIVEVAR (density, U"Density (/s)", U"100.0")
+	WORD (name, U"Name", U"poisson")
+	REAL (startTime, U"Start time (s)", U"0.0")
+	REAL (endTime, U"End time (s)", U"1.0")
+	POSITIVE (density, U"Density (/s)", U"100.0")
 	OK
 DO
-	if (endTime < startTime)
-		Melder_throw (U"Your end time (", endTime, U") should not be less than your start time (", startTime, U").");
+	Melder_require (endTime >= startTime,
+		U"Your end time (", endTime, U") should not be less than your start time (", startTime, U").");
 	CREATE_ONE
 		autoPointProcess result = PointProcess_createPoissonProcess (startTime, endTime, density);
 	CREATE_ONE_END (name)
@@ -1089,7 +1094,7 @@ DIRECT (NEW1_PointProcesses_difference) {
 
 FORM (GRAPHICS_PointProcess_draw, U"PointProcess: Draw", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	BOOLEAN4 (garnish, U"Garnish", true)
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (PointProcess)
@@ -1098,8 +1103,9 @@ DO
 }
 
 DIRECT (WINDOW_PointProcess_viewAndEdit) {
-	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot view or edit a PointProcess from batch.");
-	FIND_TWO (PointProcess, Sound)   // Sound may be null
+	Melder_require (! theCurrentPraatApplication -> batch,
+		U"Cannot view or edit a PointProcess from batch.");
+	FIND_TWO_WITH_IOBJECT (PointProcess, Sound)   // Sound may be null
 		autoPointEditor editor = PointEditor_create (ID_AND_FULL_NAME, me, you);
 		praat_installEditor (editor.get(), IOBJECT);
 		editor.releaseToUser();
@@ -1108,7 +1114,7 @@ DIRECT (WINDOW_PointProcess_viewAndEdit) {
 
 FORM (MODIFY_PointProcess_fill, U"PointProcess: Fill", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
-	POSITIVE4 (period, U"Period (s)", U"0.01")
+	POSITIVE (period, U"Period (s)", U"0.01")
 	OK
 DO
 	MODIFY_EACH_WEAK (PointProcess)
@@ -1117,7 +1123,7 @@ DO
 }
 
 FORM (REAL_PointProcess_getInterval, U"PointProcess: Get interval", U"PointProcess: Get interval...") {
-	REAL4 (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (PointProcess)
@@ -1127,9 +1133,9 @@ DO
 
 #define dia_PointProcess_getRangeProperty(fromTime,toTime,shortestPeriod,longestPeriod,maximumPeriodfactor) \
 	praat_TimeFunction_RANGE (fromTime, toTime) \
-	REALVAR (shortestPeriod, U"Shortest period (s)", U"0.0001") \
-	REALVAR (longestPeriod, U"Longest period (s)", U"0.02") \
-	POSITIVEVAR (maximumPeriodFactor, U"Maximum period factor", U"1.3")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001") \
+	REAL (longestPeriod, U"Longest period (s)", U"0.02") \
+	POSITIVE (maximumPeriodFactor, U"Maximum period factor", U"1.3")
 
 FORM (REAL_PointProcess_getJitter_local, U"PointProcess: Get jitter (local)", U"PointProcess: Get jitter (local)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
@@ -1202,35 +1208,35 @@ DO
 }
 
 FORM (INTEGER_PointProcess_getLowIndex, U"PointProcess: Get low index", U"PointProcess: Get low index...") {
-	REALVAR (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (PointProcess)
-		long result = PointProcess_getLowIndex (me, time);
+		integer result = PointProcess_getLowIndex (me, time);
 	NUMBER_ONE_END (U" (low index)")
 }
 
 FORM (INTEGER_PointProcess_getHighIndex, U"PointProcess: Get high index", U"PointProcess: Get high index...") {
-	REALVAR (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (PointProcess)
-		long result = PointProcess_getHighIndex (me, time);
+		integer result = PointProcess_getHighIndex (me, time);
 	NUMBER_ONE_END (U" (high index)")
 }
 
 FORM (INTEGER_PointProcess_getNearestIndex, U"PointProcess: Get nearest index", U"PointProcess: Get nearest index...") {
-	REALVAR (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	NUMBER_ONE (PointProcess)
-		long result = PointProcess_getNearestIndex (me, time);
+		integer result = PointProcess_getNearestIndex (me, time);
 	NUMBER_ONE_END (U" (nearest index)")
 }
 
 DIRECT (INTEGER_PointProcess_getNumberOfPoints) {
 	NUMBER_ONE (PointProcess)
-		long result = my nt;
+		integer result = my nt;
 	NUMBER_ONE_END (U" points")
 }
 
@@ -1239,17 +1245,18 @@ FORM (INTEGER_PointProcess_getNumberOfPeriods, U"PointProcess: Get number of per
 	OK
 DO
 	NUMBER_ONE (PointProcess)
-		long result = PointProcess_getNumberOfPeriods (me, fromTime, toTime,
-		shortestPeriod, longestPeriod, maximumPeriodFactor);
+		integer result = PointProcess_getNumberOfPeriods (me, fromTime, toTime,
+			shortestPeriod, longestPeriod, maximumPeriodFactor);
 	NUMBER_ONE_END (U" periods")
 }
 
 FORM (REAL_PointProcess_getTimeFromIndex, U"Get time", 0 /*"PointProcess: Get time from index..."*/) {
-	NATURAL4 (pointNumber, U"Point number", U"10")
+	NATURAL (pointNumber, U"Point number", U"10")
 	OK
 DO
 	NUMBER_ONE (PointProcess)
-		double result = ( pointNumber > my nt ? NUMundefined : my t [pointNumber] );
+		double result =
+			pointNumber > my nt ? undefined : my t [pointNumber];
 	NUMBER_ONE_END (U" seconds")
 }
 
@@ -1276,7 +1283,7 @@ DIRECT (PLAY_PointProcess_play) {
 }
 
 FORM (MODIFY_PointProcess_removePoint, U"PointProcess: Remove point", U"PointProcess: Remove point...") {
-	NATURAL4 (pointNumber, U"Point number", U"1")
+	NATURAL (pointNumber, U"Point number", U"1")
 	OK
 DO
 	MODIFY_EACH (PointProcess)
@@ -1285,7 +1292,7 @@ DO
 }
 
 FORM (MODIFY_PointProcess_removePointNear, U"PointProcess: Remove point near", U"PointProcess: Remove point near...") {
-	REAL4 (time, U"Time (s)", U"0.5")
+	REAL (time, U"Time (s)", U"0.5")
 	OK
 DO
 	MODIFY_EACH (PointProcess)
@@ -1294,8 +1301,8 @@ DO
 }
 
 FORM (MODIFY_PointProcess_removePoints, U"PointProcess: Remove points", U"PointProcess: Remove points...") {
-	NATURAL4 (fromPointNumber, U"From point number", U"1")
-	NATURAL4 (toPointNumber, U"To point number", U"10")
+	NATURAL (fromPointNumber, U"From point number", U"1")
+	NATURAL (toPointNumber, U"To point number", U"10")
 	OK
 DO
 	MODIFY_EACH (PointProcess)
@@ -1304,8 +1311,8 @@ DO
 }
 
 FORM (MODIFY_PointProcess_removePointsBetween, U"PointProcess: Remove points between", U"PointProcess: Remove points between...") {
-	REAL4 (fromTime, U"left Time range (s)", U"0.3")
-	REAL4 (toTime, U"right Time range (s)", U"0.7")
+	REAL (fromTime, U"left Time range (s)", U"0.3")
+	REAL (toTime, U"right Time range (s)", U"0.7")
 	OK
 DO
 	MODIFY_EACH (PointProcess)
@@ -1316,83 +1323,83 @@ DO
 DIRECT (NEW_PointProcess_to_IntervalTier) {
 	CONVERT_EACH (PointProcess)
 		autoIntervalTier result = IntervalTier_create (my xmin, my xmax);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_PointProcess_to_Matrix) {
 	CONVERT_EACH (PointProcess)
 		autoMatrix result = PointProcess_to_Matrix (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_to_PitchTier, U"PointProcess: To PitchTier", U"PointProcess: To PitchTier...") {
-	POSITIVEVAR (maximumInterval, U"Maximum interval (s)", U"0.02")
+	POSITIVE (maximumInterval, U"Maximum interval (s)", U"0.02")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoPitchTier result = PointProcess_to_PitchTier (me, maximumInterval);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_to_TextGrid, U"PointProcess: To TextGrid...", U"PointProcess: To TextGrid...") {
-	SENTENCE4 (tierNames, U"Tier names", U"Mary John bell")
-	SENTENCE4 (pointTiers, U"Point tiers", U"bell")
+	SENTENCE (tierNames, U"Tier names", U"Mary John bell")
+	SENTENCE (pointTiers, U"Point tiers", U"bell")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoTextGrid result = TextGrid_create (my xmin, my xmax, tierNames, pointTiers);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_to_TextGrid_vuv, U"PointProcess: To TextGrid (vuv)...", U"PointProcess: To TextGrid (vuv)...") {
-	POSITIVE4 (maximumPeriod, U"Maximum period (s)", U"0.02")
-	REAL4 (meanPeriod, U"Mean period (s)", U"0.01")
+	POSITIVE (maximumPeriod, U"Maximum period (s)", U"0.02")
+	REAL (meanPeriod, U"Mean period (s)", U"0.01")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoTextGrid result = PointProcess_to_TextGrid_vuv (me, maximumPeriod, meanPeriod);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_PointProcess_to_TextTier) {
 	CONVERT_EACH (PointProcess)
 		autoTextTier result = TextTier_create (my xmin, my xmax);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_to_Sound_phonation, U"PointProcess: To Sound (phonation)", U"PointProcess: To Sound (phonation)...") {
-	POSITIVE4 (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
-	POSITIVE4 (adaptationFactor, U"Adaptation factor", U"1.0")
-	POSITIVE4 (maximumPeriod, U"Maximum period (s)", U"0.05")
-	POSITIVE4 (openPhase, U"Open phase", U"0.7")
-	REAL4 (collisionPhase, U"Collision phase", U"0.03")
-	POSITIVE4 (power1, U"Power 1", U"3.0")
-	POSITIVE4 (power2, U"Power 2", U"4.0")
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
+	POSITIVE (adaptationFactor, U"Adaptation factor", U"1.0")
+	POSITIVE (maximumPeriod, U"Maximum period (s)", U"0.05")
+	POSITIVE (openPhase, U"Open phase", U"0.7")
+	REAL (collisionPhase, U"Collision phase", U"0.03")
+	POSITIVE (power1, U"Power 1", U"3.0")
+	POSITIVE (power2, U"Power 2", U"4.0")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoSound result = PointProcess_to_Sound_phonation (me, samplingFrequency,
 			adaptationFactor, maximumPeriod, openPhase, collisionPhase, power1, power2);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_to_Sound_pulseTrain, U"PointProcess: To Sound (pulse train)", U"PointProcess: To Sound (pulse train)...") {
-	POSITIVE4 (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
-	POSITIVE4 (adaptationFactor, U"Adaptation factor", U"1.0")
-	POSITIVE4 (adaptationTime, U"Adaptation time (s)", U"0.05")
-	NATURAL4 (interpolationDepth, U"Interpolation depth (samples)", U"2000")
+	POSITIVE (samplingFrequency, U"Sampling frequency (Hz)", U"44100.0")
+	POSITIVE (adaptationFactor, U"Adaptation factor", U"1.0")
+	POSITIVE (adaptationTime, U"Adaptation time (s)", U"0.05")
+	NATURAL (interpolationDepth, U"Interpolation depth (samples)", U"2000")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoSound result = PointProcess_to_Sound_pulseTrain (me, samplingFrequency,
 			adaptationFactor, adaptationTime, interpolationDepth);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_PointProcess_to_Sound_hum) {
 	CONVERT_EACH (PointProcess)
 		autoSound result = PointProcess_to_Sound_hum (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW1_PointProcesses_union) {
@@ -1402,35 +1409,35 @@ DIRECT (NEW1_PointProcesses_union) {
 }
 
 FORM (NEW_PointProcess_upto_IntensityTier, U"PointProcess: Up to IntensityTier", U"PointProcess: Up to IntensityTier...") {
-	POSITIVE4 (intensity, U"Intensity (dB)", U"70.0")
+	POSITIVE (intensity, U"Intensity (dB)", U"70.0")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoIntensityTier result = PointProcess_upto_IntensityTier (me, intensity);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_upto_PitchTier, U"PointProcess: Up to PitchTier", U"PointProcess: Up to PitchTier...") {
-	POSITIVE4 (frequency, U"Frequency (Hz)", U"190.0")
+	POSITIVE (frequency, U"Frequency (Hz)", U"190.0")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoPitchTier result = PointProcess_upto_PitchTier (me, frequency);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (NEW_PointProcess_upto_TextTier, U"PointProcess: Up to TextTier", U"PointProcess: Up to TextTier...") {
-	SENTENCE4 (text, U"Text", U"")
+	SENTENCE (text, U"Text", U"")
 	OK
 DO
 	CONVERT_EACH (PointProcess)
 		autoTextTier result = PointProcess_upto_TextTier (me, text);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (MODIFY_PointProcess_voice, U"PointProcess: Fill unvoiced parts", nullptr) {
-	POSITIVEVAR (period, U"Period (s)", U"0.01")
-	POSITIVEVAR (maximumVoicedPeriod, U"Maximum voiced period (s)", U"0.02000000001")
+	POSITIVE (period, U"Period (s)", U"0.01")
+	POSITIVE (maximumVoicedPeriod, U"Maximum voiced period (s)", U"0.02000000001")
 	OK
 DO
 	MODIFY_EACH_WEAK (PointProcess)
@@ -1456,7 +1463,7 @@ DIRECT (MODIFY_Point_Sound_transplantDomain) {
 
 FORM (REAL_Point_Sound_getShimmer_local, U"PointProcess & Sound: Get shimmer (local)", U"PointProcess & Sound: Get shimmer (local)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1467,7 +1474,7 @@ DO
 
 FORM (REAL_Point_Sound_getShimmer_local_dB, U"PointProcess & Sound: Get shimmer (local, dB)", U"PointProcess & Sound: Get shimmer (local, dB)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1478,7 +1485,7 @@ DO
 
 FORM (REAL_Point_Sound_getShimmer_apq3, U"PointProcess & Sound: Get shimmer (apq3)", U"PointProcess & Sound: Get shimmer (apq3)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1489,7 +1496,7 @@ DO
 
 FORM (REAL_Point_Sound_getShimmer_apq5, U"PointProcess & Sound: Get shimmer (apq)", U"PointProcess & Sound: Get shimmer (apq5)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1500,7 +1507,7 @@ DO
 
 FORM (REAL_Point_Sound_getShimmer_apq11, U"PointProcess & Sound: Get shimmer (apq11)", U"PointProcess & Sound: Get shimmer (apq11)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1511,7 +1518,7 @@ DO
 
 FORM (REAL_Point_Sound_getShimmer_dda, U"PointProcess & Sound: Get shimmer (dda)", U"PointProcess & Sound: Get shimmer (dda)...") {
 	dia_PointProcess_getRangeProperty (fromTime, toTime, shortestPeriod, longestPeriod, maximumPeriodfactor)
-	POSITIVEVAR (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
+	POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", U"1.6")
 	OK
 DO
 	NUMBER_TWO (PointProcess, Sound)
@@ -1527,50 +1534,50 @@ DO
 	CONVERT_TWO (PointProcess, Sound)
 		autoAmplitudeTier result = PointProcess_Sound_to_AmplitudeTier_period (me, you, fromTime, toTime,
 			shortestPeriod, longestPeriod, maximumPeriodFactor);
-	CONVERT_TWO_END (your name, U"_", my name)
+	CONVERT_TWO_END (your name.get(), U"_", my name.get())
 }
 
 DIRECT (NEW1_PointProcess_Sound_to_AmplitudeTier_point) {
 	CONVERT_TWO (PointProcess, Sound)
 		autoAmplitudeTier result = PointProcess_Sound_to_AmplitudeTier_point (me, you);
-	CONVERT_TWO_END (your name, U"_", my name);
+	CONVERT_TWO_END (your name.get(), U"_", my name.get());
 }
 
 FORM (NEW1_PointProcess_Sound_to_Ltas, U"PointProcess & Sound: To Ltas", nullptr) {
-	POSITIVE4 (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
-	POSITIVE4 (bandwidth, U"Band width (Hz)", U"100.0")
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumPeriodFactor, U"Maximum period factor", U"1.3")
+	POSITIVE (maximumFrequency, U"Maximum frequency (Hz)", U"5000.0")
+	POSITIVE (bandwidth, U"Band width (Hz)", U"100.0")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumPeriodFactor, U"Maximum period factor", U"1.3")
 	OK
 DO
 	CONVERT_TWO (PointProcess, Sound)
 		autoLtas result = PointProcess_Sound_to_Ltas (me, you,
 			maximumFrequency, bandwidth, shortestPeriod, longestPeriod, maximumPeriodFactor);
-	CONVERT_TWO_END (your name)
+	CONVERT_TWO_END (your name.get())
 }
 
 FORM (NEW1_PointProcess_Sound_to_Ltas_harmonics, U"PointProcess & Sound: To Ltas (harmonics", nullptr) {
-	NATURAL4 (maximumHarmonic, U"Maximum harmonic", U"20")
-	REAL4 (shortestPeriod, U"Shortest period (s)", U"0.0001")
-	REAL4 (longestPeriod, U"Longest period (s)", U"0.02")
-	POSITIVE4 (maximumPeriodFactor, U"Maximum period factor", U"1.3")
+	NATURAL (maximumHarmonic, U"Maximum harmonic", U"20")
+	REAL (shortestPeriod, U"Shortest period (s)", U"0.0001")
+	REAL (longestPeriod, U"Longest period (s)", U"0.02")
+	POSITIVE (maximumPeriodFactor, U"Maximum period factor", U"1.3")
 	OK
 DO
 	CONVERT_TWO (PointProcess, Sound)
 		autoLtas result = PointProcess_Sound_to_Ltas_harmonics (me, you,
 			maximumHarmonic, shortestPeriod, longestPeriod, maximumPeriodFactor);
-	CONVERT_TWO_END (your name)
+	CONVERT_TWO_END (your name.get())
 }
 
 FORM (NEW1_Sound_PointProcess_to_SoundEnsemble_correlate, U"Sound & PointProcess: To SoundEnsemble (correlate)", nullptr) {
-	REAL4 (fromTime, U"From time (s)", U"-0.1")
-	REAL4 (toTime, U"To time (s)", U"1.0")
+	REAL (fromTime, U"From time (s)", U"-0.1")
+	REAL (toTime, U"To time (s)", U"1.0")
 	OK
 DO
 	CONVERT_TWO (Sound, PointProcess)
 		autoSound result = Sound_PointProcess_to_SoundEnsemble_correlate (me, you, fromTime, toTime);
-	CONVERT_TWO_END (your name)
+	CONVERT_TWO_END (your name.get())
 }
 
 // MARK: - SPECTRUMTIER
@@ -1578,15 +1585,15 @@ DO
 DIRECT (NEW_SpectrumTier_downto_Table) {
 	CONVERT_EACH (SpectrumTier)
 		autoTable result = SpectrumTier_downto_Table (me, true, true, true);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 FORM (GRAPHICS_old_SpectrumTier_draw, U"SpectrumTier: Draw", nullptr) {   // 2010-10-19
-	REAL4 (fromFrequency, U"left Frequency range (Hz)", U"0.0")
-	REAL4 (toFrequency, U"right Frequency range (Hz)", U"10000.0")
-	REAL4 (fromPower, U"left Power range (dB)", U"20.0")
-	REAL4 (toPower, U"right Power range (dB)", U"80.0")
-	BOOLEAN4 (garnish, U"Garnish", true)
+	REAL (fromFrequency, U"left Frequency range (Hz)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (Hz)", U"10000.0")
+	REAL (fromPower, U"left Power range (dB)", U"20.0")
+	REAL (toPower, U"right Power range (dB)", U"80.0")
+	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
 	GRAPHICS_EACH (SpectrumTier)
@@ -1596,13 +1603,13 @@ DO
 }
 
 FORM (GRAPHICS_SpectrumTier_draw, U"SpectrumTier: Draw", nullptr) {
-	REAL4 (fromFrequency, U"left Frequency range (Hz)", U"0.0")
-	REAL4 (toFrequency, U"right Frequency range (Hz)", U"10000.0")
-	REAL4 (fromPower, U"left Power range (dB)", U"20.0")
-	REAL4 (toPower, U"right Power range (dB)", U"80.0")
-	BOOLEAN4 (garnish, U"Garnish", true)
-	LABEL (U"", U"")
-	OPTIONMENUSTR4 (drawingMethod, U"Drawing method", 1)
+	REAL (fromFrequency, U"left Frequency range (Hz)", U"0.0")
+	REAL (toFrequency, U"right Frequency range (Hz)", U"10000.0")
+	REAL (fromPower, U"left Power range (dB)", U"20.0")
+	REAL (toPower, U"right Power range (dB)", U"80.0")
+	BOOLEAN (garnish, U"Garnish", true)
+	LABEL (U"")
+	OPTIONMENUSTR (drawingMethod, U"Drawing method", 1)
 		OPTION (U"lines")
 		OPTION (U"speckles")
 		OPTION (U"lines and speckles")
@@ -1615,9 +1622,9 @@ DO_ALTERNATIVE (GRAPHICS_old_SpectrumTier_draw)
 }
 
 FORM (LIST_SpectrumTier_list, U"SpectrumTier: List", nullptr) {
-	BOOLEAN4 (includeIndexes, U"Include indexes", true)
-	BOOLEAN4 (includeFrequency, U"Include frequency", true)
-	BOOLEAN4 (includePowerDensity, U"Include power density", true)
+	BOOLEAN (includeIndexes, U"Include indexes", true)
+	BOOLEAN (includeFrequency, U"Include frequency", true)
+	BOOLEAN (includePowerDensity, U"Include power density", true)
 	OK
 DO
 	INFO_ONE (SpectrumTier)
@@ -1626,7 +1633,7 @@ DO
 }
 
 FORM (MODIFY_SpectrumTier_removePointsBelow, U"SpectrumTier: Remove points below", nullptr) {
-	REAL4 (removeAllPointsBelow, U"Remove all points below (dB)", U"40.0")
+	REAL (removeAllPointsBelow, U"Remove all points below (dB)", U"40.0")
 	OK
 DO
 	MODIFY_EACH (SpectrumTier)
@@ -1749,9 +1756,10 @@ void praat_Tiers_init () {
 	praat_addAction1 (classPitchTier, 1, U"View & Edit", nullptr, praat_ATTRACTIVE, WINDOW_PitchTier_viewAndEdit);
 	praat_addAction1 (classPitchTier, 1,   U"Edit", U"*View & Edit", praat_DEPRECATED_2011, WINDOW_PitchTier_viewAndEdit);
 	praat_addAction1 (classPitchTier, 0, U"View & Edit with Sound?", nullptr, 0, HINT_PitchTier_Sound_viewAndEdit);
-	praat_addAction1 (classPitchTier, 0, U"Play pulses", nullptr, 0, PLAY_PitchTier_play);
-	praat_addAction1 (classPitchTier, 0, U"Hum", nullptr, 0, PLAY_PitchTier_hum);
-	praat_addAction1 (classPitchTier, 0, U"Play sine", nullptr, 0, PLAY_PitchTier_playSine);
+	praat_addAction1 (classPitchTier, 0, U"Play -", nullptr, 0, nullptr);
+	praat_addAction1 (classPitchTier, 0, U"Play pulses", nullptr, 1, PLAY_PitchTier_play);
+	praat_addAction1 (classPitchTier, 0, U"Hum", nullptr, 1, PLAY_PitchTier_hum);
+	praat_addAction1 (classPitchTier, 0, U"Play sine", nullptr, 1, PLAY_PitchTier_playSine);
 	praat_addAction1 (classPitchTier, 0, U"Draw...", nullptr, 0, GRAPHICS_PitchTier_draw);
 	praat_addAction1 (classPitchTier, 0, U"& Manipulation: Replace?", nullptr, 0, INFO_PitchTier_Manipulation_replace);
 	praat_addAction1 (classPitchTier, 0, U"Query -", nullptr, 0, nullptr);
@@ -1791,10 +1799,6 @@ void praat_Tiers_init () {
 	praat_addAction1 (classPointProcess, 0, U"Play -", nullptr, 0, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"Play as pulse train", nullptr, 1, PLAY_PointProcess_play);
 		praat_addAction1 (classPointProcess, 0, U"Hum", nullptr, 1, PLAY_PointProcess_hum);
-		praat_addAction1 (classPointProcess, 0, U"-- to sound --", nullptr, 1, nullptr);
-		praat_addAction1 (classPointProcess, 0, U"To Sound (pulse train)...", nullptr, 1, NEW_PointProcess_to_Sound_pulseTrain);
-		praat_addAction1 (classPointProcess, 0, U"To Sound (phonation)...", nullptr, 1, NEW_PointProcess_to_Sound_phonation);
-		praat_addAction1 (classPointProcess, 0, U"To Sound (hum)", nullptr, 1, NEW_PointProcess_to_Sound_hum);
 	praat_addAction1 (classPointProcess, 0, U"Draw...", nullptr, 0, GRAPHICS_PointProcess_draw);
 	praat_addAction1 (classPointProcess, 0, U"Query -", nullptr, 0, nullptr);
 		praat_TimeFunction_query_init (classPointProcess);
@@ -1817,6 +1821,7 @@ void praat_Tiers_init () {
 	praat_addAction1 (classPointProcess, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_TimeFunction_modify_init (classPointProcess);
 		praat_addAction1 (classPointProcess, 0, U"Add point...", nullptr, 1, MODIFY_PointProcess_addPoint);
+		praat_addAction1 (classPointProcess, 0, U"Add points...", nullptr, 1, MODIFY_PointProcess_addPoints);
 		praat_addAction1 (classPointProcess, 0, U"Remove point...", nullptr, 1, MODIFY_PointProcess_removePoint);
 		praat_addAction1 (classPointProcess, 0, U"Remove point near...", nullptr, 1, MODIFY_PointProcess_removePointNear);
 		praat_addAction1 (classPointProcess, 0, U"Remove points...", nullptr, 1, MODIFY_PointProcess_removePoints);
@@ -1832,6 +1837,10 @@ void praat_Tiers_init () {
 	praat_addAction1 (classPointProcess, 0, U"Analyse -", nullptr, 0, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"To PitchTier...", nullptr, 1, NEW_PointProcess_to_PitchTier);
 		praat_addAction1 (classPointProcess, 0, U"To TextGrid (vuv)...", nullptr, 1, NEW_PointProcess_to_TextGrid_vuv);
+	praat_addAction1 (classPointProcess, 0, U"Synthesize -", nullptr, 0, nullptr);
+		praat_addAction1 (classPointProcess, 0, U"To Sound (pulse train)...", nullptr, 1, NEW_PointProcess_to_Sound_pulseTrain);
+		praat_addAction1 (classPointProcess, 0, U"To Sound (phonation)...", nullptr, 1, NEW_PointProcess_to_Sound_phonation);
+		praat_addAction1 (classPointProcess, 0, U"To Sound (hum)", nullptr, 1, NEW_PointProcess_to_Sound_hum);
 	praat_addAction1 (classPointProcess, 0, U"Convert -", nullptr, 0, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"Hack", nullptr, 1, nullptr);
 			praat_addAction1 (classPointProcess, 0, U"To Matrix", nullptr, 2, NEW_PointProcess_to_Matrix);

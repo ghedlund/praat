@@ -2,7 +2,7 @@
 #define _Strings_h_
 /* Strings.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,8 @@
 #include "Strings_def.h"
 
 #include "praatlib.h"
-
-PRAAT_LIB_EXPORT autoStrings Strings_createAsFileList (const char32 *path /* cattable */);
-PRAAT_LIB_EXPORT autoStrings Strings_createAsDirectoryList (const char32 *path /* cattable */);
+PRAAT_LIB_EXPORT autoStrings Strings_createAsFileList (conststring32 path /* cattable */);
+PRAAT_LIB_EXPORT autoStrings Strings_createAsDirectoryList (conststring32 path /* cattable */);
 PRAAT_LIB_EXPORT autoStrings Strings_readFromRawTextFile (MelderFile file);
 PRAAT_LIB_EXPORT void Strings_writeToRawTextFile (Strings me, MelderFile file);
 
@@ -34,9 +33,9 @@ PRAAT_LIB_EXPORT void Strings_genericize (Strings me);
 PRAAT_LIB_EXPORT void Strings_nativize (Strings me);
 PRAAT_LIB_EXPORT void Strings_sort (Strings me);
 
-PRAAT_LIB_EXPORT void Strings_remove (Strings me, long position);
-PRAAT_LIB_EXPORT void Strings_replace (Strings me, long position, const char32 *text);
-PRAAT_LIB_EXPORT void Strings_insert (Strings me, long position, const char32 *text);
+PRAAT_LIB_EXPORT void Strings_remove (Strings me, integer position);
+PRAAT_LIB_EXPORT void Strings_replace (Strings me, integer position, conststring32 text);
+PRAAT_LIB_EXPORT void Strings_insert (Strings me, integer position, conststring32 text);
 
 /* End of file Strings.h */
 #endif

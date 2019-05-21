@@ -2,7 +2,7 @@
 #define _FilterBank_h_
 /* FilterBank.h
  *
- * Copyright (C) 1993-2011, 2014 David Weenink
+ * Copyright (C) 1993-2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 #define MELTOBARK(x) HZTOBARK(MELTOHZ(x))
 
 #define FilterBank_DBREF 4e-10
-#define FilterBank_DBFAC 1
+#define FilterBank_DBFAC 1.0
 #define FilterBank_DBFLOOR -20
 
 #define FilterBank_HERTZ 1
@@ -56,14 +56,14 @@
 Thing_define (FilterBank, Matrix) {
 	virtual int v_getFrequencyScale () 
 		{ return FilterBank_HERTZ; }
-	virtual const char32 *v_getFrequencyUnit () 
+	virtual conststring32 v_getFrequencyUnit ()
 		{ return U"Hz"; } // compatibility with BandFilterSpectrogram
 };
 
 Thing_define (BarkFilter, FilterBank) {
 	int v_getFrequencyScale ()
 		override { return FilterBank_BARK; }
-	const char32 *v_getFrequencyUnit ()
+	conststring32 v_getFrequencyUnit ()
 		override { return U"bark"; }
 };
 
@@ -83,25 +83,26 @@ double FilterBank_getFrequencyInMel (FilterBank me, double f, int scale_from);
 int FilterBank_getFrequencyScale (FilterBank me);
 
 void FilterBank_drawFrequencyScales (FilterBank me, Graphics g, int horizontalScale, double xmin,
-	double xmax, int verticalScale, double ymin, double ymax, int garnish);
+	double xmax, int verticalScale, double ymin, double ymax, bool garnish);
 
 void BarkFilter_drawSekeyHansonFilterFunctions (BarkFilter me, Graphics g,
-	int freqScale,	int fromFilter, int toFilter, double zmin, double zmax,
-	int dbScale, double ymin, double ymax, int garnish);
+	int freqScale, int fromFilter, int toFilter, double zmin, double zmax,
+	int dbScale, double ymin, double ymax, bool garnish);
 
 void FilterBank_drawTimeSlice (FilterBank me, Graphics g, double t, double fmin, double fmax,
-	double min, double max, const char32 *xlabel, int garnish);
+	double min, double max, conststring32 xlabel, bool garnish);
 
-void FilterBank_paint (FilterBank me, Graphics g, double xmin, double xmax, double ymin, double ymax, double minimum, double maximum, int garnish);
+void FilterBank_paint (FilterBank me, Graphics g, double xmin, double xmax, double ymin, double ymax, double minimum, double maximum, bool garnish);
 
-autoBarkFilter BarkFilter_create (double tmin, double tmax, long nt, double dt, double t1, double fmin, double fmax, long nf, double df, double f1);
+autoBarkFilter BarkFilter_create (double tmin, double tmax, integer nt, double dt, double t1,
+	double fmin, double fmax, integer nf, double df, double f1);
 
 autoBarkFilter Matrix_to_BarkFilter (Matrix me);
 
 Thing_define (MelFilter, FilterBank) {
 	int v_getFrequencyScale ()
 		override { return FilterBank_MEL; }
-	const char32 *v_getFrequencyUnit ()
+	conststring32 v_getFrequencyUnit ()
 		override { return U"mel"; }
 };
 
@@ -114,29 +115,29 @@ Interpretation:
     ny the number of filters.
  */
 
-autoMelFilter MelFilter_create (double tmin, double tmax, long nt, double dt,
-	double t1, double fmin, double fmax, long nf, double df, double f1);
+autoMelFilter MelFilter_create (double tmin, double tmax, integer nt, double dt,
+	double t1, double fmin, double fmax, integer nf, double df, double f1);
 
 autoMelFilter Matrix_to_MelFilter (Matrix);
 
 void MelFilter_drawFilterFunctions (MelFilter me, Graphics g,
 	int freqScale, int fromFilter, int toFilter, double zmin, double zmax,
-	int dbScale, double ymin, double ymax, int garnish);
+	int dbScale, double ymin, double ymax, bool garnish);
 
-autoMFCC MelFilter_to_MFCC (MelFilter me, long numberOfCoefficients);
+autoMFCC MelFilter_to_MFCC (MelFilter me, integer numberOfCoefficients);
 
 Thing_define (FormantFilter, FilterBank) {
-	const char32 *v_getFrequencyUnit ()
+	conststring32 v_getFrequencyUnit ()
 		override { return U"Hz"; }
 };
 
-autoFormantFilter FormantFilter_create (double tmin, double tmax, long nt,
-	double dt, double t1, double fmin, double fmax, long nf, double df,
+autoFormantFilter FormantFilter_create (double tmin, double tmax, integer nt,
+	double dt, double t1, double fmin, double fmax, integer nf, double df,
 	double f1);
 
 void FormantFilter_drawFilterFunctions (FormantFilter me, Graphics g, double bandwidth,
 	int freqScale, int fromFilter, int toFilter, double zmin, double zmax,
-	int dbScale, double ymin, double ymax, int garnish);
+	int dbScale, double ymin, double ymax, bool garnish);
 
 autoFormantFilter Matrix_to_FormantFilter (Matrix me);
 
@@ -155,7 +156,7 @@ autoSpectrum FormantFilter_to_Spectrum_slice (FormantFilter me, double t);
 
 autoIntensity FilterBank_to_Intensity (FilterBank me);
 
-void FilterBank_and_PCA_drawComponent (FilterBank me, PCA thee, Graphics g, long component, double dblevel,
+void FilterBank_PCA_drawComponent (FilterBank me, PCA thee, Graphics g, integer component, double dblevel,
 	double frequencyOffset, double scale, double tmin, double tmax, double fmin, double fmax);
 
 // Convert old types to new types
@@ -167,12 +168,12 @@ autoBarkSpectrogram BarkFilter_to_BarkSpectrogram (BarkFilter me);
 autoSpectrogram FormantFilter_to_Spectrogram (FormantFilter me);
 
 
-autoMFCC MelFilter_to_MFCC (MelFilter me, long numberOfCoefficients);
+autoMFCC MelFilter_to_MFCC (MelFilter me, integer numberOfCoefficients);
 /*
 Calculates the Cosine Transform of the filterbank values.
 */
 
-autoMelFilter MFCC_to_MelFilter (MFCC me, long firstCoefficient, long lastCoefficient);
+autoMelFilter MFCC_to_MelFilter (MFCC me, integer firstCoefficient, integer lastCoefficient);
 /*
 Calculates the Inverse CT of cepstral coefficients.
 */
@@ -195,7 +196,7 @@ autoFormantFilter Sound_to_FormantFilter (Sound me, double analysisWidth,
 	double dt, double f1_hz, double fmax_hz, double df_hz, double relative_bw,
 	double minimumPitch, double maximumPitch);
 
-autoFormantFilter Sound_and_Pitch_to_FormantFilter (Sound me, Pitch thee,
+autoFormantFilter Sound_Pitch_to_FormantFilter (Sound me, Pitch thee,
 	double analysisWidth, double dt, double f1_hz, double fmax_hz,
 	double df_hz, double relative_bw);
 

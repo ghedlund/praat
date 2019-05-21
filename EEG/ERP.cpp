@@ -1,6 +1,6 @@
 /* ERP.cpp
  *
- * Copyright (C) 2011-2012,2013,2014,2015,2016 Paul Boersma
+ * Copyright (C) 2011-2012,2013,2014,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,16 +41,15 @@
 
 Thing_implement (ERP, Sound, 2);
 
-long ERP_getChannelNumber (ERP me, const char32 *channelName) {
-	for (long ichan = 1; ichan <= my ny; ichan ++) {
-		if (Melder_equ (my channelNames [ichan], channelName)) {
+integer ERP_getChannelNumber (ERP me, conststring32 channelName) {
+	for (integer ichan = 1; ichan <= my ny; ichan ++) {
+		if (Melder_equ (my channelNames [ichan].get(), channelName))
 			return ichan;
-		}
 	}
 	return 0;
 }
 
-void ERP_drawChannel_number (ERP me, Graphics graphics, long channelNumber, double tmin, double tmax, double vmin, double vmax, bool garnish) {
+void ERP_drawChannel_number (ERP me, Graphics graphics, integer channelNumber, double tmin, double tmax, double vmin, double vmax, bool garnish) {
 	if (channelNumber < 1 || channelNumber > my ny) return;
 	/*
 	 * Automatic domain.
@@ -62,7 +61,7 @@ void ERP_drawChannel_number (ERP me, Graphics graphics, long channelNumber, doub
 	/*
 	 * Domain expressed in sample numbers.
 	 */
-	long ixmin, ixmax;
+	integer ixmin, ixmax;
 	Matrix_getWindowSamplesX (me, tmin, tmax, & ixmin, & ixmax);
 	/*
 	 * Automatic vertical range.
@@ -79,11 +78,11 @@ void ERP_drawChannel_number (ERP me, Graphics graphics, long channelNumber, doub
 	 */
 	Graphics_setInner (graphics);
 	Graphics_setWindow (graphics, tmin, tmax, vmin, vmax);
-	Graphics_function (graphics, my z [channelNumber], ixmin, ixmax, Matrix_columnToX (me, ixmin), Matrix_columnToX (me, ixmax));
+	Graphics_function (graphics, & my z [channelNumber] [0], ixmin, ixmax, Matrix_columnToX (me, ixmin), Matrix_columnToX (me, ixmax));
 	Graphics_unsetInner (graphics);
 	if (garnish) {
 		Graphics_drawInnerBox (graphics);
-		Graphics_textTop (graphics, true, Melder_cat (U"Channel ", my channelNames [channelNumber]));
+		Graphics_textTop (graphics, true, Melder_cat (U"Channel ", my channelNames [channelNumber].get()));
 		Graphics_textBottom (graphics, true, U"Time (s)");
 		Graphics_marksBottom (graphics, 2, true, true, false);
 		if (0.0 > tmin && 0.0 < tmax)
@@ -98,13 +97,13 @@ void ERP_drawChannel_number (ERP me, Graphics graphics, long channelNumber, doub
 
 }
 
-void ERP_drawChannel_name (ERP me, Graphics graphics, const char32 *channelName, double tmin, double tmax, double vmin, double vmax, bool garnish) {
+void ERP_drawChannel_name (ERP me, Graphics graphics, conststring32 channelName, double tmin, double tmax, double vmin, double vmax, bool garnish) {
 	ERP_drawChannel_number (me, graphics, ERP_getChannelNumber (me, channelName), tmin, tmax, vmin, vmax, garnish);
 }
 
 autoTable ERP_tabulate (ERP me, bool includeSampleNumbers, bool includeTime, int timeDecimals, int voltageDecimals, int units) {
 	double voltageScaling = 1.0;
-	const char32 *unitText = U"(V)";
+	conststring32 unitText = U"(V)";
 	if (units == 2) {
 		voltageDecimals -= 6;
 		voltageScaling = 1000000.0;
@@ -112,17 +111,17 @@ autoTable ERP_tabulate (ERP me, bool includeSampleNumbers, bool includeTime, int
 	}
 	try {
 		autoTable thee = Table_createWithoutColumnNames (my nx, includeSampleNumbers + includeTime + my ny);
-		long icol = 0;
+		integer icol = 0;
 		if (includeSampleNumbers) Table_setColumnLabel (thee.get(), ++ icol, U"sample");
 		if (includeTime) Table_setColumnLabel (thee.get(), ++ icol, U"time(s)");
-		for (long ichan = 1; ichan <= my ny; ichan ++) {
-			Table_setColumnLabel (thee.get(), ++ icol, Melder_cat (my channelNames [ichan], unitText));
+		for (integer ichan = 1; ichan <= my ny; ichan ++) {
+			Table_setColumnLabel (thee.get(), ++ icol, Melder_cat (my channelNames [ichan].get(), unitText));
 		}
-		for (long isamp = 1; isamp <= my nx; isamp ++) {
+		for (integer isamp = 1; isamp <= my nx; isamp ++) {
 			icol = 0;
 			if (includeSampleNumbers) Table_setNumericValue (thee.get(), isamp, ++ icol, isamp);
 			if (includeTime) Table_setStringValue (thee.get(), isamp, ++ icol, Melder_fixed (my x1 + (isamp - 1) * my dx, timeDecimals));
-			for (long ichan = 1; ichan <= my ny; ichan ++) {
+			for (integer ichan = 1; ichan <= my ny; ichan ++) {
 				Table_setStringValue (thee.get(), isamp, ++ icol, Melder_fixed (voltageScaling * my z [ichan] [isamp], voltageDecimals));
 			}
 		}

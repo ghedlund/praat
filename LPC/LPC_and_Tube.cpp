@@ -1,6 +1,6 @@
 /* LPC_and_Tube.cpp
  *
- * Copyright (C) 1993-2012, 2014-2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  djmw 20020612 GPL header
  djmw 20041020 struct Tube_Frame -> struct structTube_Frame; struct LPC_Frame -> struct structLPC_Frame;
  	struct Formant_Frame->struct structFormant_Frame
- djmw 20051005 Always make a VocalTract with length 0.01 m when wakita_length==NUMundefined.
+ djmw 20051005 Always make a VocalTract with length 0.01 m when isundef(wakita_length).
 */
 
 #include "LPC_and_Tube.h"
@@ -33,44 +33,18 @@
 // IEEE: Programs fo digital signal processing section 4.3 LPTRN
 
 void LPC_Frame_into_Tube_Frame_rc (LPC_Frame me, Tube_Frame thee) {
-	long p = my nCoefficients;
-	Melder_assert (p <= thy nSegments); //TODO
-
-	autoNUMvector<double> b (1, p);
-	autoNUMvector<double> a (1, p);
-
-	for (long i = 1; i <= p; i++) {
-		a[i] = my a[i];
-	}
-
-	double *rc = thy c;
-	for (long m = p; m > 0; m--) {
-		rc[m] = a[m];
-		if (fabs (rc[m]) > 1) {
-			Melder_throw (U"Relection coefficient [", m, U"] larger 1.");    // TODO kan er geen Tube worden gemaakt?
-		}
-		for (long i = 1; i < m; i++) {
-			b[i] = a[i];
-		}
-		for (long i = 1; i < m; i++) {
-			a[i] = (b[i] - rc[m] * b[m - i]) / (1.0 - rc[m] * rc[m]);
-		}
-	}
+	Melder_assert (my nCoefficients <= thy numberOfSegments);
+	VECrc_from_lpc (thy c.part (1, my nCoefficients), my a.part (1, my nCoefficients));
 }
 
 void LPC_Frame_into_Tube_Frame_area (LPC_Frame me, Tube_Frame thee) {
-	struct structTube_Frame rc_struct = { 0 };
-	Tube_Frame rc = & rc_struct;
-	Tube_Frame_init (rc, my nCoefficients, thy length);
-	LPC_Frame_into_Tube_Frame_rc (me, rc);
-	Tube_Frames_rc_into_area (rc, thee);
-	rc -> destroy ();
+	VECarea_from_lpc (thy c.part (1, my nCoefficients), my a.part (1, my nCoefficients));
 }
 
-double VocalTract_and_LPC_Frame_getMatchingLength (VocalTract me, LPC_Frame thee, double glottalDamping, bool radiationDamping, bool internalDamping) {
+double VocalTract_LPC_Frame_getMatchingLength (VocalTract me, LPC_Frame thee, double glottalDamping, bool radiationDamping, bool internalDamping) {
 	try {
 		// match the average distance between the first two formants in the VocaTract and the LPC spectrum
-		long numberOfFrequencies = 1000;
+		integer numberOfFrequencies = 1000;
 		double maximumFrequency = 5000.0;
 		autoSpectrum vts = VocalTract_to_Spectrum (me, numberOfFrequencies, maximumFrequency, glottalDamping, radiationDamping, internalDamping);
 		double samplingFrequency =  1000.0 * my nx;
@@ -96,8 +70,8 @@ double LPC_Frame_getVTL_wakita (LPC_Frame me, double samplingPeriod, double refL
 	struct structTube_Frame rc_struct, af_struct;
 	Tube_Frame rc = & rc_struct, af = & af_struct;
 	try {
-		long m = my nCoefficients;
-		double length, dlength = 0.001, wakita_length = NUMundefined;
+		integer m = my nCoefficients;
+		double length, dlength = 0.001, wakita_length = undefined;
 		double varMin = 1e308;
 
 		memset (& lpc_struct, 0, sizeof (lpc_struct));
@@ -115,21 +89,20 @@ double LPC_Frame_getVTL_wakita (LPC_Frame me, double samplingPeriod, double refL
 		LPC_Frame_into_Formant_Frame (me, f, samplingPeriod, 0);
 
 		// LPC_Frame_into_Formant_Frame performs the Formant_Frame_init !!
+		
+		Melder_require (f -> nFormants > 0, U"Not enough formants.");
+		
 
-		if (f -> nFormants < 1) {
-			Melder_throw (U"Not enough formants.");
-		}
-
-		double *area = af -> c;
+		double *area = af -> c.at; // TODO
 		double lmin = length = 0.10;
 		double plength = refLength;
 		while (length <= 0.25) {
 			// Step 3
 
 			double fscale = plength / length;
-			for (long i = 1; i <= f -> nFormants; i++) {
-				f -> formant[i].frequency *= fscale;
-				f -> formant[i].bandwidth *= fscale;
+			for (integer i = 1; i <= f -> nFormants; i ++) {
+				f -> formant [i].frequency *= fscale;
+				f -> formant [i].bandwidth *= fscale;
 			}
 
 			/*
@@ -159,15 +132,15 @@ double LPC_Frame_getVTL_wakita (LPC_Frame me, double samplingPeriod, double refL
 			// step 6.2 Log(areas)
 
 			double logSum = 0.0;
-			for (long i = 1; i <= af -> nSegments; i++) {
-				area[i] = log (area[i]);
-				logSum += area[i];
+			for (integer i = 1; i <= af -> numberOfSegments; i ++) {
+				area [i] = log (area [i]);
+				logSum += area [i];
 			}
 
 			// step 6.3 and 7
 			double var = 0.0;
-			for (long i = 1; i <= af -> nSegments; i++) {
-				double delta = area[i] - logSum / af -> nSegments;
+			for (integer i = 1; i <= af -> numberOfSegments; i ++) {
+				double delta = area [i] - logSum / af -> numberOfSegments;
 				var += delta * delta;
 			}
 
@@ -189,7 +162,7 @@ double LPC_Frame_getVTL_wakita (LPC_Frame me, double samplingPeriod, double refL
 		lpc -> destroy ();
 		rc -> destroy ();
 		af -> destroy ();
-		return NUMundefined;
+		return undefined;
 	}
 }
 
@@ -213,16 +186,12 @@ void VocalTract_setLength (VocalTract me, double newLength) {
 
 autoVocalTract LPC_to_VocalTract (LPC me, double time, double glottalDamping, bool radiationDamping, bool internalDamping) {
 	try {
-		long iframe = Sampled_xToLowIndex (me, time);   // ppgb: BUG? Is rounding down the correct thing to do? not nearestIndex?
-		if (iframe < 1) {
-			iframe = 1;
-		}
-		if (iframe > my nx) {
-			iframe = my nx;
-		}
-		LPC_Frame lpc = & my d_frames[iframe];
+		integer iframe = Sampled_xToLowIndex (me, time);   // ppgb: BUG? Is rounding down the correct thing to do? not nearestIndex?
+		if (iframe < 1) iframe = 1;
+		if (iframe > my nx) iframe = my nx;
+		LPC_Frame lpc = & my d_frames [iframe];
 		autoVocalTract thee = LPC_Frame_to_VocalTract (lpc, 0.17);
-		double length = VocalTract_and_LPC_Frame_getMatchingLength (thee.get(), lpc, glottalDamping, radiationDamping, internalDamping);
+		double length = VocalTract_LPC_Frame_getMatchingLength (thee.get(), lpc, glottalDamping, radiationDamping, internalDamping);
 		VocalTract_setLength (thee.get(), length);
 		return thee;
 	} catch (MelderError) {
@@ -232,16 +201,13 @@ autoVocalTract LPC_to_VocalTract (LPC me, double time, double glottalDamping, bo
 
 autoVocalTract LPC_Frame_to_VocalTract (LPC_Frame me, double length) {
 	try {
-		long m = my nCoefficients;
-		autoNUMvector<double> area (1, m + 1);
-		NUMlpc_lpc_to_area (my a, m, area.peek());
+		integer m = my nCoefficients;
 		autoVocalTract thee = VocalTract_create (m, length / m);
+		VECarea_from_lpc (thy z.row (1), my a.part (1, m));
+		// area [lips..glottis] (m^2) to VocalTract [glottis..lips] (m^2)
 
-		// area[lips..glottis] (m^2) to VocalTract[glottis..lips] (m^2)
-
-		for (long i = 1; i <= m; i++) {
-			thy z[1][i] = area[m + 1 - i];
-		}
+		for (integer i = 1; i <= m / 2; i ++)
+			std::swap (thy z [1] [i], thy z [1] [m + 1 - i]);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (U"No VocalTract created from LPC_Frame.");
@@ -250,20 +216,15 @@ autoVocalTract LPC_Frame_to_VocalTract (LPC_Frame me, double length) {
 
 autoVocalTract LPC_to_VocalTract (LPC me, double time, double length) {
 	try {
-		long iframe = Sampled_xToLowIndex (me, time);   // ppgb: BUG? Is rounding down the correct thing to do?
-		if (iframe < 1) {
-			iframe = 1;
-		}
-		if (iframe > my nx) {
-			iframe = my nx;
-		}
-		LPC_Frame lpc = & my d_frames[iframe];
+		integer iframe = Sampled_xToNearestIndex (me, time);
+		if (iframe < 1) iframe = 1;
+		if (iframe > my nx) iframe = my nx;
+		LPC_Frame lpc = & my d_frames [iframe];
 		autoVocalTract thee = LPC_Frame_to_VocalTract (lpc, length);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no VocalTract created.");
 	}
 }
-
 
 /* End of file LPC_and_Tube.cpp */

@@ -2,7 +2,7 @@
 #define _ManPage_h_
 /* ManPage.h
  *
- * Copyright (C) 1996-2011,2015 Paul Boersma
+ * Copyright (C) 1996-2008,2011,2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,18 @@
 #include "ManPage_enums.h"
 
 typedef struct structManPage_Paragraph {
-	short type;
-	const char32 *text;
+	enum kManPage_type type;
+	conststring32 text;
 	double width, height;
 	void (*draw) (Graphics g);
 } *ManPage_Paragraph;
 
 Thing_define (ManPage, Thing) {
-	const char32 *title, *author;
-	long date;
+	autostring32 title, author;
+	integer date;
 	struct structManPage_Paragraph *paragraphs;
-	long nlinksHither, nlinksThither;
-	long *linksHither, *linksThither;
+	integer nlinksHither, nlinksThither;
+	integer *linksHither, *linksThither;
 	double recordingTime;
 };
 

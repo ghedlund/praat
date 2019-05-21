@@ -1,6 +1,6 @@
 /* Table_extensions.cpp
 	 *
- * Copyright (C) 1997-2017 David Weenink
+ * Copyright (C) 1997-2018 David Weenink, Paul Boersma 2017
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,10 @@
 
 /*
   djmw 20020619 GPL header
-  djmw 20040113 Added comment header for Peterson&Barney data.
-  djmw 20040512 Corrected Peterson&Barney ARPABET-labeling.
+  djmw 20040113 Added comment header for Peterson& Barney data.
+  djmw 20040512 Corrected Peterson& Barney ARPABET-labeling.
   djmw 20041213 Added Table_createFromWeeninkData.
-  djmw 20080125 Corrected mislabeling of vowels in the Peterson&Barney dataset according to Watrous
+  djmw 20080125 Corrected mislabeling of vowels in the Peterson& Barney dataset according to Watrous
   djmw 20080508 Labeling back to original PB article.
   djmw 20110329 Table_get(Numeric|String)Value is now Table_get(Numeric|String)Value_Assert
   djmw 20131219 Improved Table_scatterPlotWithConfidenceIntervals
@@ -42,24 +42,24 @@
 #include "SSCP.h"
 #include "Table_extensions.h"
 
-static bool Table_selectedColumnPartIsNumeric (Table me, long column, long *selectedRows, long numberOfSelectedRows) {
+static bool Table_selectedColumnPartIsNumeric (Table me, integer column, constINTVEC selectedRows) {
 	if (column < 1 || column > my numberOfColumns) return false;
-	for (long irow = 1; irow <= numberOfSelectedRows; irow++) {
-		if (! Table_isCellNumeric_ErrorFalse (me, selectedRows[irow], column)) return false;
+	for (integer irow = 1; irow <= selectedRows.size; irow ++) {
+		if (! Table_isCellNumeric_ErrorFalse (me, selectedRows [irow], column)) return false;
 	}
 	return true;
 }
 
-// column and selectedRows are valid; *min & *max must be intialized
-static void Table_columnExtremesFromSelectedRows (Table me, long column, long *selectedRows, long numberOfSelectedRows, double *min, double *max) {
+// column and selectedRows are valid; *min & *max must have been initialized
+static void Table_columnExtremesFromSelectedRows (Table me, integer column, constINTVEC selectedRows, double *out_min, double *out_max) {
 	double cmin = 1e308, cmax = - cmin;
-	for (long irow = 1; irow <= numberOfSelectedRows; irow++) {
-		double val = Table_getNumericValue_Assert (me, selectedRows[irow], column);
-		if (val < cmin) { cmin = val; }
-		if (val > cmax) { cmax = val; }
+	for (integer irow = 1; irow <= selectedRows.size; irow ++) {
+		double val = Table_getNumericValue_Assert (me, selectedRows [irow], column);
+		if (val < cmin) cmin = val; 
+		if (val > cmax) cmax = val;
 	}
-	*min = cmin;
-	*max = cmax;
+	if (out_min) *out_min = cmin;
+	if (out_max) *out_max = cmax;
 }
 
 /*
@@ -89,22 +89,22 @@ are type 1 (men), type 2 (women) and type 3 (children)."
 */
 
 autoTable Table_create_petersonBarney1952 () {
-	long nrows = 1520, ncols = 9;
-	const char32 *columnLabels[9] = {U"Type", U"Sex", U"Speaker", U"Vowel", U"IPA", U"F0", U"F1", U"F2", U"F3"};
-	const char32 *type[3] = {U"m", U"w", U"c"};
+	integer nrows = 1520, ncols = 9;
+	conststring32 columnLabels [9] = {U"Type", U"Sex", U"Speaker", U"Vowel", U"IPA", U"F0", U"F1", U"F2", U"F3"};
+	conststring32 type [3] = {U"m", U"w", U"c"};
 	// Wrong order before 20080125
-	//	char32 *vowel[10] = {U"iy", U"ih", U"eh", U"ae", U"aa", U"ao", U"uh", U"uw", U"ah", U"er"};
-	//	char32 *ipa[10] = {U"i", U"\\ic", U"\\ep", U"\\ae", U"\\as", U"\\ct", U"\\hs", U"u",
+	//	char32 *vowel [10] = {U"iy", U"ih", U"eh", U"ae", U"aa", U"ao", U"uh", U"uw", U"ah", U"er"};
+	//	char32 *ipa [10] = {U"i", U"\\ic", U"\\ep", U"\\ae", U"\\as", U"\\ct", U"\\hs", U"u",
 	//		U"\\vt", U"\\er\\hr"};
-	const char32 *vowel[10] = {U"iy", U"ih", U"eh", U"ae", U"ah", U"aa", U"ao", U"uh", U"uw", U"er"};
+	conststring32 vowel [10] = {U"iy", U"ih", U"eh", U"ae", U"ah", U"aa", U"ao", U"uh", U"uw", U"er"};
 	// Watrous IPA symbols
-	//	char32 *ipa[10] = {U"i", U"\\ic", U"e", U"\\ae", U"\\vt", U"\\as", U"o", U"\\hs", U"u", U"\\er"};
-	// P&B IPA symbols
-	const char32 *ipa[10] = {U"i", U"\\ic", U"\\ef", U"\\ae", U"\\vt", U"\\as", U"\\ct", U"\\hs", U"u", U"\\er\\hr"};
-	const char32 *sex[2] = {U"m", U"f"};
+	//	char32 *ipa [10] = {U"i", U"\\ic", U"e", U"\\ae", U"\\vt", U"\\as", U"o", U"\\hs", U"u", U"\\er"};
+	// P& B IPA symbols
+	conststring32 ipa [10] = {U"i", U"\\ic", U"\\ef", U"\\ae", U"\\vt", U"\\as", U"\\ct", U"\\hs", U"u", U"\\er\\hr"};
+	conststring32 sex [2] = {U"m", U"f"};
 	struct pbdatum {
 		short star; /* was there a * in front of the vowel-type? */
-		short f[4];	/* f0, f1, f2, f3 */
+		short f [4];	/* f0, f1, f2, f3 */
 	} pbdata [] = {
 		{0, {160, 240, 2280, 2850}},
 		{0, {186, 280, 2400, 2790}},
@@ -1631,36 +1631,37 @@ autoTable Table_create_petersonBarney1952 () {
 	try {
 		autoTable me = Table_create (nrows, ncols);
 
-		for (long i = 1; i <= nrows; i ++) {
+		for (integer i = 1; i <= nrows; i ++) {
 			TableRow row = my rows.at [i];
 			int vowel_id = ( (i - 1) % 20) / 2 + 1;	/* 1 - 10 */
 			int speaker_id = (i - 1) / 20 + 1;		/* 1 - 76 */
 			int speaker_type, speaker_sex;
 
 			if (speaker_id <= 33) { /* 33 men */
-				speaker_type = 0; speaker_sex = 0;
+				speaker_type = 0;
+				speaker_sex = 0;
 			} else if (speaker_id <= (33 + 28)) { /* 28 women */
-				speaker_type = 1; speaker_sex = 1;
+				speaker_type = 1;
+				speaker_sex = 1;
 			} else { /*15  children */
-				speaker_type = 2; speaker_sex = 0;
+				speaker_type = 2;
+				speaker_sex = 0;
 				if (speaker_id == 62 || speaker_id == 63 ||
-				        (speaker_id >= 65 && speaker_id <= 68) ||
-				        speaker_id == 73 || speaker_id == 76) {
+					(speaker_id >= 65 && speaker_id <= 68) ||
+					speaker_id == 73 || speaker_id == 76)
 					speaker_sex = 1;
-				}
 			}
 
-			row -> cells [1]. string = Melder_dup_f (type [speaker_type]);
-			row -> cells [2]. string = Melder_dup_f (sex [speaker_sex]);
-			row -> cells [3]. string = Melder_dup_f (Melder_integer (speaker_id));
-			row -> cells [4]. string = Melder_dup_f (vowel [vowel_id - 1]);
-			row -> cells [5]. string = Melder_dup_f (ipa [vowel_id - 1]);
-			for (long j = 0; j <= 3; j++) {
-				row -> cells [j + 6]. string = Melder_dup_f (Melder_integer (pbdata[i - 1].f[j]));
-			}
+			row -> cells [1]. string = Melder_dup (type [speaker_type]);
+			row -> cells [2]. string = Melder_dup (sex [speaker_sex]);
+			row -> cells [3]. string = Melder_dup (Melder_integer (speaker_id));
+			row -> cells [4]. string = Melder_dup (vowel [vowel_id - 1]);
+			row -> cells [5]. string = Melder_dup (ipa [vowel_id - 1]);
+			for (integer j = 0; j <= 3; j ++)
+				row -> cells [j + 6]. string = Melder_dup (Melder_integer (pbdata [i - 1].f [j]));
 		}
-		for (long j = 1; j <= ncols; j++) {
-			Table_setColumnLabel (me.get(), j, columnLabels[j - 1]);
+		for (integer j = 1; j <= ncols; j ++) {
+			Table_setColumnLabel (me.get(), j, columnLabels [j - 1]);
 			my columnHeaders [j]. numericized = false;
 		}
 		return me;
@@ -1670,14 +1671,14 @@ autoTable Table_create_petersonBarney1952 () {
 }
 
 autoTable Table_create_polsVanNierop1973 () {
-	long nrows = 900, ncols = 10;
-	const char32 *columnLabels[10] = {U"Sex", U"Speaker", U"Vowel", U"IPA", U"F1", U"F2", U"F3", U"L1", U"L2", U"L3"};
-	const char32 *vowel[12] = {U"oe", U"aa", U"oo", U"a", U"eu", U"ie", U"uu", U"ee", U"u", U"e", U"o", U"i"};
-	const char32 *ipa[12] = {U"u", U"a", U"o", U"\\as", U"\\o/", U"i", U"y", U"e", U"\\yc", U"\\ep", U"\\ct", U"\\ic"};
-	const char32 *sex[2] = {U"m", U"f"};
+	integer nrows = 900, ncols = 10;
+	conststring32 columnLabels [10] = {U"Sex", U"Speaker", U"Vowel", U"IPA", U"F1", U"F2", U"F3", U"L1", U"L2", U"L3"};
+	conststring32 vowel [12] = {U"oe", U"aa", U"oo", U"a", U"eu", U"ie", U"uu", U"ee", U"u", U"e", U"o", U"i"};
+	conststring32 ipa [12] = {U"u", U"a", U"o", U"\\as", U"\\o/", U"i", U"y", U"e", U"\\yc", U"\\ep", U"\\ct", U"\\ic"};
+	conststring32 sex [2] = {U"m", U"f"};
 	struct polsdatum {
-		short f[3]; /* frequency F1, F2, F3 */
-		short l[3];	/* level f1, f2, f3 */
+		short f [3]; /* frequency F1, F2, F3 */
+		short l [3];	/* level f1, f2, f3 */
 	} polsdata [] = {
 		/* 50*12 males */
 		/* male 1 */
@@ -2660,23 +2661,23 @@ autoTable Table_create_polsVanNierop1973 () {
 	try {
 		autoTable me = Table_create (nrows, ncols);
 
-		for (long i = 1; i <= nrows; i ++) {
+		for (integer i = 1; i <= nrows; i ++) {
 			TableRow row = my rows.at [i];
 			int vowel_id = ( (i - 1) % 12) + 1;	/* 1 - 12 */
 			int speaker_id = (i - 1) / 12 + 1;  /* 1 - 75 */
 			int speaker_sex = ( speaker_id <= 50 ? 0 : 1 );
 
-			row -> cells [1]. string = Melder_dup_f (sex [speaker_sex]);
-			row -> cells [2]. string = Melder_dup_f (Melder_integer (speaker_id));
-			row -> cells [3]. string = Melder_dup_f (vowel [vowel_id - 1]);
-			row -> cells [4]. string = Melder_dup_f (ipa [vowel_id - 1]);
-			for (long j = 0; j <= 2; j ++) {
-				row -> cells [j + 5]. string = Melder_dup_f (Melder_integer (polsdata [i - 1]. f [j]));
-				row -> cells [j + 8]. string = Melder_dup_f (Melder_integer (polsdata [i - 1]. l [j]));
+			row -> cells [1]. string = Melder_dup (sex [speaker_sex]);
+			row -> cells [2]. string = Melder_dup (Melder_integer (speaker_id));
+			row -> cells [3]. string = Melder_dup (vowel [vowel_id - 1]);
+			row -> cells [4]. string = Melder_dup (ipa [vowel_id - 1]);
+			for (integer j = 0; j <= 2; j ++) {
+				row -> cells [j + 5]. string = Melder_dup (Melder_integer (polsdata [i - 1]. f [j]));
+				row -> cells [j + 8]. string = Melder_dup (Melder_integer (polsdata [i - 1]. l [j]));
 			}
 		}
-		for (long j = 1; j <= ncols; j++) {
-			Table_setColumnLabel (me.get(), j, columnLabels[j - 1]);
+		for (integer j = 1; j <= ncols; j ++) {
+			Table_setColumnLabel (me.get(), j, columnLabels [j - 1]);
 			my columnHeaders [j]. numericized = false;
 		}
 		return me;
@@ -2686,17 +2687,17 @@ autoTable Table_create_polsVanNierop1973 () {
 }
 
 autoTable Table_create_weenink1983 () {
-	long nrows = 360, ncols = 9;
-	const char32 *columnLabels[9] = {U"Type", U"Sex", U"Speaker", U"Vowel", U"IPA", U"F0", U"F1", U"F2", U"F3"};
-	const char32 *type[3] = {U"m", U"w", U"c"};
+	integer nrows = 360, ncols = 9;
+	conststring32 columnLabels [9] = {U"Type", U"Sex", U"Speaker", U"Vowel", U"IPA", U"F0", U"F1", U"F2", U"F3"};
+	conststring32 type [3] = {U"m", U"w", U"c"};
 	/* Our order: "oe", "o", "oo", "a", "aa", "u", "eu", "uu", "ie", "i", "ee", "e"
 		to Pols & van Nierop order */
-	int order[13] = { 0, 1, 5, 3, 4, 7, 9, 8, 11, 6, 12, 2, 10};
-	const char32 *vowel[13] = {U"", U"oe", U"aa", U"oo", U"a", U"eu", U"ie", U"uu", U"ee", U"u", U"e", U"o", U"i"};
-	const char32 *ipa[13] = {U"", U"u", U"a", U"o", U"\\as", U"\\o/", U"i", U"y", U"e", U"\\yc", U"\\ep", U"\\ct", U"\\ic"};
-	const char32 *sex[2] = {U"m", U"f"};
+	int order [13] = { 0, 1, 5, 3, 4, 7, 9, 8, 11, 6, 12, 2, 10};
+	conststring32 vowel [13] = {U"", U"oe", U"aa", U"oo", U"a", U"eu", U"ie", U"uu", U"ee", U"u", U"e", U"o", U"i"};
+	conststring32 ipa [13] = {U"", U"u", U"a", U"o", U"\\as", U"\\o/", U"i", U"y", U"e", U"\\yc", U"\\ep", U"\\ct", U"\\ic"};
+	conststring32 sex [2] = {U"m", U"f"};
 	struct weeninkdatum {
-		short f[4];	  // f0, f1, f2, f3
+		short f [4];	  // f0, f1, f2, f3
 	} weeninkdata [] = {
 		{{182, 335,  748, 2332}},
 		{{170, 435,  669, 2886}},
@@ -3092,32 +3093,34 @@ autoTable Table_create_weenink1983 () {
 	try {
 		autoTable me = Table_create (nrows, ncols);
 
-		for (long i = 1; i <= nrows; i ++) {
+		for (integer i = 1; i <= nrows; i ++) {
 			TableRow row = my rows.at [i];
 			int speaker_id = (i - 1) / 12 + 1;	// 1 - 30
 			int vowel_id = (i - 1) % 12 + 1;	// 1 - 12
-			int index_in_data = (speaker_id - 1) * 12 + order[vowel_id] - 1;
+			int index_in_data = (speaker_id - 1) * 12 + order [vowel_id] - 1;
 			int speaker_type, speaker_sex;
 
 			if (speaker_id <= 10) {   // 10 men
-				speaker_type = 0; speaker_sex = 0;
+				speaker_type = 0;
+				speaker_sex = 0;
 			} else if (speaker_id <= 20) {   // 10 women
-				speaker_type = 1; speaker_sex = 1;
+				speaker_type = 1;
+				speaker_sex = 1;
 			} else {   // 10 children
-				speaker_type = 2; speaker_sex = 0;   // which children were m/f
+				speaker_type = 2;
+				speaker_sex = 0;   // which children were m/f
 			}
 
-			row -> cells [1]. string = Melder_dup_f (type [speaker_type]);
-			row -> cells [2]. string = Melder_dup_f (sex [speaker_sex]);
-			row -> cells [3]. string = Melder_dup_f (Melder_integer (speaker_id));
-			row -> cells [4]. string = Melder_dup_f (vowel [vowel_id]);
-			row -> cells [5]. string = Melder_dup_f (ipa [vowel_id]);
+			row -> cells [1]. string = Melder_dup (type [speaker_type]);
+			row -> cells [2]. string = Melder_dup (sex [speaker_sex]);
+			row -> cells [3]. string = Melder_dup (Melder_integer (speaker_id));
+			row -> cells [4]. string = Melder_dup (vowel [vowel_id]);
+			row -> cells [5]. string = Melder_dup (ipa [vowel_id]);
 
-			for (long j = 0; j <= 3; j ++) {
-				row -> cells [j + 6]. string = Melder_dup_f (Melder_integer (weeninkdata [index_in_data]. f [j]));
-			}
+			for (integer j = 0; j <= 3; j ++)
+				row -> cells [j + 6]. string = Melder_dup (Melder_integer (weeninkdata [index_in_data]. f [j]));
 		}
-		for (long j = 1; j <= ncols; j ++) {
+		for (integer j = 1; j <= ncols; j ++) {
 			Table_setColumnLabel (me.get(), j, columnLabels [j - 1]);
 			my columnHeaders [j]. numericized = false;
 		}
@@ -3127,7 +3130,7 @@ autoTable Table_create_weenink1983 () {
 	}
 }
 
-// Keating&Esposito (2006), 
+// Keating& Esposito (2006), 
 autoTable Table_create_esposito2006 () {
 	try {
 		autoTable me = Table_createWithColumnNames (10, U"Language Modal Breathy");
@@ -3195,43 +3198,34 @@ autoTable Table_create_ganong1980 () {
 }
 
 static bool intervalsIntersect (double x1, double x2, double xmin, double xmax, double *xc1, double *xc2) {
-	if (x1 > x2) { 
-		double tmp = x1;
-		x1 = x2;
-		x2 = tmp;
-	}
-	if (xmin > xmax) {
-		double tmp = xmin;
-		xmin = xmax;
-		xmin = tmp;
-	}
+	if (x1 > x2) 
+		std::swap (x1, x2);
+	if (xmin > xmax)
+		std::swap (xmin, xmax);
 	*xc1 = x1;
 	*xc2 = x2;
-	if (x2 <= xmin || x1 >= xmax) {
+	if (x2 <= xmin || x1 >= xmax)
 		return false;
-	}
-	if (x1 < xmin) {
+	if (x1 < xmin) 
 		*xc1 = xmin;
-	}
-	if (x2 > xmax) {
+	if (x2 > xmax) 
 		*xc2 = xmax;
-	}
 	return true;
 }
 
-void Table_horizontalErrorBarsPlotWhere (Table me, Graphics g, long xcolumn, long ycolumn, double xmin, double xmax, 
-	double ymin, double ymax, long xci_min, long xci_max, double bar_mm, bool garnish, const char32 *formula, Interpreter interpreter)
+void Table_horizontalErrorBarsPlotWhere (Table me, Graphics g, integer xcolumn, integer ycolumn, double xmin, double xmax, 
+	double ymin, double ymax, integer xci_min, integer xci_max, double bar_mm, bool garnish, conststring32 formula, Interpreter interpreter)
 {
 	try {
-		long nrows = my rows.size;
+		integer nrows = my rows.size;
 		if (xcolumn < 1 || xcolumn > nrows || ycolumn < 1 || ycolumn > nrows ||
 			(xci_min != 0 && xci_min > nrows) || (xci_max != 0 && xci_max > nrows)) {
 			return;
 		}
-		long numberOfSelectedRows = 0;
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);	
+		integer numberOfSelectedRows = 0;
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
 		if (ymin >= ymax) {
-			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.peek(), numberOfSelectedRows, &ymin, &ymax);
+			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.get(), & ymin, & ymax);
 			if (ymin >= ymax) {
 				ymin -= 1.0;
 				ymax += 1.0;
@@ -3239,13 +3233,13 @@ void Table_horizontalErrorBarsPlotWhere (Table me, Graphics g, long xcolumn, lon
 		}
 		double x1min, x1max;
 		if (xmin >= xmax) {
-			Table_columnExtremesFromSelectedRows (me, xcolumn, selectedRows.peek(), numberOfSelectedRows, &xmin, &xmax);
+			Table_columnExtremesFromSelectedRows (me, xcolumn, selectedRows.get(), & xmin, & xmax);
 			if (xci_min > 0) {
-				Table_columnExtremesFromSelectedRows (me, xci_min, selectedRows.peek(), numberOfSelectedRows, &x1min, &x1max);
+				Table_columnExtremesFromSelectedRows (me, xci_min, selectedRows.get(), & x1min, & x1max);
 				xmin -= x1max;
 			}
 			if (xci_max > 0) {
-				Table_columnExtremesFromSelectedRows (me, xci_max, selectedRows.peek(), numberOfSelectedRows, &x1min, &x1max);
+				Table_columnExtremesFromSelectedRows (me, xci_max, selectedRows.get(), & x1min, & x1max);
 				xmax += x1max;
 			}
 			if (xmin >= xmax) {
@@ -3256,22 +3250,24 @@ void Table_horizontalErrorBarsPlotWhere (Table me, Graphics g, long xcolumn, lon
 		Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 		Graphics_setInner (g);
 		double dy = Graphics_dyMMtoWC (g, bar_mm);
-		for (long row = 1; row <= numberOfSelectedRows; row++) {
-			double x = Table_getNumericValue_Assert (me, selectedRows [row], xcolumn);
-			double y = Table_getNumericValue_Assert (me, selectedRows [row], ycolumn);
-			double dx1 = ( xci_min > 0 ? Table_getNumericValue_Assert (me, selectedRows [row], xci_min) : 0 );
-			double dx2 = ( xci_max > 0 ? Table_getNumericValue_Assert (me, selectedRows [row], xci_max) : 0 );
+		for (integer irow = 1; irow <= numberOfSelectedRows; irow ++) {
+			double x = Table_getNumericValue_Assert (me, selectedRows [irow], xcolumn);
+			double y = Table_getNumericValue_Assert (me, selectedRows [irow], ycolumn);
+			double dx1 =
+				xci_min > 0 ? Table_getNumericValue_Assert (me, selectedRows [irow], xci_min) : 0.0;
+			double dx2 =
+				xci_max > 0 ? Table_getNumericValue_Assert (me, selectedRows [irow], xci_max) : 0.0;
 			double x1 = x - dx1, x2 = x + dx2, xc1, yc1, xc2, yc2;
 
 			if (x <= xmax && x >= xmin && y <= ymax && y >= ymin) {
 				// horizontal confidence interval
-				if (intervalsIntersect (x1, x2, xmin, xmax, &xc1, &xc2)) {
+				if (intervalsIntersect (x1, x2, xmin, xmax, & xc1, & xc2)) {
 					Graphics_line (g, xc1, y, xc2, y);
-					if (dy > 0 && intervalsIntersect (y - dy / 2, y + dy / 2, ymin, ymax, &yc1, &yc2)) {
-						if (xc1 >= xmin && dx1 > 0) {
+					if (dy > 0 && intervalsIntersect (y - dy / 2.0, y + dy / 2.0, ymin, ymax, & yc1, & yc2)) {
+						if (xc1 >= xmin && dx1 > 0.0) {
 							Graphics_line (g, xc1, yc1, xc1, yc2);
 						}
-						if (xc2 <= xmax && dx2 > 0) {
+						if (xc2 <= xmax && dx2 > 0.0) {
 							Graphics_line (g, xc2, yc1, xc2, yc2);
 						}
 					}
@@ -3291,20 +3287,19 @@ void Table_horizontalErrorBarsPlotWhere (Table me, Graphics g, long xcolumn, lon
 }
 
 void Table_verticalErrorBarsPlotWhere (Table me, Graphics g,
-	long xcolumn, long ycolumn, double xmin, double xmax,
-	double ymin, double ymax, long yci_min, long yci_max,
-	double bar_mm, bool garnish, const char32 *formula, Interpreter interpreter)
+	integer xcolumn, integer ycolumn, double xmin, double xmax,
+	double ymin, double ymax, integer yci_min, integer yci_max,
+	double bar_mm, bool garnish, conststring32 formula, Interpreter interpreter)
 {
 	try {
-		long nrows = my rows.size;
+		integer nrows = my rows.size;
 		if (xcolumn < 1 || xcolumn > nrows || ycolumn < 1 || ycolumn > nrows ||
 			(yci_min != 0 && yci_min > nrows) || (yci_max != 0 && yci_max > nrows)) {
 			return;
 		}
-		long numberOfSelectedRows = 0;
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
 		if (xmin >= xmax) {
-			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.peek(), numberOfSelectedRows, &ymin, &ymax);
+			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.get(), & ymin, & ymax);
 			if (xmin >= xmax) {
 				xmin -= 1.0;
 				xmax += 1.0;
@@ -3312,13 +3307,13 @@ void Table_verticalErrorBarsPlotWhere (Table me, Graphics g,
 		}
 		double y1min, y1max;
 		if (ymin >= ymax) {
-			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.peek(), numberOfSelectedRows, &ymin, &ymax);
+			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.get(), & ymin, & ymax);
 			if (yci_min > 0) {
-				Table_columnExtremesFromSelectedRows (me, yci_min, selectedRows.peek(), numberOfSelectedRows, &y1min, &y1max);
+				Table_columnExtremesFromSelectedRows (me, yci_min, selectedRows.get(), & y1min, & y1max);
 				ymin -= y1max;
 			}
 			if (yci_max > 0) {
-				Table_columnExtremesFromSelectedRows (me, yci_max, selectedRows.peek(), numberOfSelectedRows, &y1min, &y1max);
+				Table_columnExtremesFromSelectedRows (me, yci_max, selectedRows.get(), & y1min, & y1max);
 				ymax += y1max;
 			}
 			if (ymin >= ymax) {
@@ -3329,18 +3324,20 @@ void Table_verticalErrorBarsPlotWhere (Table me, Graphics g,
 		Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 		Graphics_setInner (g);
 		double dx = Graphics_dxMMtoWC (g, bar_mm);
-		for (long row = 1; row <= numberOfSelectedRows; row++) {
-			double x  = Table_getNumericValue_Assert (me, selectedRows[row], xcolumn);
-			double y  = Table_getNumericValue_Assert (me, selectedRows[row], ycolumn);
-			double dy1 = yci_min > 0 ? Table_getNumericValue_Assert (me, selectedRows[row], yci_min) : 0.0;
-			double dy2 = yci_max > 0 ? Table_getNumericValue_Assert (me, selectedRows[row], yci_max) : 0.0;
+		for (integer irow = 1; irow <= selectedRows.size; irow ++) {
+			double x  = Table_getNumericValue_Assert (me, selectedRows [irow], xcolumn);
+			double y  = Table_getNumericValue_Assert (me, selectedRows [irow], ycolumn);
+			double dy1 =
+				yci_min > 0 ? Table_getNumericValue_Assert (me, selectedRows [irow], yci_min) : 0.0;
+			double dy2 =
+				yci_max > 0 ? Table_getNumericValue_Assert (me, selectedRows [irow], yci_max) : 0.0;
 			double y1 = y - dy1, y2 = y + dy2, xc1, yc1, xc2, yc2;
 
 			if (x <= xmax && x >= xmin && y <= ymax && y >= ymin) {
 				// vertical confidence interval
-				if (intervalsIntersect (y1, y2, ymin, ymax, &yc1, &yc2)) {
+				if (intervalsIntersect (y1, y2, ymin, ymax, & yc1, & yc2)) {
 					Graphics_line (g, x, yc1, x, yc2);
-					if (dx > 0 && intervalsIntersect (x - dx / 2.0, x + dx / 2.0, xmin, xmax, &xc1, &xc2)) {
+					if (dx > 0 && intervalsIntersect (x - dx / 2.0, x + dx / 2.0, xmin, xmax, & xc1, & xc2)) {
 						if (yc1 >= ymin && dy1 > 0.0) {
 							Graphics_line (g, xc1, yc1, xc2, yc1);
 						}
@@ -3363,103 +3360,112 @@ void Table_verticalErrorBarsPlotWhere (Table me, Graphics g,
 	}
 }
 
-double Table_getMedianAbsoluteDeviation (Table me, long columnNumber)
+double Table_getMedianAbsoluteDeviation (Table me, integer columnNumber) {
 	try {
-		Table_checkSpecifiedColumnNumberWithinRange (me, columnNumber);
-		Table_numericize_Assert (me, columnNumber);
-		if (my rows.size < 1) {
-			return NUMundefined;
-		}
-		autoNUMvector<double> data (1, my rows.size);
-		for (long irow = 1; irow <= my rows.size; irow ++) {
-			TableRow row = my rows.at [irow];
-			data[irow] = row -> cells[columnNumber].number;
-			if (data[irow] == NUMundefined) {
-				Melder_throw (me, U": the cell in row ", irow, U" of column \"",
-					my columnHeaders[columnNumber].label ? my columnHeaders[columnNumber].label : Melder_integer (columnNumber), U" is undefined.");
-			}
-		}
+		autoVEC data = Table_getColumnVector (me, columnNumber);
 		double mad, location;
-		NUMmad (data.peek(), my rows.size, &location, 1, &mad, nullptr);
+		NUMmad (data.get(), & location, true, & mad);
 		return mad;
 	} catch (MelderError) {
 		Melder_throw (me, U": cannot compute median absolute deviation of column ", columnNumber, U".");
 	}
+}
 
-autoTable Table_getOneWayKruskalWallis (Table me, long column, long factorColumn,
-	double *prob, double *p_kruskalWallis, double *p_df)
-{
+autoVEC Table_getColumnVector (Table me, integer columnNumber) {
 	try {
-		if (column < 1 || column > my numberOfColumns) {
-			Melder_throw (U"Invalid column number.");
+		Table_checkSpecifiedColumnNumberWithinRange (me, columnNumber);
+		Table_numericize_Assert (me, columnNumber);
+		Melder_require (my rows.size > 0, U"The table is empty.");
+		autoVEC result = newVECraw (my rows.size);
+		for (integer irow = 1; irow <= my rows.size; irow ++) {
+			TableRow row = my rows.at [irow];
+			result [irow] = row -> cells [columnNumber].number;
+			Melder_require (isdefined (result [irow]), 
+				U"The cell in row ", irow, U" of column ", Table_messageColumn (me, columnNumber), U" is undefined.");
 		}
-		if (factorColumn < 1 || factorColumn > my numberOfColumns || factorColumn == column) {
-			Melder_throw (U"Invalid group column number.");
-		}
-		long numberOfData = my rows.size;
-		Table_numericize_Assert (me, column);
-		autoNUMvector<double> data (1, numberOfData);
-		autoStringsIndex levels = Table_to_StringsIndex_column (me, factorColumn);
-		long numberOfLevels = levels -> classes->size;
-		if (numberOfLevels < 2) {
-			Melder_throw (U"There must be at least two levels.");
-		}
+		return result;
+	} catch (MelderError) {
+		Melder_throw (me, U": cannot get column vector.");
+	}
+}
 
-		for (long irow = 1; irow <= numberOfData; irow++) {
+void Table_reportHuberMStatistics (Table me, integer columnNumber, double k_std, double tol, double *out_location, double *out_scale, integer maximumNumberOfIterations) {
+	try {
+		autoVEC data = Table_getColumnVector (me, columnNumber);
+		double location, scale;
+		NUMstatistics_huber (data.get(), & location, true, & scale, true, k_std, tol, maximumNumberOfIterations);
+		if (out_location) *out_location = location;
+		if (out_scale) *out_scale = scale;
+	} catch (MelderError) {
+		Melder_throw (me, U": cannot compute median absolute deviation of column ", columnNumber, U".");
+	}
+}
+
+autoTable Table_getOneWayKruskalWallis (Table me, integer column, integer factorColumn, double *out_prob, double *out_kruskalWallis, double *out_df) {
+	try {
+		Melder_require (column > 0 && column <= my numberOfColumns, 
+			U"Invalid column number.");
+		Melder_require (factorColumn > 0 && factorColumn <= my numberOfColumns && factorColumn != column,
+			U"Invalid group column number.");
+
+		integer numberOfData = my rows.size;
+		Table_numericize_Assert (me, column);
+		autoVEC data = newVECraw (numberOfData);
+		autoStringsIndex levels = Table_to_StringsIndex_column (me, factorColumn);
+		integer numberOfLevels = levels -> classes->size;
+		
+		Melder_require (numberOfLevels > 1, 
+			U"There should be at least two levels.");
+
+		for (integer irow = 1; irow <= numberOfData; irow ++)
 			data [irow] = my rows.at [irow] -> cells [column]. number;
-		}
-		NUMsort2<double, long> (numberOfData, data.peek(), levels -> classIndex);
-		NUMrank<double> (numberOfData, data.peek());
+
+		NUMsortTogether <double, integer> (data.get(), levels -> classIndex.get());
+		NUMrank (data.get());
 
 		// Get correctionfactor for ties
 		// Hayes pg. 831
-		double c = 0.0;
-		long jt, j = 1;
+		longdouble c = 0.0;
+		integer jt, j = 1;
 		while (j < numberOfData) {
-        	for (jt = j + 1; jt <= numberOfData && data [jt] == data [j]; jt ++) { }
+        	for (jt = j + 1; jt <= numberOfData && data [jt] == data [j]; jt ++);
         	double multiplicity = jt - j;
-			if (multiplicity > 1) {
+			if (multiplicity > 1)
 				c += multiplicity * (multiplicity *multiplicity - 1.0);
-			}
         	j = jt;
 		}
-		double tiesCorrection = 1.0 - c / (numberOfData * (numberOfData * numberOfData - 1.0));
+		double tiesCorrection = 1.0 - (double) c / (numberOfData * (numberOfData * numberOfData - 1.0));
 
-		autoNUMvector<long> factorLevelSizes (1, numberOfLevels);
-		autoNUMvector<double> factorLevelSums (1, numberOfLevels);
-		autoNUMvector<long> ties (1, numberOfLevels);
-		for (long i = 1; i <= numberOfData; i++) {
-			long index = levels -> classIndex[i];
-			factorLevelSizes[index] ++;
-			factorLevelSums[index] += data[i];
+		autoINTVEC factorLevelSizes = newINTVECzero (numberOfLevels);
+		autoVEC factorLevelSums = newVECzero (numberOfLevels);
+		autoINTVEC ties = newINTVECzero (numberOfLevels);
+		for (integer i = 1; i <= numberOfData; i ++) {
+			integer index = levels -> classIndex [i];
+			factorLevelSizes [index] ++;
+			factorLevelSums [index] += data [i];
 		}
 
-		double kruskalWallis = 0;
-		for (j = 1; j <= numberOfLevels; j++) {
-			if (factorLevelSizes[j] < 2) {
+		longdouble kruskalWallis = 0.0;
+		for (j = 1; j <= numberOfLevels; j ++) {
+			if (factorLevelSizes [j] < 2) {
 				SimpleString ss = (SimpleString) levels -> classes->at [j];   // FIXME cast
-				Melder_throw (U"Group ", ss -> string, U" has fewer than two cases.");
+				Melder_throw (U"Group ", ss -> string.get(), U" has fewer than two cases.");
 			}
-			kruskalWallis += factorLevelSums[j] * factorLevelSums[j] / factorLevelSizes[j]; // = factorLevelMeans * groupMean * factorLevelSizes
+			kruskalWallis += factorLevelSums [j] * factorLevelSums [j] / factorLevelSizes [j]; // = factorLevelMeans * groupMean * factorLevelSizes
 		}
 		kruskalWallis = (12.0 / (numberOfData * (numberOfData + 1.0))) * kruskalWallis - 3.0 * (numberOfData + 1);
 		kruskalWallis /= tiesCorrection;
 		double df = numberOfLevels - 1.0;
-		if (p_df) {
-			*p_df = df;
-		}
-		if (p_kruskalWallis) {
-			*p_kruskalWallis = kruskalWallis;
-		}
-		if (prob) {
-			*prob = NUMchiSquareQ (kruskalWallis, df);
-		}
+		if (out_df) *out_df = df;
+		if (out_kruskalWallis) *out_kruskalWallis = (double) kruskalWallis;
+		if (out_prob) *out_prob = NUMchiSquareQ ((double) kruskalWallis, df);
+
 		autoTable him = Table_createWithColumnNames (numberOfLevels, U"Group(R) Sums(R) Cases");
-		for (long irow = 1; irow <= numberOfLevels; irow++) {
+		for (integer irow = 1; irow <= numberOfLevels; irow ++) {
 			SimpleString ss = (SimpleString) levels -> classes->at [irow];
-			Table_setStringValue (him.get(), irow, 1, ss -> string);
-			Table_setNumericValue (him.get(), irow, 2, factorLevelSums[irow]);
-			Table_setNumericValue (him.get(), irow, 3, factorLevelSizes[irow]);
+			Table_setStringValue (him.get(), irow, 1, ss -> string.get());
+			Table_setNumericValue (him.get(), irow, 2, factorLevelSums [irow]);
+			Table_setNumericValue (him.get(), irow, 3, factorLevelSizes [irow]);
 		}
 		Table_numericize_Assert (him.get(), 2);
 		Table_numericize_Assert (him.get(), 3);
@@ -3470,47 +3476,43 @@ autoTable Table_getOneWayKruskalWallis (Table me, long column, long factorColumn
 }
 
 // Table with Group Means Cases
-static void _Table_postHocTukeyHSD (Table me, double sumOfSquaresWithin, double degreesOfFreedomWithin, autoTable *meansDiff, autoTable *meansDiffProbabilities) {
+static void _Table_postHocTukeyHSD (Table me, double sumOfSquaresWithin, double degreesOfFreedomWithin, autoTable *out_meansDiff, autoTable *out_meansDiffProbabilities) {
 	try {
 		Table_numericize_Assert (me, 2);
 		Table_numericize_Assert (me, 3);
-		long numberOfMeans = my rows.size;
-		autoNUMvector<double> means (1, numberOfMeans);
-		autoNUMvector<double> cases (1, numberOfMeans);
+		integer numberOfMeans = my rows.size;
+		autoVEC means = newVECraw (numberOfMeans);
+		autoVEC cases = newVECraw (numberOfMeans);
 		autoTable meansD = Table_create (numberOfMeans - 1, numberOfMeans);
-		for (long i = 1; i <= numberOfMeans; i++) {
+		for (integer i = 1; i <= numberOfMeans; i ++) {
 			TableRow row = my rows.at [i];
 			means [i] = row -> cells [2]. number;
 			cases [i] = row -> cells [3]. number;
 		}
-		for (long i = 1; i <= numberOfMeans - 1; i ++) {
-			Table_setStringValue (meansD.get(), i, 1, my rows.at [i] -> cells [1]. string);
-			Table_setColumnLabel (meansD.get(), i + 1, my rows.at [i + 1] -> cells [1]. string);
+		for (integer i = 1; i <= numberOfMeans - 1; i ++) {
+			Table_setStringValue (meansD.get(), i, 1, my rows.at [i] -> cells [1]. string.get());
+			Table_setColumnLabel (meansD.get(), i + 1, my rows.at [i + 1] -> cells [1]. string.get());
 		}
 
-		for (long irow = 1; irow <= numberOfMeans - 1; irow ++) {
-			for (long icol = irow + 1; icol <= numberOfMeans; icol ++) {
+		for (integer irow = 1; irow <= numberOfMeans - 1; irow ++) {
+			for (integer icol = irow + 1; icol <= numberOfMeans; icol ++) {
 				double dif = fabs (means [irow] - means [icol]);
 				Table_setNumericValue (meansD.get(), irow, icol, dif);
 			}
 		}
 		autoTable meansP = Data_copy (meansD.get());
-		for (long irow = 1; irow <= numberOfMeans - 1; irow ++) {
-			for (long icol = irow + 1; icol <= numberOfMeans; icol ++) {
+		for (integer irow = 1; irow <= numberOfMeans - 1; irow ++) {
+			for (integer icol = irow + 1; icol <= numberOfMeans; icol ++) {
 				// Tukey-Kramer correction for unequal sample sizes
 				double oneOverNstar =  0.5 * (1.0 / cases [icol] + 1.0 / cases [irow]);
 				double s = sqrt (sumOfSquaresWithin * oneOverNstar);
-				double q = fabs (means[irow] - means[icol]) / s;
+				double q = fabs (means [irow] - means [icol]) / s;
 				double p = NUMtukeyQ (q, numberOfMeans, degreesOfFreedomWithin, 1);
 				Table_setNumericValue (meansP.get(), irow, icol, p);
 			}
 		}
-		if (meansDiff) {
-			*meansDiff = meansD.move();
-		}
-		if (meansDiffProbabilities) {
-			*meansDiffProbabilities = meansP.move();
-		}
+		if (out_meansDiff) *out_meansDiff = meansD.move();
+		if (out_meansDiffProbabilities) *out_meansDiffProbabilities = meansP.move();
 	} catch (MelderError) {
 		Melder_throw (me, U": no post-hoc performed.");
 	}
@@ -3519,30 +3521,28 @@ static void _Table_postHocTukeyHSD (Table me, double sumOfSquaresWithin, double 
 // expect 6 columns, first text others numeric
 void Table_printAsAnovaTable (Table me) {
 	autoMelderString s;
-	int width[7] = { 0, 25, 15, 10, 15, 10, 10 };
+	int width [7] = { 0, 25, 15, 10, 15, 10, 10 };
 	if (my numberOfColumns < 6) return;
 	MelderInfo_writeLine (
-		Melder_pad (width[1], U"Source"), U"\t",
-		Melder_pad (width[2], U"SS"), U"\t",
-		Melder_pad (width[3], U"Df"), U"\t",
-		Melder_pad (width[4], U"MS"), U"\t",
-		Melder_pad (width[5], U"F"), U"\t",
-		Melder_pad (width[6], U"P")
+		Melder_pad (width [1], U"Source"), U"\t",
+		Melder_pad (width [2], U"SS"), U"\t",
+		Melder_pad (width [3], U"Df"), U"\t",
+		Melder_pad (width [4], U"MS"), U"\t",
+		Melder_pad (width [5], U"F"), U"\t",
+		Melder_pad (width [6], U"P")
 	);
-	for (long icol = 2; icol <= 6; icol++) {
+	for (integer icol = 2; icol <= 6; icol ++)
 		Table_numericize_Assert (me, icol);
-	}
 
-	for (long i = 1; i <= my rows.size; i ++) {
+	for (integer i = 1; i <= my rows.size; i ++) {
 		TableRow row = my rows.at [i];
-		MelderString_copy (&s, Melder_padOrTruncate (width [1], row -> cells [1]. string), U"\t");
-		for (long j = 2; j <= 6; j ++) {
+		MelderString_copy (& s, Melder_padOrTruncate (width [1], row -> cells [1]. string.get()), U"\t");
+		for (integer j = 2; j <= 6; j ++) {
 			double value = row -> cells [j]. number;
-			if (NUMdefined (value)) {
-				MelderString_append (&s, Melder_pad (width [j], Melder_single (value)), j == 6 ? U"" : U"\t");
-			} else {
-				MelderString_append (&s, Melder_pad (width [j], U""), j == 6 ? U"" : U"\t");
-			}
+			if (isdefined (value))
+				MelderString_append (& s, Melder_pad (width [j], Melder_single (value)), j == 6 ? U"" : U"\t");
+			else
+				MelderString_append (& s, Melder_pad (width [j], U""), j == 6 ? U"" : U"\t");
 		}
 		MelderInfo_writeLine (s.string);
 	}
@@ -3550,76 +3550,67 @@ void Table_printAsAnovaTable (Table me) {
 
 void Table_printAsMeansTable (Table me) {
 	autoMelderString s;
-	for (long icol = 2; icol <= my numberOfColumns; icol ++) {
+	for (integer icol = 2; icol <= my numberOfColumns; icol ++)
 		Table_numericize_Assert (me, icol);
-	}
-	for (long j = 1; j <= my numberOfColumns; j ++) {
-		MelderString_append (&s,
-			Melder_padOrTruncate (10, ! my columnHeaders [j]. label ? U"" : my columnHeaders [j]. label),
+
+	for (integer j = 1; j <= my numberOfColumns; j ++)
+		MelderString_append (& s,
+			Melder_padOrTruncate (10, my columnHeaders [j]. label ? my columnHeaders [j]. label.get() : U""),
 			j == my numberOfColumns ? U"" : U"\t");
-	}
+
 	MelderInfo_writeLine (s.string);
-	for (long i = 1; i <= my rows.size; i ++) {
+	for (integer i = 1; i <= my rows.size; i ++) {
 		TableRow row = my rows.at [i];
-		MelderString_copy (&s, Melder_padOrTruncate (10, row -> cells [1]. string), U"\t");
-		for (long j = 2; j <= my numberOfColumns; j++) {
-			double value = row -> cells[j].number;
-			if (value != NUMundefined) {
-				MelderString_append (&s,
-					Melder_pad (10, Melder_half (value)),
-					j == my numberOfColumns ? U"" : U"\t");
-			} else {
-				MelderString_append (&s,
-					Melder_pad (10, U""),
-					j == my numberOfColumns ? U"" : U"\t");
-			}
+		MelderString_copy (& s, Melder_padOrTruncate (10, row -> cells [1]. string.get()), U"\t");
+		for (integer j = 2; j <= my numberOfColumns; j ++) {
+			double value = row -> cells [j].number;
+			if (isdefined (value))
+				MelderString_append (& s, Melder_pad (10, Melder_half (value)), j == my numberOfColumns ? U"" : U"\t");
+			else
+				MelderString_append (& s, Melder_pad (10, U""), j == my numberOfColumns ? U"" : U"\t");
 		}
 		MelderInfo_writeLine (s.string);
 	}
 }
 
-autoTable Table_getOneWayAnalysisOfVarianceF (Table me, long column, long factorColumn, autoTable *means, autoTable *meansDiff, autoTable *meansDiffProbabilities) {
+autoTable Table_getOneWayAnalysisOfVarianceF (Table me, integer column, integer factorColumn, autoTable *means, autoTable *meansDiff, autoTable *meansDiffProbabilities) {
 	try {
-		if (column < 1 || column > my numberOfColumns) {
-			Melder_throw (U"Invalid column number.");
-		}
-		if (factorColumn < 1 || factorColumn > my numberOfColumns || factorColumn == column) {
-			Melder_throw (U"Invalid group column number.");
-		}
-		long numberOfData = my rows.size;
+		Melder_require (column > 0 && column <= my numberOfColumns,
+			U"Invalid column number.");
+		Melder_require (factorColumn > 0 && factorColumn <= my numberOfColumns && factorColumn != column,
+			U"Invalid group column number.");
+		integer numberOfData = my rows.size;
 		Table_numericize_Assert (me, column);
-		autoNUMvector<double> data (1, numberOfData);
 		autoStringsIndex levels = Table_to_StringsIndex_column (me, factorColumn);
 		// copy data from Table
-		for (long irow = 1; irow <= numberOfData; irow++) {
+		autoVEC data = newVECraw (numberOfData);
+		for (integer irow = 1; irow <= numberOfData; irow ++)
 			data [irow] = my rows.at [irow] -> cells [column]. number;
-		}
-		long numberOfLevels = levels -> classes->size;
-		if (numberOfLevels < 2) {
-			Melder_throw (U"There must be at least two levels.");
-		}
-		autoNUMvector<long> factorLevelSizes (1, numberOfLevels);
-		autoNUMvector<double> factorLevelMeans (1, numberOfLevels);
+		integer numberOfLevels = levels -> classes->size;
+		Melder_require (numberOfLevels > 1,
+			U"There should be at least two levels.");
+		autoINTVEC factorLevelSizes = newINTVECzero (numberOfLevels);
+		autoVEC factorLevelMeans = newVECzero (numberOfLevels);
 
 		// a, ty, c according to scheme of Hayes, 10.14 pg 363
 
-		double a = 0.0, ty = 0.0;
-		for (long i = 1; i <= numberOfData; i ++) {
-			long index = levels -> classIndex [i];
+		longdouble a = 0.0, ty = 0.0;
+		for (integer i = 1; i <= numberOfData; i ++) {
+			integer index = levels -> classIndex [i];
 			factorLevelSizes [index] ++;
 			factorLevelMeans [index] += data [i];
 			a += data [i] * data [i];
 			ty += data [i];
 		}
 
-		double c = 0.0;
-		for (long j = 1; j <= numberOfLevels; j++) {
-			if (factorLevelSizes[j] < 2) {
+		longdouble c = 0.0;
+		for (integer j = 1; j <= numberOfLevels; j ++) {
+			if (factorLevelSizes [j] < 2) {
 				SimpleString ss = (SimpleString) levels -> classes->at [j];
-				Melder_throw (U"Level \"", ss -> string, U"\" has less then two members.");
+				Melder_throw (U"Level \"", ss -> string.get(), U"\" has less then two members.");
 			}
-			c += factorLevelMeans[j] * factorLevelMeans[j] / factorLevelSizes[j]; // order of these two is important!
-			factorLevelMeans[j] /= factorLevelSizes[j];
+			c += factorLevelMeans [j] * factorLevelMeans [j] / factorLevelSizes [j]; // order of these two is important!
+			factorLevelMeans [j] /= factorLevelSizes [j];
 		}
 
 		double ss_t = a - ty * ty / numberOfData;
@@ -3629,8 +3620,8 @@ autoTable Table_getOneWayAnalysisOfVarianceF (Table me, long column, long factor
 		double dof_b = numberOfLevels - 1;
 
 		autoTable anova = Table_createWithColumnNames (3, U"Source SS Df MS F P");
-		long col_s = 1, col_ss = 2, col_df = 3, col_ms = 4, col_f = 5, col_p = 6;
-		long row_b = 1, row_w = 2, row_t = 3;
+		integer col_s = 1, col_ss = 2, col_df = 3, col_ms = 4, col_f = 5, col_p = 6;
+		integer row_b = 1, row_w = 2, row_t = 3;
 		Table_setStringValue (anova.get(), row_b, col_s, U"Between");
 		Table_setStringValue (anova.get(), row_w, col_s, U"Within");
 		Table_setStringValue (anova.get(), row_t, col_s, U"Total");
@@ -3654,14 +3645,14 @@ autoTable Table_getOneWayAnalysisOfVarianceF (Table me, long column, long factor
 		Table_setNumericValue (anova.get(), row_t, col_df, dof_w + dof_b);
 
 		autoTable ameans = Table_createWithColumnNames (numberOfLevels, U"Group Mean Cases");
-		for (long irow = 1; irow <= numberOfLevels; irow ++) {
+		for (integer irow = 1; irow <= numberOfLevels; irow ++) {
 			SimpleString name = (SimpleString) levels -> classes->at [irow];
-			Table_setStringValue (ameans.get(), irow, 1, name -> string);
+			Table_setStringValue (ameans.get(), irow, 1, name -> string.get());
 			Table_setNumericValue (ameans.get(), irow, 2, factorLevelMeans [irow]);
 			Table_setNumericValue (ameans.get(), irow, 3, factorLevelSizes [irow]);
 		}
-		long columns [1+1] { 0, 2 };   // sort by column 2
-		Table_sortRows_Assert (ameans.get(), columns, 1);
+		integer columns [1+1] { 0, 2 };   // sort by column 2
+		Table_sortRows_Assert (ameans.get(), constINTVEC (columns, 1));
 		_Table_postHocTukeyHSD (ameans.get(), ms_w, dof_w, meansDiff, meansDiffProbabilities);
 		if (means) {
 			*means = ameans.move();
@@ -3672,37 +3663,33 @@ autoTable Table_getOneWayAnalysisOfVarianceF (Table me, long column, long factor
 	}
 }
 
-autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factorColumnA, long factorColumnB, autoTable *means, autoTable *levelSizes) {
+autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, integer column, integer factorColumnA, integer factorColumnB, autoTable *out_means, autoTable *out_levelSizes) {
 	try {
-		if (column < 1 || column > my numberOfColumns) {
-			Melder_throw (U"Invalid column number.");
-		}
-		if (factorColumnA < 1 || factorColumnA > my numberOfColumns || factorColumnA == column) {
-			Melder_throw (U"Invalid A group column number.");
-		}
-		if (factorColumnB < 1 || factorColumnB > my numberOfColumns || factorColumnB == column || factorColumnA == factorColumnB) {
-			Melder_throw (U"Invalid B group column number.");
-		}
-		char32 *label_A = my columnHeaders[factorColumnA].label;
-		char32 *label_B = my columnHeaders[factorColumnB].label;
+		Melder_require (column > 0 && column <= my numberOfColumns,
+			U"Invalid column number.");
+		Melder_require (factorColumnA > 0 && factorColumnA <= my numberOfColumns && factorColumnA != column,
+			U"Invalid A group column number.");
+		Melder_require (factorColumnB > 0 && factorColumnB <= my numberOfColumns && factorColumnB != column && factorColumnA != factorColumnB,
+			U"Invalid B group column number.");
 
-		long numberOfData = my rows.size;
+		char32 *label_A = my columnHeaders [factorColumnA]. label.get();
+		char32 *label_B = my columnHeaders [factorColumnB]. label.get();
+
+		integer numberOfData = my rows.size;
 		Table_numericize_Assert (me, column);
-		autoNUMvector<double> data (1, numberOfData);
 		autoStringsIndex levelsA = Table_to_StringsIndex_column (me, factorColumnA);
 		autoStringsIndex levelsB = Table_to_StringsIndex_column (me, factorColumnB);
 		// copy data from Table
-		for (long irow = 1; irow <= numberOfData; irow ++) {
+		autoVEC data = newVECraw (numberOfData);
+		for (integer irow = 1; irow <= numberOfData; irow ++)
 			data [irow] = my rows.at [irow] -> cells [column]. number;
-		}
-		long numberOfLevelsA = levelsA -> classes->size;
-		long numberOfLevelsB = levelsB -> classes->size;
-		if (numberOfLevelsA < 2) {
-			Melder_throw (U"There must be at least two levels in \"", label_A, U"\".");
-		}
-		if (numberOfLevelsB < 2) {
-			Melder_throw (U"There must be at least two levels in \"", label_B, U"\".");
-		}
+		integer numberOfLevelsA = levelsA -> classes -> size;
+		integer numberOfLevelsB = levelsB -> classes -> size;
+		
+		Melder_require (numberOfLevelsA > 1,
+			U"There should be at least two levels in \"", label_A, U"\".");
+		Melder_require (numberOfLevelsB > 1,
+			U"There should be at least two levels in \"", label_B, U"\".");
 
 		/* Formula's according to A. Khuri (1998), Unweighted sums of squares
 		 *   in unbalanced analysis of variance, Journal of Statistical Planning
@@ -3710,39 +3697,39 @@ autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factor
 		 *
 		 *  Model:
 		 *
-		 * y[i,j,k] = mu + alpha[i] + beta[j] + gamma[i,j] + eps[i,j,k]
-		 *    i=1..r, j = 1..s, k=1..n[i,j]
+		 * y [i,j,k] = mu + alpha [i] + beta [j] + gamma [i,j] + eps [i,j,k]
+		 *    i=1..r, j = 1..s, k=1..n [i,j]
 		 *
-		 * ss(alpha) = nh * s * sum(i=1..r, (ystar[i.]-ystar[..])^2)
-		 * ss(beta)  = nh * r * sum(j=1..s, (ystar[.j]-ystar[..])^2)
-		 * ss(alpha,beta) = nh * sum (i=1..r, sum (j=1..s, (ymean[ij.]-ystar[i.] - ystar[.j] + ystar[..])^2)),
+		 * ss(alpha) = nh * s * sum(i=1..r, (ystar [i.]-ystar [..])^2)
+		 * ss(beta)  = nh * r * sum(j=1..s, (ystar [.j]-ystar [..])^2)
+		 * ss(alpha,beta) = nh * sum (i=1..r, sum (j=1..s, (ymean [ij.]-ystar [i.] - ystar [.j] + ystar [..])^2)),
 		 *
 		 * where
 		 *
-		 * nh = r * s / sum (i=1..r, sum (j=1..s, 1/n[ij])),
-		 * ymean[ij.] = sum (k=1..n[ij], y[ijk]/n[ij])
-		 * ystar[i.] = sum (j=1..s, ymean[ij.]) / s,
-		 * ystar[.j] = sum (i=1..r, ymean[ij.]) / r,
-		 * ystar[..] = sum (i=1..r, sum (j=1..s, ymean[ij.])) / (r * s)
+		 * nh = r * s / sum (i=1..r, sum (j=1..s, 1/n [ij])),
+		 * ymean [ij.] = sum (k=1..n [ij], y [ijk]/n [ij])
+		 * ystar [i.] = sum (j=1..s, ymean [ij.]) / s,
+		 * ystar [.j] = sum (i=1..r, ymean [ij.]) / r,
+		 * ystar [..] = sum (i=1..r, sum (j=1..s, ymean [ij.])) / (r * s)
 		 *
 		 */
 
-		autoNUMmatrix<long> factorLevelSizes (1, numberOfLevelsA + 1, 1, numberOfLevelsB + 1); // sum + weighted sum
-		// extra column for ystar[i.], extra row for ystar[.j]
-		autoNUMmatrix<double> factorLevelMeans (1, numberOfLevelsA + 1, 1, numberOfLevelsB + 1); // weighted mean + mean
+		autoMAT factorLevelSizes = newMATzero (numberOfLevelsA + 1, numberOfLevelsB + 1); // sum + weighted sum
+		// extra column for ystar [i.], extra row for ystar [.j]
+		autoMAT factorLevelMeans = newMATzero (numberOfLevelsA + 1, numberOfLevelsB + 1); // weighted mean + mean
 
-		for (long k = 1; k <= numberOfData; k ++) {
-			long indexA = levelsA -> classIndex [k];
-			long indexB = levelsB -> classIndex [k];
+		for (integer k = 1; k <= numberOfData; k ++) {
+			integer indexA = levelsA -> classIndex [k];
+			integer indexB = levelsB -> classIndex [k];
 			factorLevelSizes [indexA] [indexB] ++;
 			factorLevelMeans [indexA] [indexB] += data [k];
 		}
 
 		// check for unfilled cells and calculate cell means
 
-		double nh = 0;
-		for (long i = 1; i <= numberOfLevelsA; i ++) {
-			for (long j = 1; j <= numberOfLevelsB; j ++) {
+		longdouble nh = 0.0;
+		for (integer i = 1; i <= numberOfLevelsA; i ++) {
+			for (integer j = 1; j <= numberOfLevelsB; j ++) {
 				if (factorLevelSizes [i] [j] < 1) {
 					SimpleString li = (SimpleString) levelsA -> classes->at [i];
 					SimpleString lj = (SimpleString) levelsA -> classes->at [j];
@@ -3754,56 +3741,55 @@ autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factor
 		}
 		nh = numberOfLevelsA * numberOfLevelsB / nh;
 
-		// row marginals (ystar[i.])
-
-		double mean = 0; // ystar[..]
-		for (long i = 1; i <= numberOfLevelsA; i ++) {
-			for (long j = 1; j <= numberOfLevelsB; j ++) {
+		// row marginals (ystar [i.])
+		longdouble mean = 0.0;
+		for (integer i = 1; i <= numberOfLevelsA; i ++) {
+			for (integer j = 1; j <= numberOfLevelsB; j ++) {
 				factorLevelMeans [i] [numberOfLevelsB + 1] += factorLevelMeans [i] [j];
-				mean += factorLevelMeans[i][j];
+				mean += factorLevelMeans [i] [j];
 				factorLevelSizes [i] [numberOfLevelsB + 1] += factorLevelSizes [i] [j];
 			}
-			factorLevelMeans[i][numberOfLevelsB + 1] /= numberOfLevelsB;
+			factorLevelMeans [i] [numberOfLevelsB + 1] /= numberOfLevelsB;
 		}
 		mean /= numberOfLevelsA * numberOfLevelsB;
 		factorLevelMeans [numberOfLevelsA + 1] [numberOfLevelsB + 1] = mean;
 		factorLevelSizes [numberOfLevelsA + 1] [numberOfLevelsB + 1] = numberOfData;
 
-		// column marginals (ystar[.j])
+		// column marginals (ystar [.j])
 
-		for (long j = 1; j <= numberOfLevelsB; j ++) {
-			for (long i = 1; i <= numberOfLevelsA; i ++) {
+		for (integer j = 1; j <= numberOfLevelsB; j ++) {
+			for (integer i = 1; i <= numberOfLevelsA; i ++) {
 				factorLevelMeans [numberOfLevelsA + 1] [j] += factorLevelMeans [i] [j];
 				factorLevelSizes [numberOfLevelsA + 1] [j] += factorLevelSizes [i] [j];
 			}
-			factorLevelMeans[numberOfLevelsA + 1][j] /= numberOfLevelsA;
+			factorLevelMeans [numberOfLevelsA + 1] [j] /= numberOfLevelsA;
 		}
 
 		// the sums of squares
 
-		double ss_T = 0;
-		for (long k = 1; k <= numberOfData; k ++) {
-			double dif = data[k] - mean;
+		longdouble ss_T = 0.0;
+		for (integer k = 1; k <= numberOfData; k ++) {
+			double dif = data [k] - mean;
 			ss_T += dif * dif;
 		}
 
-		double ss_A = 0;
-		for (long i = 1; i <= numberOfLevelsA; i ++) {
+		longdouble ss_A = 0.0;
+		for (integer i = 1; i <= numberOfLevelsA; i ++) {
 			double dif = factorLevelMeans [i] [numberOfLevelsB + 1] - mean;
 			ss_A += dif * dif;
 		}
 		ss_A *= nh * numberOfLevelsB;
 
-		double ss_B = 0;
-		for (long j = 1; j <= numberOfLevelsB; j ++) {
+		longdouble ss_B = 0.0;
+		for (integer j = 1; j <= numberOfLevelsB; j ++) {
 			double dif = factorLevelMeans [numberOfLevelsA + 1] [j] - mean;
 			ss_B += dif * dif;
 		}
 		ss_B *= nh * numberOfLevelsA;
 
-		double ss_AB = 0;
-		for (long i = 1; i <= numberOfLevelsA; i ++) {
-			for (long j = 1; j <= numberOfLevelsB; j ++) {
+		longdouble ss_AB = 0.0;
+		for (integer i = 1; i <= numberOfLevelsA; i ++) {
+			for (integer j = 1; j <= numberOfLevelsB; j ++) {
 				double dif = factorLevelMeans [i] [j] - factorLevelMeans [i] [numberOfLevelsB + 1] - factorLevelMeans [numberOfLevelsA + 1] [j] + mean;
 				ss_AB += dif * dif;
 			}
@@ -3815,51 +3801,47 @@ autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factor
 		// are there any replications? if not then the error term is the AB interaction.
 
 		bool replications = true;
-		if (factorLevelSizes [numberOfLevelsA + 1] [1] == numberOfLevelsA) {
+		if (factorLevelSizes [numberOfLevelsA + 1] [1] == numberOfLevelsA)
 			replications = false;
-		}
 
 		// Construct the means Table (numberOfLevelsA+1)x(numberOfLevelsB + 1 + 1)
 
 		autoTable ameans = Table_createWithoutColumnNames (numberOfLevelsA + 1, numberOfLevelsB + 1 + 1);
-		for (long k = 2; k <= numberOfLevelsB + 1; k ++) {
+		for (integer k = 2; k <= numberOfLevelsB + 1; k ++) {
 			SimpleString name = (SimpleString) levelsB -> classes->at [k - 1];
-			Table_setColumnLabel (ameans.get(), k, name -> string);
+			Table_setColumnLabel (ameans.get(), k, name -> string.get());
 		}
 		Table_setColumnLabel (ameans.get(), numberOfLevelsB + 1 + 1, U"Mean");
-		for (long j = 1; j <= numberOfLevelsA; j++) {
+		for (integer j = 1; j <= numberOfLevelsA; j ++) {
 			SimpleString name = (SimpleString) levelsA -> classes->at [j];
-			Table_setStringValue (ameans.get(), j, 1, name -> string);
+			Table_setStringValue (ameans.get(), j, 1, name -> string.get());
 		}
 		Table_setStringValue (ameans.get(), numberOfLevelsA + 1, 1, U"Mean");
 
-		for (long i = 1; i <= numberOfLevelsA + 1; i ++) {
-			for (long j = 1; j <= numberOfLevelsB + 1; j ++) {
+		for (integer i = 1; i <= numberOfLevelsA + 1; i ++)
+			for (integer j = 1; j <= numberOfLevelsB + 1; j ++)
 				Table_setNumericValue (ameans.get(), i, j + 1, factorLevelMeans [i] [j]);
-			}
-		}
 
-		if (levelSizes) {
+
+		if (out_levelSizes) {
 			autoTable asizes = Data_copy (ameans.get());
 			Table_setColumnLabel (asizes.get(), numberOfLevelsB + 1 + 1, U"Total");
 			Table_setStringValue (asizes.get(), numberOfLevelsA + 1, 1, U"Total");
-			for (long i = 1; i <= numberOfLevelsA + 1; i ++) {
-				for (long j = 1; j <= numberOfLevelsB + 1; j ++) {
+			for (integer i = 1; i <= numberOfLevelsA + 1; i ++)
+				for (integer j = 1; j <= numberOfLevelsB + 1; j ++)
 					Table_setNumericValue (asizes.get(), i, j + 1, factorLevelSizes [i] [j]);
-				}
-			}
-			*levelSizes = asizes.move();
+			*out_levelSizes = asizes.move();
 		}
 
 		autoTable anova = Table_createWithColumnNames (replications ? 5 : 4, U"Source SS Df MS F P");
-		long col_s = 1, col_ss = 2, col_df = 3, col_ms = 4, col_f = 5, col_p = 6;
-		long row_A = 1, row_B = 2, row_AB = 3, row_E = replications ? 4 : 3, row_t = replications ? 5 : 4;
+		integer col_s = 1, col_ss = 2, col_df = 3, col_ms = 4, col_f = 5, col_p = 6;
+		integer row_A = 1, row_B = 2, row_AB = 3, row_E = replications ? 4 : 3, row_t = replications ? 5 : 4;
 		Table_setStringValue (anova.get(), row_A, col_s, label_A);
 		Table_setStringValue (anova.get(), row_B, col_s, label_B);
 		Table_setStringValue (anova.get(), row_AB, col_s, Melder_cat (label_A, U" x ", label_B));
-		if (replications) {
+		if (replications)
 			Table_setStringValue (anova.get(), row_E, col_s, U"Error");
-		}
+
 		Table_setStringValue (anova.get(), row_t, col_s, U"Total");
 
 		double dof_A = numberOfLevelsA - 1, ms_A = ss_A / dof_A;
@@ -3872,7 +3854,7 @@ autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factor
 		Table_setNumericValue (anova.get(), row_B, col_df, dof_B);
 		Table_setNumericValue (anova.get(), row_B, col_ms, ms_B);
 
-		double dof_AB = dof_A * dof_B , ms_AB, dof_E, ms_E;
+		double dof_AB = dof_A * dof_B , ms_AB = 0.0, dof_E, ms_E;
 		if (replications) {
 			ms_AB = ss_AB / dof_AB;
 			dof_E = numberOfData - dof_A - dof_B - dof_AB - 1;
@@ -3905,46 +3887,45 @@ autoTable Table_getTwoWayAnalysisOfVarianceF (Table me, long column, long factor
 			Table_setNumericValue (anova.get(), row_AB, col_f, f_AB);
 			Table_setNumericValue (anova.get(), row_AB, col_p, p_AB);
 		}
-		if (means) {
-			*means = ameans.move();
-		}
+		if (out_means)
+			*out_means = ameans.move();
 		return anova;
 	} catch (MelderError) {
 		Melder_throw (me, U": two-way anova not created.");
 	}
 }
 
-void Table_normalProbabilityPlot (Table me, Graphics g, long column, long numberOfQuantiles, double numberOfSigmas, int labelSize, const char32 *label, bool garnish)
-{
+void Table_normalProbabilityPlot (Table me, Graphics g, integer column, integer numberOfQuantiles, double numberOfSigmas, int labelSize, conststring32 label, bool garnish) {
 	try {
-		if (column < 1 || column > my numberOfColumns) return;
+		if (column < 1 || column > my numberOfColumns)
+			return;
 		Table_numericize_Assert (me, column);
-		long numberOfData = my rows.size;
-		autoNUMvector<double> data (1, numberOfData);
-		for (long irow = 1; irow <= numberOfData; irow ++) {
+		integer numberOfData = my rows.size;
+		autoVEC data = newVECraw (numberOfData);
+		for (integer irow = 1; irow <= numberOfData; irow ++)
 			data [irow] = my rows.at [irow] -> cells [column]. number;
-		}
-		double mean, var;
-		NUMvector_avevar (data.peek(), numberOfData, & mean, & var);
-		double xmin = 100, xmax = -xmin, ymin = 1e308, ymax = -ymin, stdev = sqrt (var / (numberOfData - 1));
+
+		double mean, stdev;
+		NUM_sum_mean_sumsq_variance_stdev (data.get(), nullptr, & mean, nullptr, nullptr, & stdev);
+		double xmin = 100.0, xmax = -xmin, ymin = 1e308, ymax = -ymin;
 		if (numberOfSigmas != 0) {
 			xmin = -numberOfSigmas; 
 			xmax =  numberOfSigmas;
 			ymin = mean - numberOfSigmas * stdev;
 			ymax = mean + numberOfSigmas * stdev;
 		}
-		NUMsort_d (numberOfData, data.peek());
+		VECsort_inplace (data.get());
 		numberOfQuantiles = numberOfData < numberOfQuantiles ? numberOfData : numberOfQuantiles;
 		autoTableOfReal thee = TableOfReal_create (numberOfQuantiles, 2);
 		TableOfReal_setColumnLabel (thee.get(), 1, U"Normal distribution quantiles");
-		TableOfReal_setColumnLabel (thee.get(), 2, my columnHeaders[column].label);
+		TableOfReal_setColumnLabel (thee.get(), 2, my columnHeaders [column]. label.get());
 		double un = pow (0.5, 1.0 / numberOfQuantiles);
-		for (long irow = 1; irow <= numberOfQuantiles; irow ++) {
+		for (integer irow = 1; irow <= numberOfQuantiles; irow ++) {
 			double ui = irow == 1 ? 1.0 - un : (irow == numberOfQuantiles ? un : (irow - 0.3175) / (numberOfQuantiles + 0.365));
-			double q = NUMquantile (numberOfData, data.peek(), ui);
+			double q = NUMquantile (numberOfData, data.at, ui);
 			double zq = - NUMinvGaussQ (ui);
-			thy data[irow][1] = zq; // along x
-			thy data[irow][2] = q;  // along y
+			thy data [irow] [1] = zq; // along x
+			thy data [irow] [2] = q;  // along y
 			if (numberOfSigmas == 0) {
 				xmin = zq < xmin ? zq : xmin;
 				xmax = zq > xmax ? zq : xmax;
@@ -3966,34 +3947,39 @@ void Table_normalProbabilityPlot (Table me, Graphics g, long column, long number
 	}
 }
 
-void Table_quantileQuantilePlot_betweenLevels (Table me, Graphics g, long dataColumn, long factorColumn, const char32 *xlevel, const char32 *ylevel, long numberOfQuantiles,
-	double xmin, double xmax, double ymin, double ymax, int labelSize, const char32 *plotLabel, bool garnish)
+void Table_quantileQuantilePlot_betweenLevels (Table me, Graphics g,
+	integer dataColumn, integer factorColumn, conststring32 xlevel, conststring32 ylevel, integer numberOfQuantiles,
+	double xmin, double xmax, double ymin, double ymax, int labelSize, conststring32 plotLabel, bool garnish)
 {
 	try {
 		if (dataColumn < 1 || dataColumn > my numberOfColumns || factorColumn < 1 || factorColumn > my numberOfColumns) return;
 		Table_numericize_Assert (me, dataColumn);
-		long numberOfData = my rows.size;
-		autoNUMvector<double> xdata (1, numberOfData);
-		autoNUMvector<double> ydata (1, numberOfData);
-		long xnumberOfData = 0, ynumberOfData = 0;
-		for (long irow = 1; irow <= numberOfData; irow ++) {
-			char32 *label = my rows.at [irow] -> cells [factorColumn]. string;
+		integer numberOfData = my rows.size;
+		autoVEC xdata = newVECraw (numberOfData);
+		autoVEC ydata = newVECraw (numberOfData);
+		integer xnumberOfData = 0, ynumberOfData = 0;
+		for (integer irow = 1; irow <= numberOfData; irow ++) {
+			char32 *label = my rows.at [irow] -> cells [factorColumn]. string.get();
 			double val = my rows.at [irow] -> cells [dataColumn]. number;
 			if (Melder_equ (label, xlevel)) {
-				xdata [++ xnumberOfData] = val;
+				xdata [ ++ xnumberOfData] = val;
 			} else if (Melder_equ (label, ylevel)) {
-				ydata [++ ynumberOfData] = val;
+				ydata [ ++ ynumberOfData] = val;
 			}
 		}
+		if (xnumberOfData == 0 || ynumberOfData == 0) 
+			return;
+		xdata.resize (xnumberOfData);
+		ydata.resize (ynumberOfData);
 		if (xmin == xmax) {
-			NUMvector_extrema<double> (xdata.peek(), 1, xnumberOfData, & xmin, & xmax);
+			NUMextrema (xdata.part (1, xnumberOfData), & xmin, & xmax);
 			if (xmin == xmax) {
 				xmin -= 1.0;
 				xmax += 1.0;
 			}
 		}
 		if (ymin == ymax) {
-			NUMvector_extrema<double> (ydata.peek(), 1, ynumberOfData, & ymin, & ymax);
+			NUMextrema (ydata.part (1, ynumberOfData), & ymin, & ymax);
 			if (ymin == ymax) {
 				ymin -= 1.0;
 				ymax += 1.0;
@@ -4001,16 +3987,16 @@ void Table_quantileQuantilePlot_betweenLevels (Table me, Graphics g, long dataCo
 		}
 		Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 		Graphics_setInner (g);
-		Graphics_quantileQuantilePlot (g, numberOfQuantiles, xdata.peek(), xnumberOfData, ydata.peek(), ynumberOfData,
+		Graphics_quantileQuantilePlot (g, numberOfQuantiles, xdata.get(), ydata.get(),
 			xmin, xmax, ymin, ymax, labelSize, plotLabel);
 		Graphics_unsetInner (g);
 		if (garnish) {
 			Graphics_drawInnerBox (g);
 
-			Graphics_textBottom (g, true, Melder_cat (my columnHeaders [dataColumn].label, U" (", xlevel, U")"));
+			Graphics_textBottom (g, true, Melder_cat (my columnHeaders [dataColumn]. label.get(), U" (", xlevel, U")"));
 			Graphics_marksBottom (g, 2, true, true, false);
 
-			Graphics_textLeft (g, true, Melder_cat (my columnHeaders [dataColumn].label, U" (", ylevel, U")"));
+			Graphics_textLeft (g, true, Melder_cat (my columnHeaders [dataColumn]. label.get(), U" (", ylevel, U")"));
 			Graphics_marksLeft (g, 2, true, true, false);
 		}
 	} catch (MelderError) {
@@ -4018,29 +4004,29 @@ void Table_quantileQuantilePlot_betweenLevels (Table me, Graphics g, long dataCo
 	}
 }
 
-void Table_quantileQuantilePlot (Table me, Graphics g, long xcolumn, long ycolumn, long numberOfQuantiles,
-	double xmin, double xmax, double ymin, double ymax, int labelSize, const char32 *plotLabel, bool garnish)
+void Table_quantileQuantilePlot (Table me, Graphics g, integer xcolumn, integer ycolumn, integer numberOfQuantiles,
+	double xmin, double xmax, double ymin, double ymax, int labelSize, conststring32 plotLabel, bool garnish)
 {
 	try {
 		if (xcolumn < 1 || xcolumn > my numberOfColumns || ycolumn < 1 || ycolumn > my numberOfColumns) return;
 		Table_numericize_Assert (me, xcolumn);
 		Table_numericize_Assert (me, ycolumn);
-		long numberOfData = my rows.size;
-		autoNUMvector<double> xdata (1, numberOfData);
-		autoNUMvector<double> ydata (1, numberOfData);
-		for (long irow = 1; irow <= numberOfData; irow++) {
+		integer numberOfData = my rows.size;
+		autoVEC xdata = newVECraw (numberOfData);
+		autoVEC ydata = newVECraw (numberOfData);
+		for (integer irow = 1; irow <= numberOfData; irow ++) {
 			xdata [irow] = my rows.at [irow] -> cells [xcolumn]. number;
 			ydata [irow] = my rows.at [irow] -> cells [ycolumn]. number;
 		}
 		if (xmin == xmax) {
-			NUMvector_extrema<double> (xdata.peek(), 1, numberOfData, &xmin, &xmax);
+			NUMextrema (xdata.get(), & xmin, & xmax);
 			if (xmin == xmax) {
 				xmin -= 1.0;
 				xmax += 1.0;
 			}
 		}
 		if (ymin == ymax) {
-			NUMvector_extrema<double> (ydata.peek(), 1, numberOfData, &ymin, &ymax);
+			NUMextrema (ydata.get(), & ymin, & ymax);
 			if (ymin == ymax) {
 				ymin -= 1.0;
 				ymax += 1.0;
@@ -4048,18 +4034,18 @@ void Table_quantileQuantilePlot (Table me, Graphics g, long xcolumn, long ycolum
 		}
 		Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 		Graphics_setInner (g);
-		Graphics_quantileQuantilePlot (g, numberOfQuantiles, xdata.peek(), numberOfData, ydata.peek(), numberOfData,
+		Graphics_quantileQuantilePlot (g, numberOfQuantiles, xdata.get(), ydata.get(),
 			xmin, xmax, ymin, ymax, labelSize, plotLabel);
 		Graphics_unsetInner (g);
 		if (garnish) {
 			Graphics_drawInnerBox (g);
-			if (my columnHeaders [xcolumn].label) {
-				Graphics_textBottom (g, true, my columnHeaders [xcolumn].label);
-			}
+			if (my columnHeaders [xcolumn].label)
+				Graphics_textBottom (g, true, my columnHeaders [xcolumn]. label.get());
+
 			Graphics_marksBottom (g, 2, true, true, false);
-			if (my columnHeaders [ycolumn].label) {
-				Graphics_textLeft (g, true, my columnHeaders [ycolumn].label);
-			}
+			if (my columnHeaders [ycolumn].label)
+				Graphics_textLeft (g, true, my columnHeaders [ycolumn]. label.get());
+
 			Graphics_marksLeft (g, 2, true, true, false);
 		}
 	} catch (MelderError) {
@@ -4067,38 +4053,39 @@ void Table_quantileQuantilePlot (Table me, Graphics g, long xcolumn, long ycolum
 	}
 }
 
-void Table_boxPlots (Table me, Graphics g, long dataColumn, long factorColumn, double ymin, double ymax, bool garnish) {
+void Table_boxPlots (Table me, Graphics g, integer dataColumn, integer factorColumn, double ymin, double ymax, bool garnish) {
 	try {
 		if (dataColumn < 1 || dataColumn > my numberOfColumns || factorColumn < 1 || factorColumn > my numberOfColumns) return;
 		Table_numericize_Assert (me, dataColumn);
-		long numberOfData = my rows.size;
+		integer numberOfData = my rows.size;
 		autoStringsIndex si = Table_to_StringsIndex_column (me, factorColumn);
-		long numberOfLevels = si -> classes->size;
+		integer numberOfLevels = si -> classes->size;
 		if (ymin == ymax) {
 			ymax = Table_getMaximum (me, dataColumn);
 			ymin = Table_getMinimum (me, dataColumn);
 			if (ymax == ymin) {
-				ymax += 1.0; ymin -= 1.0;
+				ymax += 1.0;
+				ymin -= 1.0;
 			}
 		}
 		Graphics_setWindow (g, 1.0 - 0.5, numberOfLevels + 0.5, ymin, ymax);
 		Graphics_setInner (g);
-		autoNUMvector<double> data (1, numberOfData);
-		for (long ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
-			long numberOfDataInLevel = 0;
-			for (long k = 1; k <= numberOfData; k ++) {
+		autoVEC data = newVECraw (numberOfData);
+		for (integer ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
+			integer numberOfDataInLevel = 0;
+			for (integer k = 1; k <= numberOfData; k ++) {
 				if (si -> classIndex [k] == ilevel) {
-					data [++ numberOfDataInLevel] = Table_getNumericValue_Assert (me, k, dataColumn);
+					data [ ++ numberOfDataInLevel] = Table_getNumericValue_Assert (me, k, dataColumn);
 				}
 			}
-			Graphics_boxAndWhiskerPlot (g, data.peek(), numberOfDataInLevel, ilevel, 0.2, 0.35, ymin, ymax);
+			Graphics_boxAndWhiskerPlot (g, data.part (1, numberOfDataInLevel), ilevel, 0.2, 0.35, ymin, ymax);
 		}
 		Graphics_unsetInner (g);
 		if (garnish) {
 			Graphics_drawInnerBox (g);
-			for (long ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
+			for (integer ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
 				SimpleString ss = (SimpleString) si -> classes->at [ilevel];
-				Graphics_markBottom (g, ilevel, false, true, false, ss -> string);
+				Graphics_markBottom (g, ilevel, false, true, false, ss -> string.get());
 			}
 			Graphics_marksLeft (g, 2, true, true, false);
 		}
@@ -4107,30 +4094,30 @@ void Table_boxPlots (Table me, Graphics g, long dataColumn, long factorColumn, d
 	}
 }
 
-void Table_boxPlotsWhere (Table me, Graphics g,
-	char32 *dataColumns_string, long factorColumn, double ymin, double ymax,
-	bool garnish, const char32 *formula, Interpreter interpreter)
+void Table_boxPlotsWhere (Table me, Graphics g, conststring32 dataColumns_string, integer factorColumn, double ymin, double ymax,
+	bool garnish, conststring32 formula, Interpreter interpreter)
 {
 	try {
-		long numberOfSelectedColumns;
-		autoNUMvector<long> dataColumns (Table_getColumnIndicesFromColumnLabelString (me, dataColumns_string, & numberOfSelectedColumns), 1);
-		if (factorColumn < 1 || factorColumn > my numberOfColumns) {
+		autoINTVEC dataColumns = Table_getColumnIndicesFromColumnLabelString (me, dataColumns_string);
+		if (factorColumn < 1 || factorColumn > my numberOfColumns)
 			return;
-		}
-		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_UNKNOWN, true);
-		long numberOfData = my rows.size;
+		const integer numberOfSelectedColumns = dataColumns.size;
+		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
+		Formula_Result result;
+		const integer numberOfData = my rows.size;
 		autoStringsIndex si = Table_to_StringsIndex_column (me, factorColumn);
-		long numberOfLevels = si -> classes->size;
+		const integer numberOfLevels = si -> classes->size;
 		if (ymin == ymax) {
 			ymin = 1e308, ymax = - ymin;
-			for (long icol = 1; icol <= numberOfSelectedColumns; icol ++) {
+			for (integer icol = 1; icol <= numberOfSelectedColumns; icol ++) {
 				double ymaxi = Table_getMaximum (me, dataColumns [icol]);
 				double ymini = Table_getMinimum (me, dataColumns [icol]);
 				ymax = ymaxi > ymax ? ymaxi : ymax;
 				ymin = ymini < ymin ? ymini : ymin;
 			}
 			if (ymax == ymin) {
-				ymax += 1.0; ymin -= 1.0;
+				ymax += 1.0;
+				ymin -= 1.0;
 			}
 		}
 		Graphics_setWindow (g, 1.0 - 0.5, numberOfLevels + 0.5, ymin, ymax);
@@ -4138,16 +4125,15 @@ void Table_boxPlotsWhere (Table me, Graphics g,
 		double boxWidth = 4.0, spaceBetweenBoxesInGroup = 1.0, barWidth = boxWidth / 3.0;
 		double spaceBetweenGroupsdiv2 = 3.0 / 2.0;
 		double widthUnit = 1.0 / (numberOfSelectedColumns * boxWidth + (numberOfSelectedColumns - 1) * spaceBetweenBoxesInGroup + spaceBetweenGroupsdiv2 + spaceBetweenGroupsdiv2);
-		autoNUMvector<double> data (1, numberOfData);
-		for (long ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
+		autoVEC data = newVECraw (numberOfData);
+		for (integer ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
 			double xlevel = ilevel;
-			for (long icol = 1; icol <= numberOfSelectedColumns; icol ++) {
-				long numberOfDataInLevelColumn = 0;
-				for (long irow = 1; irow <= numberOfData; irow ++) {
-					if (si -> classIndex[irow] == ilevel) {
-						struct Formula_Result result;
+			for (integer icol = 1; icol <= numberOfSelectedColumns; icol ++) {
+				integer numberOfDataInLevelColumn = 0;
+				for (integer irow = 1; irow <= numberOfData; irow ++) {
+					if (si -> classIndex [irow] == ilevel) {
 						Formula_run (irow, dataColumns [icol], & result);
-						if (result.result.numericResult != 0.0) {
+						if (result. numericResult != 0.0) {
 							data [++ numberOfDataInLevelColumn] = Table_getNumericValue_Assert (me, irow, dataColumns [icol]);
 						}
 					}
@@ -4155,16 +4141,16 @@ void Table_boxPlotsWhere (Table me, Graphics g,
 				if (numberOfDataInLevelColumn > 0) {
 					// determine position
 					double xc = xlevel - 0.5 + (spaceBetweenGroupsdiv2 + (icol - 1) * (boxWidth + spaceBetweenBoxesInGroup) + boxWidth / 2) * widthUnit;
-					Graphics_boxAndWhiskerPlot (g, data.peek(), numberOfDataInLevelColumn, xc, 0.5 * barWidth * widthUnit , 0.5 * boxWidth * widthUnit, ymin, ymax);
+					Graphics_boxAndWhiskerPlot (g, data.part (1, numberOfDataInLevelColumn), xc, 0.5 * barWidth * widthUnit , 0.5 * boxWidth * widthUnit, ymin, ymax);
 				}
 			}
 		}
 		Graphics_unsetInner (g);
 		if (garnish) {
 			Graphics_drawInnerBox (g);
-			for (long ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
+			for (integer ilevel = 1; ilevel <= numberOfLevels; ilevel ++) {
 				SimpleString ss = (SimpleString) si -> classes->at [ilevel];
-				Graphics_markBottom (g, ilevel, false, true, false, ss -> string);
+				Graphics_markBottom (g, ilevel, false, true, false, ss -> string.get());
 			}
 			Graphics_marksLeft (g, 2, true, true, false);
 		}
@@ -4173,21 +4159,20 @@ void Table_boxPlotsWhere (Table me, Graphics g,
 	}
 }
 
-void Table_distributionPlotWhere (Table me, Graphics g,
-	long dataColumn, double minimum, double maximum, long nBins, double freqMin, double freqMax,
-	bool garnish, const char32 *formula, Interpreter interpreter)
-{
+void Table_distributionPlotWhere (Table me, Graphics g, integer dataColumn, double minimum, double maximum, integer nBins, double freqMin, double freqMax, bool garnish, conststring32 formula, Interpreter interpreter) {
 	try {
-		if (dataColumn < 1 || dataColumn > my numberOfColumns) return;
-		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_UNKNOWN, true);
+		if (dataColumn < 1 || dataColumn > my numberOfColumns)
+			return;
+		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
+		Formula_Result result;
+
 		Table_numericize_Assert (me, dataColumn);
-		long n = my rows.size, mrow = 0;
+		integer n = my rows.size, mrow = 0;
 		autoMatrix thee = Matrix_create (1.0, 1.0, 1, 1.0, 1.0, 0.0, n + 1.0, n, 1.0, 1.0);
-		for (long irow = 1; irow <= n; irow ++) {
-			struct Formula_Result result;
+		for (integer irow = 1; irow <= n; irow ++) {
 			Formula_run (irow, dataColumn, & result);
-			if (result.result.numericResult != 0.0) {
-				thy z[1][++mrow] = Table_getNumericValue_Assert (me, irow, dataColumn);
+			if (result. numericResult != 0.0) {
+				thy z [1] [++ mrow] = Table_getNumericValue_Assert (me, irow, dataColumn);
 			}
 		}
 		Matrix_drawDistribution (thee.get(), g, 0, 1, 0.5, mrow + 0.5, minimum, maximum, nBins, freqMin, freqMax, false, garnish);
@@ -4196,36 +4181,34 @@ void Table_distributionPlotWhere (Table me, Graphics g,
 	}
 }
 
-static autoStrings itemizeColourString (const char32 *colourString) {
+static autoStrings itemizeColourString (conststring32 colourString) {
 	// remove all spaces within { } so each {1,2,3} can be itemized
-	long nmatches_sub = 0;
-	const char32 *searchRE = U"\\{\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*\\}";
+	static const conststring32 searchRE = U"\\{\\s*( [0-9.]+)\\s*,\\s*( [0-9.]+)\\s*,\\s*( [0-9.]+)\\s*\\}";
 	regexp *compiledRE = CompileRE_throwable (searchRE, 0);
-	autoMelderString colour;
-	MelderString_append (&colour, str_replace_regexp (colourString, compiledRE, U"{\\1,\\2,\\3}", 0, &nmatches_sub));
-	autoStrings thee = Strings_createAsTokens (colour.string, U" ");
+	autostring32 colourStringWithoutSpaces = newSTRreplace_regex (colourString, compiledRE, U"{\\1,\\2,\\3}", 0);
+	autoStrings thee = Strings_createAsTokens (colourStringWithoutSpaces.get(), U" ");
 	return thee;
 }
 
-static Graphics_Colour Strings_colourToValue  (Strings me, long index) {
-	if (index < 0 || index > my numberOfStrings) {
+static Graphics_Colour Strings_colourToValue  (Strings me, integer index) {
+	if (index < 0 || index > my numberOfStrings)
 		return Graphics_GREY;
-	}
+
 	Graphics_Colour colourValue;
-	char32 *p = my strings[index];
+	char32 *p = my strings [index].get();
 	while (*p == U' ' || *p == U'\t') p ++;
-	*p = (char32) tolower ((int) *p);
+	*p = Melder_toLowerCase (*p);
 	char32 first = *p;
 	if (first == U'{') {
-		colourValue.red = Melder_atof (++ p);
+		colourValue.red = Melder_atof ( ++ p);
 		p = (char32 *) str32chr (p, U',');
 		if (! p) return Graphics_GREY;
-		colourValue.green = Melder_atof (++ p);
+		colourValue.green = Melder_atof ( ++ p);
 		p = (char32 *) str32chr (p, U',');
 		if (! p) return Graphics_GREY;
-		colourValue.blue = Melder_atof (++ p);
+		colourValue.blue = Melder_atof ( ++ p);
 	} else {
-		*p = (char32) tolower ((int) *p);
+		*p = Melder_toLowerCase (*p);
 		if (str32equ (p, U"black")) colourValue = Graphics_BLACK;
 		else if (str32equ (p, U"white")) colourValue = Graphics_WHITE;
 		else if (str32equ (p, U"red")) colourValue = Graphics_RED;
@@ -4252,40 +4235,35 @@ static Graphics_Colour Strings_colourToValue  (Strings me, long index) {
 	return colourValue;
 }
 
-long Table_getNumberOfRowsWhere (Table me, const char32 *formula, Interpreter interpreter) {
-	long numberOfRows = 0;
-	Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_UNKNOWN, true);
-	for (long irow = 1; irow <= my rows.size; irow ++) {
-		struct Formula_Result result;
+integer Table_getNumberOfRowsWhere (Table me, conststring32 formula, Interpreter interpreter) {
+	integer numberOfRows = 0;
+	Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
+	Formula_Result result;
+	for (integer irow = 1; irow <= my rows.size; irow ++) {
 		Formula_run (irow, 1, & result);
-		if (result.result.numericResult != 0.0) {
-			numberOfRows++;
+		if (result. numericResult != 0.0) {
+			numberOfRows ++;
 		}
 	}
 	return numberOfRows;
 }
 
-long *Table_findRowsMatchingCriterion (Table me, const char32 *formula, Interpreter interpreter, long *p_numberOfMatches) {
+autoINTVEC Table_findRowsMatchingCriterion (Table me, conststring32 formula, Interpreter interpreter) {
 	try {
-		long numberOfMatches = Table_getNumberOfRowsWhere (me, formula, interpreter);
-		if (numberOfMatches < 1) {
+		integer numberOfMatches = Table_getNumberOfRowsWhere (me, formula, interpreter);
+		if (numberOfMatches < 1)
 			Melder_throw (U"No rows selected.");
-		}
-		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_UNKNOWN, true);   // again?
-		autoNUMvector<long> selectedRows (1, numberOfMatches);
-		long n = 0;
-		for (long irow =1; irow <= my rows.size; irow ++) {
-			struct Formula_Result result;
+		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
+		Formula_Result result;
+		autoINTVEC selectedRows = newINTVECzero (numberOfMatches);
+		integer n = 0;
+		for (integer irow = 1; irow <= my rows.size; irow ++) {
 			Formula_run (irow, 1, & result);
-			if (result.result.numericResult != 0.0) {
-				selectedRows[++n] = irow;
-			}
+			if (result. numericResult != 0.0)
+				selectedRows [ ++ n] = irow;
 		}
 		Melder_assert (n == numberOfMatches);
-		if (p_numberOfMatches) {
-			*p_numberOfMatches = numberOfMatches;
-		}
-		return selectedRows.transfer();
+		return selectedRows;
 	} catch (MelderError) {
 		Melder_throw (me, U": cannot find matches.");
 	}
@@ -4293,49 +4271,49 @@ long *Table_findRowsMatchingCriterion (Table me, const char32 *formula, Interpre
 
 
 void Table_barPlotWhere (Table me, Graphics g,
-	const char32 *columnLabels, double ymin, double ymax, const char32 *factorColumn,
-	double xoffsetFraction, double interbarFraction, double interbarsFraction, const char32 *colours,
-	double angle, bool garnish, const char32 *formula, Interpreter interpreter)
+	conststring32 columnLabels, double ymin, double ymax, conststring32 factorColumn,
+	double xoffsetFraction, double interbarFraction, double interbarsFraction, conststring32 colours,
+	double angle, bool garnish, conststring32 formula, Interpreter interpreter)
 {
 	try {
-		long numberOfColumns, numberOfRowMatches = 0;
-		autoNUMvector<long> columnIndex (Table_getColumnIndicesFromColumnLabelString (me, columnLabels, &numberOfColumns), 1);
-		long labelIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn);
-		autoStrings colour = itemizeColourString (colours);// removes all spaces within { } so each {} can be parsed as 1 item
+		autoINTVEC columnIndexes = Table_getColumnIndicesFromColumnLabelString (me, columnLabels);
+		integer labelIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn);
+		autoStrings colourText = itemizeColourString (colours);   // removes all spaces within { } so each {} can be parsed as 1 item
 		
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfRowMatches), 1);
-		if (ymax <= ymin) { // autoscaling
-			ymin = 1e308; ymax= - ymin;
-			for (long icol = 1; icol <= numberOfColumns; icol++) {
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
+		if (ymax <= ymin) {   // autoscaling
+			ymin = 1e308;
+			ymax = - ymin;
+			for (integer icol = 1; icol <= columnIndexes.size; icol ++) {
 				double cmin, cmax;
-				Table_columnExtremesFromSelectedRows (me, columnIndex[icol], selectedRows.peek(), numberOfRowMatches, &cmin, &cmax);
+				Table_columnExtremesFromSelectedRows (me, columnIndexes [icol], selectedRows.get(), & cmin, & cmax);
 				if (cmin < ymin) { ymin = cmin; }
 				if (cmax > ymax) { ymax = cmax; }
 			}
-			ymin = ymin > 0 ? 0 : ymin;
-			ymax = ymax < 0 ? 0 : ymax;
+			ymin = ymin > 0.0 ? 0.0 : ymin;
+			ymax = ymax < 0.0 ? 0.0 : ymax;
 		}
 		Graphics_setInner (g);
 		Graphics_setWindow (g, 0, 1, ymin, ymax);
 
-		long numberOfGroups = numberOfRowMatches;
-		long groupSize = numberOfColumns;
-		double bar_width = 1 / (numberOfGroups * groupSize + 2 * xoffsetFraction + (numberOfGroups - 1) * interbarsFraction + numberOfGroups * (groupSize - 1) * interbarFraction);
+		integer numberOfGroups = selectedRows.size;
+		integer groupSize = columnIndexes.size;
+		double bar_width = 1.0 / (numberOfGroups * groupSize + 2.0 * xoffsetFraction + (numberOfGroups - 1) * interbarsFraction + numberOfGroups * (groupSize - 1) * interbarFraction);
 		double dx = (interbarsFraction + groupSize + (groupSize - 1) * interbarFraction) * bar_width;
 
-		for (long icol = 1; icol <= groupSize; icol++) {
+		for (integer icol = 1; icol <= groupSize; icol ++) {
 			double xb = xoffsetFraction * bar_width + (icol - 1) * (1 + interbarFraction) * bar_width;
 			double x1 = xb;
-			Graphics_Colour color = Strings_colourToValue  (colour.get(), icol);
-			for (long irow = 1; irow <= numberOfRowMatches; irow++) {
+			Graphics_Colour colour = Strings_colourToValue (colourText.get(), icol);
+			for (integer irow = 1; irow <= selectedRows.size; irow ++) {
 				double x2 = x1 + bar_width;
-				double y2 = Table_getNumericValue_Assert (me, selectedRows[irow], columnIndex[icol]);
-				y2 = y2 > ymax ? ymax : (y2 < ymin ? ymin : y2);
-				double y1 = ymin < 0 ? 0 : ymin;
+				double y2 = Table_getNumericValue_Assert (me, selectedRows [irow], columnIndexes [icol]);
+				y2 = y2 > ymax ? ymax : y2 < ymin ? ymin : y2;
+				double y1 = ymin < 0.0 ? 0.0 : ymin;
 				
-				Graphics_setColour (g, color);
+				Graphics_setColour (g, colour);
 				Graphics_fillRectangle (g, x1, x2, y1, y2);
-				Graphics_setGrey (g, 0); /* Black */
+				Graphics_setGrey (g, 0.0);   // black
 				Graphics_rectangle (g, x1, x2, y1, y2);
 
 				x1 += dx;
@@ -4350,12 +4328,12 @@ void Table_barPlotWhere (Table me, Graphics g,
 				double lineSpacing = Graphics_dyMMtoWC (g, 1.5 * Graphics_inqFontSize (g) * 25.4 / 72);
 				int currentFontSize = Graphics_inqFontSize (g);
 				Graphics_setTextRotation (g, angle);
-				if (angle < 0) {
-					y -= 0.3*lineSpacing;
+				if (angle < 0.0) {
+					y -= 0.3 * lineSpacing;
 					xb -= 0.5 * bar_width;
 					Graphics_setFontSize (g, currentFontSize - (currentFontSize > 12 ? 2 : 1));
 					Graphics_setTextAlignment (g, Graphics_LEFT, Graphics_TOP);
-				} else if (angle > 0) {
+				} else if (angle > 0.0) {
 					y -= 0.3*lineSpacing;
 					xb += 0.5 * bar_width;
 					Graphics_setFontSize (g, currentFontSize - (currentFontSize > 12 ? 2 : 1));
@@ -4363,8 +4341,8 @@ void Table_barPlotWhere (Table me, Graphics g,
 				} else {
 					Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_TOP);
 				}
-				for (long irow = 1; irow <= numberOfGroups; irow++) {
-					const char32 *label = Table_getStringValue_Assert (me, selectedRows[irow], labelIndex);
+				for (integer irow = 1; irow <= numberOfGroups; irow ++) {
+					conststring32 label = Table_getStringValue_Assert (me, selectedRows [irow], labelIndex);
 					if (label) {
 						//Graphics_markBottom (g, xb, false, false, false, label);
 						Graphics_text (g, xb, ymin - g -> vertTick, label); // was y
@@ -4377,10 +4355,8 @@ void Table_barPlotWhere (Table me, Graphics g,
 		}
 		Graphics_unsetInner (g);
 		if (garnish) {
-			if (ymin * ymax < 0) {
+			if (ymin * ymax < 0.0)
 				Graphics_markLeft (g, 0.0, true, true, true, nullptr);
-			}
-
 			Graphics_drawInnerBox (g);
 			Graphics_marksLeft (g, 2, true, true, false);
 		}
@@ -4389,42 +4365,43 @@ void Table_barPlotWhere (Table me, Graphics g,
 	}
 }
 
-static int Graphics_getConnectingLine (Graphics g, const char32 *text1, double x1, double y1, const char32 *text2, double x2, double y2, double *x3, double *y3, double *x4, double *y4) {
-	int drawLine = 0;
-	double width1 = Graphics_textWidth (g, text1), width2 = Graphics_textWidth (g, text2);
+static bool Graphics_getConnectingLine (Graphics g, conststring32 text1, double x1, double y1, conststring32 text2, double x2, double y2, double *x3, double *y3, double *x4, double *y4) {
+	bool drawLine = false;
+	double width1 = Graphics_textWidth (g, text1);
+	double width2 = Graphics_textWidth (g, text2);
 	double h = Graphics_dyMMtoWC (g, 1.5 * Graphics_inqFontSize (g) * 25.4 / 72) / 1.5;
-	double xi[3], yi[3], xleft = x1 < x2 ? x1 : x2, xright = x2 > x1 ? x2 : x1;
+	double xi [3], yi [3], xleft = x1 < x2 ? x1 : x2, xright = x2 > x1 ? x2 : x1;
 	int numberOfIntersections = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xleft - width1 / 2.0, y1 - h/2, xleft + width1 / 2.0, y1 + h/2, xi, yi);
 	if (numberOfIntersections == 1) {
-		*x3 = xi[1]; *y3 = yi[1];
+		*x3 = xi [1];
+		*y3 = yi [1];
 		numberOfIntersections = NUMgetIntersectionsWithRectangle (x1, y1, x2, y2, xright - width2 / 2.0, y2 - h/2, xright + width2 / 2.0, y2 + h/2, xi, yi);
 		if (numberOfIntersections == 1) {
-			*x4 = xi[1]; *y4 = yi[1];
-			drawLine = 1;
+			*x4 = xi [1];
+			*y4 = yi [1];
+			drawLine = true;
 		}
 	}
 	return drawLine;
 }
 
 // take the xcolumn as labels if non-numeric column else as numbers and arrange distances accordingly.
-void Table_lineGraphWhere (Table me, Graphics g,
-	long xcolumn, double xmin, double xmax, long ycolumn, double ymin, double ymax,
-	const char32 *symbol, double angle, bool garnish, const char32 *formula, Interpreter interpreter)
-{
+void Table_lineGraphWhere (Table me, Graphics g, integer xcolumn, double xmin, double xmax, integer ycolumn, double ymin, double ymax, conststring32 symbol, double angle, bool garnish, conststring32 formula, Interpreter interpreter) {
 	try {
-		if (ycolumn < 1 || ycolumn > my numberOfColumns) return;
-		long numberOfSelectedRows = 0;
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);	
-		if (ymax <= ymin) { // autoscaling
-			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.peek(), numberOfSelectedRows, &ymin, &ymax);
-		}
+		if (ycolumn < 1 || ycolumn > my numberOfColumns)
+			return;
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
+		if (ymax <= ymin)
+			Table_columnExtremesFromSelectedRows (me, ycolumn, selectedRows.get(), & ymin, & ymax);
+
 		// the following also catches xcolumn = 0 !
-		bool xIsNumeric = Table_selectedColumnPartIsNumeric (me, xcolumn, selectedRows.peek(), numberOfSelectedRows);
+		bool xIsNumeric = Table_selectedColumnPartIsNumeric (me, xcolumn, selectedRows.get());
 		if (xmin >= xmax) {
-			if (xIsNumeric) {
-				Table_columnExtremesFromSelectedRows (me, xcolumn, selectedRows.peek(), numberOfSelectedRows, &xmin, &xmax);
-			} else {
-				xmin = 0; xmax = numberOfSelectedRows + 1;
+			if (xIsNumeric)
+				Table_columnExtremesFromSelectedRows (me, xcolumn, selectedRows.get(), & xmin, & xmax);
+			else {
+				xmin = 0.0;
+				xmax = selectedRows.size + 1;
 			}
 		}
 		Graphics_setInner (g);
@@ -4433,21 +4410,18 @@ void Table_lineGraphWhere (Table me, Graphics g,
 		double x1, y1;
 		double lineSpacing = Graphics_dyMMtoWC (g, 1.5 * Graphics_inqFontSize (g) * 25.4 / 72.0);
 		//double symbolHeight = lineSpacing / 1.5;
-		for (long i = 1; i <= numberOfSelectedRows; i++) {
-			double y2 = Table_getNumericValue_Assert (me, selectedRows[i], ycolumn);
-			double x2 = xIsNumeric ? Table_getNumericValue_Assert (me, selectedRows[i], xcolumn) : i;
+		for (integer i = 1; i <= selectedRows.size; i ++) {
+			double y2 = Table_getNumericValue_Assert (me, selectedRows [i], ycolumn);
+			double x2 = xIsNumeric ? Table_getNumericValue_Assert (me, selectedRows [i], xcolumn) : i;
 			//double symbolWidth = 0;
 			if (x2 >= xmin && (x2 <= xmax || x1 < xmax)) {
-				if (symbol && y2 >= ymin && y2 <= ymax && x2 <= xmax) {
+				if (symbol && y2 >= ymin && y2 <= ymax && x2 <= xmax)
 					Graphics_text (g, x2, y2, symbol);
-					//symbolWidth = Graphics_textWidth (g, symbol);
-				}
 				if (i > 1) {
 					double x3, y3, x4, y4, xo1, yo1, xo2, yo2;
-					if (Graphics_getConnectingLine (g, symbol, x1, y1, symbol, x2, y2, &x3, &y3, &x4, &y4) &&
-						NUMclipLineWithinRectangle (x3, y3, x4, y4, xmin, ymin, xmax, ymax, &xo1, &yo1, &xo2, &yo2)) {
+					if (Graphics_getConnectingLine (g, symbol, x1, y1, symbol, x2, y2, & x3, & y3, & x4, & y4) && 
+						NUMclipLineWithinRectangle (x3, y3, x4, y4, xmin, ymin, xmax, ymax, & xo1, & yo1, & xo2, & yo2))
 						Graphics_line (g, xo1, yo1, xo2, yo2);
-					}
 				}
 			} else {
 				x2 = x2 < xmin ? xmin : xmax;
@@ -4460,27 +4434,25 @@ void Table_lineGraphWhere (Table me, Graphics g,
 			
 			int currentFontSize = Graphics_inqFontSize (g);
 			Graphics_setTextRotation (g, angle);
-			if (angle < 0) {
-				y -= 0.3*lineSpacing;
-				dx = -0.5;
+			if (angle < 0.0) {
+				y -= 0.3 * lineSpacing;
+				dx = - 0.5;
 				Graphics_setFontSize (g, currentFontSize - (currentFontSize > 12 ? 2 : 1));
 				Graphics_setTextAlignment (g, Graphics_LEFT, Graphics_TOP);
-			} else if (angle > 0) {
-				y -= 0.3*lineSpacing;
+			} else if (angle > 0.0) {
+				y -= 0.3 * lineSpacing;
 				dx = 0.5;
 				Graphics_setFontSize (g, currentFontSize - (currentFontSize > 12 ? 2 : 1));
 				Graphics_setTextAlignment (g, Graphics_RIGHT, Graphics_TOP);
 			} else {
 				Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_TOP);
 			}
-			for (long i = 1; i <= numberOfSelectedRows; i++) {
+			for (integer i = 1; i <= selectedRows.size; i ++) {
 				double x2 = i;
 				if (x2 >= xmin && x2 <= xmax) {
-					const char32 *label = Table_getStringValue_Assert (me, selectedRows[i], xcolumn);
-					if (label) {
-						//Graphics_markBottom (g, xb, false, false, false, label);
+					conststring32 label = Table_getStringValue_Assert (me, selectedRows [i], xcolumn);
+					if (label)
 						Graphics_text (g, x2 + dx, ymin - g -> vertTick, label); // was y
-					}
 				}
 			}
 			Graphics_setFontSize (g, currentFontSize);
@@ -4491,43 +4463,37 @@ void Table_lineGraphWhere (Table me, Graphics g,
 		if (garnish) {
 			Graphics_drawInnerBox (g);
 			Graphics_marksLeft (g, 2, true, true, false);
-			if (xIsNumeric) {
+			if (xIsNumeric)
 				Graphics_marksBottom (g, 2, true, true, false);
-			}
 		}
 	} catch (MelderError) {
 		Melder_clearError ();   // drawing errors shall be ignored
 	}
 }
 
-void Table_lagPlotWhere (Table me, Graphics g,
-	long column, long lag, double xmin, double xmax, const char32 *symbol, int labelSize,
-	bool garnish, const char32 *formula, Interpreter interpreter)
-{
+void Table_lagPlotWhere (Table me, Graphics g, integer column, integer lag, double xmin, double xmax, conststring32 symbol, int labelSize,
+ bool garnish, conststring32 formula, Interpreter interpreter) {
 	try {
-		if (column < 1 || column > my rows.size) {
+		if (column < 1 || column > my rows.size)
 			return;
-		}
-		long numberOfSelectedRows = 0;
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
 		if (xmax <= xmin) { // autoscaling
-			Table_columnExtremesFromSelectedRows (me, column, selectedRows.peek(), numberOfSelectedRows, &xmin, &xmax);
+			Table_columnExtremesFromSelectedRows (me, column, selectedRows.get(), & xmin, & xmax);
 		}
-		autoNUMvector<double> x (1, numberOfSelectedRows);
-		for (long i = 1; i <= numberOfSelectedRows; i++) {
-			x[i] = Table_getNumericValue_Assert (me, selectedRows[i], column);
-		}
+		autoVEC x = newVECraw (selectedRows.size);
+		for (integer i = 1; i <= selectedRows.size; i ++)
+			x [i] = Table_getNumericValue_Assert (me, selectedRows [i], column);
 		Graphics_setInner (g);
 		Graphics_setWindow (g, xmin, xmax, xmin, xmax);
-		Graphics_lagPlot (g, x.peek(), numberOfSelectedRows, xmin, xmax, lag, labelSize, symbol);
+		Graphics_lagPlot (g, x.get(), xmin, xmax, lag, labelSize, symbol);
 		Graphics_unsetInner (g);
 		if (garnish) {
 			Graphics_drawInnerBox (g);
 			Graphics_marksBottom (g, 2, true, true, false);
 			Graphics_marksLeft (g, 2, true, true, false);
 			if (my columnHeaders [column]. label) {
-				Graphics_textLeft (g, true, my columnHeaders[column].label);
-				Graphics_textBottom (g, true, Melder_cat (my columnHeaders[column].label, U" (lag = ", lag, U")"));
+				Graphics_textLeft (g, true, my columnHeaders [column]. label.get());
+				Graphics_textBottom (g, true, Melder_cat (my columnHeaders [column]. label.get(), U" (lag = ", lag, U")"));
 			}
 		}
 	} catch (MelderError) {
@@ -4535,59 +4501,54 @@ void Table_lagPlotWhere (Table me, Graphics g,
 	}
 }
 
-autoTable Table_extractRowsWhere (Table me, const char32 *formula, Interpreter interpreter) {
+autoTable Table_extractRowsWhere (Table me, conststring32 formula, Interpreter interpreter) {
 	try {
-		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_UNKNOWN, true);
+		Formula_compile (interpreter, me, formula, kFormula_EXPRESSION_TYPE_NUMERIC, true);
+		Formula_Result result;
 		autoTable thee = Table_create (0, my numberOfColumns);
-		for (long icol = 1; icol <= my numberOfColumns; icol ++) {
-			autostring32 newLabel = Melder_dup (my columnHeaders [icol]. label);
-			thy columnHeaders [icol]. label = newLabel.transfer();
-		}
-		for (long irow = 1; irow <= my rows.size; irow ++) {
-			struct Formula_Result result;
+		for (integer icol = 1; icol <= my numberOfColumns; icol ++)
+			thy columnHeaders [icol]. label = Melder_dup (my columnHeaders [icol]. label.get());
+		for (integer irow = 1; irow <= my rows.size; irow ++) {
 			Formula_run (irow, 1, & result);
-			if (result.result.numericResult != 0.0) {
+			if (result. numericResult != 0.0) {
 				TableRow row = my rows.at [irow];
 				autoTableRow newRow = Data_copy (row);
 				thy rows. addItem_move (newRow.move());
 			}
 		}
-		if (thy rows.size == 0) {
+		if (thy rows.size == 0)
 			Melder_warning (U"No row matches criterion.");
-		}
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no Table could be extracted.");
 	}
 }
 
-static autoTableOfReal Table_to_TableOfReal_where (Table me, const char32 *columnLabels, const char32 *factorColumn, const char32 *formula, Interpreter interpreter) {
+static autoTableOfReal Table_to_TableOfReal_where (Table me, conststring32 columnLabels, conststring32 factorColumn, conststring32 formula, Interpreter interpreter) {
 	try {
-		long numberOfColumns, numberOfSelectedRows = 0;
-		long factorColIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn);
-		autoNUMvector<long> columnIndex (Table_getColumnIndicesFromColumnLabelString (me, columnLabels, &numberOfColumns), 1);
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);
-		autoTableOfReal thee = TableOfReal_create (numberOfSelectedRows, numberOfColumns);
-		for (long i = 1; i <= numberOfSelectedRows; i++) {
-			for (long icol = 1; icol <= numberOfColumns; icol++) {
-				double value = Table_getNumericValue_Assert (me, selectedRows[i], columnIndex[icol]);
-				thy data[i][icol] = value;
-			}
+		integer factorColIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn);
+		autoINTVEC columnIndexes = Table_getColumnIndicesFromColumnLabelString (me, columnLabels);
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
+		autoTableOfReal thee = TableOfReal_create (selectedRows.size, columnIndexes.size);
+		for (integer i = 1; i <= selectedRows.size; i ++) {
+			for (integer icol = 1; icol <= columnIndexes.size; icol ++)
+				thy data [i] [icol] = Table_getNumericValue_Assert (me, selectedRows [i], columnIndexes [icol]);
 			if (factorColIndex > 0) { // if no factorColumn given labels may be empty
-				const char32 *label = Table_getStringValue_Assert (me, selectedRows[i], factorColIndex);
+				conststring32 label = Table_getStringValue_Assert (me, selectedRows [i], factorColIndex);
 				TableOfReal_setRowLabel (thee.get(), i, label);
 			}
 		}
-		for (long icol = 1; icol <= numberOfColumns; icol++) {
-			TableOfReal_setColumnLabel (thee.get(), icol, my columnHeaders [columnIndex[icol]].label);
-		}
+		for (integer icol = 1; icol <= columnIndexes.size; icol ++)
+			TableOfReal_setColumnLabel (thee.get(), icol, my columnHeaders [columnIndexes [icol]]. label.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U"No TableOfReal created from Table.");
 	}
 }
 
-static autoSSCPList Table_to_SSCPList_where (Table me, const char32 *columnLabels, const char32 *factorColumn, const char32 *formula, Interpreter interpreter) {
+static autoSSCPList Table_to_SSCPList_where (Table me,
+	conststring32 columnLabels, conststring32 factorColumn, conststring32 formula, Interpreter interpreter)
+{
 	try {
 		autoTableOfReal thee = Table_to_TableOfReal_where (me, columnLabels, factorColumn, formula, interpreter);
 		autoSSCPList him = TableOfReal_to_SSCPList_byLabel (thee.get());
@@ -4597,56 +4558,49 @@ static autoSSCPList Table_to_SSCPList_where (Table me, const char32 *columnLabel
 	}
 }
 
-static long SSCPList_findIndexOfGroupLabel (SSCPList me, const char32 *label) {
-	for (long i = 1; i <= my size; i ++) {
-		if (Melder_equ (Thing_getName (my at [i]), label)) {
+static integer SSCPList_findIndexOfGroupLabel (SSCPList me, conststring32 label) {
+	for (integer i = 1; i <= my size; i ++)
+		if (Melder_equ (Thing_getName (my at [i]), label))
 			return i;
-		}
-	}
 	return 0;
 }
 
-static autoTable Table_and_SSCPList_extractMahalanobisWhere (Table me, SSCPList thee, double numberOfSigmas, int which_Melder_NUMBER, const char32 *factorColumn, const char32 *formula, Interpreter interpreter) {
+static autoTable Table_SSCPList_extractMahalanobisWhere (Table me, SSCPList thee, double numberOfSigmas, kMelder_number which, conststring32 factorColumn, conststring32 formula, Interpreter interpreter) {
 	try {
-		long numberOfGroups = thy size;
+		integer numberOfGroups = thy size;
 		Melder_assert (numberOfGroups > 0);
 
 		SSCP sscp = thy at [1];
-		long numberOfColumns = sscp -> numberOfColumns, numberOfSelectedRows = 0;
-		long factorColIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn); // can be absent
-		autoNUMvector<long> columnIndex (1, numberOfColumns);
-		autoNUMvector<double> vector (1, numberOfColumns);
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, & numberOfSelectedRows), 1);
-		for (long icol = 1; icol <= numberOfColumns; icol++) {
-			columnIndex[icol] = Table_getColumnIndexFromColumnLabel (me, sscp -> columnLabels[icol]); // throw if not present
-		}
+		integer numberOfColumns = sscp -> numberOfColumns;
+		integer factorColIndex = Table_findColumnIndexFromColumnLabel (me, factorColumn);   // can be absent
+		autoINTVEC columnIndex = newINTVECraw (numberOfColumns);
+		autoVEC vector = newVECraw (numberOfColumns);
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
+		for (integer icol = 1; icol <= numberOfColumns; icol ++)
+			columnIndex [icol] = Table_getColumnIndexFromColumnLabel (me, sscp -> columnLabels [icol].get()); // throw if not present
 		autoTable him = Table_create (0, my numberOfColumns);
-		for (long icol = 1; icol <= my numberOfColumns; icol ++) {
-			autostring32 newLabel = Melder_dup (my columnHeaders[icol].label);
-			his columnHeaders[icol].label = newLabel.transfer();
-		}
+		for (integer icol = 1; icol <= my numberOfColumns; icol ++)
+			his columnHeaders [icol].label = Melder_dup (my columnHeaders [icol]. label.get());
 		OrderedOf<structCovariance> covs;
-		for (long igroup = 1; igroup <= numberOfGroups; igroup ++) {
+		for (integer igroup = 1; igroup <= numberOfGroups; igroup ++) {
 			autoCovariance cov = SSCP_to_Covariance (thy at [igroup], 1);
-			SSCP_expandLowerCholesky (cov.get());
+			SSCP_expandLowerCholeskyInverse (cov.get());
 			covs. addItem_move (cov.move());
 		}
-		for (long i = 1; i <= numberOfSelectedRows; i ++) {
-			long irow = selectedRows [i];
-			long igroup = 1; // if factorColIndex == 0 we don't need labels
+		for (integer i = 1; i <= selectedRows.size; i ++) {
+			integer irow = selectedRows [i];
+			integer igroup = 1; // if factorColIndex == 0 we don't need labels
 			if (factorColIndex > 0) {
-				const char32 *label = Table_getStringValue_Assert (me, irow, factorColIndex);
+				conststring32 label = Table_getStringValue_Assert (me, irow, factorColIndex);
 				igroup = SSCPList_findIndexOfGroupLabel (thee, label);
-				if (igroup == 0) {
+				if (igroup == 0)
 					Melder_throw (U"The label \"", label, U"\" in row ", irow, U" is not valid in this context.");
-				}
 			}
 			Covariance covi = covs.at [igroup];
-			for (long icol = 1; icol <= numberOfColumns; icol ++) {
+			for (integer icol = 1; icol <= numberOfColumns; icol ++)
 				vector [icol] = Table_getNumericValue_Assert (me, irow, columnIndex [icol]);
-			}
-			double dm2 = NUMmahalanobisDistance_chi (covi -> lowerCholesky, vector.peek(), covi -> centroid, numberOfColumns, numberOfColumns);
-			if (Melder_numberMatchesCriterion (sqrt (dm2), which_Melder_NUMBER, numberOfSigmas)) {
+			double dm2 = NUMmahalanobisDistance (covi -> lowerCholeskyInverse.get(), vector.get(), covi -> centroid.get());
+			if (Melder_numberMatchesCriterion (sqrt (dm2), which, numberOfSigmas)) {
 				TableRow row = my rows.at [irow];
 				autoTableRow newRow = Data_copy (row);
 				his rows. addItem_move (newRow.move());
@@ -4658,41 +4612,40 @@ static autoTable Table_and_SSCPList_extractMahalanobisWhere (Table me, SSCPList 
 	}
 }
 
-autoTable Table_extractMahalanobisWhere(Table me, const char32 *columnLabels, const char32 *factorColumn, double numberOfSigmas, int which_Melder_NUMBER, const char32 *formula, Interpreter interpreter) {
+autoTable Table_extractMahalanobisWhere (Table me,
+	conststring32 columnLabels, conststring32 factorColumn, double numberOfSigmas,
+	kMelder_number which, conststring32 formula, Interpreter interpreter)
+{
 	try {
 		autoSSCPList thee = Table_to_SSCPList_where (me, columnLabels, factorColumn, formula, interpreter);
-		autoTable him = Table_and_SSCPList_extractMahalanobisWhere (me, thee.get(), numberOfSigmas, which_Melder_NUMBER, factorColumn, formula, interpreter);
+		autoTable him = Table_SSCPList_extractMahalanobisWhere (me, thee.get(), numberOfSigmas, which, factorColumn, formula, interpreter);
 		return him;
 	} catch (MelderError) {
 		Melder_throw (me, U"Table not extracted.");
 	}
 }
 
-void Table_drawEllipsesWhere (Table me, Graphics g, long xcolumn, long ycolumn, long factorColumn, double xmin, double xmax, double ymin, double ymax, double numberOfSigmas, long labelSize, bool garnish, const char32 *formula, Interpreter interpreter) {
+void Table_drawEllipsesWhere (Table me, Graphics g, integer xcolumn, integer ycolumn, integer factorColumn, double xmin, double xmax, double ymin, double ymax, double numberOfSigmas, integer labelSize, bool garnish, conststring32 formula, Interpreter interpreter) {
 	try {
-		long numberOfSelectedRows = 0;
-		autoNUMvector<long> selectedRows (Table_findRowsMatchingCriterion (me, formula, interpreter, &numberOfSelectedRows), 1);	
-		autoTableOfReal thee = TableOfReal_create (numberOfSelectedRows, 2);
-		for (long i = 1; i <= numberOfSelectedRows; i++) {
-			double x = Table_getNumericValue_Assert (me, selectedRows[i], xcolumn);
-			double y = Table_getNumericValue_Assert (me, selectedRows[i], ycolumn);
-			const char32 *label = Table_getStringValue_Assert (me, selectedRows[i], factorColumn);
-			thy data[i][1] = x; thy data[i][2] = y;
+		autoINTVEC selectedRows = Table_findRowsMatchingCriterion (me, formula, interpreter);
+		autoTableOfReal thee = TableOfReal_create (selectedRows.size, 2);
+		for (integer i = 1; i <= selectedRows.size; i ++) {
+			conststring32 label = Table_getStringValue_Assert (me, selectedRows [i], factorColumn);
 			TableOfReal_setRowLabel (thee.get(), i, label);
+			thy data [i] [1] = Table_getNumericValue_Assert (me, selectedRows [i], xcolumn);
+			thy data [i] [2] = Table_getNumericValue_Assert (me, selectedRows [i], ycolumn);
 		}
 		autoSSCPList him = TableOfReal_to_SSCPList_byLabel (thee.get());
 		bool confidence = false;
-		if (ymax == ymin) { // autoscaling
+		if (ymax == ymin)   // autoscaling
 			SSCPList_getEllipsesBoundingBoxCoordinates (him.get(), numberOfSigmas, confidence, & xmin, & xmax, & ymin, & ymax);
-		}
 		Graphics_setWindow (g, xmin, xmax, ymin, ymax);
 		Graphics_setInner (g);
-		for (long i = 1; i <= his size; i ++) {
+		for (integer i = 1; i <= his size; i ++) {
 			SSCP sscpi = his at [i];
 			double scalei = SSCP_getEllipseScalefactor (sscpi, numberOfSigmas, confidence);
-			if (scalei > 0) {
-				SSCP_drawTwoDimensionalEllipse_inside  (sscpi, g, scalei, Thing_getName (sscpi), labelSize);
-			}
+			if (scalei > 0)
+				SSCP_drawTwoDimensionalEllipse_inside (sscpi, g, scalei, Thing_getName (sscpi), labelSize);
 		}
 		Graphics_unsetInner (g);
 
@@ -4700,30 +4653,27 @@ void Table_drawEllipsesWhere (Table me, Graphics g, long xcolumn, long ycolumn, 
 			Graphics_drawInnerBox (g);
 			Graphics_marksBottom (g, 2, true, true, false);
 			Graphics_marksLeft (g, 2, true, true, false);
-			if (my columnHeaders [xcolumn]. label) {
-				Graphics_textBottom (g, true, my columnHeaders[xcolumn].label);
-			}
-			if (my columnHeaders [ycolumn]. label) {
-				Graphics_textLeft (g, true, my columnHeaders[ycolumn].label);
-			}
+			if (my columnHeaders [xcolumn]. label)
+				Graphics_textBottom (g, true, my columnHeaders [xcolumn]. label.get());
+			if (my columnHeaders [ycolumn]. label)
+				Graphics_textLeft (g, true, my columnHeaders [ycolumn]. label.get());
 		}
 	} catch (MelderError) {
 		Melder_clearError ();   // drawing errors shall be ignored
 	}
 }
 
-autoTable Table_extractColumnRanges (Table me, char32 *ranges) {
+autoTable Table_extractColumnRanges (Table me, conststring32 ranges) {
 	try {
-		long numberOfSelectedColumns, numberOfRows = my rows.size;
-		autoNUMvector<long> columnRanges (NUMstring_getElementsOfRanges (ranges, my numberOfColumns, & numberOfSelectedColumns, nullptr, U"columnn number", true), 1);
-		autoTable thee = Table_createWithoutColumnNames (numberOfRows, numberOfSelectedColumns); 
-		for (long icol = 1; icol <= numberOfSelectedColumns; icol ++) {
+		integer numberOfRows = my rows.size;
+		autoINTVEC columnRanges = NUMstring_getElementsOfRanges (ranges, my numberOfColumns, U"columnn number", true);
+		autoTable thee = Table_createWithoutColumnNames (numberOfRows, columnRanges.size); 
+		for (integer icol = 1; icol <= columnRanges.size; icol ++)
 			Table_setColumnLabel (thee.get(), icol, my v_getColStr (columnRanges [icol]));
-		}
-		for (long irow = 1; irow <= numberOfRows; irow ++) {
+		for (integer irow = 1; irow <= numberOfRows; irow ++) {
 			//TableRow row = thy rows -> items [irow];
-			for (long icol = 1; icol <= numberOfSelectedColumns; icol ++) {
-				const char32 *value = Table_getStringValue_Assert (me, irow, columnRanges [icol]);
+			for (integer icol = 1; icol <= columnRanges.size; icol ++) {
+				conststring32 value = Table_getStringValue_Assert (me, irow, columnRanges [icol]);
 				Table_setStringValue (thee.get(), irow, icol, value);
 			}
 		}

@@ -1,6 +1,6 @@
 /* Categories.cpp
  *
- * Copyright (C) 1993-2013, 2015 David Weenink, 2015 Paul Boersma
+ * Copyright (C) 1993-2018 David Weenink, 2015,2017,2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,16 +23,23 @@
 
 #include "Categories.h"
 
+void structCategories :: v_info () {
+	structDaata :: v_info ();
+	MelderInfo_writeLine (U"Number of strings: ", our size);
+	autoStringSet set = StringList_to_StringSet (this);
+	MelderInfo_writeLine (U"Number of unique categories: ", set->size);
+}
+
 void structCategories :: v_readText (MelderReadText a_text, int /*formatVersion*/) {
-	long l_size = texgeti4 (a_text);
-	if (l_size == 0) {
+	integer l_size = texgeti32 (a_text);
+	if (l_size == 0)
 		(void) 0;
-	} else if (l_size < 0) {
+	else if (l_size < 0)
 		Melder_throw (U"Size cannot be negative.");
-	} else {
+	else
 		our _grow (l_size);
-	}
-	for (long i = 1; i <= l_size; i ++) {
+
+	for (integer i = 1; i <= l_size; i ++) {
 		autoSimpleString itemi = Thing_new (SimpleString);
 		itemi -> v_readText (a_text, 0);
 		our addItemAtPosition_move (itemi.move(), i);
@@ -40,16 +47,16 @@ void structCategories :: v_readText (MelderReadText a_text, int /*formatVersion*
 }
 
 void structCategories :: v_writeText (MelderFile file) {
-	texputi4 (file, our size, U"size", nullptr, nullptr, nullptr, nullptr, nullptr);
-	for (long i = 1; i <= our size; i ++) {
+	texputi32 (file, our size, U"size");
+	for (integer i = 1; i <= our size; i ++) {
 		SimpleString data = our at [i];
-		texputintro (file, U"item [", Melder_integer (i), U"]:", nullptr, nullptr, nullptr);
+		texputintro (file, U"item [", Melder_integer (i), U"]:");
 		data -> structSimpleString :: v_writeText (file);
 		texexdent (file);
 	}
 }
 
-Thing_implement (Categories, OrderedOfString, 0);
+Thing_implement (Categories, StringList, 0);
 
 autoCategories Categories_create () {
 	try {
@@ -60,7 +67,7 @@ autoCategories Categories_create () {
 	}
 }
 
-autoCategories Categories_createWithSequentialNumbers (long n) {
+autoCategories Categories_createWithSequentialNumbers (integer n) {
 	try {
 		autoCategories me = Thing_new (Categories);
 		OrderedOfString_initWithSequentialNumbers (me.get(), n);
@@ -72,37 +79,22 @@ autoCategories Categories_createWithSequentialNumbers (long n) {
 
 autoCategories Categories_selectUniqueItems (Categories me) {
 	try {
-		autoOrderedOfString s = OrderedOfString_selectUniqueItems (me);
-		autoCategories thee = OrderedOfString_to_Categories (s.get());
+		autoStringSet set = StringList_to_StringSet (me);
+		autoCategories thee = Categories_create ();
+		for (integer i = 1; i <= set->size; i ++) {
+			autoSimpleString item = Data_copy (set->at [i]);
+			thy addItem_move (item.move());
+		}
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no unique categories created.");
 	}
 }
 
-void Categories_drawItem (Categories me, Graphics g, long position, double xWC, double yWC) {
-	if (position < 1 || position > my size) {
-		return;
-	}
-	SimpleString_draw (my at [position], g, xWC, yWC);
-}
-
-autoCategories OrderedOfString_to_Categories (OrderedOfString me) {
-	try {
-		autoCategories thee = Categories_create();
-
-		for (long i = 1; i <= my size; i ++) {
-			autoSimpleString item = Data_copy (my at [i]);
-			thy addItem_move (item.move());
-		}
-		return thee;
-	} catch (MelderError) {
-		Melder_throw (me, U": not converted to Categories.");
-	}
-}
-
-long Categories_getSize (Categories me) {
-	return my size;
+void Categories_drawItem (Categories me, Graphics g, integer position, double xWC, double yWC) {
+	if (position < 1 || position > my size) return;
+	SimpleString item = my at [position];
+	Graphics_text (g, xWC, yWC, item -> string.get());
 }
 
 /* TableOfReal_Rowlabels_to_Categories  ??? */
@@ -110,9 +102,9 @@ autoCategories TableOfReal_to_CategoriesRow (TableOfReal me) {
 	try {
 		autoCategories thee = Categories_create ();
 
-		for (long i = 1; i <= my numberOfRows; i ++) {
-			if (my rowLabels[i]) {
-				autoSimpleString s = SimpleString_create (my rowLabels [i]);
+		for (integer i = 1; i <= my numberOfRows; i ++) {
+			if (my rowLabels [i]) {
+				autoSimpleString s = SimpleString_create (my rowLabels [i].get());
 				thy addItem_move (s.move());
 			}
 		}
@@ -126,9 +118,9 @@ autoCategories TableOfReal_to_CategoriesColumn (TableOfReal me) {
 	try {
 		autoCategories thee = Categories_create ();
 
-		for (long i = 1; i <= my numberOfColumns; i ++) {
-			if (my columnLabels[i]) {
-				autoSimpleString s = SimpleString_create (my columnLabels [i]);
+		for (integer i = 1; i <= my numberOfColumns; i ++) {
+			if (my columnLabels [i]) {
+				autoSimpleString s = SimpleString_create (my columnLabels [i].get());
 				thy addItem_move (s.move());
 			}
 		}

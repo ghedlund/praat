@@ -1,6 +1,6 @@
 /* Command.cpp
  *
- * Copyright (C) 1994-2011, 2015 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 Thing_implement (Command, Thing, 0);
 
-void Command_init (Command me, const char32 *name, Thing boss, Command_Callback execute, Command_Callback undo) {
+void Command_init (Command me, conststring32 name, Thing boss, Command_Callback execute, Command_Callback undo) {
 	Melder_assert (execute && undo);
 	Thing_setName (me, name);
 	my boss = boss;
@@ -56,7 +56,7 @@ Command CommandHistory_getItem (CommandHistory me) {
 }
 
 void CommandHistory_insertItem_move (CommandHistory me, autoCommand command) {
-	for (long i = my size; i >= my current + 1; i --) {
+	for (integer i = my size; i >= my current + 1; i --) {
 		my removeItem (i);
 	}
 	my addItem_move (command.move());
@@ -66,20 +66,20 @@ void CommandHistory_insertItem_move (CommandHistory me, autoCommand command) {
 	my current = my size;
 }
 
-int CommandHistory_empty (CommandHistory me) {
+bool CommandHistory_isEmpty (CommandHistory me) {
 	return my size == 0;
 }
 
-int CommandHistory_offleft (CommandHistory me) {
+bool CommandHistory_isOffleft (CommandHistory me) {
 	return my current == 0;
 }
 
-int CommandHistory_offright (CommandHistory me) {
+bool CommandHistory_isOffright (CommandHistory me) {
 	return my size == 0 || my current == my size + 1;
 }
 
-char32 *CommandHistory_commandName (CommandHistory me, long offsetFromCurrent) {
-	long pos = my current + offsetFromCurrent;
+conststring32 CommandHistory_commandName (CommandHistory me, integer offsetFromCurrent) {
+	integer pos = my current + offsetFromCurrent;
 	return pos >= 1 && pos <= my size ? Thing_getName (my at [pos]) : nullptr;
 }
 

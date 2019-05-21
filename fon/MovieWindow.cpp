@@ -67,11 +67,11 @@ void structMovieWindow :: v_draw () {
 		Graphics_fillRectangle (our graphics.get(), 0.0, 1.0, 0.0, 1.0);
 		Graphics_setColour (our graphics.get(), Graphics_BLACK);
 		Graphics_setWindow (our graphics.get(), our startWindow, our endWindow, 0.0, 1.0);
-		long firstFrame = Sampled_xToNearestIndex (movie, our startWindow);
-		long lastFrame = Sampled_xToNearestIndex (movie, our endWindow);
+		integer firstFrame = Sampled_xToNearestIndex (movie, our startWindow);
+		integer lastFrame = Sampled_xToNearestIndex (movie, our endWindow);
 		if (firstFrame < 1) firstFrame = 1;
 		if (lastFrame > movie -> nx) lastFrame = movie -> nx;
-		for (long iframe = firstFrame; iframe <= lastFrame; iframe ++) {
+		for (integer iframe = firstFrame; iframe <= lastFrame; iframe ++) {
 			double time = Sampled_indexToX (movie, iframe);
 			double timeLeft = time - 0.5 * movie -> dx, timeRight = time + 0.5 * movie -> dx;
 			if (timeLeft < our startWindow) timeLeft = our startWindow;
@@ -121,12 +121,12 @@ void structMovieWindow :: v_play (double tmin, double tmax) {
 	Movie_play (movie, our graphics.get(), tmin, tmax, theFunctionEditor_playCallback, this);
 }
 
-void MovieWindow_init (MovieWindow me, const char32 *title, Movie movie) {
+void MovieWindow_init (MovieWindow me, conststring32 title, Movie movie) {
 	Melder_assert (movie);
 	TimeSoundAnalysisEditor_init (me, title, movie, movie -> d_sound.get(), false);
 }
 
-autoMovieWindow MovieWindow_create (const char32 *title, Movie movie) {
+autoMovieWindow MovieWindow_create (conststring32 title, Movie movie) {
 	try {
 		autoMovieWindow me = Thing_new (MovieWindow);
 		MovieWindow_init (me.get(), title, movie);

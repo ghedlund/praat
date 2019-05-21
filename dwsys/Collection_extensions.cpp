@@ -1,6 +1,6 @@
 /* Collection_extensions.cpp
  *
- * Copyright (C) 1994-2011, 2015-2016 David Weenink
+ * Copyright (C) 1994-2018 David Weenink, 2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 /*
  djmw 20020812 GPL header
- djmw 20040420 Fraction in OrderedOfString_difference must be double.
+ djmw 20040420 Fraction in OrderedOfString_difference should be double.
  djmw 20050511 Skip printing unique labels in OrderedOfString
  djmw 20061214
  djmw 20061214 Changed info to Melder_writeLine<x> format.
@@ -26,30 +26,29 @@
 */
 
 #include "Collection_extensions.h"
-#include "Simple_extensions.h"
 #include "NUM2.h"
 
-autoCollection Collection_and_Permutation_permuteItems (Collection me, Permutation him) {
+autoCollection Collection_Permutation_permuteItems (Collection me, Permutation him) {
 	try {
 		if (my size != his numberOfElements) {
 			Melder_throw (me, U"The number of elements are not equal.");
 		}
-		autoNUMvector<long> pos (1, my size);
+		autoINTVEC pos = newINTVECraw (my size);
 		autoCollection thee = Data_copy (me);
 
-		for (long i = 1; i <= my size; i ++) {
+		for (integer i = 1; i <= my size; i ++)
 			pos [i] = i;
-		}
+
 		/* Dual meaning of array pos: */
 		/* k <  i : position of item 'k' */
 		/* k >= i : the item at position 'k' */
-		for (long i = 1; i <= my size; i++) {
-			long ti = pos [i], which = Permutation_getValueAtIndex (him, i);
-			long where = pos [which];   // where >= i
+		for (integer i = 1; i <= my size; i++) {
+			integer ti = pos [i], which = Permutation_getValueAtIndex (him, i);
+			integer where = pos [which];   // where >= i
 			Daata tmp = static_cast<Daata> (thy at [i]);
-			if (i == where) {
+			if (i == where)
 				continue;
-			}
+
 			thy at [i] = thy at [where];
 			thy at [where] = tmp;
 			/* order is important !! */
@@ -66,8 +65,8 @@ autoCollection Collection_and_Permutation_permuteItems (Collection me, Permutati
 autoCollection Collection_permuteItems (Collection me) {
 	try {
 		autoPermutation p = Permutation_create (my size);
-		Permutation_permuteRandomly_inline (p.get(), 0, 0);
-		autoCollection thee = Collection_and_Permutation_permuteItems (me, p.get());
+		Permutation_permuteRandomly_inplace (p.get(), 0, 0);
+		autoCollection thee = Collection_Permutation_permuteItems (me, p.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": items not permuted.");
@@ -76,20 +75,10 @@ autoCollection Collection_permuteItems (Collection me) {
 
 /****************** class OrderedOfString ******************/
 
-void structOrderedOfString :: v_info () {
-	structDaata :: v_info ();
-	MelderInfo_writeLine (U"Number of strings: ", our size);
-	autoOrderedOfString uStrings = OrderedOfString_selectUniqueItems (this);
-	MelderInfo_writeLine (U"Number of unique categories: ", uStrings->size);   // FIXME: "categories"?, and why mention a Set property?
-}
-
-Thing_implement (OrderedOfString, Ordered, 0);
-
-int OrderedOfString_append (OrderedOfString me, const char32 *append) {
+int OrderedOfString_append (StringList me, conststring32 append) {
 	try {
-		if (! append) {
+		if (! append)
 			return 1;    // BUG: lege string appenden??
-		}
 		autoSimpleString item = SimpleString_create (append);
 		my addItem_move (item.move());
 		return 1;
@@ -98,98 +87,64 @@ int OrderedOfString_append (OrderedOfString me, const char32 *append) {
 	}
 }
 
-autoOrderedOfString OrderedOfString_joinItems (OrderedOfString me, OrderedOfString thee) {
+autoStringList OrderedOfString_joinItems (StringList me, StringList thee) {
 	try {
 		if (my size != thy size) {
-			Melder_throw (U"sizes must be equal.");
+			Melder_throw (U"sizes should be equal.");
 		}
-		autoOrderedOfString him = Data_copy (me);
+		autoStringList him = Data_copy (me);   // FIXME: this copies *all* the data from me, and only the strings from thee
 
-		for (long i = 1; i <= my size; i ++) {
-			SimpleString_append (his at [i], thy at [i]);
+		for (integer i = 1; i <= my size; i ++) {
+			SimpleString hisCategory = his at [i], thyCategory = thy at [i];
+			integer hisLength = str32len (hisCategory -> string.get()), thyLength = str32len (thyCategory -> string.get());
+			hisCategory -> string. resize (hisLength + thyLength);
+			str32cpy (& hisCategory -> string [hisLength], thyCategory -> string.get());
 		}
 		return him;
 	} catch (MelderError) {
-		Melder_throw (U"Items not joinmed.");
+		Melder_throw (U"Items not joined.");
 	}
 }
 
-autoOrderedOfString OrderedOfString_selectUniqueItems (OrderedOfString me) {
+autoStringSet StringList_to_StringSet (StringList me) {
 	try {
-		autoStringSet thee = StringSet_create ();
-		for (long i = 1; i <= my size; i ++) {
-			if (! thy hasItem (my at [i])) {   // FIXME: first sort, then unicize
-				autoSimpleString item = Data_copy (my at [i]);
-				thy addItem_move (item.move());
-			}
+		autoStringSet you = StringSet_create ();
+		for (integer i = 1; i <= my size; i ++) {
+			autoSimpleString item = SimpleString_create (my at [i] -> string.get());
+			your addItem_unsorted_move (item.move());
 		}
-		autoOrderedOfString him = OrderedOfString_create ();
-		for (long i = 1; i <= thy size; i ++) {
-			autoSimpleString item = Data_copy (thy at [i]);
-			his addItem_move (item.move());
-		}
-		return him;
+		your sort ();
+		your unicize ();
+		return you;
 	} catch (MelderError) {
-		Melder_throw (me, U": unique items not selected.");
+		Melder_throw (me, U": not converted to StringSet.");
 	}
 }
 
-void OrderedOfString_frequency (OrderedOfString me, OrderedOfString thee, long *count) {
-	for (long i = 1; i <= my size; i ++) {
-		for (long j = 1; j <= thy size; j ++) {
-			if (Data_equal (my at [i], thy at [j])) {
-				count[j]++;
-				break;
-			}
-		}
-	}
-}
-
-long OrderedOfString_getNumberOfDifferences (OrderedOfString me, OrderedOfString thee) {
-	long numberOfDifferences = 0;
-
-	if (my size != thy size) {
-		return -1;
-	}
-	for (long i = 1; i <= my size; i ++) {
-		if (! Data_equal (my at [i], thy at [i])) {
-			numberOfDifferences++;
-		}
+integer OrderedOfString_getNumberOfDifferences (StringList me, StringList thee) {
+	integer numberOfDifferences = 0;
+	if (my size != thy size)
+		return -1;   // FIXME: this is arbitrary and unexpected
+	for (integer i = 1; i <= my size; i ++) {
+		if (! Data_equal (my at [i], thy at [i]))   // FIXME: this compares all the data, instead of just the strings
+			numberOfDifferences ++;
 	}
 	return numberOfDifferences;
 }
 
-double OrderedOfString_getFractionDifferent (OrderedOfString me, OrderedOfString thee) {
-	long numberOfDifferences = OrderedOfString_getNumberOfDifferences (me, thee);
-
+double OrderedOfString_getFractionDifferent (StringList me, StringList thee) {
+	integer numberOfDifferences = OrderedOfString_getNumberOfDifferences (me, thee);
 	if (numberOfDifferences < 0) {
-		return NUMundefined;
+		return undefined;
 	}
-	return my size == 0 ? 0.0 : (0.0 + numberOfDifferences) / my size;
+	return my size == 0 ? 0.0 : (double) numberOfDifferences / my size;
 }
 
-int OrderedOfString_difference (OrderedOfString me, OrderedOfString thee, long *ndif, double *fraction) {
-	*ndif = 0;
-	*fraction = 1.0;
-	if (my size != thy size) {
-		Melder_flushError (U"OrderedOfString_difference: the numbers of items differ");
-		return 0;
-	}
-	for (long i = 1; i <= my size; i ++) {
-		if (! Data_equal (my at [i], thy at [i])) {
-			(*ndif) ++;
-		}
-	}
-	*fraction = *ndif;
-	*fraction /= my size;
-	return 1;
-}
-
-long OrderedOfString_indexOfItem_c (OrderedOfString me, const char32 *str) {
-	long index = 0;
+integer OrderedOfString_indexOfItem_c (StringList me, conststring32 str) {
+	integer index = 0;
 	autoSimpleString s = SimpleString_create (str);
 
-	for (long i = 1; i <= my size; i ++) {
+	for (integer i = 1; i <= my size; i ++) {
 		if (Data_equal (my at [i], s.get())) {
 			index = i;
 			break;
@@ -198,89 +153,70 @@ long OrderedOfString_indexOfItem_c (OrderedOfString me, const char32 *str) {
 	return index;
 }
 
-const char32 *OrderedOfString_itemAtIndex_c (OrderedOfString me, long index) {
-	return index > 0 && index <= my size ? SimpleString_c (my at [index]) : nullptr;
-}
-
-void OrderedOfString_initWithSequentialNumbers (OrderedOfString me, long n) {
-	for (long i = 1; i <= n; i ++) {
+void OrderedOfString_initWithSequentialNumbers (StringList me, integer n) {
+	for (integer i = 1; i <= n; i ++)
 		my addItem_move (SimpleString_create (Melder_integer (i)));
-	}
 }
 
-void OrderedOfString_changeStrings (OrderedOfString me, char32 *search, char32 *replace, int maximumNumberOfReplaces, long *nmatches, long *nstringmatches, int use_regexp) {
+void OrderedOfString_changeStrings (StringList me, char32 *search, char32 *replace, int maximumNumberOfReplaces, integer *nmatches, integer *nstringmatches, bool use_regexp) {
 	regexp *compiled_search = nullptr;
 	try {
-		if (! search) {
-			Melder_throw (U"Missing search string.");
-		}
-		if (! replace) {
-			Melder_throw (U"Missing replace string.");
-		}
+		Melder_require (search, U"The search string should not be empty.");
+		Melder_require (replace, U"The replace string should not be empty.");
 
-		if (use_regexp) {
+		if (use_regexp)
 			compiled_search = CompileRE_throwable (search, 0);
-		}
-		for (long i = 1; i <= my size; i ++) {
+		for (integer i = 1; i <= my size; i ++) {
 			SimpleString ss = my at [i];
-			long nmatches_sub;
-			char32 *r = use_regexp ? str_replace_regexp (ss -> string, compiled_search, replace, maximumNumberOfReplaces, &nmatches_sub) : str_replace_literal (ss -> string, search, replace, maximumNumberOfReplaces, &nmatches_sub);
+			integer nmatches_sub;
+			autostring32 r = use_regexp ?
+					newSTRreplace_regex (ss -> string.get(), compiled_search, replace, maximumNumberOfReplaces, & nmatches_sub) :
+					newSTRreplace (ss -> string.get(), search, replace, maximumNumberOfReplaces, & nmatches_sub);
 
-			// Change without error:
-			Melder_free (ss -> string);
-			ss -> string = r;
+			/*
+				Change without error.
+			*/
+			ss -> string = r.move();
+
 			if (nmatches_sub > 0) {
 				*nmatches += nmatches_sub;
 				(*nstringmatches) ++;
 			}
 		}
-		if (use_regexp) {
+		if (use_regexp)
 			free (compiled_search);
-		}
 	} catch (MelderError) {
-		if (use_regexp) {
+		if (use_regexp)
 			free (compiled_search);
-		}
 		Melder_throw (U"Replace not completed.");
 	}
 }
 
-long OrderedOfString_isSubsetOf (OrderedOfString me, OrderedOfString thee, long *translation) { // ?? test and give number
-	long nStrings = 0;
+integer OrderedOfString_isSubsetOf (StringList me, StringList thee, integer *translation) { // ?? test and give number
+	integer nStrings = 0;
 
-	for (long i = 1; i <= my size; i ++) {
-		if (translation) {
+	for (integer i = 1; i <= my size; i ++) {
+		if (translation)
 			translation [i] = 0;
-		}
-		for (long j = 1; j <= thy size; j ++)
+		for (integer j = 1; j <= thy size; j ++)
 			if (Data_equal (my at [i], thy at [j])) {
-				if (translation) {
-					translation[i] = j;
-				}
-				nStrings++; break;
+				if (translation)
+					translation [i] = j;
+				nStrings ++;
+				break;
 			}
 	}
 	return nStrings;
 }
 
-void OrderedOfString_drawItem (OrderedOfString me, Graphics g, long index, double xWC, double yWC) {
-	if (index > 0 && index <= my size) {
-		SimpleString_draw (my at [index], g, xWC, yWC);
-	}
-}
-
-long OrderedOfString_getSize (OrderedOfString me) {
-	return my size;
-}
-
-void OrderedOfString_removeOccurrences (OrderedOfString me, const char32 *search, int use_regexp) {
-	if (! search) {
+void OrderedOfString_removeOccurrences (StringList me, conststring32 search, bool use_regexp) {
+	if (! search)
 		return;
-	}
-	for (long i = my size; i >= 1; i --) {
+	for (integer i = my size; i >= 1; i --) {
 		SimpleString ss = my at [i];
-		if ( (use_regexp && strstr_regexp (ss -> string, search)) ||
-		        (!use_regexp && str32str (ss -> string, search))) {
+		if ((use_regexp && strstr_regexp (ss -> string.get(), search)) ||
+		        (! use_regexp && str32str (ss -> string.get(), search)))
+		{
 			my removeItem (i);
 		}
 	}

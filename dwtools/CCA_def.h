@@ -1,6 +1,6 @@
 /* CCA_def.h
  * 
- * Copyright (C) 1993-2008, 2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  * 
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 #define ooSTRUCT CCA
 oo_DEFINE_CLASS (CCA, Daata)
 
-	oo_LONG (numberOfCoefficients)
-	oo_LONG (numberOfObservations)
-	oo_AUTO_OBJECT (Strings, 0, yLabels)
-	oo_AUTO_OBJECT (Strings, 0, xLabels)
-	oo_AUTO_OBJECT(Eigen, 0, y)
-	oo_AUTO_OBJECT(Eigen, 0, x)
+	oo_INTEGER (numberOfCoefficients)
+	oo_INTEGER (numberOfObservations)
+	oo_OBJECT (Strings, 0, yLabels)
+	oo_OBJECT (Strings, 0, xLabels)
+	oo_OBJECT (Eigen, 0, y)
+	oo_OBJECT (Eigen, 0, x)
 
 	#if oo_DECLARING
 		void v_info ()

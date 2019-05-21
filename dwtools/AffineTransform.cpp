@@ -1,6 +1,6 @@
 /* AffineTransform.cpp
  *
- * Copyright (C) 1993-2013, 2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
  djmw 20020315 GPL header
  djmw 20041027 Added AffineTransform_extractMatrix
  djmw 20050726 Added AffineTransform_extractTranslationVector
- djmw 20061021 printf expects %ld for 'long int'
  djmw 20071012 Added: o_CAN_WRITE_AS_ENCODING.h
  djmw 20110304 Thing_new
  */
@@ -48,47 +47,37 @@
 #include "oo_DESCRIPTION.h"
 #include "AffineTransform_def.h"
 
-void structAffineTransform :: v_transform (double **in, long nrows, double **out) {
-	for (long i = 1; i <= nrows; i++) {
-		for (long j = 1; j <= n; j++) {
-			double tmp = 0;
-			for (long k = 1; k <= n; k++) {
-				tmp += in[i][k] * r[k][j];
-			}
-			out[i][j] = tmp + t[j];
-		}
-	}
+void structAffineTransform :: v_transform (MAT out, MAT in) {
+	Melder_assert (in.nrow == out.nrow);
+	Melder_assert (in.ncol == out.ncol);
+	MATVUmul (out, in, r.get());
+	out += t;
 }
 
 autoAffineTransform structAffineTransform :: v_invert () {
 	autoAffineTransform thee = Data_copy (this);
 	double tolerance = 0.000001;
 
-	NUMpseudoInverse (r, n, n, thy r, tolerance);
-	for (long i = 1; i <= n; i ++) {
-		thy t[i] = 0.0;
-		for (long j = 1; j <= thy n; j ++) {
-			thy t[i] -= thy r[i][j] * t[j];
-		}
-	}
+	thy r = MATpseudoInverse (r.get(), tolerance);
+	for (integer i = 1; i <= dimension; i ++)
+		thy t[i] = - NUMinner (thy r.row (i), t.get ());
 	return thee;
 }
 
 Thing_implement (AffineTransform, Daata, 0);
 
-void AffineTransform_init (AffineTransform me, long n) {
-	if (n < 1) {
-		Melder_throw (U"Dimensionality must be at least 1.");
-	}
-	my n = n;
-	my r = NUMmatrix<double> (1, n, 1, n);
-	my t = NUMvector<double> (1, n);
+void AffineTransform_init (AffineTransform me, integer dimension) {
+	Melder_require (dimension > 0, U"Dimensionality should be greater than zero.");
+	
+	my dimension = dimension;
+	my r = newMATzero (dimension, dimension);
+	my t = newVECzero (dimension);
 }
 
-autoAffineTransform AffineTransform_create (long n) {
+autoAffineTransform AffineTransform_create (integer dimension) {
 	try {
 		autoAffineTransform me = Thing_new (AffineTransform);
-		AffineTransform_init (me.get(), n);
+		AffineTransform_init (me.get(), dimension);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"AffineTransform not created.");
@@ -101,9 +90,9 @@ autoAffineTransform AffineTransform_invert (AffineTransform me) {
 
 autoTableOfReal AffineTransform_extractMatrix (AffineTransform me) {
 	try {
-		autoTableOfReal thee = TableOfReal_create (my n, my n);
-		NUMmatrix_copyElements (my r, thy data, 1, my n, 1, my n);
-		for (long i = 1; i <= my n; i ++) {
+		autoTableOfReal thee = TableOfReal_create (my dimension, my dimension);
+		thy data.all() <<= my r.all();
+		for (integer i = 1; i <= my dimension; i ++) {
 			char32 label [40];
 			Melder_sprint (label,40, i);
 			TableOfReal_setRowLabel (thee.get(), i, label);
@@ -117,10 +106,8 @@ autoTableOfReal AffineTransform_extractMatrix (AffineTransform me) {
 
 autoTableOfReal AffineTransform_extractTranslationVector (AffineTransform me) {
 	try {
-		autoTableOfReal thee = TableOfReal_create (1, my n);
-		for (long i = 1; i <= my n; i++) {
-			thy data[1][i] = my t[i];
-		}
+		autoTableOfReal thee = TableOfReal_create (1, my dimension);
+		thy data.row (1) <<= my t.get();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": translation vector not extracted.");

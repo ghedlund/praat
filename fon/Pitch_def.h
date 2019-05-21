@@ -1,6 +1,6 @@
 /* Pitch_def.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2006,2008,2011,2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,19 +55,19 @@ oo_END_STRUCT (Pitch_Candidate)
 oo_DEFINE_STRUCT (Pitch_Frame)
 
 	#if oo_READING_BINARY
-		if (formatVersion < 0) {
-			oo_INT (nCandidates)
+		oo_VERSION_UNTIL (0)
+			oo_INT16 (nCandidates)
 			oo_FLOAT (intensity)
-		} else if (formatVersion == 0) {
+		oo_VERSION_ELSE_UNTIL (1)
 			oo_FLOAT (intensity)
-			oo_LONG (nCandidates)
-		} else {
+			oo_INTEGER (nCandidates)
+		oo_VERSION_ELSE
 			oo_DOUBLE (intensity)
-			oo_LONG (nCandidates)
-		}
+			oo_INTEGER (nCandidates)
+		oo_VERSION_END
 	#else
 		oo_DOUBLE (intensity)
-		oo_LONG (nCandidates)
+		oo_INTEGER (nCandidates)
 	#endif
 
 	oo_STRUCT_VECTOR (Pitch_Candidate, candidate, nCandidates)
@@ -80,7 +80,7 @@ oo_END_STRUCT (Pitch_Frame)
 oo_DEFINE_CLASS (Pitch, Sampled)
 
 	oo_DOUBLE (ceiling)
-	oo_INT (maxnCandidates)
+	oo_INT16 (maxnCandidates)
 	oo_STRUCT_VECTOR (Pitch_Frame, frame, nx)
 
 	#if oo_DECLARING
@@ -88,19 +88,19 @@ oo_DEFINE_CLASS (Pitch, Sampled)
 			override;
 		int v_domainQuantity ()
 			override { return MelderQuantity_TIME_SECONDS; }
-		int v_getMinimumUnit (long ilevel)
+		int v_getMinimumUnit (integer level)
 			override;
-		int v_getMaximumUnit (long ilevel)
+		int v_getMaximumUnit (integer level)
 			override;
-		const char32 * v_getUnitText (long ilevel, int unit, unsigned long flags)
+		conststring32 v_getUnitText (integer level, int unit, uint32 flags)
 			override;
-		bool v_isUnitLogarithmic (long ilevel, int unit)
+		bool v_isUnitLogarithmic (integer level, int unit)
 			override;
-		double v_convertStandardToSpecialUnit (double value, long ilevel, int unit)
+		double v_convertStandardToSpecialUnit (double value, integer level, int unit)
 			override;
-		double v_convertSpecialToStandardUnit (double value, long ilevel, int unit)
+		double v_convertSpecialToStandardUnit (double value, integer level, int unit)
 			override;
-		double v_getValueAtSample (long isamp, long ilevel, int unit)
+		double v_getValueAtSample (integer sampleNumber, integer level, int unit)
 			override;
 	#endif
 

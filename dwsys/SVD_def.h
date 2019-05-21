@@ -1,6 +1,6 @@
 /* SVD_def.h
  *
- * Copyright (C) 1994-2008 David Weenink
+ * Copyright (C) 1994-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,34 @@
 oo_DEFINE_CLASS (SVD, Daata)
 
 	oo_DOUBLE (tolerance)
-	oo_LONG (numberOfRows)
-	oo_LONG (numberOfColumns)
-	oo_DOUBLE_MATRIX (u, numberOfRows, (numberOfColumns < numberOfRows ? numberOfColumns : numberOfRows))
-	oo_DOUBLE_MATRIX (v, numberOfColumns, (numberOfColumns < numberOfRows ? numberOfColumns : numberOfRows))
-	oo_DOUBLE_VECTOR (d, (numberOfColumns < numberOfRows ? numberOfColumns : numberOfRows))
+	oo_INTEGER (numberOfRows)
+	oo_INTEGER (numberOfColumns) // new invariant: numberOfRows >= numberOfColumns!
+	oo_FROM (1)
+		oo_QUESTION (isTransposed)
+	oo_ENDFROM
+	#if oo_READING
+		oo_VERSION_UNTIL (1)
+			if (our numberOfRows < our numberOfColumns) {
+				integer tmp = our numberOfRows;
+				our numberOfRows = our numberOfColumns;
+				our numberOfColumns = tmp;
+				our isTransposed = true;
+				oo_MAT (v, numberOfColumns, numberOfColumns)
+				oo_MAT (u, numberOfRows, numberOfColumns)
+			} else {
+				our isTransposed = false;
+				oo_MAT (u, numberOfRows, numberOfColumns)
+				oo_MAT (v, numberOfColumns, numberOfColumns)
+			}
+		oo_VERSION_ELSE
+			oo_MAT (u, numberOfRows, numberOfColumns)
+			oo_MAT (v, numberOfColumns, numberOfColumns)
+		oo_VERSION_END
+	#else
+		oo_MAT (u, numberOfRows, numberOfColumns)
+		oo_MAT (v, numberOfColumns, numberOfColumns)
+	#endif
+	oo_VEC (d, numberOfColumns)
 
 	#if oo_DECLARING
 		void v_info ()
@@ -39,11 +62,11 @@ oo_END_CLASS (SVD)
 oo_DEFINE_CLASS (GSVD, Daata)
 
 	oo_DOUBLE (tolerance)
-	oo_LONG (numberOfColumns)
-	oo_DOUBLE_MATRIX ( q, numberOfColumns, numberOfColumns)
-	oo_DOUBLE_MATRIX ( r, numberOfColumns, numberOfColumns)
-	oo_DOUBLE_VECTOR (d1, numberOfColumns)
-	oo_DOUBLE_VECTOR (d2, numberOfColumns)
+	oo_INTEGER (numberOfColumns)
+	oo_MAT ( q, numberOfColumns, numberOfColumns)
+	oo_MAT ( r, numberOfColumns, numberOfColumns)
+	oo_VEC (d1, numberOfColumns)
+	oo_VEC (d2, numberOfColumns)
 
 	#if oo_DECLARING
 		void v_info ()

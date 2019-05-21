@@ -25,19 +25,13 @@
 #include "Configuration_and_Procrustes.h"
 #include "NUM2.h"
 
-autoProcrustes Configurations_to_Procrustes (Configuration me, Configuration thee, int orthogonal) {
+autoProcrustes Configurations_to_Procrustes (Configuration me, Configuration thee, bool orthogonal) {
 	try {
-		if (my numberOfRows != thy numberOfRows || my numberOfColumns != thy numberOfColumns) {
-			Melder_throw (U"Configurations must have the same number of points and the same dimension.");
-		}
+		Melder_require (my numberOfRows == thy numberOfRows && my numberOfColumns == thy numberOfColumns,
+			U"Configurations must have the same number of points and the same dimension.");
 
 		autoProcrustes p = Procrustes_create (my numberOfColumns);
-		double *translation = 0, *scale = 0;
-		if (! orthogonal) {
-			translation = p -> t;
-			scale = & (p -> s);
-		}
-		NUMProcrustes (my data, thy data, my numberOfRows, my numberOfColumns, p -> r, translation, scale);
+		NUMprocrustes (my data.get(), thy data.get(), & p -> r, ( orthogonal ? nullptr : & p -> t ), ( orthogonal ? nullptr : & p -> s) );
 		return p;
 	} catch (MelderError) {
 		Melder_throw (U"Procrustes from two Configurations not created.");

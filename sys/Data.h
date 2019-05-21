@@ -2,7 +2,7 @@
 #define _Data_h_
 /* Data.h
  *
- * Copyright (C) 1992-2012,2015 Paul Boersma
+ * Copyright (C) 1992-2012,2013-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,15 +25,15 @@
 #include "praatlib.h"
 
 typedef struct structData_Description {
-	const char32 *name;   // the name of this field
+	conststring32 name;   // the name of this field
 	int type;   // bytewa..inheritwa, see below
 	int offset;   // the offset of this field in the enveloping struct
 	int size;   // the size of this field if it is in an array
-	const char32 *tagName;   // for structs: tag; for classes: class name; for enums: type name
+	conststring32 tagName;   // for structs: tag; for classes: class name; for enums: type name
 	void *tagType;   // for structs: offset table; for classes: class pointer; for enums: enum pointer
 	int rank;   // 0 = single, 1 = vector, 2 = matrix, 3 = set, -1 = array
-	const char32 *min1, *max1;   // for vectors and matrices
-	const char32 *min2, *max2;   // for matrices
+	conststring32 min1, max1;   // for vectors and matrices
+	conststring32 min2, max2;   // for matrices
 } *Data_Description;
 
 /*
@@ -53,34 +53,34 @@ Thing_define (Daata, Thing) {
 	virtual void v_readBinary (FILE *f, int formatVersion);
 	virtual void v_repair () { }   // after reading Praat data files created by others
 	// methods for scripting:
-	virtual bool v_hasGetNrow      () { return false; }   virtual double        v_getNrow      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetNcol      () { return false; }   virtual double        v_getNcol      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetXmin      () { return false; }   virtual double        v_getXmin      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetXmax      () { return false; }   virtual double        v_getXmax      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetYmin      () { return false; }   virtual double        v_getYmin      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetYmax      () { return false; }   virtual double        v_getYmax      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetNx        () { return false; }   virtual double        v_getNx        ()                                 { return NUMundefined; }
-	virtual bool v_hasGetNy        () { return false; }   virtual double        v_getNy        ()                                 { return NUMundefined; }
-	virtual bool v_hasGetDx        () { return false; }   virtual double        v_getDx        ()                                 { return NUMundefined; }
-	virtual bool v_hasGetDy        () { return false; }   virtual double        v_getDy        ()                                 { return NUMundefined; }
-	virtual bool v_hasGetX         () { return false; }   virtual double        v_getX         (long /* ix */)                    { return NUMundefined; }
-	virtual bool v_hasGetY         () { return false; }   virtual double        v_getY         (long /* iy */)                    { return NUMundefined; }
-	virtual bool v_hasGetRowStr    () { return false; }   virtual const char32 *v_getRowStr    (long /* irow */)                  { return nullptr;      }
-	virtual bool v_hasGetColStr    () { return false; }   virtual const char32 *v_getColStr    (long /* icol */)                  { return nullptr;      }
-	virtual bool v_hasGetCell      () { return false; }   virtual double        v_getCell      ()                                 { return NUMundefined; }
-	virtual bool v_hasGetCellStr   () { return false; }   virtual const char32 *v_getCellStr   ()                                 { return nullptr; }
-	virtual bool v_hasGetVector    () { return false; }   virtual double        v_getVector    (long /* irow */, long /* icol */) { return NUMundefined; }
-	virtual bool v_hasGetVectorStr () { return false; }   virtual const char32 *v_getVectorStr (long /* icol */)                  { return nullptr;      }
-	virtual bool v_hasGetMatrix    () { return false; }   virtual double        v_getMatrix    (long /* irow */, long /* icol */) { return NUMundefined; }
-	virtual bool v_hasGetMatrixStr () { return false; }   virtual const char32 *v_getMatrixStr (long /* irow */, long /* icol */) { return nullptr;      }
-	virtual bool v_hasGetFunction0 () { return false; }   virtual double        v_getFunction0 ()                                 { return NUMundefined; }
-	virtual bool v_hasGetFunction1 () { return false; }   virtual double        v_getFunction1 (long /* irow */, double /* x */)  { return NUMundefined; }
-	virtual bool v_hasGetFunction2 () { return false; }   virtual double        v_getFunction2 (double /* x */, double /* y */)   { return NUMundefined; }
-	virtual bool v_hasGetRowIndex  () { return false; }   virtual double        v_getRowIndex  (const char32 * /* rowLabel */)    { return NUMundefined; }
-	virtual bool v_hasGetColIndex  () { return false; }   virtual double        v_getColIndex  (const char32 * /* colLabel */)    { return NUMundefined; }
+	virtual bool v_hasGetNrow      () { return false; }   virtual double        v_getNrow      ()                                       { return undefined; }
+	virtual bool v_hasGetNcol      () { return false; }   virtual double        v_getNcol      ()                                       { return undefined; }
+	virtual bool v_hasGetXmin      () { return false; }   virtual double        v_getXmin      ()                                       { return undefined; }
+	virtual bool v_hasGetXmax      () { return false; }   virtual double        v_getXmax      ()                                       { return undefined; }
+	virtual bool v_hasGetYmin      () { return false; }   virtual double        v_getYmin      ()                                       { return undefined; }
+	virtual bool v_hasGetYmax      () { return false; }   virtual double        v_getYmax      ()                                       { return undefined; }
+	virtual bool v_hasGetNx        () { return false; }   virtual double        v_getNx        ()                                       { return undefined; }
+	virtual bool v_hasGetNy        () { return false; }   virtual double        v_getNy        ()                                       { return undefined; }
+	virtual bool v_hasGetDx        () { return false; }   virtual double        v_getDx        ()                                       { return undefined; }
+	virtual bool v_hasGetDy        () { return false; }   virtual double        v_getDy        ()                                       { return undefined; }
+	virtual bool v_hasGetX         () { return false; }   virtual double        v_getX         (integer /* ix */)                       { return undefined; }
+	virtual bool v_hasGetY         () { return false; }   virtual double        v_getY         (integer /* iy */)                       { return undefined; }
+	virtual bool v_hasGetRowStr    () { return false; }   virtual conststring32 v_getRowStr    (integer /* irow */)                     { return nullptr;      }
+	virtual bool v_hasGetColStr    () { return false; }   virtual conststring32 v_getColStr    (integer /* icol */)                     { return nullptr;      }
+	virtual bool v_hasGetCell      () { return false; }   virtual double        v_getCell      ()                                       { return undefined; }
+	virtual bool v_hasGetCellStr   () { return false; }   virtual conststring32 v_getCellStr   ()                                       { return nullptr; }
+	virtual bool v_hasGetVector    () { return false; }   virtual double        v_getVector    (integer /* irow */, integer /* icol */) { return undefined; }
+	virtual bool v_hasGetVectorStr () { return false; }   virtual conststring32 v_getVectorStr (integer /* icol */)                     { return nullptr;      }
+	virtual bool v_hasGetMatrix    () { return false; }   virtual double        v_getMatrix    (integer /* irow */, integer /* icol */) { return undefined; }
+	virtual bool v_hasGetMatrixStr () { return false; }   virtual conststring32 v_getMatrixStr (integer /* irow */, integer /* icol */) { return nullptr;      }
+	virtual bool v_hasGetFunction0 () { return false; }   virtual double        v_getFunction0 ()                                       { return undefined; }
+	virtual bool v_hasGetFunction1 () { return false; }   virtual double        v_getFunction1 (integer /* irow */, double /* x */)     { return undefined; }
+	virtual bool v_hasGetFunction2 () { return false; }   virtual double        v_getFunction2 (double /* x */, double /* y */)         { return undefined; }
+	virtual bool v_hasGetRowIndex  () { return false; }   virtual double        v_getRowIndex  (conststring32 /* rowLabel */)           { return undefined; }
+	virtual bool v_hasGetColIndex  () { return false; }   virtual double        v_getColIndex  (conststring32 /* colLabel */)           { return undefined; }
 };
 
-template <class T> _Thing_auto<T> Data_copy (T* data) {
+template <class T> autoSomeThing<T> Data_copy (T* data) {
 	return _Data_copy (data).template static_cast_move <T> ();
 }
 autoDaata _Data_copy (Daata me);
@@ -261,7 +261,7 @@ PRAAT_LIB_EXPORT autoDaata Data_readFromBinaryFile (MelderFile file);
 		(plus those from Data_readBinary)
 */
 
-typedef autoDaata (*Data_FileTypeRecognizer) (int numberOfBytesRead, const char *header, MelderFile file);
+using Data_FileTypeRecognizer = autoDaata (*) (integer numberOfBytesRead, const char *header, MelderFile file);
 
 void Data_recognizeFileType (Data_FileTypeRecognizer recognizer);
 /*
@@ -330,41 +330,39 @@ void Data_setPublishProc (int (*publish) (autoDaata));
 /* The values of 'type' in struct descriptions. */
 
 #define bytewa  1
-#define intwa  2
-#define longwa  3
-#define ubytewa  4
-#define uintwa  5
-#define ulongwa  6
-#define boolwa 7
+#define int16wa  2
+#define intwa  3
+#define integerwa  4
+#define ubytewa  5
+#define uintwa  6
+#define uintegerwa  7
 #define floatwa  8
 #define doublewa  9
-#define fcomplexwa  10
-#define dcomplexwa  11
-#define enumwa  12
-#define lenumwa  13
-#define booleanwa  14
-#define questionwa  15
-#define stringwa  16
-#define lstringwa  17
+#define complexwa  10
+#define enumwa  11
+#define lenumwa  12
+#define booleanwa  13
+#define questionwa  14
+#define stringwa  15
+#define lstringwa  16
 #define maxsingletypewa lstringwa
-#define structwa  18
-#define widgetwa  19
-#define objectwa  20
-#define autoobjectwa  21
-#define collectionofwa  22
-#define autocollectionwa  23
-#define inheritwa  24
+#define structwa  17
+#define widgetwa  18
+#define objectwa  19
+#define collectionofwa  20
+#define collectionwa  21
+#define inheritwa  22
 
 /* Recursive routines for working with struct members. */
 
 int Data_Description_countMembers (Data_Description structDescription);
 /* Including inherited members. */
 
-Data_Description Data_Description_findMatch (Data_Description structDescription, const char32 *member);
+Data_Description Data_Description_findMatch (Data_Description structDescription, conststring32 member);
 /* Find the location of member 'member' in a struct. */
 /* If 'structDescription' describes a class, the ancestor classes are also searched. */
 
-Data_Description Data_Description_findNumberUse (Data_Description structDescription, const char32 *string);
+Data_Description Data_Description_findNumberUse (Data_Description structDescription, conststring32 string);
 /* Find the first member that uses member 'string' in its size description (max1 or max2 fields). */
 
 /* Retrieving data from object + description. */
@@ -373,7 +371,7 @@ int64 Data_Description_integer (void *structAddress, Data_Description descriptio
 /* Convert data found at a certain offset from 'address' to an integer, according to the given 'description'. */
 
 int Data_Description_evaluateInteger (void *structAddress, Data_Description structDescription,
-	const char32 *formula, long *result);
+	conststring32 formula, integer *result);
 /*
  * Translates a string like '100' or 'numberOfHorses' or 'numberOfCows - 1' to an integer.
  * The 'algorithm' does some wild guesses as to the meanings of the 'min1' and 'max1' strings.

@@ -1,6 +1,6 @@
 /* Simple.cpp
  *
- * Copyright (C) 1992-2012,2015 Paul Boersma
+ * Copyright (C) 1992-2012,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,21 +37,16 @@
 #include "oo_DESCRIPTION.h"
 #include "Simple_def.h"
 
-Thing_implement (SimpleInt, Daata, 0);
+Thing_implement (SimpleInteger, Daata, 0);
 
-autoSimpleInt SimpleInt_create (int number) {
-	autoSimpleInt me = Thing_new (SimpleInt);
+autoSimpleInteger SimpleInteger_create (integer number) {
+	autoSimpleInteger me = Thing_new (SimpleInteger);
 	my number = number;
 	return me;
 }
 
-Thing_implement (SimpleLong, Daata, 0);
-
-autoSimpleLong SimpleLong_create (long number) {
-	autoSimpleLong me = Thing_new (SimpleLong);
-	my number = number;
-	return me;
-}
+integer SimpleInteger_getNumber(SimpleInteger me) { return my number; }
+void SimpleInteger_setNumber(SimpleInteger me, integer number) { my number = number; }
 
 Thing_implement (SimpleDouble, Daata, 0);
 
@@ -66,14 +61,17 @@ void SimpleDouble_setNumber(SimpleDouble me, double number) { my number = number
 
 Thing_implement (SimpleString, Daata, 0);
 
-autoSimpleString SimpleString_create (const char32 *string) {
+autoSimpleString SimpleString_create (conststring32 string) {
 	autoSimpleString me = Thing_new (SimpleString);
 	my string = Melder_dup (string);
 	return me;
 }
 
+conststring34 SimpleString_getString(SimpleString me) { return my string; }
+void SimpleString_setString(SimpleString me, conststring32 string) { my string = Melder_dup(string); }
+
 int SimpleString_compare (SimpleString me, SimpleString thee) noexcept {
-	return str32cmp (my string, thy string);
+	return str32cmp (my string.get(), thy string.get());
 }
 
 /* End of file Simple.cpp */

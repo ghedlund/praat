@@ -30,29 +30,27 @@
 Thing_implement (Cepstrum, Matrix, 2);
 Thing_implement (PowerCepstrum, Cepstrum, 2); // derives from Matrix therefore also version 2
 
-double structCepstrum :: v_getValueAtSample (long isamp, long which, int units) {
-	(void) units;
+double structCepstrum :: v_getValueAtSample (integer isamp, integer which, int /* units */) {
 	if (which == 0) {
-		return z[1][isamp];
+		return z [1] [isamp];
 	} else {
 		// dB's
-		return 20.0 * log10 (fabs(z[1][isamp]) + 1e-30);
+		return 20.0 * log10 (fabs (z [1] [isamp]) + 1e-30);
 	}
-	return NUMundefined;
+	return undefined;
 }
 
-double structPowerCepstrum :: v_getValueAtSample (long isamp, long which, int units) {
-	(void) units;
+double structPowerCepstrum :: v_getValueAtSample (integer isamp, integer which, int /* units */) {
 	if (which == 0) {
-		return z[1][isamp];
+		return z [1] [isamp];
 	} else {
 		// dB's
-		return 10.0 * log10 (z[1][isamp] + 1e-30); // always positive
+		return 10.0 * log10 (z [1] [isamp] + 1e-30); // always positive
 	}
-	return NUMundefined;
+	return undefined;
 }
 
-autoCepstrum Cepstrum_create (double qmax, long nq) {
+autoCepstrum Cepstrum_create (double qmax, integer nq) {
 	try {
 		autoCepstrum me = Thing_new (Cepstrum);
 		double dq = qmax / (nq - 1);
@@ -67,8 +65,8 @@ autoCepstrum Cepstrum_create (double qmax, long nq) {
 autoPowerCepstrum Cepstrum_downto_PowerCepstrum (Cepstrum me ) {
 	try {
 		autoPowerCepstrum thee = PowerCepstrum_create (my xmax, my nx);
-		for (long i = 1; i <= my nx; i++) {
-			thy z[1][i] = my z[1][i] * my z[1][i];
+		for (integer i = 1; i <= my nx; i ++) {
+			thy z [1] [i] = my z [1] [i] * my z [1] [i];
 		}
 		return thee;
 	} catch (MelderError) {
@@ -76,7 +74,7 @@ autoPowerCepstrum Cepstrum_downto_PowerCepstrum (Cepstrum me ) {
 	}
 }
 
-autoPowerCepstrum PowerCepstrum_create (double qmax, long nq) {
+autoPowerCepstrum PowerCepstrum_create (double qmax, integer nq) {
 	try {
 		autoPowerCepstrum me = Thing_new (PowerCepstrum);
 		double dq = qmax / (nq - 1);
@@ -94,32 +92,28 @@ static void _Cepstrum_draw (Cepstrum me, Graphics g, double qmin, double qmax, d
 	Graphics_setInner (g);
 
 	if (qmax <= qmin) {
-		qmin = my xmin; qmax = my xmax;
+		qmin = my xmin;
+		qmax = my xmax;
 	}
 
-	long imin, imax;
+	integer imin, imax;
 	if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax)) {
 		return;
 	}
-	autoNUMvector<double> y (imin, imax);
+	integer numberOfSelected = imax - imin + 1;
+	autoVEC y = newVECraw (numberOfSelected);
 
-	for (long i = imin; i <= imax; i++) {
-		y[i] = my v_getValueAtSample (i, (power ? 1 : 0), 0);
+	for (integer i = 1; i <= numberOfSelected; i ++) {
+		y [i] = my v_getValueAtSample (imin + i - 1, (power ? 1 : 0), 0);
 	}
 
-	if (autoscaling) {
-		NUMvector_extrema (y.peek(), imin, imax, & minimum, & maximum);
-	} else {
-		for (long i = imin; i <= imax; i ++) {
-			if (y[i] > maximum) {
-				y[i] = maximum;
-			} else if (y[i] < minimum) {
-				y[i] = minimum;
-			}
-		}
-	}
+	if (autoscaling)
+		NUMextrema (y.get(), & minimum, & maximum);
+	else
+		VECclip_inplace (y.get(), minimum, maximum);
+
 	Graphics_setWindow (g, qmin, qmax, minimum, maximum);
-	Graphics_function (g, y.peek(), imin, imax, Matrix_columnToX (me, imin), Matrix_columnToX (me, imax));
+	Graphics_function (g, y.at, 1, numberOfSelected, Matrix_columnToX (me, imin), Matrix_columnToX (me, imax));
 
 	Graphics_unsetInner (g);
 
@@ -145,18 +139,19 @@ void PowerCepstrum_drawTiltLine (PowerCepstrum me, Graphics g, double qmin, doub
 	Graphics_setInner (g);
 
 	if (qmax <= qmin) {
-		qmin = my xmin; qmax = my xmax;
+		qmin = my xmin;
+		qmax = my xmax;
 	}
 
 	if (dBminimum >= dBmaximum) { // autoscaling
-		long imin, imax;
+		integer imin, imax;
 		if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax)) {
 			return;
 		}
-		long numberOfPoints = imax - imin + 1;
+		integer numberOfPoints = imax - imin + 1;
 		dBminimum = dBmaximum = my v_getValueAtSample (imin, 1, 0);
-		for (long i = 2; i <= numberOfPoints; i++) {
-			long isamp = imin + i - 1;
+		for (integer i = 2; i <= numberOfPoints; i ++) {
+			integer isamp = imin + i - 1;
 			double y = my v_getValueAtSample (isamp, 1, 0);
 			dBmaximum = y > dBmaximum ? y : dBmaximum;
 			dBminimum = y < dBminimum ? y : dBminimum;
@@ -166,7 +161,8 @@ void PowerCepstrum_drawTiltLine (PowerCepstrum me, Graphics g, double qmin, doub
 	Graphics_setWindow (g, qmin, qmax, dBminimum, dBmaximum);
 	qend = qend == 0 ? my xmax : qend;
 	if (qend <= qstart) {
-		qend = my xmax; qstart = my xmin;
+		qend = my xmax;
+		qstart = my xmin;
 	}
 	qstart = qstart < my xmin ? my xmin : qstart;
 	qend = qend > my xmax ? my xmax : qend;
@@ -179,20 +175,20 @@ void PowerCepstrum_drawTiltLine (PowerCepstrum me, Graphics g, double qmin, doub
 	double lineWidth =  Graphics_inqLineWidth (g);
 	Graphics_setLineWidth (g, 2);
 	if (lineType == 2) {
-		long n = 500;
+		integer n = 500;
 		double dq = (qend - qstart) / (n + 1);
 		double q1 = qstart;
 		if (qstart <= 0) {
 			qstart = 0.1 * dq; // some small offset to avoid log(0)
 			n--; 
 		}
-		autoNUMvector<double> y (1, n);
+		autoVEC y = newVECraw (n);
 		
-		for (long i = 1; i <= n; i++) {
+		for (integer i = 1; i <= n; i ++) {
 			double q = q1 + (i - 1) * dq;
-			y[i] = a * log (q) + intercept;
+			y [i] = a * log (q) + intercept;
 		}
-		Graphics_function (g, y.peek(), 1, n, qstart, qend);
+		Graphics_function (g, y.at, 1, n, qstart, qend);
 	} else {
 		double y1 = a * qstart + intercept, y2 = a * qend + intercept;
 		if (y1 >= dBminimum && y2 >= dBminimum) {
@@ -215,55 +211,54 @@ void PowerCepstrum_drawTiltLine (PowerCepstrum me, Graphics g, double qmin, doub
  * method == 1 : Least squares fit
  * method == 2 : Theil's partial robust fit
  */
-void PowerCepstrum_fitTiltLine (PowerCepstrum me, double qmin, double qmax, double *p_a, double *p_intercept, int lineType, int method) {
+void PowerCepstrum_fitTiltLine (PowerCepstrum me, double qmin, double qmax, double *out_a, double *out_intercept, int lineType, int method) {
 	try {
 		double a, intercept;
 		if (qmax <= qmin) {
-			qmin = my xmin; qmax = my xmax;
+			qmin = my xmin;
+			qmax = my xmax;
 		}
 
-		long imin, imax;
-		if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax)) {
+		integer imin, imax;
+		if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax))
 			return;
-		}
 		imin = (lineType == 2 && imin == 1) ? 2 : imin; // log(0) is undefined!
-		long numberOfPoints = imax - imin + 1;
-		if (numberOfPoints < 2) {
-			Melder_throw (U"Not enough points for fit.");
-		}
-		autoNUMvector<double> y (1, numberOfPoints);
-		autoNUMvector<double> x (1, numberOfPoints);
-		for (long i = 1; i <= numberOfPoints; i++) {
-			long isamp = imin + i - 1;
-			x[i] = my x1 + (isamp - 1) * my dx;
-			if (lineType == 2) {
-				x[i] = log (x[i]);
-			}
-			y[i] = my v_getValueAtSample (isamp, 1, 0);
+		integer numberOfPoints = imax - imin + 1;
+		Melder_require (numberOfPoints > 1, U"Not enough points for fit.");
+
+		autoVEC y = newVECraw (numberOfPoints);
+		autoVEC x = newVECraw (numberOfPoints);
+		for (integer i = 1; i <= numberOfPoints; i ++) {
+			integer isamp = imin + i - 1;
+			x [i] = my x1 + (isamp - 1) * my dx;
+			if (lineType == 2)
+				x [i] = log (x [i]);
+			y [i] = my v_getValueAtSample (isamp, 1, 0);
 		}
 		if (method == 3) { // try local maxima first
-			autoNUMvector<double> ym (1, numberOfPoints / 2 + 1);
-			autoNUMvector<double> xm (1, numberOfPoints / 2 + 1);
-			long numberOfLocalPeaks = 0;
-			// forget y[1] if y[2]<y[1] and y[n] if y[n-1]<y[n] !
-			for (long i = 2; i <= numberOfPoints; i++) {
-				if (y[i - 1] <= y[i] && y[i] > y[i + 1]) {
-					ym[++numberOfLocalPeaks] = y[i];
-					xm[numberOfLocalPeaks] = x[i];
+			autoVEC ym = newVECraw (numberOfPoints / 2 + 1);
+			autoVEC xm = newVECraw (numberOfPoints / 2 + 1);
+			integer numberOfLocalPeaks = 0;
+			// forget y [1] if y [2]<y [1] and y [n] if y [n-1]<y [n] !
+			for (integer i = 2; i <= numberOfPoints; i ++) {
+				if (y [i - 1] <= y [i] && y [i] > y [i + 1]) {
+					ym [++ numberOfLocalPeaks] = y [i];
+					xm [numberOfLocalPeaks] = x [i];
 				}
 			}
 			if (numberOfLocalPeaks > numberOfPoints / 10) {
-				for (long i = 1; i <= numberOfLocalPeaks; i++) {
-					x[i] = xm[i]; y[i] = ym[i];
+				for (integer i = 1; i <= numberOfLocalPeaks; i ++) {
+					x [i] = xm [i];
+					y [i] = ym [i];
 				}
 				numberOfPoints = numberOfLocalPeaks;
 			}
 			method = 2; // robust fit of peaks
 		}
 		// fit a straight line through (x,y)'s
-		NUMlineFit (x.peek(), y.peek(), numberOfPoints, & a, & intercept, method);
-		if (p_intercept) { *p_intercept = intercept; }
-		if (p_a) { *p_a = a; }
+		NUMlineFit (x.get(), y.get(), & a, & intercept, method);
+		if (out_intercept) *out_intercept = intercept;
+		if (out_a) *out_a = a; 
 	} catch (MelderError) {
 		Melder_throw (me, U": couldn't fit a line.");
 	}
@@ -272,21 +267,21 @@ void PowerCepstrum_fitTiltLine (PowerCepstrum me, double qmin, double qmax, doub
 #if 0
 // Hillenbrand subtracts dB values and if the result is negative it is made zero
 static void PowerCepstrum_subtractTiltLine_inline2 (PowerCepstrum me, double slope, double intercept, int lineType) {
-	for (long j = 1; j <= my nx; j++) {
+	for (integer j = 1; j <= my nx; j ++) {
 		double q = my x1 + (j - 1) * my dx;
 		q = j == 1 ? 0.5 * my dx : q; // approximation
 		double xq = lineType == 2 ? log(q) : q;
 		double db_background = slope * xq + intercept;
 		double db_cepstrum = my v_getValueAtSample (j, 1, 0);
 		double diff = exp ((db_cepstrum - db_background) * NUMln10 / 10) - 1e-30;
-		my z[1][j] = diff;
+		my z [1] [j] = diff;
 	}
 }
 #endif
 
 // clip with tilt line
-static void PowerCepstrum_subtractTiltLine_inline (PowerCepstrum me, double slope, double intercept, int lineType) {
-	for (long j = 1; j <= my nx; j++) {
+static void PowerCepstrum_subtractTiltLine_inplace (PowerCepstrum me, double slope, double intercept, int lineType) {
+	for (integer j = 1; j <= my nx; j ++) {
 		double q = my x1 + (j - 1) * my dx;
 		q = j == 1 ? 0.5 * my dx : q; // approximation
 		double xq = lineType == 2 ? log(q) : q;
@@ -296,119 +291,88 @@ static void PowerCepstrum_subtractTiltLine_inline (PowerCepstrum me, double slop
 		if (diff < 0) {
 			diff = 0;
 		}
-		my z[1][j] = exp (diff * NUMln10 / 10.0) - 1e-30;
+		my z [1] [j] = exp (diff * NUMln10 / 10.0) - 1e-30;
 	}
 }
 
 
-void PowerCepstrum_subtractTilt_inline (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod) {
+void PowerCepstrum_subtractTilt_inplace (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod) {
 	double slope, intercept;
 	PowerCepstrum_fitTiltLine (me, qstartFit, qendFit, &slope, &intercept, lineType, fitMethod);
-	PowerCepstrum_subtractTiltLine_inline (me, slope, intercept, lineType);
+	PowerCepstrum_subtractTiltLine_inplace (me, slope, intercept, lineType);
 }
 
 autoPowerCepstrum PowerCepstrum_subtractTilt (PowerCepstrum me, double qstartFit, double qendFit, int lineType, int fitMethod) {
 	try {
 		autoPowerCepstrum thee = Data_copy (me);
-		PowerCepstrum_subtractTilt_inline (thee.get(), qstartFit,  qendFit, lineType, fitMethod);
+		PowerCepstrum_subtractTilt_inplace (thee.get(), qstartFit,  qendFit, lineType, fitMethod);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": couldn't subtract tilt line.");
 	}
 }
 
-void PowerCepstrum_smooth_inline (PowerCepstrum me, double quefrencyAveragingWindow, long numberOfIterations) {
+void PowerCepstrum_smooth_inplace (PowerCepstrum me, double quefrencyAveragingWindow, integer numberOfIterations) {
 	try {
-		long numberOfQuefrencyBins = (long) floor (quefrencyAveragingWindow / my dx);
+		integer numberOfQuefrencyBins = Melder_ifloor (quefrencyAveragingWindow / my dx);
 		if (numberOfQuefrencyBins > 1) {
-			autoNUMvector<double> qin (1, my nx);
-			autoNUMvector<double> qout (1, my nx);
-			for (long iq = 1; iq <= my nx; iq ++) {
-				qin [iq] = my z [1] [iq];
-			}
-			double *xin, *xout;
-			for (long k = 1; k <= numberOfIterations; k ++) {
-				xin  = k % 2 == 1 ? qin.peek() : qout.peek ();
-				xout = k % 2 == 1 ? qout.peek () : qin.peek();
-				NUMvector_smoothByMovingAverage (xin, my nx, numberOfQuefrencyBins, xout);
-			}
-			for (long iq = 1; iq <= my nx; iq++) {
-				my z [1] [iq] = xout [iq];
-			}
+			autoVEC qin = newVECcopy (my z.row (1));
+			autoVEC qout = newVECraw (my nx);
+			for (integer k = 1; k <= numberOfIterations; k ++)
+				if (k % 2 == 1) 
+					VECsmoothByMovingAverage_preallocated (qout.get(), qin.get(), numberOfQuefrencyBins);
+				else
+					VECsmoothByMovingAverage_preallocated (qin.get(), qout.get(), numberOfQuefrencyBins);
+			my z.row (1) <<= ( numberOfIterations % 2 == 1 ? qout.get() : qin.get() );
 		}
 	} catch (MelderError) {
 		Melder_throw (me, U": not smoothed.");
 	}
 }
 
-autoPowerCepstrum PowerCepstrum_smooth (PowerCepstrum me, double quefrencyAveragingWindow, long numberOfIterations) {
+autoPowerCepstrum PowerCepstrum_smooth (PowerCepstrum me, double quefrencyAveragingWindow, integer numberOfIterations) {
 	autoPowerCepstrum thee = Data_copy (me);
-	PowerCepstrum_smooth_inline (thee.get(), quefrencyAveragingWindow, numberOfIterations);
+	PowerCepstrum_smooth_inplace (thee.get(), quefrencyAveragingWindow, numberOfIterations);
 	return thee;
 }
 
-void PowerCepstrum_getMaximumAndQuefrency (PowerCepstrum me, double pitchFloor, double pitchCeiling, int interpolation, double *p_peakdB, double *p_quefrency) {
-	double peakdB, quefrency;
+void PowerCepstrum_getMaximumAndQuefrency (PowerCepstrum me, double pitchFloor, double pitchCeiling, int interpolation, double *out_peakdB, double *out_quefrency) {
 	autoPowerCepstrum thee = Data_copy (me);
 	double lowestQuefrency = 1.0 / pitchCeiling, highestQuefrency = 1.0 / pitchFloor;
-	for (long i = 1; i <= my nx; i ++) {
-		thy z[1][i] = my v_getValueAtSample (i, 1, 0); // 10 log val^2
+	for (integer i = 1; i <= my nx; i ++) {
+		thy z [1] [i] = my v_getValueAtSample (i, 1, 0); // 10 log val^2
 	}
+	double peakdB, quefrency;
 	Vector_getMaximumAndX ((Vector) thee.get(), lowestQuefrency, highestQuefrency, 1, interpolation, & peakdB, & quefrency);   // FIXME cast
-	if (p_peakdB) {
-		*p_peakdB = peakdB;
-	}
-	if (p_quefrency) {
-		*p_quefrency = quefrency;
-	}
+    
+	if (out_peakdB) *out_peakdB = peakdB;
+	if (out_quefrency) *out_quefrency = quefrency;
 }
-
-#if 0
-static void Cepstrum_getZ (Cepstrum me, long imin, long imax, double peakdB, double slope, double intercept, int lineType, double *z) {
-	long ndata = imax - imin + 1;
-	autoNUMvector<double> dabs (1, ndata);
-	for (long i = imin; i <= imax; i ++) {
-		double q = my x1 + (i - 1) * my dx;
-		q = ( i == 1 ? 0.5 * my dx : q );   // approximation
-		double xq = ( lineType == 2 ? log (q) : q );
-		double db_background = slope * xq + intercept;
-		double db_cepstrum = my v_getValueAtSample (i, 1, 0);
-		double diff = exp ((db_cepstrum - db_background) * NUMln10 / 10.0) - 1e-30;
-		//double diff = fabs (db_cepstrum - db_background);
-		dabs [i - imin + 1] = diff;
-	}
-	double q50 = NUMquantile (ndata, dabs.peek(), 0.5);
-	double peak = exp (peakdB * NUMln10 / 10.0) - 1e-30;
-	if (z) {
-		*z = peak / q50;
-	}
-}
-#endif
 
 double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCeiling, double f0fractionalWidth) {
-	double rnr = NUMundefined;
+	double rnr = undefined;
 	double qmin = 1.0 / pitchCeiling, qmax = 1.0 / pitchFloor, peakdB, qpeak;
 	PowerCepstrum_getMaximumAndQuefrency (me, pitchFloor, pitchCeiling, 2, &peakdB, &qpeak);
-	long imin, imax;
-	if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax)) {
+	integer imin, imax;
+	if (! Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax))
 		return rnr;
-	}
-	long ndata = imax - imin + 1;
-	if (ndata < 2) {
-		return rnr;
-	}	
+
+	integer ndata = imax - imin + 1;
+	if (ndata < 2)
+		return rnr;	
 	// how many peaks in interval ?
-	long npeaks = 2;
-	while (qpeak > 0 && qpeak * npeaks <= qmax) { npeaks++; }
+	integer npeaks = 2;
+	while (qpeak > 0 && qpeak * npeaks <= qmax)
+        npeaks++;
 	npeaks--;
 	
-	double sum = 0, sumr = 0;
-	for (long i = imin; i <= imax; i++) {
+	double sum = 0.0, sumr = 0.0;
+	for (integer i = imin; i <= imax; i ++) {
 		double val = my v_getValueAtSample (i, 0, 0);
 		double qx = my x1 + (i - 1) * my dx;
 		sum += val;
 		// is qx within an interval around a multiple of the peak's q ?
-		for (long j = 1; j <= npeaks; j ++) {
+		for (integer j = 1; j <= npeaks; j ++) {
 			double f0c = 1.0 / (j * qpeak);
 			double f0clow = f0c * (1.0 - f0fractionalWidth);
 			double f0chigh = f0c * (1.0 + f0fractionalWidth);
@@ -420,32 +384,28 @@ double PowerCepstrum_getRNR (PowerCepstrum me, double pitchFloor, double pitchCe
 			}
 		}
 	}
-	rnr = sumr >= sum ? 1000000 : sumr / (sum - sumr);
+	rnr = sumr >= sum ? 1000000.0 : sumr / (sum - sumr);
 	return rnr;
 }
 
-double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pitchFloor, double pitchCeiling, double *qpeak) {
+double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pitchFloor, double pitchCeiling, double *out_qpeak) {
 	double slope, intercept, quefrency, peakdB;
-	PowerCepstrum_fitTiltLine (me, 0.001, 0, &slope, &intercept, 1, 1);
+	PowerCepstrum_fitTiltLine (me, 0.001, 0, & slope, & intercept, 1, 1);
 	autoPowerCepstrum thee = Data_copy (me);
-	PowerCepstrum_subtractTiltLine_inline (thee.get(), slope, intercept, 1);
+	PowerCepstrum_subtractTiltLine_inplace (thee.get(), slope, intercept, 1);
 	PowerCepstrum_getMaximumAndQuefrency (thee.get(), pitchFloor, pitchCeiling, 0, & peakdB, & quefrency);
-	if (qpeak) {
-		*qpeak = quefrency;
-	}
+	if (out_qpeak) *out_qpeak = quefrency;
 	return peakdB;
 }
 
-double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, int interpolation, double qstartFit, double qendFit, int lineType, int fitMethod, double *p_qpeak) {
+double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, int interpolation, double qstartFit, double qendFit, int lineType, int fitMethod, double *out_qpeak) {
 	double slope, intercept, qpeak, peakdB;
 	PowerCepstrum_fitTiltLine (me, qstartFit, qendFit, &slope, &intercept, lineType, fitMethod);
 	PowerCepstrum_getMaximumAndQuefrency (me, pitchFloor, pitchCeiling, interpolation, & peakdB, & qpeak);
 	double xq = lineType == 2 ? log(qpeak) : qpeak;
 	double db_background = slope * xq + intercept;
 	double cpp = peakdB - db_background;
-	if (p_qpeak) {
-		*p_qpeak = qpeak;
-	}
+	if (out_qpeak) *out_qpeak = qpeak;
 	return cpp;
 }
 
@@ -472,28 +432,24 @@ autoPowerCepstrum Matrix_to_PowerCepstrum (Matrix me) {
 	}
 }
 
-autoPowerCepstrum Matrix_to_PowerCepstrum_row (Matrix me, long row) {
+autoPowerCepstrum Matrix_to_PowerCepstrum_row (Matrix me, integer row) {
 	try {
 		autoPowerCepstrum thee = PowerCepstrum_create (my xmax, my nx);
-		if (row < 1 || row > my ny) {
-			Melder_throw (U"Row number should be between 1 and ", my ny, U" inclusive.");
-		}
-		NUMvector_copyElements (my z[row], thy z[1], 1, my nx);
+		Melder_require (row > 0 && row <= my ny, 
+			U"Row number should be between 1 and ", my ny, U" inclusive.");
+		thy z.row (1) <<= my z.row (row);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no PowerCepstrum created.");
 	}
 }
 
-autoPowerCepstrum Matrix_to_PowerCepstrum_column (Matrix me, long col) {
+autoPowerCepstrum Matrix_to_PowerCepstrum_column (Matrix me, integer col) {
 	try {
 		autoPowerCepstrum thee = PowerCepstrum_create (my ymax, my ny);
-		if (col < 1 || col > my nx) {
-			Melder_throw (U"Column number should be between 1 and ", my nx, U" inclusive.");
-		}
-		for (long i = 1; i <= my ny; i++) {
-			thy z[1][i] = my z[i][col];
-		}
+		Melder_require (col > 0 && col <= my nx, 
+			U"Column number should be between 1 and ", my nx, U" inclusive.");
+		thy z.row (1) <<= my z.column (col);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no PowerCepstrum created.");

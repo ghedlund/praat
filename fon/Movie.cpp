@@ -1,6 +1,6 @@
 /* Movie.cpp
  *
- * Copyright (C) 2011-2012,2015,2016 Paul Boersma
+ * Copyright (C) 2011-2012,2015,2016,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ void structMovie :: v_info ()
 	MelderInfo_writeLine (U"   First frame centred at: ", x1, U" seconds");
 }
 
-void Movie_init (Movie me, autoSound sound, const char32 *folderName, autoStrings fileNames)
+void Movie_init (Movie me, autoSound sound, conststring32 folderName, autoStrings fileNames)
 {
 	Sampled_init (me, sound -> xmin, sound -> xmax, fileNames ? fileNames -> numberOfStrings : 0, 0.04, 0.0);
 	my d_sound = sound.move();
@@ -73,7 +73,7 @@ autoMovie Movie_openFromSoundFile (MelderFile file)
 		*extensionLocation = U'\0';
 		fileNameHead.length = extensionLocation - fileNameHead.string;
 		autoStrings strings = Strings_createAsFileList (Melder_cat (fileNameHead.string, U"*.png"));
-		struct structMelderDir folder;
+		structMelderDir folder { };
 		MelderFile_getParentDir (file, & folder);
 		Movie_init (me.get(), sound.move(), Melder_dirToPath (& folder), strings.move());
 		return me;
@@ -82,24 +82,24 @@ autoMovie Movie_openFromSoundFile (MelderFile file)
 	}
 }
 
-void Movie_paintOneImageInside (Movie me, Graphics graphics, long frameNumber, double xmin, double xmax, double ymin, double ymax)
+void Movie_paintOneImageInside (Movie me, Graphics graphics, integer frameNumber, double xmin, double xmax, double ymin, double ymax)
 {
 	try {
 		if (frameNumber < 1) Melder_throw (U"Specified frame number is ", frameNumber, U" but should be at least 1.");
 		if (frameNumber > my nx) Melder_throw (U"Specified frame number is ", frameNumber, U" but there are only ", my nx, U"frames.");
 		Melder_assert (my d_fileNames);
 		Melder_assert (my d_fileNames -> numberOfStrings == my nx);
-		struct structMelderDir folder;
-		Melder_pathToDir (my d_folderName, & folder);
-		struct structMelderFile file;
-		MelderDir_getFile (& folder, my d_fileNames -> strings [frameNumber], & file);
+		structMelderDir folder { };
+		Melder_pathToDir (my d_folderName.get(), & folder);
+		structMelderFile file { };
+		MelderDir_getFile (& folder, my d_fileNames -> strings [frameNumber].get(), & file);
 		Graphics_imageFromFile (graphics, Melder_fileToPath (& file), xmin, xmax, ymin, ymax);
 	} catch (MelderError) {
 		Melder_throw (me, U": image ", frameNumber, U" not painted.");
 	}
 }
 
-void Movie_paintOneImage (Movie me, Graphics graphics, long frameNumber, double xmin, double xmax, double ymin, double ymax) {
+void Movie_paintOneImage (Movie me, Graphics graphics, integer frameNumber, double xmin, double xmax, double ymin, double ymax) {
 	try {
 		Graphics_setInner (graphics);
 		Graphics_setWindow (graphics, 0.0, 1.0, 0.0, 1.0);

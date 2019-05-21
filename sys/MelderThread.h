@@ -2,7 +2,7 @@
 #define _MelderThread_h_
 /* MelderThread.h
  *
- * Copyright (C) 2014,2016,2017 Paul Boersma
+ * Copyright (C) 2014-2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ inline static int MelderThread_getNumberOfProcessors () {
 }
 
 #if USE_WINTHREADS
-	template <class T> void MelderThread_run (DWORD (WINAPI *func) (T *), _Thing_auto <T> *args, int numberOfThreads) {
+	template <class T> void MelderThread_run (DWORD (WINAPI *func) (T *), autoSomeThing <T> *args, int numberOfThreads) {
 		if (numberOfThreads == 1) {
 			func (args [0].get());
 		} else {
@@ -117,30 +117,30 @@ inline static int MelderThread_getNumberOfProcessors () {
 		}
 	}
 #elif USE_PTHREADS
-	template <class T> void MelderThread_run (void * (*func) (T *), _Thing_auto <T> *args, int numberOfThreads) {
+	template <class T> void MelderThread_run (void * (*func) (T *), autoSomeThing <T> *args, int numberOfThreads) {
 		if (numberOfThreads == 1) {
 			func (args [0].get());
 		} else {
-			std::vector <pthread_t> threads (numberOfThreads);
+			std::vector <pthread_t> threads ((size_t) numberOfThreads);
 			try {
 				for (int ithread = 1; ithread < numberOfThreads; ithread ++) {
-					(void) pthread_create (& threads [ithread - 1],
+					(void) pthread_create (& threads [(size_t) ithread - 1],
 						nullptr, (void*(*)(void *)) func, (void *) args [ithread - 1].get());
 				}
 				func (args [numberOfThreads - 1].get());
 			} catch (MelderError) {
 				for (int ithread = 1; ithread < numberOfThreads; ithread ++) {
-					pthread_join (threads [ithread - 1], nullptr);
+					pthread_join (threads [(size_t) ithread - 1], nullptr);
 				}
 				throw;
 			}
 			for (int ithread = 1; ithread < numberOfThreads; ithread ++) {
-				pthread_join (threads [ithread - 1], nullptr);
+				pthread_join (threads [(size_t) ithread - 1], nullptr);
 			}
 		}
 	}
 #elif USE_CPPTHREADS
-	template <class T> void MelderThread_run (void * (*func) (T *), _Thing_auto <T> *args, int numberOfThreads) {
+	template <class T> void MelderThread_run (void * (*func) (T *), autoSomeThing <T> *args, int numberOfThreads) {
 		if (numberOfThreads == 1) {
 			func (args [0].get());
 		} else {
@@ -163,7 +163,7 @@ inline static int MelderThread_getNumberOfProcessors () {
 		}
 	}
 #else
-	template <class T> void MelderThread_run (void (*func) (T *), _Thing_auto <T> *args, int numberOfThreads) {
+	template <class T> void MelderThread_run (void (*func) (T *), autoSomeThing <T> *args, int numberOfThreads) {
 		func (args [0].get());
 	}
 #endif

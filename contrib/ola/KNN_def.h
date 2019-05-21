@@ -20,9 +20,9 @@
 #define ooSTRUCT KNN
 oo_DEFINE_CLASS (KNN, Daata)
 
-	oo_LONG (nInstances)
-	oo_AUTO_OBJECT (PatternList, 2, input)
-	oo_AUTO_OBJECT (Categories, 0, output)
+	oo_INTEGER (nInstances)
+	oo_OBJECT (PatternList, 2, input)
+	oo_OBJECT (Categories, 0, output)
 
 	#if oo_DECLARING
 		void v_info ()

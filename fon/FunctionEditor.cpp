@@ -68,7 +68,7 @@ static void updateScrollBar (FunctionEditor me) {
 	if (value < 1.0) value = 1.0;
 	double increment = slider_size / SCROLL_INCREMENT_FRACTION + 1.0;
 	double page_increment = RELATIVE_PAGE_INCREMENT * slider_size + 1.0;
-	GuiScrollBar_set (my scrollBar, NUMundefined, maximumScrollBarValue, value, slider_size, increment, page_increment);
+	GuiScrollBar_set (my scrollBar, undefined, maximumScrollBarValue, value, slider_size, increment, page_increment);
 }
 
 static void updateGroup (FunctionEditor me) {
@@ -106,7 +106,7 @@ static void drawNow (FunctionEditor me) {
 	if (endVisible && my endSelection != my startSelection)
 		my marker [++ my numberOfMarkers] = my endSelection;
 	my marker [++ my numberOfMarkers] = my endWindow;
-	NUMsort_d (my numberOfMarkers, my marker);
+	VECsort_inplace (VEC (my marker, my numberOfMarkers));
 
 	/* Update rectangles. */
 
@@ -218,13 +218,17 @@ static void drawNow (FunctionEditor me) {
 		double bottom = my rect [i]. bottom, top = my rect [i]. top;
 		if (left < right) {
 			const char *format = my v_format_long ();
-			double value = NUMundefined, inverseValue = 0.0;
+			double value = undefined, inverseValue = 0.0;
 			switch (i) {
-				case 0: format = my v_format_totalDuration (), value = my tmax - my tmin; break;
-				case 1: format = my v_format_window (), value = my endWindow - my startWindow;
+				case 0: {
+					format = my v_format_totalDuration ();
+					value = my tmax - my tmin;
+				} break; case 1: {
+					format = my v_format_window ();
+					value = my endWindow - my startWindow;
 					/*
-					 * Window domain text.
-					 */	
+						Window domain text.
+					*/	
 					Graphics_setColour (my graphics.get(), Graphics_BLUE);
 					Graphics_setTextAlignment (my graphics.get(), Graphics_LEFT, Graphics_HALF);
 					Graphics_text (my graphics.get(), left, 0.5 * (bottom + top) - verticalCorrection,
@@ -234,34 +238,42 @@ static void drawNow (FunctionEditor me) {
 						Melder_fixed (my endWindow, my v_fixedPrecision_long ()));
 					Graphics_setColour (my graphics.get(), Graphics_BLACK);
 					Graphics_setTextAlignment (my graphics.get(), Graphics_CENTRE, Graphics_HALF);
-				break;
-				case 2: value = my startWindow - my tmin; break;
-				case 3: value = my tmax - my endWindow; break;
-				case 4: value = my marker [1] - my startWindow; break;
-				case 5: value = my marker [2] - my marker [1]; break;
-				case 6: value = my marker [3] - my marker [2]; break;
-				case 7: format = my v_format_selection (), value = my endSelection - my startSelection, inverseValue = 1.0 / value; break;
+				} break; case 2: {
+					value = my startWindow - my tmin;
+				} break; case 3: {
+					value = my tmax - my endWindow;
+				} break; case 4: {
+					value = my marker [1] - my startWindow;
+				} break; case 5: {
+					value = my marker [2] - my marker [1];
+				} break; case 6: {
+					value = my marker [3] - my marker [2];
+				} break; case 7: {
+					format = my v_format_selection ();
+					value = my endSelection - my startSelection;
+					inverseValue = 1.0 / value;
+				}
 			}
 			char text8 [100];
 			snprintf (text8, 100, format, value, inverseValue);
 			autostring32 text = Melder_8to32 (text8);
-			if (Graphics_textWidth (my graphics.get(), text.peek()) < right - left) {
-				Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.peek());
+			if (Graphics_textWidth (my graphics.get(), text.get()) < right - left) {
+				Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 			} else if (format == my v_format_long ()) {
 				snprintf (text8, 100, my v_format_short (), value);
-				text.reset (Melder_8to32 (text8));
-				if (Graphics_textWidth (my graphics.get(), text.peek()) < right - left)
-					Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.peek());
+				text = Melder_8to32 (text8);
+				if (Graphics_textWidth (my graphics.get(), text.get()) < right - left)
+					Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 			} else {
 				snprintf (text8, 100, my v_format_long (), value);
-				text.reset (Melder_8to32 (text8));
-				if (Graphics_textWidth (my graphics.get(), text.peek()) < right - left) {
-						Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.peek());
+				text = Melder_8to32 (text8);
+				if (Graphics_textWidth (my graphics.get(), text.get()) < right - left) {
+						Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 				} else {
 					snprintf (text8, 100, my v_format_short (), my endSelection - my startSelection);
-					text.reset (Melder_8to32 (text8));
-					if (Graphics_textWidth (my graphics.get(), text.peek()) < right - left)
-						Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.peek());
+					text = Melder_8to32 (text8);
+					if (Graphics_textWidth (my graphics.get(), text.get()) < right - left)
+						Graphics_text (my graphics.get(), 0.5 * (left + right), 0.5 * (bottom + top) - verticalCorrection, text.get());
 				}
 			}
 		}
@@ -387,7 +399,7 @@ static void gui_drawingarea_cb_resize (FunctionEditor me, GuiDrawingArea_ResizeE
 	 * Put the function viewer at the left and the selection viewer at the right.
 	 */
 	my functionViewerLeft = 0;
-	my functionViewerRight = my p_showSelectionViewer ? (short) floor (width * (2.0/3.0)) : width;
+	my functionViewerRight = my p_showSelectionViewer ? Melder_ifloor (width * (2.0/3.0)) : width;
 	my selectionViewerLeft = my functionViewerRight;
 	my selectionViewerRight = width;
 	my height = event -> height + 111;
@@ -403,23 +415,23 @@ static void gui_drawingarea_cb_resize (FunctionEditor me, GuiDrawingArea_ResizeE
 
 static void menu_cb_preferences (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Preferences", nullptr)
-		BOOLEAN (U"Synchronize zoom and scroll", my default_synchronizedZoomAndScroll ())
-		BOOLEAN (U"Show selection viewer", my default_showSelectionViewer ())
-		POSITIVE (Melder_cat (U"Arrow scroll step (", my v_format_units (), U")"), my default_arrowScrollStep ())
+		BOOLEAN (synchronizeZoomAndScroll, U"Synchronize zoom and scroll", my default_synchronizedZoomAndScroll ())
+		BOOLEAN (showSelectionViewer, U"Show selection viewer", my default_showSelectionViewer ())
+		POSITIVE (arrowScrollStep, Melder_cat (U"Arrow scroll step (", my v_format_units (), U")"), my default_arrowScrollStep ())
 		my v_prefs_addFields (cmd);
 	EDITOR_OK
-		SET_INTEGER (U"Synchronize zoom and scroll", my pref_synchronizedZoomAndScroll ())
-		SET_INTEGER (U"Show selection viewer", my pref_showSelectionViewer())
-		SET_REAL (U"Arrow scroll step", my p_arrowScrollStep)
+		SET_BOOLEAN (synchronizeZoomAndScroll, my pref_synchronizedZoomAndScroll ())
+		SET_BOOLEAN (showSelectionViewer, my pref_showSelectionViewer())
+		SET_REAL (arrowScrollStep, my p_arrowScrollStep)
 		my v_prefs_setValues (cmd);
 	EDITOR_DO
 		bool oldSynchronizedZoomAndScroll = my pref_synchronizedZoomAndScroll ();
 		bool oldShowSelectionViewer = my p_showSelectionViewer;
-		my pref_synchronizedZoomAndScroll () = GET_INTEGER (U"Synchronize zoom and scroll");
-		my pref_showSelectionViewer () = my p_showSelectionViewer = GET_INTEGER (U"Show selection viewer");
-		my pref_arrowScrollStep () = my p_arrowScrollStep = GET_REAL (U"Arrow scroll step");
+		my pref_synchronizedZoomAndScroll () = synchronizeZoomAndScroll;
+		my pref_showSelectionViewer () = my p_showSelectionViewer = showSelectionViewer;
+		my pref_arrowScrollStep () = my p_arrowScrollStep = arrowScrollStep;
 		if (my p_showSelectionViewer != oldShowSelectionViewer) {
-			struct structGuiDrawingArea_ResizeEvent event { my drawingArea, 0 };
+			struct structGuiDrawingArea_ResizeEvent event { my drawingArea, 0, 0 };
 			event. width  = GuiControl_getWidth  (my drawingArea);
 			event. height = GuiControl_getHeight (my drawingArea);
 			gui_drawingarea_cb_resize (me, & event);
@@ -431,19 +443,21 @@ static void menu_cb_preferences (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
+static bool v_form_pictureSelection_drawSelectionTimes;
+static bool v_form_pictureSelection_drawSelectionHairs;
 void structFunctionEditor :: v_form_pictureSelection (EditorCommand cmd) {
-	BOOLEAN (U"Draw selection times", true);
-	BOOLEAN (U"Draw selection hairs", true);
+	UiForm_addBoolean (cmd -> d_uiform.get(), & v_form_pictureSelection_drawSelectionTimes, nullptr, U"Draw selection times", true);
+	UiForm_addBoolean (cmd -> d_uiform.get(), & v_form_pictureSelection_drawSelectionHairs, nullptr, U"Draw selection hairs", true);
 }
 void structFunctionEditor :: v_ok_pictureSelection (EditorCommand cmd) {
 	FunctionEditor me = (FunctionEditor) cmd -> d_editor;
-	SET_INTEGER (U"Draw selection times", my pref_picture_drawSelectionTimes ());
-	SET_INTEGER (U"Draw selection hairs", my pref_picture_drawSelectionHairs ());
+	SET_BOOLEAN (v_form_pictureSelection_drawSelectionTimes, my pref_picture_drawSelectionTimes ())
+	SET_BOOLEAN (v_form_pictureSelection_drawSelectionHairs, my pref_picture_drawSelectionHairs ())
 }
 void structFunctionEditor :: v_do_pictureSelection (EditorCommand cmd) {
 	FunctionEditor me = (FunctionEditor) cmd -> d_editor;
-	my pref_picture_drawSelectionTimes () = GET_INTEGER (U"Draw selection times");
-	my pref_picture_drawSelectionHairs () = GET_INTEGER (U"Draw selection hairs");
+	my pref_picture_drawSelectionTimes () = v_form_pictureSelection_drawSelectionTimes;
+	my pref_picture_drawSelectionHairs () = v_form_pictureSelection_drawSelectionHairs;
 }
 
 /********** QUERY MENU **********/
@@ -465,16 +479,16 @@ static void menu_cb_getSelectionDuration (FunctionEditor me, EDITOR_ARGS_DIRECT)
 
 static void menu_cb_zoom (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Zoom", nullptr)
-		REAL (U"From", U"0.0")
-		REAL (U"To", U"1.0")
+		REAL (from, U"From", U"0.0")
+		REAL (to,   U"To",   U"1.0")
 	EDITOR_OK
-		SET_REAL (U"From", my startWindow)
-		SET_REAL (U"To", my endWindow)
+		SET_REAL (from, my startWindow)
+		SET_REAL (to,   my endWindow)
 	EDITOR_DO
-		my startWindow = GET_REAL (U"From");
+		my startWindow = from;
 		if (my startWindow < my tmin + 1e-12)
 			my startWindow = my tmin;
-		my endWindow = GET_REAL (U"To");
+		my endWindow = to;
 		if (my endWindow > my tmax - 1e-12)
 			my endWindow = my tmax;
 		my v_updateText ();
@@ -599,14 +613,14 @@ static void menu_cb_zoomBack (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 
 static void menu_cb_play (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Play", nullptr)
-		REAL (U"From", U"0.0")
-		REAL (U"To", U"1.0")
+		REAL (from, U"From", U"0.0")
+		REAL (to,   U"To",   U"1.0")
 	EDITOR_OK
-		SET_REAL (U"From", my startWindow)
-		SET_REAL (U"To", my endWindow)
+		SET_REAL (from, my startWindow)
+		SET_REAL (to,   my endWindow)
 	EDITOR_DO
 		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
-		my v_play (GET_REAL (U"From"), GET_REAL (U"To"));
+		my v_play (from, to);
 	EDITOR_END
 }
 
@@ -639,16 +653,16 @@ static void menu_cb_interruptPlaying (FunctionEditor /* me */, EDITOR_ARGS_DIREC
 
 static void menu_cb_select (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Select", nullptr)
-		REAL (U"Start of selection", U"0.0")
-		REAL (U"End of selection", U"1.0")
+		REAL (startOfSelection, U"Start of selection", U"0.0")
+		REAL (endOfSelection,   U"End of selection", U"1.0")
 	EDITOR_OK
-		SET_REAL (U"Start of selection", my startSelection)
-		SET_REAL (U"End of selection", my endSelection)
+		SET_REAL (startOfSelection, my startSelection)
+		SET_REAL (endOfSelection,   my endSelection)
 	EDITOR_DO
-		my startSelection = GET_REAL (U"Start of selection");
+		my startSelection = startOfSelection;
 		if (my startSelection < my tmin + 1e-12)
 			my startSelection = my tmin;
-		my endSelection = GET_REAL (U"End of selection");
+		my endSelection = endOfSelection;
 		if (my endSelection > my tmax - 1e-12)
 			my endSelection = my tmax;
 		if (my startSelection > my endSelection) {
@@ -678,11 +692,10 @@ static void menu_cb_moveCursorToE (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 
 static void menu_cb_moveCursorTo (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move cursor to", nullptr)
-		REAL (U"Position", U"0.0")
+		REAL (position, U"Position", U"0.0")
 	EDITOR_OK
-		SET_REAL (U"Position", 0.5 * (my startSelection + my endSelection))
+		SET_REAL (position, 0.5 * (my startSelection + my endSelection))
 	EDITOR_DO
-		double position = GET_REAL (U"Position");
 		if (position < my tmin + 1e-12) position = my tmin;
 		if (position > my tmax - 1e-12) position = my tmax;
 		my startSelection = my endSelection = position;
@@ -694,10 +707,10 @@ static void menu_cb_moveCursorTo (FunctionEditor me, EDITOR_ARGS_FORM) {
 
 static void menu_cb_moveCursorBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move cursor by", nullptr)
-		REAL (U"Distance", U"0.05")
+		REAL (distance, U"Distance", U"0.05")
 	EDITOR_OK
 	EDITOR_DO
-		double position = 0.5 * (my startSelection + my endSelection) + GET_REAL (U"Distance");
+		double position = 0.5 * (my startSelection + my endSelection) + distance;
 		if (position < my tmin) position = my tmin;
 		if (position > my tmax) position = my tmax;
 		my startSelection = my endSelection = position;
@@ -709,10 +722,10 @@ static void menu_cb_moveCursorBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 
 static void menu_cb_moveBby (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move start of selection by", nullptr)
-		REAL (U"Distance", U"0.05")
+		REAL (distance, U"Distance", U"0.05")
 	EDITOR_OK
 	EDITOR_DO
-		double position = my startSelection + GET_REAL (U"Distance");
+		double position = my startSelection + distance;
 		if (position < my tmin) position = my tmin;
 		if (position > my tmax) position = my tmax;
 		my startSelection = position;
@@ -729,10 +742,10 @@ static void menu_cb_moveBby (FunctionEditor me, EDITOR_ARGS_FORM) {
 
 static void menu_cb_moveEby (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move end of selection by", nullptr)
-		REAL (U"Distance", U"0.05")
+		REAL (distance, U"Distance", U"0.05")
 	EDITOR_OK
 	EDITOR_DO
-		double position = my endSelection + GET_REAL (U"Distance");
+		double position = my endSelection + distance;
 		if (position < my tmin) position = my tmin;
 		if (position > my tmax) position = my tmax;
 		my endSelection = position;
@@ -1042,7 +1055,7 @@ static void gui_drawingarea_cb_click (FunctionEditor me, GuiDrawingArea_ClickEve
 		updateGroup (me);
 	}
 	else if (yWC > BOTTOM_MARGIN + space * 3 && yWC < my height - (TOP_MARGIN + space)) {   // in signal region?
-		int needsUpdate;
+		bool needsUpdate;
 		Graphics_setViewport (my graphics.get(), my functionViewerLeft + MARGIN, my functionViewerRight - MARGIN,
 			BOTTOM_MARGIN + space * 3, my height - (TOP_MARGIN + space));
 		Graphics_setWindow (my graphics.get(), my startWindow, my endWindow, 0.0, 1.0);
@@ -1416,12 +1429,6 @@ bool structFunctionEditor :: v_clickE (double xWC, double /* yWC */) {
 void structFunctionEditor :: v_clickSelectionViewer (double /* xWC */, double /* yWC */) {
 }
 
-void FunctionEditor_insetViewport (FunctionEditor me) {
-	Graphics_setViewport (my graphics.get(), my functionViewerLeft + MARGIN, my functionViewerRight - MARGIN,
-		BOTTOM_MARGIN + space * 3, my height - (TOP_MARGIN + space));
-	Graphics_setWindow (my graphics.get(), my startWindow, my endWindow, 0.0, 1.0);
-}
-
 int structFunctionEditor :: v_playCallback (int phase, double /* a_tmin */, double a_tmax, double t) {
 	/*
 	 * This callback will often be called by the Melder workproc during playback.
@@ -1431,7 +1438,10 @@ int structFunctionEditor :: v_playCallback (int phase, double /* a_tmin */, doub
 	 */
 	double x1NDC, x2NDC, y1NDC, y2NDC;
 	Graphics_inqViewport (our graphics.get(), & x1NDC, & x2NDC, & y1NDC, & y2NDC);
-	FunctionEditor_insetViewport (this);
+	Graphics_setViewport (our graphics.get(),
+		our functionViewerLeft + MARGIN, our functionViewerRight - MARGIN,
+		BOTTOM_MARGIN + space * 3, our height - (TOP_MARGIN + space));
+	Graphics_setWindow (our graphics.get(), our startWindow, our endWindow, 0.0, 1.0);
 	Graphics_xorOn (our graphics.get(), Graphics_MAROON);
 	/*
 	 * Undraw the play cursor at its old location.
@@ -1451,6 +1461,12 @@ int structFunctionEditor :: v_playCallback (int phase, double /* a_tmin */, doub
 		Graphics_setLineWidth (our graphics.get(), 1.0);
 	}
 	Graphics_xorOff (our graphics.get());
+	if (our p_showSelectionViewer) {
+		Graphics_setViewport (our graphics.get(),
+			our selectionViewerLeft + MARGIN, our selectionViewerRight - MARGIN,
+			BOTTOM_MARGIN + space * 3, our height - (TOP_MARGIN + space));
+		our v_drawRealTimeSelectionViewer (phase, t);
+	}
 	/*
 	 * Usually, there will be an event test after each invocation of this callback,
 	 * because the asynchronicity is kMelder_asynchronicityLevel_INTERRUPTABLE or kMelder_asynchronicityLevel_ASYNCHRONOUS.
@@ -1492,7 +1508,7 @@ void structFunctionEditor :: v_unhighlightSelection (double left, double right, 
 	Graphics_unhighlight (our graphics.get(), left, right, bottom, top);
 }
 
-void FunctionEditor_init (FunctionEditor me, const char32 *title, Function data) {
+void FunctionEditor_init (FunctionEditor me, conststring32 title, Function data) {
 	my tmin = data -> xmin;   // set before adding children (see group button)
 	my tmax = data -> xmax;
 	Editor_init (me, 0, 0, my pref_shellWidth (), my pref_shellHeight (), title, data);
@@ -1507,7 +1523,7 @@ void FunctionEditor_init (FunctionEditor me, const char32 *title, Function data)
 	Graphics_setFontSize (my graphics.get(), 12);
 
 // This exdents because it's a hack:
-struct structGuiDrawingArea_ResizeEvent event { my drawingArea, 0 };
+struct structGuiDrawingArea_ResizeEvent event { my drawingArea, 0, 0 };
 event. width  = GuiControl_getWidth  (my drawingArea);
 event. height = GuiControl_getHeight (my drawingArea);
 gui_drawingarea_cb_resize (me, & event);
@@ -1551,18 +1567,19 @@ void FunctionEditor_ungroup (FunctionEditor me) {
 	Graphics_updateWs (my graphics.get());   // for setting buttons in v_draw() method
 }
 
-void FunctionEditor_drawRangeMark (FunctionEditor me, double yWC, const char32 *yWC_string, const char32 *units, int verticalAlignment) {
-	static MelderString text { 0 };
+void FunctionEditor_drawRangeMark (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units, int verticalAlignment) {
+	static MelderString text { };
 	MelderString_copy (& text, yWC_string, units);
 	double textWidth = Graphics_textWidth (my graphics.get(), text.string) + Graphics_dxMMtoWC (my graphics.get(), 0.5);
 	Graphics_setColour (my graphics.get(), Graphics_BLUE);
 	Graphics_line (my graphics.get(), my endWindow, yWC, my endWindow + textWidth, yWC);
 	Graphics_setTextAlignment (my graphics.get(), Graphics_LEFT, verticalAlignment);
-	if (verticalAlignment == Graphics_BOTTOM) yWC -= Graphics_dyMMtoWC (my graphics.get(), 0.5);
+	if (verticalAlignment == Graphics_BOTTOM)
+		yWC -= Graphics_dyMMtoWC (my graphics.get(), 0.5);
 	Graphics_text (my graphics.get(), my endWindow, yWC, text.string);
 }
 
-void FunctionEditor_drawCursorFunctionValue (FunctionEditor me, double yWC, const char32 *yWC_string, const char32 *units) {
+void FunctionEditor_drawCursorFunctionValue (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units) {
 	Graphics_setColour (my graphics.get(), Graphics_CYAN);
 	Graphics_line (my graphics.get(), my startWindow, yWC, 0.99 * my startWindow + 0.01 * my endWindow, yWC);
 	Graphics_fillCircle_mm (my graphics.get(), 0.5 * (my startSelection + my endSelection), yWC, 1.5);
@@ -1571,7 +1588,7 @@ void FunctionEditor_drawCursorFunctionValue (FunctionEditor me, double yWC, cons
 	Graphics_text (my graphics.get(), my startWindow, yWC,   yWC_string, units);
 }
 
-void FunctionEditor_insertCursorFunctionValue (FunctionEditor me, double yWC, const char32 *yWC_string, const char32 *units, double minimum, double maximum) {
+void FunctionEditor_insertCursorFunctionValue (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units, double minimum, double maximum) {
 	double textX = my endWindow, textY = yWC;
 	int tooHigh = Graphics_dyWCtoMM (my graphics.get(), maximum - textY) < 5.0;
 	int tooLow = Graphics_dyWCtoMM (my graphics.get(), textY - minimum) < 5.0;
@@ -1585,7 +1602,7 @@ void FunctionEditor_insertCursorFunctionValue (FunctionEditor me, double yWC, co
 	} else if (tooLow) {
 		textY = minimum + Graphics_dyMMtoWC (my graphics.get(), 5.0);
 	}
-	static MelderString text { 0 };
+	static MelderString text { };
 	MelderString_copy (& text, yWC_string, units);
 	double textWidth = Graphics_textWidth (my graphics.get(), text.string);
 	Graphics_fillCircle_mm (my graphics.get(), my endWindow + textWidth + Graphics_dxMMtoWC (my graphics.get(), 1.5), textY, 1.5);
@@ -1594,7 +1611,7 @@ void FunctionEditor_insertCursorFunctionValue (FunctionEditor me, double yWC, co
 	Graphics_text (my graphics.get(), textX, textY, text.string);
 }
 
-void FunctionEditor_drawHorizontalHair (FunctionEditor me, double yWC, const char32 *yWC_string, const char32 *units) {
+void FunctionEditor_drawHorizontalHair (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units) {
 	Graphics_setColour (my graphics.get(), Graphics_RED);
 	Graphics_line (my graphics.get(), my startWindow, yWC, my endWindow, yWC);
 	Graphics_setTextAlignment (my graphics.get(), Graphics_RIGHT, Graphics_HALF);

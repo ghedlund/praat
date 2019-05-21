@@ -2,7 +2,7 @@
 #define _Command_h_
 /* Command.h
  *
- * Copyright (C) 1994-2011,2015 David Weenink, 2015 Paul Boersma
+ * Copyright (C) 1994-2018 David Weenink, 2015 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ Thing_define (Command, Thing) {
 	Command_Callback undo;
 };
 
-void Command_init (Command me, const char32 *name, Thing boss, Command_Callback execute, Command_Callback undo);
+void Command_init (Command me, conststring32 name, Thing boss, Command_Callback execute, Command_Callback undo);
 
 int Command_do (Command me);
 
@@ -44,7 +44,7 @@ int Command_undo (Command me);
 #pragma mark - class CommandHistory
 
 Collection_define (CommandHistory, OrderedOf, Command) {
-	long current;
+	integer current;
 };
 
 /* Active data structure. 'current' is position of the cursor in the list */
@@ -68,16 +68,16 @@ void CommandHistory_insertItem_move (CommandHistory me, autoCommand command);
 /* 2. insert item after current. */
 /* 3. current = size */
 
-int CommandHistory_empty (CommandHistory me);
+bool CommandHistory_isEmpty (CommandHistory me);
 /*	return my size == 0; */
 
-int CommandHistory_offleft (CommandHistory me);
+bool CommandHistory_isOffleft (CommandHistory me);
 /*	return my current == 0; */
 
-int CommandHistory_offright (CommandHistory me);
+bool CommandHistory_isOffright (CommandHistory me);
 /*	return my size == 0 || my current == my size + 1; */
 
-char32 *CommandHistory_commandName (CommandHistory me, long offsetFromCurrent);
+conststring32 CommandHistory_commandName (CommandHistory me, integer offsetFromCurrent);
 /* offsetFromCurrent may be zero, positive or negative. */
 /* References outside the list will return nullptr. */
 

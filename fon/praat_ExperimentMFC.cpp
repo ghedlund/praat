@@ -1,6 +1,6 @@
 /* praat_ExperimentMFC.cpp
  *
- * Copyright (C) 2001-2012,2015,2016 Paul Boersma
+ * Copyright (C) 2001-2007,2009-2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,90 +39,84 @@ DIRECT (MODIFY_Categories_sort) {
 // MARK: - EXPERIMENT_MFC
 
 DIRECT (WINDOW_ExperimentMFC_run) {
-		if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot run experiments from the command line.");
-		autoRunnerMFC runner;
-		{// scope
-			/*
-				This `scope` comment refers to the idea that an autoThing (here, `experiments`)
-				is created in the beginning of the scope and invalidated at the end of the scope (by `move`).
-			*/
-			autoExperimentMFCList experiments = ExperimentMFCList_create ();
-			WHERE (SELECTED) {
-				iam_LOOP (ExperimentMFC);
-				Melder_assert (my classInfo == classExperimentMFC);
-				experiments -> addItem_ref (me);
-			}
-			Melder_assert (experiments->size >= 1);
-			Melder_assert (experiments->at [1] -> classInfo == classExperimentMFC);
-			Melder_assert (experiments->at [experiments->size] -> classInfo == classExperimentMFC);
-			runner = RunnerMFC_create (U"listening experiments", experiments.move());
-			/*
-				Now that `experiments` has been moved, it has become invalid.
-				We help the compiler notice this by ending the scope here:
-			*/
-		}
+	if (theCurrentPraatApplication -> batch) Melder_throw (U"Cannot run experiments from the command line.");
+	autoRunnerMFC runner;
+	{// scope
 		/*
-			As a result of the scope braces above, the compiler will now protest
-			if we refer to `experiments` in the next line. So instead we refer to the `runner`-internal experiments,
-			which are still in scope and haven't been invalidated:
+			This `scope` comment refers to the idea that an autoThing (here, `list`)
+			is created in the beginning of the scope and invalidated at the end of the scope (by `move`).
 		*/
-		praat_installEditorN (runner.get(), runner -> experiments->asDaataList());   // refer to the moved version!
-		runner.releaseToUser();
-	END
-}
+		FIND_TYPED_LIST (ExperimentMFC, ExperimentMFCList)
+		Melder_assert (list->size >= 1);
+		Melder_assert (list->at [1] -> classInfo == classExperimentMFC);
+		Melder_assert (list->at [list->size] -> classInfo == classExperimentMFC);
+		runner = RunnerMFC_create (U"listening experiments", list.move());
+		/*
+			Now that `list` has been moved, it has become invalid.
+			We help the compiler notice this by ending the scope here:
+		*/
+	}
+	/*
+		As a result of the scope braces above, the compiler will now protest
+		if we refer to `list` in the next line. So instead we refer to the `runner`-internal experiments,
+		which are still in scope and haven't been invalidated:
+	*/
+	praat_installEditorN (runner.get(), runner -> experiments->asDaataList());   // refer to the moved version!
+	runner.releaseToUser();
+END }
 
 DIRECT (NEW_ExperimentMFC_extractResults) {
 	CONVERT_EACH (ExperimentMFC)
 		autoResultsMFC result = ExperimentMFC_extractResults (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 // MARK: - RESULTS_MFC
 
 DIRECT (INTEGER_ResultsMFC_getNumberOfTrials) {
 	NUMBER_ONE (ResultsMFC)
-		long result = my numberOfTrials;
+		integer result = my numberOfTrials;
 	NUMBER_ONE_END (U" trials")
 }
 
 FORM (STRING_ResultsMFC_getResponse, U"ResultsMFC: Get response", nullptr) {
-	NATURAL4 (trial, U"Trial", U"1")
+	NATURAL (trial, U"Trial", U"1")
 	OK
 DO
 	STRING_ONE (ResultsMFC)
 		if (trial > my numberOfTrials)
 			Melder_throw (U"Trial ", trial, U" does not exist (maximum ", my numberOfTrials, U").");
-		const char32 *result = my result [trial]. response;
+		conststring32 result = my result [trial]. response.get();
 	STRING_ONE_END
 }
 
 FORM (STRING_ResultsMFC_getStimulus, U"ResultsMFC: Get stimulus", nullptr) {
-	NATURAL4 (trial, U"Trial", U"1")
+	NATURAL (trial, U"Trial", U"1")
 	OK
 DO
 	STRING_ONE (ResultsMFC)
 		if (trial > my numberOfTrials)
 			Melder_throw (U"Trial ", trial, U" does not exist (maximum ", my numberOfTrials, U").");
-		const char32 *result = my result [trial]. stimulus;
+		conststring32 result = my result [trial]. stimulus.get();
 	STRING_ONE_END
 }
 
 DIRECT (NEW1_ResultsMFC_removeUnsharedStimuli) {
 	CONVERT_COUPLE (ResultsMFC)
 		autoResultsMFC result = ResultsMFC_removeUnsharedStimuli (me, you);
-	CONVERT_COUPLE_END (your name, U"_shared")
+	CONVERT_COUPLE_END (your name.get(), U"_shared")
 }
 
 DIRECT (NEW_ResultsMFC_to_Categories_stimuli) {
 	CONVERT_EACH (ResultsMFC)
 		autoCategories result = ResultsMFC_to_Categories_stimuli (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW_ResultsMFC_to_Categories_responses) {
 	CONVERT_EACH (ResultsMFC)
 		autoCategories result = ResultsMFC_to_Categories_responses (me);
-	CONVERT_EACH_END (my name)
+	CONVERT_EACH_END (my name.get())
 }
 
 DIRECT (NEW1_ResultsMFCs_to_Table) {

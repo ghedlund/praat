@@ -1,6 +1,6 @@
 /* Ltas_extensions.cpp
  *
- * Copyright (C) 2012-2014 David Weenink
+ * Copyright (C) 2012-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,22 +24,20 @@ void Ltas_fitTiltLine (Ltas me, double fmin, double fmax, bool lnf, int method, 
 		if (fmax <= fmin) {
 			fmin = my xmin; fmax = my xmax;
 		}
-		long ifmin, ifmax, numberOfSamples = Sampled_getWindowSamples (me, fmin, fmax, &ifmin, &ifmax);
-		if (numberOfSamples < 2) {
-			Melder_throw (U"There must be at least two data points to fit a line.");
-		}
-		autoNUMvector<double> x (1, numberOfSamples);
-		autoNUMvector<double> y (1, numberOfSamples);
-		for (long i = ifmin; i <= ifmax; i++) {
-			long ixy = i - ifmin + 1;
-			x[ixy] = my x1 + (i - 1) * my dx;
+		integer ifmin, ifmax, numberOfSamples = Sampled_getWindowSamples (me, fmin, fmax, & ifmin, & ifmax);
+		Melder_require (numberOfSamples > 1, U"There should be at least two data points to fit a line.");
+		autoVEC x = newVECraw (numberOfSamples);
+		autoVEC y = newVECraw (numberOfSamples);
+		for (integer i = ifmin; i <= ifmax; i ++) {
+			integer ixy = i - ifmin + 1;
+			x [ixy] = my x1 + (i - 1) * my dx;
 			if (lnf) {
 				// For Ltas always x1 > 0
-				x[ixy] = log10 (x[ixy]);
+				x [ixy] = log10 (x [ixy]);
 			}
-			y[ixy] = my z[1][i];
+			y [ixy] = my z [1] [i];
 		}
-		NUMlineFit (x.peek(), y.peek(), numberOfSamples, a, b, method);
+		NUMlineFit (x.get(), y.get(), a, b, method);
 	} catch (MelderError) {
 		Melder_throw (U"Tilt line not determined.");
 	}

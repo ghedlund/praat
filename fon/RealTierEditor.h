@@ -2,7 +2,7 @@
 #define _RealTierEditor_h_
 /* RealTierEditor.h
  *
- * Copyright (C) 1992-2011,2012,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2012,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,20 +37,17 @@ Thing_define (RealTierEditor, TimeSoundEditor) {
 	void v_createMenuItems_view (EditorMenu menu)
 		override;
 
-	virtual double v_minimumLegalValue () { return NUMundefined; }
-	virtual double v_maximumLegalValue () { return NUMundefined; }
-	virtual const char32 * v_quantityText () { return U"Y"; }   // normally includes units
-	virtual const char32 * v_quantityKey () { return U"Y"; }   // without units
-	virtual const char32 * v_rightTickUnits () { return U""; }
+	virtual double v_minimumLegalValue () { return undefined; }
+	virtual double v_maximumLegalValue () { return undefined; }
+	virtual conststring32 v_quantityText () { return U"Y"; }   // normally includes units
+	virtual conststring32 v_rightTickUnits () { return U""; }
 	virtual double v_defaultYmin () { return 0.0; }
 	virtual double v_defaultYmax () { return 1.0; }
-	virtual const char32 * v_setRangeTitle () { return U"Set range..."; }
-	virtual const char32 * v_defaultYminText () { return U"0.0"; }
-	virtual const char32 * v_defaultYmaxText () { return U"1.0"; }
-	virtual const char32 * v_yminText () { return U"Minimum"; }   // normally includes units
-	virtual const char32 * v_ymaxText () { return U"Maximum"; }   // normally includes units
-	virtual const char32 * v_yminKey () { return U"Minimum"; }   // without units
-	virtual const char32 * v_ymaxKey () { return U"Maximum"; }   // without units
+	virtual conststring32 v_setRangeTitle () { return U"Set range..."; }
+	virtual conststring32 v_defaultYminText () { return U"0.0"; }
+	virtual conststring32 v_defaultYmaxText () { return U"1.0"; }
+	virtual conststring32 v_yminText () { return U"Minimum"; }   // normally includes units
+	virtual conststring32 v_ymaxText () { return U"Maximum"; }   // normally includes units
 };
 
 void RealTierEditor_updateScaling (RealTierEditor me);
@@ -59,7 +56,7 @@ void RealTierEditor_updateScaling (RealTierEditor me);
 	Call after every change in the data.
 */
 
-void RealTierEditor_init (RealTierEditor me, const char32 *title, RealTier data, Sound sound, bool ownSound);
+void RealTierEditor_init (RealTierEditor me, conststring32 title, RealTier data, Sound sound, bool ownSound);
 /*
 	`sound` may be null;
 	if `ownSound` is `true`, the editor will contain a deep copy of the Sound,

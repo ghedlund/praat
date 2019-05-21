@@ -1,6 +1,6 @@
 /* TableOfReal_def.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2011,2012,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,11 @@
 #define ooSTRUCT TableOfReal
 oo_DEFINE_CLASS (TableOfReal, Daata)
 
-	oo_LONG (numberOfRows)
-	oo_LONG (numberOfColumns)
+	oo_INTEGER (numberOfRows)
+	oo_INTEGER (numberOfColumns)
 	oo_STRING_VECTOR (rowLabels, numberOfRows)
 	oo_STRING_VECTOR (columnLabels, numberOfColumns)
-	oo_DOUBLE_MATRIX (data, numberOfRows, numberOfColumns)
+	oo_MAT (data, numberOfRows, numberOfColumns)
 
 	#if oo_DECLARING
 		void v_info ()
@@ -39,23 +39,23 @@ oo_DEFINE_CLASS (TableOfReal, Daata)
 			override { return numberOfColumns; }
 		bool v_hasGetRowStr ()
 			override { return true; }
-		const char32 * v_getRowStr (long irow)
+		conststring32 v_getRowStr (integer irow)
 			override;
 		bool v_hasGetColStr ()
 			override { return true; }
-		const char32 * v_getColStr (long icol)
+		conststring32 v_getColStr (integer icol)
 			override;
 		bool v_hasGetMatrix ()
 			override { return true; }
-		double v_getMatrix (long irow, long icol)
+		double v_getMatrix (integer irow, integer icol)
 			override;
 		bool v_hasGetRowIndex ()
 			override { return true; }
-		double v_getRowIndex (const char32 *rowLabel)
+		double v_getRowIndex (conststring32 rowLabel)
 			override;
 		bool v_hasGetColIndex ()
 			override { return true; }
-		double v_getColIndex (const char32 *columnLabel)
+		double v_getColIndex (conststring32 columnLabel)
 			override;
 	#endif
 

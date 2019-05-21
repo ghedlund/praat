@@ -2,7 +2,7 @@
 #define _TableOfReal_h_
 /* TableOfReal.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2011,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,51 +28,51 @@ Thing_declare (Interpreter);
 
 #include "praatlib.h"
 
-PRAAT_LIB_EXPORT void TableOfReal_init (TableOfReal me, long numberOfRows, long numberOfColumns);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_create (long numberOfRows, long numberOfColumns);
-PRAAT_LIB_EXPORT void TableOfReal_removeRow (TableOfReal me, long irow);
-PRAAT_LIB_EXPORT void TableOfReal_removeColumn (TableOfReal me, long icol);
-PRAAT_LIB_EXPORT void TableOfReal_insertRow (TableOfReal me, long irow);
-PRAAT_LIB_EXPORT void TableOfReal_insertColumn (TableOfReal me, long icol);
-PRAAT_LIB_EXPORT void TableOfReal_setRowLabel    (TableOfReal me, long irow, const char32 *label /* cattable */);
-PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel (TableOfReal me, long icol, const char32 *label /* cattable */);
-PRAAT_LIB_EXPORT long TableOfReal_rowLabelToIndex    (TableOfReal me, const char32 *label /* cattable */);
-PRAAT_LIB_EXPORT long TableOfReal_columnLabelToIndex (TableOfReal me, const char32 *label /* cattable */);
-PRAAT_LIB_EXPORT double TableOfReal_getColumnMean (TableOfReal me, long icol);
-PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev (TableOfReal me, long icol);
+PRAAT_LIB_EXPORT void TableOfReal_init (TableOfReal me, integer numberOfRows, integer numberOfColumns);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_create (integer numberOfRows, integer numberOfColumns);
+PRAAT_LIB_EXPORT void TableOfReal_removeRow (TableOfReal me, integer rowNumber);
+PRAAT_LIB_EXPORT void TableOfReal_removeColumn (TableOfReal me, integer columnNumber);
+PRAAT_LIB_EXPORT void TableOfReal_insertRow (TableOfReal me, integer rowNumber);
+PRAAT_LIB_EXPORT void TableOfReal_insertColumn (TableOfReal me, integer columnNumber);
+PRAAT_LIB_EXPORT void TableOfReal_setRowLabel    (TableOfReal me, integer rowNumber, conststring32 label /* cattable */);
+PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel (TableOfReal me, integer columnNumber, conststring32 label /* cattable */);
+PRAAT_LIB_EXPORT integer TableOfReal_rowLabelToIndex    (TableOfReal me, conststring32 label /* cattable */);
+PRAAT_LIB_EXPORT integer TableOfReal_columnLabelToIndex (TableOfReal me, conststring32 label /* cattable */);
+PRAAT_LIB_EXPORT double TableOfReal_getColumnMean (TableOfReal me, integer columnNumber);
+PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev (TableOfReal me, integer columnNumber);
 
-PRAAT_LIB_EXPORT autoTableOfReal Table_to_TableOfReal (Table me, long labelColumn);
-PRAAT_LIB_EXPORT autoTable TableOfReal_to_Table (TableOfReal me, const char32 *labelOfFirstColumn);
-void TableOfReal_formula (TableOfReal me, const char32 *expression, Interpreter interpreter, TableOfReal target);
-void TableOfReal_drawAsNumbers (TableOfReal me, Graphics g, long rowmin, long rowmax, int iformat, int precision);
-void TableOfReal_drawAsNumbers_if (TableOfReal me, Graphics g, long rowmin, long rowmax, int iformat, int precision,
-	const char32 *conditionFormula, Interpreter interpreter);
-void TableOfReal_drawAsSquares (TableOfReal me, Graphics g, long rowmin, long rowmax,
-	long colmin, long colmax, int garnish);
-void TableOfReal_drawVerticalLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
-void TableOfReal_drawHorizontalLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
-void TableOfReal_drawLeftAndRightLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
-void TableOfReal_drawTopAndBottomLines (TableOfReal me, Graphics g, long rowmin, long rowmax);
+PRAAT_LIB_EXPORT autoTableOfReal Table_to_TableOfReal (Table me, integer labelColumn);
+PRAAT_LIB_EXPORT autoTable TableOfReal_to_Table (TableOfReal me, conststring32 labelOfFirstColumn);
+void TableOfReal_formula (TableOfReal me, conststring32 expression, Interpreter interpreter, TableOfReal target);
+void TableOfReal_drawAsNumbers (TableOfReal me, Graphics g, integer rowmin, integer rowmax, int iformat, int precision);
+void TableOfReal_drawAsNumbers_if (TableOfReal me, Graphics g, integer rowmin, integer rowmax, int iformat, int precision,
+	conststring32 conditionFormula, Interpreter interpreter);
+void TableOfReal_drawAsSquares (TableOfReal me, Graphics g, integer rowmin, integer rowmax,
+	integer colmin, integer colmax, bool garnish);
+void TableOfReal_drawVerticalLines (TableOfReal me, Graphics g, integer rowmin, integer rowmax);
+void TableOfReal_drawHorizontalLines (TableOfReal me, Graphics g, integer rowmin, integer rowmax);
+void TableOfReal_drawLeftAndRightLines (TableOfReal me, Graphics g, integer rowmin, integer rowmax);
+void TableOfReal_drawTopAndBottomLines (TableOfReal me, Graphics g, integer rowmin, integer rowmax);
 
 PRAAT_LIB_EXPORT autoTableOfReal TablesOfReal_append (TableOfReal me, TableOfReal thee);
-PRAAT_LIB_EXPORT autoTableOfReal TablesOfReal_appendMany (OrderedOf<structTableOfReal>* me);
-PRAAT_LIB_EXPORT void TableOfReal_sortByLabel (TableOfReal me, long column1, long column2);
-PRAAT_LIB_EXPORT void TableOfReal_sortByColumn (TableOfReal me, long column1, long column2);
+autoTableOfReal TablesOfReal_appendMany (OrderedOf<structTableOfReal>* me);
+PRAAT_LIB_EXPORT void TableOfReal_sortByLabel (TableOfReal me, integer column1, integer column2);
+PRAAT_LIB_EXPORT void TableOfReal_sortByColumn (TableOfReal me, integer column1, integer column2);
 
 PRAAT_LIB_EXPORT void TableOfReal_writeToHeaderlessSpreadsheetFile (TableOfReal me, MelderFile file);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile (MelderFile file);
 
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowRanges (TableOfReal me, const char32 *ranges);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnRanges (TableOfReal me, const char32 *ranges);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowRanges (TableOfReal me, conststring32 ranges);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnRanges (TableOfReal me, conststring32 ranges);
 
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereColumn (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereRow (TableOfReal me, long icol, int which_Melder_NUMBER, double criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereColumn (TableOfReal me, integer icol, kMelder_number which, double criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereRow (TableOfReal me, integer icol, kMelder_number which, double criterion);
 
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereLabel (TableOfReal me, int which_Melder_STRING, const char32 *criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
 
-autoTableOfReal TableOfReal_extractRowsWhere (TableOfReal me, const char32 *condition, Interpreter interpreter);
-autoTableOfReal TableOfReal_extractColumnsWhere (TableOfReal me, const char32 *condition, Interpreter interpreter);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhere (TableOfReal me, conststring32 condition, Interpreter interpreter);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhere (TableOfReal me, conststring32 condition, Interpreter interpreter);
 
 PRAAT_LIB_EXPORT autoStrings TableOfReal_extractRowLabelsAsStrings (TableOfReal me);
 PRAAT_LIB_EXPORT autoStrings TableOfReal_extractColumnLabelsAsStrings (TableOfReal me);

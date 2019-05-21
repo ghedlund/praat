@@ -2,7 +2,7 @@
 #define _TextGrid_extensions_h_
 /* TextGrid_extensions.h
  *
- * Copyright (C) 1993-2012, 2015 David Weenink
+ * Copyright (C) 1993-2018 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include "TextGrid.h"
 #include "praatlib.h"
 
-autoTextGrid TextGrid_readFromTIMITLabelFile (MelderFile file, int phnFile);
+autoTextGrid TextGrid_readFromTIMITLabelFile (MelderFile file, bool phnFile);
 /*
 	Read TIMIT label file with the following structure:
 		samplenumber1 samplenumber2 label1
@@ -35,13 +35,13 @@ autoTextGrid TextGrid_readFromTIMITLabelFile (MelderFile file, int phnFile);
 		samplenumber2n-1 samplenumber2n labeln
 
 	The first tier of TextGrid will contain the TIMIT labels.
-	If phnFile != 0, the second tier will contain the translation of the
+	If phnFile == true, the second tier will contain the translation of the
 	TIMIT labels into IPA labels.
 	For the translation from sample number to time a default sampling
 	frequency of 16000 Hz is assumed.
 */
 
-autoDaata TextGrid_TIMITLabelFileRecognizer (int nread, const char *header, MelderFile file);
+autoDaata TextGrid_TIMITLabelFileRecognizer (integer nread, const char *header, MelderFile file);
 /*
 	There are two types of TIMIT label files. One with phonetic labels, these
 	files have '.phn' as file extension. The other contains word labels and has
@@ -77,18 +77,19 @@ PRAAT_LIB_EXPORT void TextGrid_extendTime (TextGrid me, double delta_time, int p
 	Interval tiers will have a new (empty) interval at the start or the end.
 */
 
-PRAAT_LIB_EXPORT void TextGrid_setTierName (TextGrid me, long itier, const char32 *newName);
+PRAAT_LIB_EXPORT void TextGrid_setTierName (TextGrid me, integer itier, conststring32 newName);
 
-PRAAT_LIB_EXPORT void TextTier_changeLabels (TextTier me, long from, long to, const char32 *search, const char32 *replace, int use_regexp, long *nmatches, long *nstringmatches);
+PRAAT_LIB_EXPORT void TextTier_changeLabels (TextTier me, integer from, integer to, conststring32 search, conststring32 replace, bool use_regexp, integer *nmatches, integer *nstringmatches);
 
-PRAAT_LIB_EXPORT void IntervalTier_changeLabels (TextTier me, long from, long to, const char32 *search, const char32 *replace, int use_regexp, long *nmatches, long *nstringmatches);
+PRAAT_LIB_EXPORT void IntervalTier_changeLabels (IntervalTier me, integer from, integer to, conststring32 search, conststring32 replace, bool use_regexp, integer *nmatches, integer *nstringmatches);
 
-PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals (IntervalTier me, const char32 *label);
+PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals (IntervalTier me, conststring32 label);
 
-PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch (IntervalTier me, const char32 *label);
-PRAAT_LIB_EXPORT void IntervalTier_cutIntervals_minimumDuration (IntervalTier me, const char32 *label, double minimumDuration);
+PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch (IntervalTier me, conststring32 label);
 
-PRAAT_LIB_EXPORT void TextGrid_changeLabels (TextGrid me, int tier, long from, long to, const char32 *search, const char32 *replace, int use_regexp, long *nmatches, long *nstringmatches);
+PRAAT_LIB_EXPORT void IntervalTier_cutIntervals_minimumDuration (IntervalTier me, conststring32 label, double minimumDuration);
+
+PRAAT_LIB_EXPORT void TextGrid_changeLabels (TextGrid me, integer tier, integer from, integer to, conststring32 search, conststring32 replace, bool use_regexp, integer *nmatches, integer *nstringmatches);
 
 /* Set the start/end time to a smaller/larger value.
  * If mark is null, only times are changed
@@ -96,22 +97,30 @@ PRAAT_LIB_EXPORT void TextGrid_changeLabels (TextGrid me, int tier, long from, l
  *    For a TextTier this involves adding a point with the marker
  *    For an IntervalTier this involves adding a new interval
  */
-PRAAT_LIB_EXPORT void IntervalTier_setLaterEndTime (IntervalTier me, double xmax, const char32 *mark);
-PRAAT_LIB_EXPORT void IntervalTier_setEarlierStartTime (IntervalTier me, double xmin, const char32 *mark);
+PRAAT_LIB_EXPORT void IntervalTier_setLaterEndTime (IntervalTier me, double xmax, conststring32 mark);
 
-PRAAT_LIB_EXPORT void IntervalTier_moveBoundary (IntervalTier me, long interval, bool atStart, double newTime);
-PRAAT_LIB_EXPORT void TextTier_setLaterEndTime (TextTier me, double xmax, const char32 *mark);
-PRAAT_LIB_EXPORT void TextTier_setEarlierStartTime (TextTier me, double xmin, const char32 *mark);
-PRAAT_LIB_EXPORT void TextGrid_setEarlierStartTime (TextGrid me, double xmin, const char32 *imark, const char32 *pmark);
-PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime (TextGrid me, double xmax, const char32 *imark, const char32 *pmark);
+PRAAT_LIB_EXPORT void IntervalTier_setEarlierStartTime (IntervalTier me, double xmin, conststring32 mark);
 
+PRAAT_LIB_EXPORT void IntervalTier_moveBoundary (IntervalTier me, integer interval, bool atStart, double newTime);
+
+PRAAT_LIB_EXPORT void TextTier_setLaterEndTime (TextTier me, double xmax, conststring32 mark);
+
+PRAAT_LIB_EXPORT void TextTier_setEarlierStartTime (TextTier me, double xmin, conststring32 mark);
+
+PRAAT_LIB_EXPORT void TextGrid_setEarlierStartTime (TextGrid me, double xmin, conststring32 intervalMark, conststring32 pointMark);
+
+PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime (TextGrid me, double xmax, conststring32 intervalMark, conststring32 pointMark);
 
 // Precondition: if (preserveTimes) { my xmax <= thy xmin }
 // Postcondition: my xmin preserved
-PRAAT_LIB_EXPORT void IntervalTiers_append_inline (IntervalTier me, IntervalTier thee, bool preserveTimes);
-PRAAT_LIB_EXPORT void TextTiers_append_inline (TextTier me, TextTier thee, bool preserveTimes);
-PRAAT_LIB_EXPORT void TextGrids_append_inline (TextGrid me, TextGrid thee, bool preserveTimes);
+PRRAT_LIB_EXPORT void IntervalTiers_append_inplace (IntervalTier me, IntervalTier thee, bool preserveTimes);
+
+PRRAT_LIB_EXPORT void TextTiers_append_inplace (TextTier me, TextTier thee, bool preserveTimes);
+
+PRRAT_LIB_EXPORT void TextGrids_append_inplace (TextGrid me, TextGrid thee, bool preserveTimes);
 
 PRAAT_LIB_EXPORT autoTextGrid TextGrids_to_TextGrid_appendContinuous (OrderedOf<structTextGrid>* me, bool preserveTimes);
+
+double TextGrid_getTotalDurationOfIntervalsWhere (TextGrid me, integer tierNumber, kMelder_string which, conststring32 criterion);
 
 #endif /* _TextGrid_extensions_h_ */

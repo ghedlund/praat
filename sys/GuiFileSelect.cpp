@@ -22,13 +22,13 @@
 	#include <Shlobj.h>
 #endif
 
-autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, const char32 *title, bool allowMultipleFiles) {
-	structMelderDir saveDir { { 0 } };
+autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 title, bool allowMultipleFiles) {
+	structMelderDir saveDir { };
 	Melder_getDefaultDir (& saveDir);
 	autoStringSet me = StringSet_create ();
 	#if gtk
 		(void) parent;
-		static structMelderDir dir;
+		static structMelderDir dir { };
 		GuiObject dialog = gtk_file_chooser_dialog_new (Melder_peek32to8 (title), nullptr, GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, nullptr);
 		gtk_file_chooser_set_select_multiple (GTK_FILE_CHOOSER (dialog), allowMultipleFiles);
@@ -38,7 +38,7 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, const char32 *titl
 		if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
 			char *infolderName_utf8 = gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (dialog));
 			if (infolderName_utf8) {
-				char32 *infolderName = Melder_peek8to32 (infolderName_utf8);   // dangle
+				conststring32 infolderName = Melder_peek8to32 (infolderName_utf8);   // dangle
 				Melder_pathToDir (infolderName, & dir);
 				g_free (infolderName_utf8);
 			}
@@ -93,10 +93,10 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, const char32 *titl
 				 * The user selected multiple files.
 				 * 'fullFileNameW' is a directory name; the file names follow.
 				 */
-				structMelderDir dir;
+				structMelderDir dir { };
 				Melder_pathToDir (Melder_peekWto32 (fullFileNameW), & dir);
 				for (const WCHAR *p = & fullFileNameW [firstFileNameLength + 1]; *p != L'\0'; p += wcslen (p) + 1) {
-					structMelderFile file { 0 };
+					structMelderFile file { };
 					MelderDir_getFile (& dir, Melder_peekWto32 (p), & file);
 					my addString_copy (Melder_fileToPath (& file));
 				}
@@ -111,8 +111,8 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, const char32 *titl
 		[openPanel setCanChooseDirectories: NO];
 		if ([openPanel runModal] == NSFileHandlingPanelOKButton) {
 			for (NSURL *url in [openPanel URLs]) {
-				structMelderFile file { 0 };
-				Melder_8bitFileRepresentationToStr32_inline ([[url path] UTF8String], file. path);   // BUG: unsafe buffer
+				structMelderFile file { };
+				Melder_8bitFileRepresentationToStr32_inplace ([[url path] UTF8String], file. path);   // BUG: unsafe buffer
 				my addString_copy (file. path);
 			}
 		}
@@ -122,10 +122,10 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, const char32 *titl
 	return me;
 }
 
-char32 * GuiFileSelect_getOutfileName (GuiWindow parent, const char32 *title, const char32 *defaultName) {
-	structMelderDir saveDir { { 0 } };
+autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title, conststring32 defaultName) {
+	structMelderDir saveDir { };
 	Melder_getDefaultDir (& saveDir);
-	char32 *outfileName = nullptr;
+	autostring32 outfileName;
 	#if gtk
 		(void) parent;
 		static structMelderFile file;
@@ -140,7 +140,7 @@ char32 * GuiFileSelect_getOutfileName (GuiWindow parent, const char32 *title, co
 			char *outfileName_utf8 = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 			outfileName = Melder_8to32 (outfileName_utf8);
 			g_free (outfileName_utf8);
-			Melder_pathToFile (outfileName, & file);
+			Melder_pathToFile (outfileName.get(), & file);
 		}
 		gtk_widget_destroy (GTK_WIDGET (dialog));
 		setlocale (LC_ALL, "C");
@@ -162,9 +162,8 @@ char32 * GuiFileSelect_getOutfileName (GuiWindow parent, const char32 *title, co
 		openFileName. lpstrTitle = Melder_peek32toW (title);
 		openFileName. Flags = OFN_LONGNAMES | OFN_OVERWRITEPROMPT | OFN_EXPLORER | OFN_HIDEREADONLY;
 		openFileName. lpstrDefExt = nullptr;
-		if (GetSaveFileNameW (& openFileName)) {
+		if (GetSaveFileNameW (& openFileName))
 			outfileName = Melder_Wto32 (fullFileNameW);
-		}
 		setlocale (LC_ALL, "C");
 	#elif cocoa
 		(void) parent;
@@ -176,10 +175,10 @@ char32 * GuiFileSelect_getOutfileName (GuiWindow parent, const char32 *title, co
 			if (path == nil)
 				Melder_throw (U"Don't understand where you want to save (1).");
 			const char *outfileName_utf8 = [path UTF8String];
-			if (outfileName_utf8 == nullptr)
+			if (! outfileName_utf8)
 				Melder_throw (U"Don't understand where you want to save (2).");
-			structMelderFile file { 0 };
-			Melder_8bitFileRepresentationToStr32_inline (outfileName_utf8, file. path);   // BUG: unsafe buffer
+			structMelderFile file { };
+			Melder_8bitFileRepresentationToStr32_inplace (outfileName_utf8, file. path);   // BUG: unsafe buffer
 			outfileName = Melder_dup (file. path);
 		}
 		setlocale (LC_ALL, "en_US");
@@ -188,10 +187,10 @@ char32 * GuiFileSelect_getOutfileName (GuiWindow parent, const char32 *title, co
 	return outfileName;
 }
 
-char32 * GuiFileSelect_getDirectoryName (GuiWindow parent, const char32 *title) {
-	structMelderDir saveDir { { 0 } };
+autostring32 GuiFileSelect_getDirectoryName (GuiWindow parent, conststring32 title) {
+	structMelderDir saveDir { };
 	Melder_getDefaultDir (& saveDir);
-	char32 *directoryName = nullptr;
+	autostring32 directoryName;
 	#if gtk
 		(void) parent;
 		static structMelderFile file;
@@ -204,7 +203,7 @@ char32 * GuiFileSelect_getDirectoryName (GuiWindow parent, const char32 *title) 
 			char *directoryName_utf8 = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 			directoryName = Melder_8to32 (directoryName_utf8);
 			g_free (directoryName_utf8);
-			Melder_pathToFile (directoryName, & file);
+			Melder_pathToFile (directoryName.get(), & file);
 		}
 		gtk_widget_destroy (GTK_WIDGET (dialog));
 		setlocale (LC_ALL, "C");
@@ -237,8 +236,8 @@ char32 * GuiFileSelect_getDirectoryName (GuiWindow parent, const char32 *title) 
 		if ([openPanel runModal] == NSFileHandlingPanelOKButton) {
 			for (NSURL *url in [openPanel URLs]) {
 				const char *directoryName_utf8 = [[url path] UTF8String];
-				structMelderDir dir { { 0 } };
-				Melder_8bitFileRepresentationToStr32_inline (directoryName_utf8, dir. path);   // BUG: unsafe buffer
+				structMelderDir dir { };
+				Melder_8bitFileRepresentationToStr32_inplace (directoryName_utf8, dir. path);   // BUG: unsafe buffer
 				directoryName = Melder_dup (dir. path);
 			}
 		}

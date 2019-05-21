@@ -2,7 +2,7 @@
 #define _TimeSoundEditor_h_
 /* TimeSoundEditor.h
  *
- * Copyright (C) 1992-2012,2013,2014,2015 Paul Boersma
+ * Copyright (C) 1992-2012,2013,2014,2015,2017 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 struct TimeSoundEditor_sound {
 	Sound data;
 	double minimum, maximum;
-	long channelOffset;
+	integer channelOffset;
 	bool *muteChannels;
 };
 
@@ -36,7 +36,7 @@ Thing_define (TimeSoundEditor, FunctionEditor) {
 	struct TimeSoundEditor_sound d_sound;
 	struct { LongSound data; } d_longSound;
 	GuiMenuItem drawButton, publishButton, publishPreserveButton, publishWindowButton, publishOverlapButton;
-	GuiMenuItem writeAiffButton, d_saveAs24BitWavButton, d_saveAs32BitWavButton, writeAifcButton, writeWavButton, writeNextSunButton, writeNistButton, writeFlacButton;
+	GuiMenuItem writeAiffButton, saveAs24BitWavButton, saveAs32BitWavButton, writeAifcButton, writeWavButton, writeNextSunButton, writeNistButton, writeFlacButton;
 
 	void v_destroy () noexcept
 		override;
@@ -61,12 +61,12 @@ Thing_define (TimeSoundEditor, FunctionEditor) {
 
 	virtual void v_createMenuItems_view_sound (EditorMenu menu);
 	virtual void v_updateMenuItems_file ();
-	virtual const char32 * v_getChannelName (long /* channelNumber */) { return nullptr; }
+	virtual conststring32 v_getChannelName (integer /* channelNumber */) { return nullptr; }
 
 	#include "TimeSoundEditor_prefs.h"
 };
 
-void TimeSoundEditor_init (TimeSoundEditor me, const char32 *title, Function data, Sampled sound, bool ownSound);
+void TimeSoundEditor_init (TimeSoundEditor me, conststring32 title, Function data, Sampled sound, bool ownSound);
 
 void TimeSoundEditor_drawSound (TimeSoundEditor me, double globalMinimum, double globalMaximum);
 

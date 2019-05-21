@@ -1,6 +1,6 @@
 /* OTGrammar_ex_tongueRoot.cpp
  *
- * Copyright (C) 1997-2011,2013,2015,2016 Paul Boersma
+ * Copyright (C) 1997-2005,2007,2009,2011-2013,2015-2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 #include "OTGrammar.h"
 
-static const char32 *vowels [] = { U"i", U"e", U"\\sw", U"\\ic", U"\\ef", U"a" };
+static const conststring32 vowels [] = { U"i", U"e", U"\\sw", U"\\ic", U"\\ef", U"a" };
 #define i  0
 #define e  1
 #define schwa  2
@@ -30,7 +30,7 @@ static const char32 *vowels [] = { U"i", U"e", U"\\sw", U"\\ic", U"\\ef", U"a" }
 #define isrtr(v)  ((v) >= I)
 #define fliptr(v)  (((v) + 3) % 6)
 
-static void countVowelViolations (int *marks, int ncons, int v) {
+static void countVowelViolations (const INTVEC marks, const int ncons, const int v) {
 	if (v == I) marks [1] ++;
 	if (v == schwa) marks [2] ++;
 	if (ncons == 9) {
@@ -43,21 +43,24 @@ static void countVowelViolations (int *marks, int ncons, int v) {
 
 static void OTGrammarCandidate_init (OTGrammarCandidate me, int ncons, int v1, int v2) {
 	my output = Melder_dup (Melder_cat (vowels [v1], U"t", vowels [v2]));
-	my marks = NUMvector <int> (1, my numberOfConstraints = ncons);
+	my marks = newINTVECzero (my numberOfConstraints = ncons);
 	/*
-	 * Count vowel-gesture violations.
-	 */
-	countVowelViolations (my marks, ncons, v1);
-	countVowelViolations (my marks, ncons, v2);
+		Count vowel-gesture violations.
+	*/
+	countVowelViolations (my marks.get(), ncons, v1);
+	countVowelViolations (my marks.get(), ncons, v2);
 	/*
-	 * Count contour-gesture violations.
-	 */
+		Count contour-gesture violations.
+	*/
 	if (isatr (v1) != isatr (v2)) my marks [5] ++;
 }
 
-autoOTGrammar OTGrammar_create_tongueRoot_grammar (int small_large, int equal_random_infant_Wolof) {
+autoOTGrammar OTGrammar_create_tongueRoot_grammar (
+	kOTGrammar_createTongueRootGrammar_constraintSet small_large,
+	kOTGrammar_createTongueRootGrammar_ranking equal_random_infant_Wolof)
+{
 	try {
-		int ncons = small_large == 1 ? 5 : 9, itab, v1, v2;
+		int ncons = small_large == kOTGrammar_createTongueRootGrammar_constraintSet::FIVE ? 5 : 9, itab, v1, v2;
 		autoOTGrammar me = Thing_new (OTGrammar);
 		my constraints = NUMvector <structOTGrammarConstraint> (1, my numberOfConstraints = ncons);
 		my constraints [1]. name = Melder_dup (U"*[rtr / hi]");
@@ -71,18 +74,19 @@ autoOTGrammar OTGrammar_create_tongueRoot_grammar (int small_large, int equal_ra
 			my constraints [8]. name = Melder_dup (U"*[atr / mid]");
 			my constraints [9]. name = Melder_dup (U"*[atr / hi]");
 		}
-		if (equal_random_infant_Wolof == 1) {   // equal?
-			for (long icons = 1; icons <= ncons; icons ++)
+		if (equal_random_infant_Wolof == kOTGrammar_createTongueRootGrammar_ranking::EQUAL) {
+			for (integer icons = 1; icons <= ncons; icons ++)
 				my constraints [icons]. ranking = 100.0;
-		} else if (equal_random_infant_Wolof == 2) {   // random?
-			for (long icons = 1; icons <= ncons; icons ++)
+		} else if (equal_random_infant_Wolof == kOTGrammar_createTongueRootGrammar_ranking::RANDOM) {
+			for (integer icons = 1; icons <= ncons; icons ++)
 				my constraints [icons]. ranking = NUMrandomGauss (100.0, 10.0);
-		} else if (equal_random_infant_Wolof == 3) {   // infant (= cannot speak) ?
-			for (long icons = 1; icons <= ncons; icons ++)
+		} else if (equal_random_infant_Wolof == kOTGrammar_createTongueRootGrammar_ranking::INFANT) {
+			for (integer icons = 1; icons <= ncons; icons ++)
 				my constraints [icons]. ranking = 100.0;   // structural constraints
 			my constraints [3]. ranking = 50.0;   // faithfulness constraints
 			my constraints [4]. ranking = 50.0;
-		} else {   // adult Wolof
+		} else {
+			Melder_assert (equal_random_infant_Wolof == kOTGrammar_createTongueRootGrammar_ranking::WOLOF);
 			my constraints [1]. ranking = 100.0;
 			my constraints [2]. ranking =  10.0;
 			my constraints [3]. ranking =  50.0;
@@ -97,10 +101,10 @@ autoOTGrammar OTGrammar_create_tongueRoot_grammar (int small_large, int equal_ra
 		}
 		if (ncons == 9) {
 			my fixedRankings = NUMvector <structOTGrammarFixedRanking> (1, my numberOfFixedRankings = 4);
-			my fixedRankings [1]. higher = 1, my fixedRankings [1]. lower = 6;
-			my fixedRankings [2]. higher = 6, my fixedRankings [2]. lower = 7;
-			my fixedRankings [3]. higher = 2, my fixedRankings [3]. lower = 8;
-			my fixedRankings [4]. higher = 8, my fixedRankings [4]. lower = 9;
+			my fixedRankings [1] = { 1, 6 };
+			my fixedRankings [2] = { 6, 7 };
+			my fixedRankings [3] = { 2, 8 };
+			my fixedRankings [4] = { 8, 9 };
 		}
 		my tableaus = NUMvector <structOTGrammarTableau> (1, my numberOfTableaus = 36);
 		itab = 1;
@@ -140,7 +144,7 @@ autoOTGrammar OTGrammar_create_tongueRoot_grammar (int small_large, int equal_ra
 		}
 		OTGrammar_checkIndex (me.get());
 		OTGrammar_newDisharmonies (me.get(), 0.0);
-		for (long icons = 1; icons <= my numberOfConstraints; icons ++)
+		for (integer icons = 1; icons <= my numberOfConstraints; icons ++)
 			my constraints [icons]. plasticity = 1.0;
 		return me;
 	} catch (MelderError) {
