@@ -6,7 +6,7 @@
 
 CC = clang -std=gnu99
 
-CXX = clang++ -std=c++11
+CXX = clang++ -std=c++17
 
 CFLAGS = -DuseCarbon=0 -Dmacintosh -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -mmacosx-version-min=10.7 -O1 -g1 -Wno-return-type-c-linkage
 
@@ -17,7 +17,7 @@ LINK = clang++
 EXECUTABLE = praat
 LIBRARY = libjpraat.dylib
 
-LIBS = -arch x86_64 -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio
+LIBS = -arch x86_64 -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework Accelerate
 
 AR = ar
 RANLIB = ranlib

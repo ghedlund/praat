@@ -42,8 +42,8 @@
 
 Thing_implement (TextPoint, AnyPoint, 0);
 #ifdef PRAAT_LIB
-const char32 *TextPoint_getText(TextPoint me) {
-	return my mark;
+conststring32 TextPoint_getText(TextPoint me) {
+	return my mark.get();
 }
 #endif
 
@@ -91,12 +91,12 @@ void TextInterval_setText (TextInterval me, conststring32 text) {
 Thing_implement (TextTier, AnyTier, 0);
 
 #ifdef PRAAT_LIB
-const char32 *TextInterval_getText(TextInterval me) {
-	return my text;
+conststring32 TextInterval_getText(TextInterval me) {
+	return my text.get();
 }
 
-long TextTier_numberOfPoints (TextTier me) { return my points.size; }
-TextPoint TextTier_point (TextTier me, long i) { return static_cast <TextPoint> (my points.at [i]); }
+integer TextTier_numberOfPoints (TextTier me) { return my points.size; }
+TextPoint TextTier_point (TextTier me, integer i) { return static_cast <TextPoint> (my points.at [i]); }
 
 int TextTier_domainQuantity (TextTier me) { return MelderQuantity_TIME_SECONDS; }
 
@@ -134,9 +134,9 @@ void TextTier_addPoint (TextTier me, double time, conststring32 mark) {
 Thing_implement (IntervalTier, Function, 0);
 
 #ifdef PRAAT_LIB
-long IntervalTier_numberOfIntervals (IntervalTier me) { return my intervals.size; }
+integer IntervalTier_numberOfIntervals (IntervalTier me) { return my intervals.size; }
 
-TextInterval IntervalTier_interval (IntervalTier me, long i) { return static_cast <TextInterval> (my intervals.at [i]); }
+TextInterval IntervalTier_interval (IntervalTier me, integer i) { return static_cast <TextInterval> (my intervals.at [i]); }
 
 int IntervalTier_domainQuantity (IntervalTier me) { return MelderQuantity_TIME_SECONDS; }
 
@@ -148,12 +148,12 @@ void IntervalTier_scaleX (IntervalTier me, double xminfrom, double xmaxfrom, dou
 	me -> v_scaleX(xminfrom, xmaxfrom, xminto, xmaxto);
 }
 
-static void IntervalTier_addInterval_unsafe(IntervalTier me, double tmin, double tmax, const char32 *label);
-void IntervalTier_addInterval (IntervalTier me, double tmin, double tmax, const char32 *label) {
+static void IntervalTier_addInterval_unsafe(IntervalTier me, double tmin, double tmax, conststring32 label);
+void IntervalTier_addInterval (IntervalTier me, double tmin, double tmax, conststring32 label) {
 	IntervalTier_addInterval_unsafe(me, tmin, tmax, label);
 }
 
-void IntervalTier_removeInterval (IntervalTier me, long iinterval) {
+void IntervalTier_removeInterval (IntervalTier me, integer iinterval) {
 	my intervals.removeItem(iinterval);
 }
 #endif

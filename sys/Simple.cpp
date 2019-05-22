@@ -67,7 +67,7 @@ autoSimpleString SimpleString_create (conststring32 string) {
 	return me;
 }
 
-conststring34 SimpleString_getString(SimpleString me) { return my string; }
+conststring32 SimpleString_getString(SimpleString me) { return my string.get(); }
 void SimpleString_setString(SimpleString me, conststring32 string) { my string = Melder_dup(string); }
 
 int SimpleString_compare (SimpleString me, SimpleString thee) noexcept {

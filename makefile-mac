@@ -18,7 +18,6 @@ all:
 	$(MAKE) -C external/portaudio -f Makefile-mac
 	$(MAKE) -C external/espeak
 	$(MAKE) -C kar
-	$(MAKE) -C num
 	$(MAKE) -C sys
 	$(MAKE) -C dwsys
 	$(MAKE) -C stat
@@ -36,7 +35,7 @@ all:
 		FFNet/libFFNet.a gram/libgram.a EEG/libEEG.a \
 		LPC/libLPC.a dwtools/libdwtools.a \
 		fon/libfon.a stat/libstat.a dwsys/libdwsys.a \
-		sys/libsys.a num/libnum.a kar/libkar.a \
+		sys/libsys.a kar/libkar.a \
 		external/espeak/libespeak.a external/portaudio/libportaudio.a \
 		external/flac/libflac.a external/mp3/libmp3.a \
 		external/glpk/libglpk.a external/gsl/libgsl.a \
@@ -50,8 +49,8 @@ library:
 	$(MAKE) -C external/portaudio -f Makefile-mac
 	$(MAKE) -C external/espeak
 	$(MAKE) -C kar
-	$(MAKE) -C num
 	$(MAKE) -C sys
+	$(MAKE) -C melder
 	$(MAKE) -C dwsys
 	$(MAKE) -C stat
 	$(MAKE) -C fon
@@ -69,7 +68,7 @@ library:
 		FFNet/libFFNet.a gram/libgram.a EEG/libEEG.a \
 		LPC/libLPC.a dwtools/libdwtools.a \
 		fon/libfon.a stat/libstat.a dwsys/libdwsys.a \
-		sys/libsys.a num/libnum.a kar/libkar.a \
+		sys/libsys.a melder/libmelder.a kar/libkar.a \
 		external/espeak/libespeak.a external/portaudio/libportaudio.a \
 		external/flac/libflac.a external/mp3/libmp3.a \
 		external/glpk/libglpk.a external/gsl/libgsl.a \
@@ -83,7 +82,6 @@ clean:
 	$(MAKE) -C external/portaudio clean
 	$(MAKE) -C external/espeak clean
 	$(MAKE) -C kar clean
-	$(MAKE) -C num clean
 	$(MAKE) -C sys clean
 	$(MAKE) -C dwsys clean
 	$(MAKE) -C stat clean

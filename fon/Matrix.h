@@ -152,9 +152,9 @@ PRAAT_LIB_EXPORT double Matrix_xToColumn (Matrix me, double x);   // return (x -
 
 PRAAT_LIB_EXPORT integer Matrix_xToLowColumn (Matrix me, double x);   // return Melder_ifloor (Matrix_xToColumn (me, x))
 
-PRAAT_LIB_EXPORT Matrix_xToHighColumn (Matrix me, double x);   // return Melder_iceiling (Matrix_xToColumn (me, x))
+PRAAT_LIB_EXPORT integer Matrix_xToHighColumn (Matrix me, double x);   // return Melder_iceiling (Matrix_xToColumn (me, x))
 
-PRAAT_LIB_EXPORT Matrix_xToNearestColumn (Matrix me, double x);   // return Melder_iround (Matrix_xToColumn (me, x))
+PRAAT_LIB_EXPORT integer Matrix_xToNearestColumn (Matrix me, double x);   // return Melder_iround (Matrix_xToColumn (me, x))
 
 PRAAT_LIB_EXPORT double Matrix_yToRow (Matrix me, double y);   // return (y - ymin) / my dy + 1
 

@@ -1457,8 +1457,8 @@ void praat_lib_init()
 		Melder_systemVersion = sys1 * 10000 + sys2 * 100 + sys3;
 	#endif
     
-	NUMmachar ();
-	NUMinit ();
+	//NUMmachar ();
+	//NUMinit ();
 	Melder_textEncoding_prefs ();
 	Melder_alloc_init ();
 	//Melder_message_init ();

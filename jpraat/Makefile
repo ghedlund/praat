@@ -3,7 +3,7 @@
 
 include ../makefile.defs
 
-CPPFLAGS = -I ../num -I ../sys -I ../fon -I ../stat
+CPPFLAGS = -I ../melder -I ../sys -I ../fon -I ../stat
 
 .PHONY: clean
 

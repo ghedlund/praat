@@ -25,6 +25,7 @@
 
 #include "PointProcess_def.h"
 
+PRAAT_LIB_EXPORT autoPointProcess PointProcess_create (double startingTime, double finishingTime, integer initialAmount);
 PRAAT_LIB_EXPORT autoPointProcess PointProcess_createPoissonProcess (double startingTime, double finishingTime, double density);
 PRAAT_LIB_EXPORT void PointProcess_init (PointProcess me, double startingTime, double finishingTime, integer initialMaxnt);
 PRAAT_LIB_EXPORT integer PointProcess_getLowIndex (PointProcess me, double t);

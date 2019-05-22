@@ -113,11 +113,11 @@ PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime (TextGrid me, double xmax, consts
 
 // Precondition: if (preserveTimes) { my xmax <= thy xmin }
 // Postcondition: my xmin preserved
-PRRAT_LIB_EXPORT void IntervalTiers_append_inplace (IntervalTier me, IntervalTier thee, bool preserveTimes);
+PRAAT_LIB_EXPORT void IntervalTiers_append_inplace (IntervalTier me, IntervalTier thee, bool preserveTimes);
 
-PRRAT_LIB_EXPORT void TextTiers_append_inplace (TextTier me, TextTier thee, bool preserveTimes);
+PRAAT_LIB_EXPORT void TextTiers_append_inplace (TextTier me, TextTier thee, bool preserveTimes);
 
-PRRAT_LIB_EXPORT void TextGrids_append_inplace (TextGrid me, TextGrid thee, bool preserveTimes);
+PRAAT_LIB_EXPORT void TextGrids_append_inplace (TextGrid me, TextGrid thee, bool preserveTimes);
 
 PRAAT_LIB_EXPORT autoTextGrid TextGrids_to_TextGrid_appendContinuous (OrderedOf<structTextGrid>* me, bool preserveTimes);
 

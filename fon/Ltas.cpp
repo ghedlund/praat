@@ -325,12 +325,8 @@ autoLtas PointProcess_Sound_to_Ltas (PointProcess pulses, Sound sound,
 			Melder_throw (U"Cannot compute an Ltas if there are no periods in the point process.");
 #ifndef PRAAT_LIB
 		autoMelderProgress progress (U"Ltas analysis...");
-<<<<<<< HEAD
 #endif
-		for (long ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
-=======
 		for (integer ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
->>>>>>> 1e25d4bef3928fd2724d20b94baac4254e568a1e
 			double leftInterval = pulses -> t [ipulse] - pulses -> t [ipulse - 1];
 			double rightInterval = pulses -> t [ipulse + 1] - pulses -> t [ipulse];
 			double intervalFactor = leftInterval > rightInterval ? leftInterval / rightInterval : rightInterval / leftInterval;
@@ -445,12 +441,8 @@ autoLtas PointProcess_Sound_to_Ltas_harmonics (PointProcess pulses, Sound sound,
 			Melder_throw (U"There are no periods in the point process.");
 #ifndef PRAAT_LIB
 		autoMelderProgress progress (U"LTAS (harmonics) analysis...");
-<<<<<<< HEAD
 #endif
-		for (long ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
-=======
 		for (integer ipulse = 2; ipulse < pulses -> nt; ipulse ++) {
->>>>>>> 1e25d4bef3928fd2724d20b94baac4254e568a1e
 			double leftInterval = pulses -> t [ipulse] - pulses -> t [ipulse - 1];
 			double rightInterval = pulses -> t [ipulse + 1] - pulses -> t [ipulse];
 			double intervalFactor = leftInterval > rightInterval ? leftInterval / rightInterval : rightInterval / leftInterval;

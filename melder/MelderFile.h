@@ -18,11 +18,15 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PRAAT_LIB
+#include "../sys/praatlib.h"
+#endif
+
 /* These will be the future replacements for Melder_fopen, as soon as we rid of text files: */
-MelderFile MelderFile_open (MelderFile file);
+PRAAT_LIB_EXPORT MelderFile MelderFile_open (MelderFile file);
 char * MelderFile_readLine (MelderFile file);
 
-MelderFile MelderFile_create (MelderFile file);
+PRAAT_LIB_EXPORT MelderFile MelderFile_create (MelderFile file);
 void MelderFile_write (MelderFile file, conststring32 string);
 void MelderFile_writeCharacter (MelderFile file, char32 kar);
 

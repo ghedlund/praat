@@ -87,6 +87,7 @@ PRAAT_LIB_EXPORT TextTier TextGrid_checkSpecifiedTierIsPointTier (TextGrid me, i
 PRAAT_LIB_EXPORT void TextGrid_removeTier (TextGrid me, integer tierNumber);
 #endif
 
+PRAAT_LIB_EXPORT void TextGrid_addTier_copy (TextGrid me, Function tier);
 autoTextGrid TextGrids_merge (OrderedOf<structTextGrid>* textGrids);
 PRAAT_LIB_EXPORT autoTextGrid TextGrid_extractPart (TextGrid me, double tmin, double tmax, bool preserveTimes);
 

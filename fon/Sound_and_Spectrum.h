@@ -22,8 +22,12 @@ Thing_declare (Interpreter);
 
 #include "praatlib.h"
 
+// PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum_at (Sound me, double tim, double windowDuration, int windowType);
+
 PRAAT_LIB_EXPORT autoSpectrum Sound_to_Spectrum (Sound me, bool fast);
 PRAAT_LIB_EXPORT autoSound Spectrum_to_Sound (Spectrum me);
+
+PRAAT_LIB_EXPORT autoSpectrum Spectrum_lpcSmoothing (Spectrum me, int numberOfPeaks, double preemphasisFrequency);
 
 PRAAT_LIB_EXPORT autoSound Sound_filter_passHannBand (Sound me, double fmin, double fmax, double smooth);
 PRAAT_LIB_EXPORT autoSound Sound_filter_stopHannBand (Sound me, double fmin, double fmax, double smooth);

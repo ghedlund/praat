@@ -32,7 +32,7 @@ void Table_initWithoutColumnNames (Table me, integer numberOfRows, integer numbe
 PRAAT_LIB_EXPORT autoTable Table_createWithoutColumnNames (integer numberOfRows, integer numberOfColumns);
 #define Table_create Table_createWithoutColumnNames
 
-void Tables_append (OrderedOf<structTable>* me);
+autoTable Tables_append (OrderedOf<structTable>* me);
 PRAAT_LIB_EXPORT void Table_appendRow (Table me);
 PRAAT_LIB_EXPORT void Table_appendColumn (Table me, conststring32 label);
 PRAAT_LIB_EXPORT void Table_appendSumColumn (Table me, integer column1, integer column2, conststring32 label);
@@ -87,8 +87,8 @@ PRAAT_LIB_EXPORT double Table_getGroupDifference_studentT (Table me, integer col
 	double *out_tFromZero, double *out_numberOfDegreesOfFreedom, double *out_significanceFromZero, double *out_lowerLimit, double *out_upperLimit);
 PRAAT_LIB_EXPORT double Table_getGroupDifference_wilcoxonRankSum (Table me, integer column, integer groupColumn, conststring32 group1, conststring32 group2,
 	double *out_rankSum, double *out_significanceFromZero);
-PRAAT_LIB_EXPORT double Table_getVarianceRatio (Table me, integer column1, integer column2, double significanceLevel,
-	double *out_significance, double *out_lowerLimit, double *out_upperLimit);
+//PRAAT_LIB_EXPORT double Table_getVarianceRatio (Table me, integer column1, integer column2, double significanceLevel,
+//	double *out_significance, double *out_lowerLimit, double *out_upperLimit);
 PRAAT_LIB_EXPORT bool Table_getExtrema (Table me, integer icol, double *minimum, double *maximum);
 
 void Table_formula (Table me, integer column, conststring32 formula, Interpreter interpreter);

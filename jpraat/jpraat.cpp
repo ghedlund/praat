@@ -2,7 +2,8 @@
 #include "../sys/Thing.h"
 #include "../sys/Data.h"
 #include "../sys/Simple.h"
-#include "../sys/melder.h"
+#include "../melder/MelderFile.h"
+#include "../melder/melder_files.h"
 #include "../fon/LongSound.h"
 #include "../fon/Intensity.h"
 #include "../fon/Sound_to_Intensity.h"
@@ -54,7 +55,7 @@ PRAAT_LIB_EXPORT void jpraat_set_error(const char* err) {
 }
 
 PRAAT_LIB_EXPORT void jpraat_set_melder_error() {
-	char32* melderErr = Melder_getError();
+	conststring32 melderErr = Melder_getError();
 	if(melderErr != NULL) {
 		jpraat_set_error(Melder_peek32to8(melderErr));
 	}
@@ -87,7 +88,7 @@ PRAAT_LIB_EXPORT void _Thing_forget_nozero_wrapped(Thing arg0) {
 }
 
 // Thing_newFromClassName_wrapped -> Thing_newFromClassName
-PRAAT_LIB_EXPORT Thing Thing_newFromClassName_wrapped(const char32_t* arg0,int* arg1) {
+PRAAT_LIB_EXPORT Thing Thing_newFromClassName_wrapped(conststring32 arg0,int* arg1) {
 	try {
 		return Thing_newFromClassName(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -208,10 +209,38 @@ PRAAT_LIB_EXPORT Thing Data_readFromFile_wrapped(MelderFile arg0) {
 	return NULL;
 }
 
+// SimpleInteger_create_wrapped -> SimpleInteger_create
+PRAAT_LIB_EXPORT SimpleInteger SimpleInteger_create_wrapped(integer arg0) {
+	try {
+		return SimpleInteger_create(arg0).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
 // SimpleDouble_create_wrapped -> SimpleDouble_create
 PRAAT_LIB_EXPORT SimpleDouble SimpleDouble_create_wrapped(double arg0) {
 	try {
 		return SimpleDouble_create(arg0).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// SimpleString_create_wrapped -> SimpleString_create
+PRAAT_LIB_EXPORT SimpleString SimpleString_create_wrapped(conststring32 arg0) {
+	try {
+		return SimpleString_create(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -251,7 +280,7 @@ PRAAT_LIB_EXPORT MelderFile MelderFile_open_wrapped(MelderFile arg0) {
 }
 
 // Melder_pathToFile_wrapped -> Melder_pathToFile
-PRAAT_LIB_EXPORT void Melder_pathToFile_wrapped(const char32_t* arg0,MelderFile arg1) {
+PRAAT_LIB_EXPORT void Melder_pathToFile_wrapped(conststring32 arg0,MelderFile arg1) {
 	try {
 		Melder_pathToFile(arg0,arg1);
 	} catch (const char* e) {
@@ -278,7 +307,7 @@ PRAAT_LIB_EXPORT LongSound LongSound_open_wrapped(MelderFile arg0) {
 }
 
 // LongSound_extractPart_wrapped -> LongSound_extractPart
-PRAAT_LIB_EXPORT Sound LongSound_extractPart_wrapped(LongSound arg0,double arg1,double arg2,int arg3) {
+PRAAT_LIB_EXPORT Sound LongSound_extractPart_wrapped(LongSound arg0,double arg1,double arg2,bool arg3) {
 	try {
 		return LongSound_extractPart(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -345,7 +374,7 @@ PRAAT_LIB_EXPORT void LongSound_saveChannelAsAudioFile_wrapped(LongSound arg0,in
 }
 
 // Intensity_create_wrapped -> Intensity_create
-PRAAT_LIB_EXPORT Intensity Intensity_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4) {
+PRAAT_LIB_EXPORT Intensity Intensity_create_wrapped(double arg0,double arg1,integer arg2,double arg3,double arg4) {
 	try {
 		return Intensity_create(arg0,arg1,arg2,arg3,arg4).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -415,7 +444,7 @@ return 0;
 }
 
 // Sound_to_Intensity_wrapped -> Sound_to_Intensity
-PRAAT_LIB_EXPORT Intensity Sound_to_Intensity_wrapped(Sound arg0,double arg1,double arg2,int arg3) {
+PRAAT_LIB_EXPORT Intensity Sound_to_Intensity_wrapped(Sound arg0,double arg1,double arg2,bool arg3) {
 	try {
 		return Sound_to_Intensity(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -429,7 +458,7 @@ PRAAT_LIB_EXPORT Intensity Sound_to_Intensity_wrapped(Sound arg0,double arg1,dou
 }
 
 // Sampled_shortTermAnalysis_wrapped -> Sampled_shortTermAnalysis
-PRAAT_LIB_EXPORT void Sampled_shortTermAnalysis_wrapped(Sampled arg0,double arg1,double arg2,long* arg3,double* arg4) {
+PRAAT_LIB_EXPORT void Sampled_shortTermAnalysis_wrapped(Sampled arg0,double arg1,double arg2,intptr_t* arg3,double* arg4) {
 	try {
 		Sampled_shortTermAnalysis(arg0,arg1,arg2,arg3,arg4);
 	} catch (const char* e) {
@@ -442,7 +471,7 @@ PRAAT_LIB_EXPORT void Sampled_shortTermAnalysis_wrapped(Sampled arg0,double arg1
 }
 
 // Sampled_getQuantile_wrapped -> Sampled_getQuantile
-PRAAT_LIB_EXPORT double Sampled_getQuantile_wrapped(Sampled arg0,double arg1,double arg2,double arg3,long arg4,int arg5) {
+PRAAT_LIB_EXPORT double Sampled_getQuantile_wrapped(Sampled arg0,double arg1,double arg2,double arg3,integer arg4,int arg5) {
 	try {
 		return Sampled_getQuantile(arg0,arg1,arg2,arg3,arg4,arg5);
 	} catch (const char* e) {
@@ -456,7 +485,7 @@ return 0;
 }
 
 // Matrix_create_wrapped -> Matrix_create
-PRAAT_LIB_EXPORT Matrix Matrix_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4,double arg5,double arg6,long arg7,double arg8,double arg9) {
+PRAAT_LIB_EXPORT Matrix Matrix_create_wrapped(double arg0,double arg1,integer arg2,double arg3,double arg4,double arg5,double arg6,integer arg7,double arg8,double arg9) {
 	try {
 		return Matrix_create(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -470,7 +499,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_create_wrapped(double arg0,double arg1,long arg2,
 }
 
 // Matrix_createSimple_wrapped -> Matrix_createSimple
-PRAAT_LIB_EXPORT Matrix Matrix_createSimple_wrapped(long arg0,long arg1) {
+PRAAT_LIB_EXPORT Matrix Matrix_createSimple_wrapped(integer arg0,integer arg1) {
 	try {
 		return Matrix_createSimple(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -512,7 +541,7 @@ PRAAT_LIB_EXPORT Matrix Matrix_readAP_wrapped(MelderFile arg0) {
 }
 
 // Matrix_power_wrapped -> Matrix_power
-PRAAT_LIB_EXPORT Matrix Matrix_power_wrapped(Matrix arg0,long arg1) {
+PRAAT_LIB_EXPORT Matrix Matrix_power_wrapped(Matrix arg0,integer arg1) {
 	try {
 		return Matrix_power(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -565,7 +594,7 @@ PRAAT_LIB_EXPORT void Matrix_writeToHeaderlessSpreadsheetFile_wrapped(Matrix arg
 }
 
 // Matrix_formula_wrapped -> Matrix_formula
-PRAAT_LIB_EXPORT void Matrix_formula_wrapped(Matrix arg0,const char32_t* arg1,Interpreter arg2,Matrix arg3) {
+PRAAT_LIB_EXPORT void Matrix_formula_wrapped(Matrix arg0,conststring32 arg1,Interpreter arg2,Matrix arg3) {
 	try {
 		Matrix_formula(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -578,7 +607,7 @@ PRAAT_LIB_EXPORT void Matrix_formula_wrapped(Matrix arg0,const char32_t* arg1,In
 }
 
 // Matrix_formula_part_wrapped -> Matrix_formula_part
-PRAAT_LIB_EXPORT void Matrix_formula_part_wrapped(Matrix arg0,double arg1,double arg2,double arg3,double arg4,const char32_t* arg5,Interpreter arg6,Matrix arg7) {
+PRAAT_LIB_EXPORT void Matrix_formula_part_wrapped(Matrix arg0,double arg1,double arg2,double arg3,double arg4,conststring32 arg5,Interpreter arg6,Matrix arg7) {
 	try {
 		Matrix_formula_part(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 	} catch (const char* e) {
@@ -591,7 +620,7 @@ PRAAT_LIB_EXPORT void Matrix_formula_part_wrapped(Matrix arg0,double arg1,double
 }
 
 // Pitch_create_wrapped -> Pitch_create
-PRAAT_LIB_EXPORT Pitch Pitch_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4,double arg5,int arg6) {
+PRAAT_LIB_EXPORT Pitch Pitch_create_wrapped(double arg0,double arg1,integer arg2,double arg3,double arg4,double arg5,integer arg6) {
 	try {
 		return Pitch_create(arg0,arg1,arg2,arg3,arg4,arg5,arg6).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -646,7 +675,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_interpolate_wrapped(Pitch arg0) {
 }
 
 // Pitch_subtractLinearFit_wrapped -> Pitch_subtractLinearFit
-PRAAT_LIB_EXPORT Pitch Pitch_subtractLinearFit_wrapped(Pitch arg0,int arg1) {
+PRAAT_LIB_EXPORT Pitch Pitch_subtractLinearFit_wrapped(Pitch arg0,enum kPitch_unit arg1) {
 	try {
 		return Pitch_subtractLinearFit(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -674,7 +703,7 @@ PRAAT_LIB_EXPORT Pitch Pitch_smooth_wrapped(Pitch arg0,double arg1) {
 }
 
 // Pitch_formula_wrapped -> Pitch_formula
-PRAAT_LIB_EXPORT void Pitch_formula_wrapped(Pitch arg0,const char32_t* arg1,Interpreter arg2) {
+PRAAT_LIB_EXPORT void Pitch_formula_wrapped(Pitch arg0,conststring32 arg1,Interpreter arg2) {
 	try {
 		Pitch_formula(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -727,7 +756,7 @@ PRAAT_LIB_EXPORT void Sound_saveAsRawSoundFile_wrapped(Sound arg0,MelderFile arg
 }
 
 // Sound_create_wrapped -> Sound_create
-PRAAT_LIB_EXPORT Sound Sound_create_wrapped(long arg0,double arg1,double arg2,long arg3,double arg4,double arg5) {
+PRAAT_LIB_EXPORT Sound Sound_create_wrapped(integer arg0,double arg1,double arg2,integer arg3,double arg4,double arg5) {
 	try {
 		return Sound_create(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -741,7 +770,7 @@ PRAAT_LIB_EXPORT Sound Sound_create_wrapped(long arg0,double arg1,double arg2,lo
 }
 
 // Sound_createAsPureTone_wrapped -> Sound_createAsPureTone
-PRAAT_LIB_EXPORT Sound Sound_createAsPureTone_wrapped(long arg0,double arg1,double arg2,double arg3,double arg4,double arg5,double arg6,double arg7) {
+PRAAT_LIB_EXPORT Sound Sound_createAsPureTone_wrapped(integer arg0,double arg1,double arg2,double arg3,double arg4,double arg5,double arg6,double arg7) {
 	try {
 		return Sound_createAsPureTone(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -769,7 +798,7 @@ PRAAT_LIB_EXPORT Sound Sound_createAsToneComplex_wrapped(double arg0,double arg1
 }
 
 // Sound_createSimple_wrapped -> Sound_createSimple
-PRAAT_LIB_EXPORT Sound Sound_createSimple_wrapped(long arg0,double arg1,double arg2) {
+PRAAT_LIB_EXPORT Sound Sound_createSimple_wrapped(integer arg0,double arg1,double arg2) {
 	try {
 		return Sound_createSimple(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -811,7 +840,7 @@ PRAAT_LIB_EXPORT Sound Sound_convertToStereo_wrapped(Sound arg0) {
 }
 
 // Sound_extractChannel_wrapped -> Sound_extractChannel
-PRAAT_LIB_EXPORT Sound Sound_extractChannel_wrapped(Sound arg0,long arg1) {
+PRAAT_LIB_EXPORT Sound Sound_extractChannel_wrapped(Sound arg0,integer arg1) {
 	try {
 		return Sound_extractChannel(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -839,7 +868,7 @@ PRAAT_LIB_EXPORT Sound Sound_upsample_wrapped(Sound arg0) {
 }
 
 // Sound_resample_wrapped -> Sound_resample
-PRAAT_LIB_EXPORT Sound Sound_resample_wrapped(Sound arg0,double arg1,long arg2) {
+PRAAT_LIB_EXPORT Sound Sound_resample_wrapped(Sound arg0,double arg1,integer arg2) {
 	try {
 		return Sound_resample(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -977,10 +1006,10 @@ PRAAT_LIB_EXPORT Sound Sound_filter_oneFormant_wrapped(Sound arg0,double arg1,do
 	return NULL;
 }
 
-// Sound_filterWithOneFormantInline_wrapped -> Sound_filterWithOneFormantInline
-PRAAT_LIB_EXPORT void Sound_filterWithOneFormantInline_wrapped(Sound arg0,double arg1,double arg2) {
+// Sound_filterWithOneFormantInplace_wrapped -> Sound_filterWithOneFormantInplace
+PRAAT_LIB_EXPORT void Sound_filterWithOneFormantInplace_wrapped(Sound arg0,double arg1,double arg2) {
 	try {
-		Sound_filterWithOneFormantInline(arg0,arg1,arg2);
+		Sound_filterWithOneFormantInplace(arg0,arg1,arg2);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -1031,8 +1060,36 @@ PRAAT_LIB_EXPORT void Sound_reverse_wrapped(Sound arg0,double arg1,double arg2) 
 	}
 }
 
+// Matrix_to_Sound_wrapped -> Matrix_to_Sound
+PRAAT_LIB_EXPORT Sound Matrix_to_Sound_wrapped(Matrix arg0) {
+	try {
+		return Matrix_to_Sound(arg0).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// Matrix_to_Sound_mono_wrapped -> Matrix_to_Sound_mono
+PRAAT_LIB_EXPORT Sound Matrix_to_Sound_mono_wrapped(Matrix arg0,integer arg1) {
+	try {
+		return Matrix_to_Sound_mono(arg0,arg1).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
 // Spectrogram_create_wrapped -> Spectrogram_create
-PRAAT_LIB_EXPORT Spectrogram Spectrogram_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4,double arg5,double arg6,long arg7,double arg8,double arg9) {
+PRAAT_LIB_EXPORT Spectrogram Spectrogram_create_wrapped(double arg0,double arg1,integer arg2,double arg3,double arg4,double arg5,double arg6,integer arg7,double arg8,double arg9) {
 	try {
 		return Spectrogram_create(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1144,7 +1201,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_any_wrapped(Sound arg0,double arg1,double 
 }
 
 // Spectrum_create_wrapped -> Spectrum_create
-PRAAT_LIB_EXPORT Spectrum Spectrum_create_wrapped(double arg0,long arg1) {
+PRAAT_LIB_EXPORT Spectrum Spectrum_create_wrapped(double arg0,integer arg1) {
 	try {
 		return Spectrum_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1227,7 +1284,7 @@ PRAAT_LIB_EXPORT void Spectrum_getNearestMaximum_wrapped(Spectrum arg0,double ar
 }
 
 // Sound_to_Spectrum_wrapped -> Sound_to_Spectrum
-PRAAT_LIB_EXPORT Spectrum Sound_to_Spectrum_wrapped(Sound arg0,int arg1) {
+PRAAT_LIB_EXPORT Spectrum Sound_to_Spectrum_wrapped(Sound arg0,bool arg1) {
 	try {
 		return Sound_to_Spectrum(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1325,7 +1382,7 @@ PRAAT_LIB_EXPORT Spectrogram Spectrum_to_Spectrogram_wrapped(Spectrum arg0) {
 }
 
 // Formant_create_wrapped -> Formant_create
-PRAAT_LIB_EXPORT Formant Formant_create_wrapped(double arg0,double arg1,long arg2,double arg3,double arg4,int arg5) {
+PRAAT_LIB_EXPORT Formant Formant_create_wrapped(double arg0,double arg1,integer arg2,double arg3,double arg4,int arg5) {
 	try {
 		return Formant_create(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1339,7 +1396,7 @@ PRAAT_LIB_EXPORT Formant Formant_create_wrapped(double arg0,double arg1,long arg
 }
 
 // Formant_to_Matrix_wrapped -> Formant_to_Matrix
-PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_wrapped(Formant arg0,int arg1) {
+PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_wrapped(Formant arg0,integer arg1) {
 	try {
 		return Formant_to_Matrix(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1353,7 +1410,7 @@ PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_wrapped(Formant arg0,int arg1) {
 }
 
 // Formant_to_Matrix_bandwidths_wrapped -> Formant_to_Matrix_bandwidths
-PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_bandwidths_wrapped(Formant arg0,int arg1) {
+PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_bandwidths_wrapped(Formant arg0,integer arg1) {
 	try {
 		return Formant_to_Matrix_bandwidths(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1367,7 +1424,7 @@ PRAAT_LIB_EXPORT Matrix Formant_to_Matrix_bandwidths_wrapped(Formant arg0,int ar
 }
 
 // Formant_formula_frequencies_wrapped -> Formant_formula_frequencies
-PRAAT_LIB_EXPORT void Formant_formula_frequencies_wrapped(Formant arg0,const char32_t* arg1,Interpreter arg2) {
+PRAAT_LIB_EXPORT void Formant_formula_frequencies_wrapped(Formant arg0,conststring32 arg1,Interpreter arg2) {
 	try {
 		Formant_formula_frequencies(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1380,7 +1437,7 @@ PRAAT_LIB_EXPORT void Formant_formula_frequencies_wrapped(Formant arg0,const cha
 }
 
 // Formant_tracker_wrapped -> Formant_tracker
-PRAAT_LIB_EXPORT Formant Formant_tracker_wrapped(Formant arg0,int arg1,double arg2,double arg3,double arg4,double arg5,double arg6,double arg7,double arg8,double arg9) {
+PRAAT_LIB_EXPORT Formant Formant_tracker_wrapped(Formant arg0,integer arg1,double arg2,double arg3,double arg4,double arg5,double arg6,double arg7,double arg8,double arg9) {
 	try {
 		return Formant_tracker(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1394,7 +1451,7 @@ PRAAT_LIB_EXPORT Formant Formant_tracker_wrapped(Formant arg0,int arg1,double ar
 }
 
 // Formant_downto_Table_wrapped -> Formant_downto_Table
-PRAAT_LIB_EXPORT Table Formant_downto_Table_wrapped(Formant arg0,int arg1,int arg2,int arg3,int arg4,int arg5,int arg6,int arg7,int arg8) {
+PRAAT_LIB_EXPORT Table Formant_downto_Table_wrapped(Formant arg0,bool arg1,bool arg2,integer arg3,bool arg4,integer arg5,bool arg6,integer arg7,bool arg8) {
 	try {
 		return Formant_downto_Table(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1464,7 +1521,7 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_willems_wrapped(Sound arg0,double arg1
 }
 
 // Table_createWithColumnNames_wrapped -> Table_createWithColumnNames
-PRAAT_LIB_EXPORT Table Table_createWithColumnNames_wrapped(long arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT Table Table_createWithColumnNames_wrapped(integer arg0,conststring32 arg1) {
 	try {
 		return Table_createWithColumnNames(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1478,7 +1535,7 @@ PRAAT_LIB_EXPORT Table Table_createWithColumnNames_wrapped(long arg0,const char3
 }
 
 // Table_createWithoutColumnNames_wrapped -> Table_createWithoutColumnNames
-PRAAT_LIB_EXPORT Table Table_createWithoutColumnNames_wrapped(long arg0,long arg1) {
+PRAAT_LIB_EXPORT Table Table_createWithoutColumnNames_wrapped(integer arg0,integer arg1) {
 	try {
 		return Table_createWithoutColumnNames(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1505,7 +1562,7 @@ PRAAT_LIB_EXPORT void Table_appendRow_wrapped(Table arg0) {
 }
 
 // Table_appendColumn_wrapped -> Table_appendColumn
-PRAAT_LIB_EXPORT void Table_appendColumn_wrapped(Table arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void Table_appendColumn_wrapped(Table arg0,conststring32 arg1) {
 	try {
 		Table_appendColumn(arg0,arg1);
 	} catch (const char* e) {
@@ -1518,7 +1575,7 @@ PRAAT_LIB_EXPORT void Table_appendColumn_wrapped(Table arg0,const char32_t* arg1
 }
 
 // Table_appendSumColumn_wrapped -> Table_appendSumColumn
-PRAAT_LIB_EXPORT void Table_appendSumColumn_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void Table_appendSumColumn_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		Table_appendSumColumn(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1531,7 +1588,7 @@ PRAAT_LIB_EXPORT void Table_appendSumColumn_wrapped(Table arg0,long arg1,long ar
 }
 
 // Table_appendDifferenceColumn_wrapped -> Table_appendDifferenceColumn
-PRAAT_LIB_EXPORT void Table_appendDifferenceColumn_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void Table_appendDifferenceColumn_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		Table_appendDifferenceColumn(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1544,7 +1601,7 @@ PRAAT_LIB_EXPORT void Table_appendDifferenceColumn_wrapped(Table arg0,long arg1,
 }
 
 // Table_appendProductColumn_wrapped -> Table_appendProductColumn
-PRAAT_LIB_EXPORT void Table_appendProductColumn_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void Table_appendProductColumn_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		Table_appendProductColumn(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1557,7 +1614,7 @@ PRAAT_LIB_EXPORT void Table_appendProductColumn_wrapped(Table arg0,long arg1,lon
 }
 
 // Table_appendQuotientColumn_wrapped -> Table_appendQuotientColumn
-PRAAT_LIB_EXPORT void Table_appendQuotientColumn_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void Table_appendQuotientColumn_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		Table_appendQuotientColumn(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1570,7 +1627,7 @@ PRAAT_LIB_EXPORT void Table_appendQuotientColumn_wrapped(Table arg0,long arg1,lo
 }
 
 // Table_removeRow_wrapped -> Table_removeRow
-PRAAT_LIB_EXPORT void Table_removeRow_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT void Table_removeRow_wrapped(Table arg0,integer arg1) {
 	try {
 		Table_removeRow(arg0,arg1);
 	} catch (const char* e) {
@@ -1583,7 +1640,7 @@ PRAAT_LIB_EXPORT void Table_removeRow_wrapped(Table arg0,long arg1) {
 }
 
 // Table_removeColumn_wrapped -> Table_removeColumn
-PRAAT_LIB_EXPORT void Table_removeColumn_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT void Table_removeColumn_wrapped(Table arg0,integer arg1) {
 	try {
 		Table_removeColumn(arg0,arg1);
 	} catch (const char* e) {
@@ -1596,7 +1653,7 @@ PRAAT_LIB_EXPORT void Table_removeColumn_wrapped(Table arg0,long arg1) {
 }
 
 // Table_insertRow_wrapped -> Table_insertRow
-PRAAT_LIB_EXPORT void Table_insertRow_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT void Table_insertRow_wrapped(Table arg0,integer arg1) {
 	try {
 		Table_insertRow(arg0,arg1);
 	} catch (const char* e) {
@@ -1609,7 +1666,7 @@ PRAAT_LIB_EXPORT void Table_insertRow_wrapped(Table arg0,long arg1) {
 }
 
 // Table_insertColumn_wrapped -> Table_insertColumn
-PRAAT_LIB_EXPORT void Table_insertColumn_wrapped(Table arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void Table_insertColumn_wrapped(Table arg0,integer arg1,conststring32 arg2) {
 	try {
 		Table_insertColumn(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1622,7 +1679,7 @@ PRAAT_LIB_EXPORT void Table_insertColumn_wrapped(Table arg0,long arg1,const char
 }
 
 // Table_setColumnLabel_wrapped -> Table_setColumnLabel
-PRAAT_LIB_EXPORT void Table_setColumnLabel_wrapped(Table arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void Table_setColumnLabel_wrapped(Table arg0,integer arg1,conststring32 arg2) {
 	try {
 		Table_setColumnLabel(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1635,7 +1692,7 @@ PRAAT_LIB_EXPORT void Table_setColumnLabel_wrapped(Table arg0,long arg1,const ch
 }
 
 // Table_getColumnIndexFromColumnLabel_wrapped -> Table_getColumnIndexFromColumnLabel
-PRAAT_LIB_EXPORT long Table_getColumnIndexFromColumnLabel_wrapped(Table arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT integer Table_getColumnIndexFromColumnLabel_wrapped(Table arg0,conststring32 arg1) {
 	try {
 		return Table_getColumnIndexFromColumnLabel(arg0,arg1);
 	} catch (const char* e) {
@@ -1648,22 +1705,8 @@ PRAAT_LIB_EXPORT long Table_getColumnIndexFromColumnLabel_wrapped(Table arg0,con
 	return NULL;
 }
 
-// Table_getColumnIndicesFromColumnLabelString_wrapped -> Table_getColumnIndicesFromColumnLabelString
-PRAAT_LIB_EXPORT long* Table_getColumnIndicesFromColumnLabelString_wrapped(Table arg0,const char32_t* arg1,long* arg2) {
-	try {
-		return Table_getColumnIndicesFromColumnLabelString(arg0,arg1,arg2);
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
 // Table_setStringValue_wrapped -> Table_setStringValue
-PRAAT_LIB_EXPORT void Table_setStringValue_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void Table_setStringValue_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		Table_setStringValue(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1676,7 +1719,7 @@ PRAAT_LIB_EXPORT void Table_setStringValue_wrapped(Table arg0,long arg1,long arg
 }
 
 // Table_setNumericValue_wrapped -> Table_setNumericValue
-PRAAT_LIB_EXPORT void Table_setNumericValue_wrapped(Table arg0,long arg1,long arg2,double arg3) {
+PRAAT_LIB_EXPORT void Table_setNumericValue_wrapped(Table arg0,integer arg1,integer arg2,double arg3) {
 	try {
 		Table_setNumericValue(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1689,7 +1732,7 @@ PRAAT_LIB_EXPORT void Table_setNumericValue_wrapped(Table arg0,long arg1,long ar
 }
 
 // Table_getStringValue_Assert_wrapped -> Table_getStringValue_Assert
-PRAAT_LIB_EXPORT const char32_t* Table_getStringValue_Assert_wrapped(Table arg0,long arg1,long arg2) {
+PRAAT_LIB_EXPORT conststring32 Table_getStringValue_Assert_wrapped(Table arg0,integer arg1,integer arg2) {
 	try {
 		return Table_getStringValue_Assert(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1703,7 +1746,7 @@ PRAAT_LIB_EXPORT const char32_t* Table_getStringValue_Assert_wrapped(Table arg0,
 }
 
 // Table_getNumericValue_Assert_wrapped -> Table_getNumericValue_Assert
-PRAAT_LIB_EXPORT double Table_getNumericValue_Assert_wrapped(Table arg0,long arg1,long arg2) {
+PRAAT_LIB_EXPORT double Table_getNumericValue_Assert_wrapped(Table arg0,integer arg1,integer arg2) {
 	try {
 		return Table_getNumericValue_Assert(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1717,7 +1760,7 @@ return 0;
 }
 
 // Table_getQuantile_wrapped -> Table_getQuantile
-PRAAT_LIB_EXPORT double Table_getQuantile_wrapped(Table arg0,long arg1,double arg2) {
+PRAAT_LIB_EXPORT double Table_getQuantile_wrapped(Table arg0,integer arg1,double arg2) {
 	try {
 		return Table_getQuantile(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -1731,7 +1774,7 @@ return 0;
 }
 
 // Table_getMean_wrapped -> Table_getMean
-PRAAT_LIB_EXPORT double Table_getMean_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT double Table_getMean_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_getMean(arg0,arg1);
 	} catch (const char* e) {
@@ -1745,7 +1788,7 @@ return 0;
 }
 
 // Table_getMaximum_wrapped -> Table_getMaximum
-PRAAT_LIB_EXPORT double Table_getMaximum_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT double Table_getMaximum_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_getMaximum(arg0,arg1);
 	} catch (const char* e) {
@@ -1759,7 +1802,7 @@ return 0;
 }
 
 // Table_getMinimum_wrapped -> Table_getMinimum
-PRAAT_LIB_EXPORT double Table_getMinimum_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT double Table_getMinimum_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_getMinimum(arg0,arg1);
 	} catch (const char* e) {
@@ -1773,7 +1816,7 @@ return 0;
 }
 
 // Table_getGroupMean_wrapped -> Table_getGroupMean
-PRAAT_LIB_EXPORT double Table_getGroupMean_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT double Table_getGroupMean_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		return Table_getGroupMean(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1787,7 +1830,7 @@ return 0;
 }
 
 // Table_getStdev_wrapped -> Table_getStdev
-PRAAT_LIB_EXPORT double Table_getStdev_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT double Table_getStdev_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_getStdev(arg0,arg1);
 	} catch (const char* e) {
@@ -1801,7 +1844,7 @@ return 0;
 }
 
 // Table_drawRowFromDistribution_wrapped -> Table_drawRowFromDistribution
-PRAAT_LIB_EXPORT long Table_drawRowFromDistribution_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT integer Table_drawRowFromDistribution_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_drawRowFromDistribution(arg0,arg1);
 	} catch (const char* e) {
@@ -1815,7 +1858,7 @@ PRAAT_LIB_EXPORT long Table_drawRowFromDistribution_wrapped(Table arg0,long arg1
 }
 
 // Table_getCorrelation_pearsonR_wrapped -> Table_getCorrelation_pearsonR
-PRAAT_LIB_EXPORT double Table_getCorrelation_pearsonR_wrapped(Table arg0,long arg1,long arg2,double arg3,double* arg4,double* arg5,double* arg6) {
+PRAAT_LIB_EXPORT double Table_getCorrelation_pearsonR_wrapped(Table arg0,integer arg1,integer arg2,double arg3,double* arg4,double* arg5,double* arg6) {
 	try {
 		return Table_getCorrelation_pearsonR(arg0,arg1,arg2,arg3,arg4,arg5,arg6);
 	} catch (const char* e) {
@@ -1829,7 +1872,7 @@ return 0;
 }
 
 // Table_getCorrelation_kendallTau_wrapped -> Table_getCorrelation_kendallTau
-PRAAT_LIB_EXPORT double Table_getCorrelation_kendallTau_wrapped(Table arg0,long arg1,long arg2,double arg3,double* arg4,double* arg5,double* arg6) {
+PRAAT_LIB_EXPORT double Table_getCorrelation_kendallTau_wrapped(Table arg0,integer arg1,integer arg2,double arg3,double* arg4,double* arg5,double* arg6) {
 	try {
 		return Table_getCorrelation_kendallTau(arg0,arg1,arg2,arg3,arg4,arg5,arg6);
 	} catch (const char* e) {
@@ -1843,7 +1886,7 @@ return 0;
 }
 
 // Table_getMean_studentT_wrapped -> Table_getMean_studentT
-PRAAT_LIB_EXPORT double Table_getMean_studentT_wrapped(Table arg0,long arg1,double arg2,double* arg3,double* arg4,double* arg5,double* arg6,double* arg7) {
+PRAAT_LIB_EXPORT double Table_getMean_studentT_wrapped(Table arg0,integer arg1,double arg2,double* arg3,double* arg4,double* arg5,double* arg6,double* arg7) {
 	try {
 		return Table_getMean_studentT(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 	} catch (const char* e) {
@@ -1857,7 +1900,7 @@ return 0;
 }
 
 // Table_getDifference_studentT_wrapped -> Table_getDifference_studentT
-PRAAT_LIB_EXPORT double Table_getDifference_studentT_wrapped(Table arg0,long arg1,long arg2,double arg3,double* arg4,double* arg5,double* arg6,double* arg7,double* arg8) {
+PRAAT_LIB_EXPORT double Table_getDifference_studentT_wrapped(Table arg0,integer arg1,integer arg2,double arg3,double* arg4,double* arg5,double* arg6,double* arg7,double* arg8) {
 	try {
 		return Table_getDifference_studentT(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
 	} catch (const char* e) {
@@ -1871,7 +1914,7 @@ return 0;
 }
 
 // Table_getGroupMean_studentT_wrapped -> Table_getGroupMean_studentT
-PRAAT_LIB_EXPORT double Table_getGroupMean_studentT_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3,double arg4,double* arg5,double* arg6,double* arg7,double* arg8,double* arg9) {
+PRAAT_LIB_EXPORT double Table_getGroupMean_studentT_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3,double arg4,double* arg5,double* arg6,double* arg7,double* arg8,double* arg9) {
 	try {
 		return Table_getGroupMean_studentT(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
 	} catch (const char* e) {
@@ -1885,7 +1928,7 @@ return 0;
 }
 
 // Table_getGroupDifference_studentT_wrapped -> Table_getGroupDifference_studentT
-PRAAT_LIB_EXPORT double Table_getGroupDifference_studentT_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3,const char32_t* arg4,double arg5,double* arg6,double* arg7,double* arg8,double* arg9,double* arg10) {
+PRAAT_LIB_EXPORT double Table_getGroupDifference_studentT_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3,conststring32 arg4,double arg5,double* arg6,double* arg7,double* arg8,double* arg9,double* arg10) {
 	try {
 		return Table_getGroupDifference_studentT(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
 	} catch (const char* e) {
@@ -1899,7 +1942,7 @@ return 0;
 }
 
 // Table_getGroupDifference_wilcoxonRankSum_wrapped -> Table_getGroupDifference_wilcoxonRankSum
-PRAAT_LIB_EXPORT double Table_getGroupDifference_wilcoxonRankSum_wrapped(Table arg0,long arg1,long arg2,const char32_t* arg3,const char32_t* arg4,double* arg5,double* arg6) {
+PRAAT_LIB_EXPORT double Table_getGroupDifference_wilcoxonRankSum_wrapped(Table arg0,integer arg1,integer arg2,conststring32 arg3,conststring32 arg4,double* arg5,double* arg6) {
 	try {
 		return Table_getGroupDifference_wilcoxonRankSum(arg0,arg1,arg2,arg3,arg4,arg5,arg6);
 	} catch (const char* e) {
@@ -1913,7 +1956,7 @@ return 0;
 }
 
 // Table_getExtrema_wrapped -> Table_getExtrema
-PRAAT_LIB_EXPORT bool Table_getExtrema_wrapped(Table arg0,long arg1,double* arg2,double* arg3) {
+PRAAT_LIB_EXPORT bool Table_getExtrema_wrapped(Table arg0,integer arg1,double* arg2,double* arg3) {
 	try {
 		return Table_getExtrema(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1926,21 +1969,8 @@ PRAAT_LIB_EXPORT bool Table_getExtrema_wrapped(Table arg0,long arg1,double* arg2
 return 0;
 }
 
-// Table_sortRows_Assert_wrapped -> Table_sortRows_Assert
-PRAAT_LIB_EXPORT void Table_sortRows_Assert_wrapped(Table arg0,long* arg1,long arg2) {
-	try {
-		Table_sortRows_Assert(arg0,arg1,arg2);
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-}
-
 // Table_sortRows_string_wrapped -> Table_sortRows_string
-PRAAT_LIB_EXPORT void Table_sortRows_string_wrapped(Table arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void Table_sortRows_string_wrapped(Table arg0,conststring32 arg1) {
 	try {
 		Table_sortRows_string(arg0,arg1);
 	} catch (const char* e) {
@@ -2019,9 +2049,9 @@ PRAAT_LIB_EXPORT Table Table_readFromTableFile_wrapped(MelderFile arg0) {
 }
 
 // Table_readFromCharacterSeparatedTextFile_wrapped -> Table_readFromCharacterSeparatedTextFile
-PRAAT_LIB_EXPORT Table Table_readFromCharacterSeparatedTextFile_wrapped(MelderFile arg0,char arg1) {
+PRAAT_LIB_EXPORT Table Table_readFromCharacterSeparatedTextFile_wrapped(MelderFile arg0,char arg1,bool arg2) {
 	try {
-		return Table_readFromCharacterSeparatedTextFile(arg0,arg1).releaseToAmbiguousOwner();
+		return Table_readFromCharacterSeparatedTextFile(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -2033,7 +2063,7 @@ PRAAT_LIB_EXPORT Table Table_readFromCharacterSeparatedTextFile_wrapped(MelderFi
 }
 
 // Table_extractRowsWhereColumn_number_wrapped -> Table_extractRowsWhereColumn_number
-PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_number_wrapped(Table arg0,long arg1,int arg2,double arg3) {
+PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_number_wrapped(Table arg0,integer arg1,enum kMelder_number arg2,double arg3) {
 	try {
 		return Table_extractRowsWhereColumn_number(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2047,7 +2077,7 @@ PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_number_wrapped(Table arg0,lo
 }
 
 // Table_extractRowsWhereColumn_string_wrapped -> Table_extractRowsWhereColumn_string
-PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_string_wrapped(Table arg0,long arg1,int arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_string_wrapped(Table arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return Table_extractRowsWhereColumn_string(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2061,7 +2091,7 @@ PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_string_wrapped(Table arg0,lo
 }
 
 // Table_collapseRows_wrapped -> Table_collapseRows
-PRAAT_LIB_EXPORT Table Table_collapseRows_wrapped(Table arg0,const char32_t* arg1,const char32_t* arg2,const char32_t* arg3,const char32_t* arg4,const char32_t* arg5,const char32_t* arg6) {
+PRAAT_LIB_EXPORT Table Table_collapseRows_wrapped(Table arg0,conststring32 arg1,conststring32 arg2,conststring32 arg3,conststring32 arg4,conststring32 arg5,conststring32 arg6) {
 	try {
 		return Table_collapseRows(arg0,arg1,arg2,arg3,arg4,arg5,arg6).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2075,7 +2105,7 @@ PRAAT_LIB_EXPORT Table Table_collapseRows_wrapped(Table arg0,const char32_t* arg
 }
 
 // Table_rowsToColumns_wrapped -> Table_rowsToColumns
-PRAAT_LIB_EXPORT Table Table_rowsToColumns_wrapped(Table arg0,const char32_t* arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT Table Table_rowsToColumns_wrapped(Table arg0,conststring32 arg1,integer arg2,conststring32 arg3) {
 	try {
 		return Table_rowsToColumns(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2103,7 +2133,7 @@ PRAAT_LIB_EXPORT Table Table_transpose_wrapped(Table arg0) {
 }
 
 // Table_checkSpecifiedRowNumberWithinRange_wrapped -> Table_checkSpecifiedRowNumberWithinRange
-PRAAT_LIB_EXPORT void Table_checkSpecifiedRowNumberWithinRange_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT void Table_checkSpecifiedRowNumberWithinRange_wrapped(Table arg0,integer arg1) {
 	try {
 		Table_checkSpecifiedRowNumberWithinRange(arg0,arg1);
 	} catch (const char* e) {
@@ -2116,7 +2146,7 @@ PRAAT_LIB_EXPORT void Table_checkSpecifiedRowNumberWithinRange_wrapped(Table arg
 }
 
 // Table_checkSpecifiedColumnNumberWithinRange_wrapped -> Table_checkSpecifiedColumnNumberWithinRange
-PRAAT_LIB_EXPORT void Table_checkSpecifiedColumnNumberWithinRange_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT void Table_checkSpecifiedColumnNumberWithinRange_wrapped(Table arg0,integer arg1) {
 	try {
 		Table_checkSpecifiedColumnNumberWithinRange(arg0,arg1);
 	} catch (const char* e) {
@@ -2129,7 +2159,7 @@ PRAAT_LIB_EXPORT void Table_checkSpecifiedColumnNumberWithinRange_wrapped(Table 
 }
 
 // TableOfReal_init_wrapped -> TableOfReal_init
-PRAAT_LIB_EXPORT void TableOfReal_init_wrapped(TableOfReal arg0,long arg1,long arg2) {
+PRAAT_LIB_EXPORT void TableOfReal_init_wrapped(TableOfReal arg0,integer arg1,integer arg2) {
 	try {
 		TableOfReal_init(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2142,7 +2172,7 @@ PRAAT_LIB_EXPORT void TableOfReal_init_wrapped(TableOfReal arg0,long arg1,long a
 }
 
 // TableOfReal_create_wrapped -> TableOfReal_create
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_create_wrapped(long arg0,long arg1) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_create_wrapped(integer arg0,integer arg1) {
 	try {
 		return TableOfReal_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2156,7 +2186,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_create_wrapped(long arg0,long arg1) {
 }
 
 // TableOfReal_removeRow_wrapped -> TableOfReal_removeRow
-PRAAT_LIB_EXPORT void TableOfReal_removeRow_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT void TableOfReal_removeRow_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		TableOfReal_removeRow(arg0,arg1);
 	} catch (const char* e) {
@@ -2169,7 +2199,7 @@ PRAAT_LIB_EXPORT void TableOfReal_removeRow_wrapped(TableOfReal arg0,long arg1) 
 }
 
 // TableOfReal_removeColumn_wrapped -> TableOfReal_removeColumn
-PRAAT_LIB_EXPORT void TableOfReal_removeColumn_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT void TableOfReal_removeColumn_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		TableOfReal_removeColumn(arg0,arg1);
 	} catch (const char* e) {
@@ -2182,7 +2212,7 @@ PRAAT_LIB_EXPORT void TableOfReal_removeColumn_wrapped(TableOfReal arg0,long arg
 }
 
 // TableOfReal_insertRow_wrapped -> TableOfReal_insertRow
-PRAAT_LIB_EXPORT void TableOfReal_insertRow_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT void TableOfReal_insertRow_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		TableOfReal_insertRow(arg0,arg1);
 	} catch (const char* e) {
@@ -2195,7 +2225,7 @@ PRAAT_LIB_EXPORT void TableOfReal_insertRow_wrapped(TableOfReal arg0,long arg1) 
 }
 
 // TableOfReal_insertColumn_wrapped -> TableOfReal_insertColumn
-PRAAT_LIB_EXPORT void TableOfReal_insertColumn_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT void TableOfReal_insertColumn_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		TableOfReal_insertColumn(arg0,arg1);
 	} catch (const char* e) {
@@ -2208,7 +2238,7 @@ PRAAT_LIB_EXPORT void TableOfReal_insertColumn_wrapped(TableOfReal arg0,long arg
 }
 
 // TableOfReal_setRowLabel_wrapped -> TableOfReal_setRowLabel
-PRAAT_LIB_EXPORT void TableOfReal_setRowLabel_wrapped(TableOfReal arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TableOfReal_setRowLabel_wrapped(TableOfReal arg0,integer arg1,conststring32 arg2) {
 	try {
 		TableOfReal_setRowLabel(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2221,7 +2251,7 @@ PRAAT_LIB_EXPORT void TableOfReal_setRowLabel_wrapped(TableOfReal arg0,long arg1
 }
 
 // TableOfReal_setColumnLabel_wrapped -> TableOfReal_setColumnLabel
-PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel_wrapped(TableOfReal arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel_wrapped(TableOfReal arg0,integer arg1,conststring32 arg2) {
 	try {
 		TableOfReal_setColumnLabel(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2234,7 +2264,7 @@ PRAAT_LIB_EXPORT void TableOfReal_setColumnLabel_wrapped(TableOfReal arg0,long a
 }
 
 // TableOfReal_rowLabelToIndex_wrapped -> TableOfReal_rowLabelToIndex
-PRAAT_LIB_EXPORT long TableOfReal_rowLabelToIndex_wrapped(TableOfReal arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT integer TableOfReal_rowLabelToIndex_wrapped(TableOfReal arg0,conststring32 arg1) {
 	try {
 		return TableOfReal_rowLabelToIndex(arg0,arg1);
 	} catch (const char* e) {
@@ -2248,7 +2278,7 @@ PRAAT_LIB_EXPORT long TableOfReal_rowLabelToIndex_wrapped(TableOfReal arg0,const
 }
 
 // TableOfReal_columnLabelToIndex_wrapped -> TableOfReal_columnLabelToIndex
-PRAAT_LIB_EXPORT long TableOfReal_columnLabelToIndex_wrapped(TableOfReal arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT integer TableOfReal_columnLabelToIndex_wrapped(TableOfReal arg0,conststring32 arg1) {
 	try {
 		return TableOfReal_columnLabelToIndex(arg0,arg1);
 	} catch (const char* e) {
@@ -2262,7 +2292,7 @@ PRAAT_LIB_EXPORT long TableOfReal_columnLabelToIndex_wrapped(TableOfReal arg0,co
 }
 
 // TableOfReal_getColumnMean_wrapped -> TableOfReal_getColumnMean
-PRAAT_LIB_EXPORT double TableOfReal_getColumnMean_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT double TableOfReal_getColumnMean_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		return TableOfReal_getColumnMean(arg0,arg1);
 	} catch (const char* e) {
@@ -2276,7 +2306,7 @@ return 0;
 }
 
 // TableOfReal_getColumnStdev_wrapped -> TableOfReal_getColumnStdev
-PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev_wrapped(TableOfReal arg0,long arg1) {
+PRAAT_LIB_EXPORT double TableOfReal_getColumnStdev_wrapped(TableOfReal arg0,integer arg1) {
 	try {
 		return TableOfReal_getColumnStdev(arg0,arg1);
 	} catch (const char* e) {
@@ -2290,7 +2320,7 @@ return 0;
 }
 
 // Table_to_TableOfReal_wrapped -> Table_to_TableOfReal
-PRAAT_LIB_EXPORT TableOfReal Table_to_TableOfReal_wrapped(Table arg0,long arg1) {
+PRAAT_LIB_EXPORT TableOfReal Table_to_TableOfReal_wrapped(Table arg0,integer arg1) {
 	try {
 		return Table_to_TableOfReal(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2304,7 +2334,7 @@ PRAAT_LIB_EXPORT TableOfReal Table_to_TableOfReal_wrapped(Table arg0,long arg1) 
 }
 
 // TableOfReal_to_Table_wrapped -> TableOfReal_to_Table
-PRAAT_LIB_EXPORT Table TableOfReal_to_Table_wrapped(TableOfReal arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT Table TableOfReal_to_Table_wrapped(TableOfReal arg0,conststring32 arg1) {
 	try {
 		return TableOfReal_to_Table(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2318,7 +2348,7 @@ PRAAT_LIB_EXPORT Table TableOfReal_to_Table_wrapped(TableOfReal arg0,const char3
 }
 
 // TableOfReal_sortByLabel_wrapped -> TableOfReal_sortByLabel
-PRAAT_LIB_EXPORT void TableOfReal_sortByLabel_wrapped(TableOfReal arg0,long arg1,long arg2) {
+PRAAT_LIB_EXPORT void TableOfReal_sortByLabel_wrapped(TableOfReal arg0,integer arg1,integer arg2) {
 	try {
 		TableOfReal_sortByLabel(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2331,7 +2361,7 @@ PRAAT_LIB_EXPORT void TableOfReal_sortByLabel_wrapped(TableOfReal arg0,long arg1
 }
 
 // TableOfReal_sortByColumn_wrapped -> TableOfReal_sortByColumn
-PRAAT_LIB_EXPORT void TableOfReal_sortByColumn_wrapped(TableOfReal arg0,long arg1,long arg2) {
+PRAAT_LIB_EXPORT void TableOfReal_sortByColumn_wrapped(TableOfReal arg0,integer arg1,integer arg2) {
 	try {
 		TableOfReal_sortByColumn(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2371,7 +2401,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile_wrapp
 }
 
 // TableOfReal_extractRowRanges_wrapped -> TableOfReal_extractRowRanges
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowRanges_wrapped(TableOfReal arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowRanges_wrapped(TableOfReal arg0,conststring32 arg1) {
 	try {
 		return TableOfReal_extractRowRanges(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2385,7 +2415,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowRanges_wrapped(TableOfReal ar
 }
 
 // TableOfReal_extractColumnRanges_wrapped -> TableOfReal_extractColumnRanges
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnRanges_wrapped(TableOfReal arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnRanges_wrapped(TableOfReal arg0,conststring32 arg1) {
 	try {
 		return TableOfReal_extractColumnRanges(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2399,7 +2429,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnRanges_wrapped(TableOfReal
 }
 
 // TableOfReal_extractRowsWhereColumn_wrapped -> TableOfReal_extractRowsWhereColumn
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereColumn_wrapped(TableOfReal arg0,long arg1,int arg2,double arg3) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereColumn_wrapped(TableOfReal arg0,integer arg1,enum kMelder_number arg2,double arg3) {
 	try {
 		return TableOfReal_extractRowsWhereColumn(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2413,7 +2443,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereColumn_wrapped(TableOfR
 }
 
 // TableOfReal_extractColumnsWhereRow_wrapped -> TableOfReal_extractColumnsWhereRow
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereRow_wrapped(TableOfReal arg0,long arg1,int arg2,double arg3) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereRow_wrapped(TableOfReal arg0,integer arg1,enum kMelder_number arg2,double arg3) {
 	try {
 		return TableOfReal_extractColumnsWhereRow(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2427,7 +2457,7 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereRow_wrapped(TableOfR
 }
 
 // TableOfReal_extractRowsWhereLabel_wrapped -> TableOfReal_extractRowsWhereLabel
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfReal arg0,int arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
 	try {
 		return TableOfReal_extractRowsWhereLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2441,9 +2471,37 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfRe
 }
 
 // TableOfReal_extractColumnsWhereLabel_wrapped -> TableOfReal_extractColumnsWhereLabel
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereLabel_wrapped(TableOfReal arg0,int arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
 	try {
 		return TableOfReal_extractColumnsWhereLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// TableOfReal_extractRowsWhere_wrapped -> TableOfReal_extractRowsWhere
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhere_wrapped(TableOfReal arg0,conststring32 arg1,Interpreter arg2) {
+	try {
+		return TableOfReal_extractRowsWhere(arg0,arg1,arg2).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// TableOfReal_extractColumnsWhere_wrapped -> TableOfReal_extractColumnsWhere
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhere_wrapped(TableOfReal arg0,conststring32 arg1,Interpreter arg2) {
+	try {
+		return TableOfReal_extractColumnsWhere(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -2483,7 +2541,7 @@ PRAAT_LIB_EXPORT Strings TableOfReal_extractColumnLabelsAsStrings_wrapped(TableO
 }
 
 // Strings_createAsFileList_wrapped -> Strings_createAsFileList
-PRAAT_LIB_EXPORT Strings Strings_createAsFileList_wrapped(const char32_t* arg0) {
+PRAAT_LIB_EXPORT Strings Strings_createAsFileList_wrapped(conststring32 arg0) {
 	try {
 		return Strings_createAsFileList(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2497,7 +2555,7 @@ PRAAT_LIB_EXPORT Strings Strings_createAsFileList_wrapped(const char32_t* arg0) 
 }
 
 // Strings_createAsDirectoryList_wrapped -> Strings_createAsDirectoryList
-PRAAT_LIB_EXPORT Strings Strings_createAsDirectoryList_wrapped(const char32_t* arg0) {
+PRAAT_LIB_EXPORT Strings Strings_createAsDirectoryList_wrapped(conststring32 arg0) {
 	try {
 		return Strings_createAsDirectoryList(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2538,7 +2596,7 @@ PRAAT_LIB_EXPORT void Strings_writeToRawTextFile_wrapped(Strings arg0,MelderFile
 }
 
 // Strings_remove_wrapped -> Strings_remove
-PRAAT_LIB_EXPORT void Strings_remove_wrapped(Strings arg0,long arg1) {
+PRAAT_LIB_EXPORT void Strings_remove_wrapped(Strings arg0,integer arg1) {
 	try {
 		Strings_remove(arg0,arg1);
 	} catch (const char* e) {
@@ -2551,7 +2609,7 @@ PRAAT_LIB_EXPORT void Strings_remove_wrapped(Strings arg0,long arg1) {
 }
 
 // Strings_replace_wrapped -> Strings_replace
-PRAAT_LIB_EXPORT void Strings_replace_wrapped(Strings arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void Strings_replace_wrapped(Strings arg0,integer arg1,conststring32 arg2) {
 	try {
 		Strings_replace(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2564,7 +2622,7 @@ PRAAT_LIB_EXPORT void Strings_replace_wrapped(Strings arg0,long arg1,const char3
 }
 
 // Strings_insert_wrapped -> Strings_insert
-PRAAT_LIB_EXPORT void Strings_insert_wrapped(Strings arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void Strings_insert_wrapped(Strings arg0,integer arg1,conststring32 arg2) {
 	try {
 		Strings_insert(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2577,7 +2635,7 @@ PRAAT_LIB_EXPORT void Strings_insert_wrapped(Strings arg0,long arg1,const char32
 }
 
 // PointProcess_create_wrapped -> PointProcess_create
-PRAAT_LIB_EXPORT PointProcess PointProcess_create_wrapped(double arg0,double arg1,long arg2) {
+PRAAT_LIB_EXPORT PointProcess PointProcess_create_wrapped(double arg0,double arg1,integer arg2) {
 	try {
 		return PointProcess_create(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2686,7 +2744,7 @@ PRAAT_LIB_EXPORT void PointProcess_voice_wrapped(PointProcess arg0,double arg1,d
 }
 
 // TextPoint_create_wrapped -> TextPoint_create
-PRAAT_LIB_EXPORT TextPoint TextPoint_create_wrapped(double arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT TextPoint TextPoint_create_wrapped(double arg0,conststring32 arg1) {
 	try {
 		return TextPoint_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2700,7 +2758,7 @@ PRAAT_LIB_EXPORT TextPoint TextPoint_create_wrapped(double arg0,const char32_t* 
 }
 
 // TextPoint_setText_wrapped -> TextPoint_setText
-PRAAT_LIB_EXPORT void TextPoint_setText_wrapped(TextPoint arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void TextPoint_setText_wrapped(TextPoint arg0,conststring32 arg1) {
 	try {
 		TextPoint_setText(arg0,arg1);
 	} catch (const char* e) {
@@ -2713,7 +2771,7 @@ PRAAT_LIB_EXPORT void TextPoint_setText_wrapped(TextPoint arg0,const char32_t* a
 }
 
 // TextInterval_create_wrapped -> TextInterval_create
-PRAAT_LIB_EXPORT TextInterval TextInterval_create_wrapped(double arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT TextInterval TextInterval_create_wrapped(double arg0,double arg1,conststring32 arg2) {
 	try {
 		return TextInterval_create(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2727,7 +2785,7 @@ PRAAT_LIB_EXPORT TextInterval TextInterval_create_wrapped(double arg0,double arg
 }
 
 // TextInterval_setText_wrapped -> TextInterval_setText
-PRAAT_LIB_EXPORT void TextInterval_setText_wrapped(TextInterval arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void TextInterval_setText_wrapped(TextInterval arg0,conststring32 arg1) {
 	try {
 		TextInterval_setText(arg0,arg1);
 	} catch (const char* e) {
@@ -2754,7 +2812,7 @@ PRAAT_LIB_EXPORT TextTier TextTier_create_wrapped(double arg0,double arg1) {
 }
 
 // TextTier_addPoint_wrapped -> TextTier_addPoint
-PRAAT_LIB_EXPORT void TextTier_addPoint_wrapped(TextTier arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TextTier_addPoint_wrapped(TextTier arg0,double arg1,conststring32 arg2) {
 	try {
 		TextTier_addPoint(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2781,7 +2839,7 @@ PRAAT_LIB_EXPORT TextTier TextTier_readFromXwaves_wrapped(MelderFile arg0) {
 }
 
 // TextTier_getPoints_wrapped -> TextTier_getPoints
-PRAAT_LIB_EXPORT PointProcess TextTier_getPoints_wrapped(TextTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT PointProcess TextTier_getPoints_wrapped(TextTier arg0,conststring32 arg1) {
 	try {
 		return TextTier_getPoints(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2795,7 +2853,7 @@ PRAAT_LIB_EXPORT PointProcess TextTier_getPoints_wrapped(TextTier arg0,const cha
 }
 
 // TextTier_removePoint_wrapped -> TextTier_removePoint
-PRAAT_LIB_EXPORT void TextTier_removePoint_wrapped(TextTier arg0,long arg1) {
+PRAAT_LIB_EXPORT void TextTier_removePoint_wrapped(TextTier arg0,integer arg1) {
 	try {
 		TextTier_removePoint(arg0,arg1);
 	} catch (const char* e) {
@@ -2849,7 +2907,7 @@ PRAAT_LIB_EXPORT void IntervalTier_writeToXwaves_wrapped(IntervalTier arg0,Melde
 }
 
 // IntervalTier_getStartingPoints_wrapped -> IntervalTier_getStartingPoints
-PRAAT_LIB_EXPORT PointProcess IntervalTier_getStartingPoints_wrapped(IntervalTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT PointProcess IntervalTier_getStartingPoints_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
 		return IntervalTier_getStartingPoints(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2863,7 +2921,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_getStartingPoints_wrapped(IntervalTie
 }
 
 // IntervalTier_getEndPoints_wrapped -> IntervalTier_getEndPoints
-PRAAT_LIB_EXPORT PointProcess IntervalTier_getEndPoints_wrapped(IntervalTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT PointProcess IntervalTier_getEndPoints_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
 		return IntervalTier_getEndPoints(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2877,7 +2935,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_getEndPoints_wrapped(IntervalTier arg
 }
 
 // IntervalTier_getCentrePoints_wrapped -> IntervalTier_getCentrePoints
-PRAAT_LIB_EXPORT PointProcess IntervalTier_getCentrePoints_wrapped(IntervalTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT PointProcess IntervalTier_getCentrePoints_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
 		return IntervalTier_getCentrePoints(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -2919,7 +2977,7 @@ PRAAT_LIB_EXPORT PointProcess IntervalTier_PointProcess_endToCentre_wrapped(Inte
 }
 
 // IntervalTier_removeLeftBoundary_wrapped -> IntervalTier_removeLeftBoundary
-PRAAT_LIB_EXPORT void IntervalTier_removeLeftBoundary_wrapped(IntervalTier arg0,long arg1) {
+PRAAT_LIB_EXPORT void IntervalTier_removeLeftBoundary_wrapped(IntervalTier arg0,integer arg1) {
 	try {
 		IntervalTier_removeLeftBoundary(arg0,arg1);
 	} catch (const char* e) {
@@ -2973,7 +3031,7 @@ PRAAT_LIB_EXPORT void TextGrid_extendTime_wrapped(TextGrid arg0,double arg1,int 
 }
 
 // TextGrid_setTierName_wrapped -> TextGrid_setTierName
-PRAAT_LIB_EXPORT void TextGrid_setTierName_wrapped(TextGrid arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TextGrid_setTierName_wrapped(TextGrid arg0,integer arg1,conststring32 arg2) {
 	try {
 		TextGrid_setTierName(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -2986,7 +3044,7 @@ PRAAT_LIB_EXPORT void TextGrid_setTierName_wrapped(TextGrid arg0,long arg1,const
 }
 
 // TextTier_changeLabels_wrapped -> TextTier_changeLabels
-PRAAT_LIB_EXPORT void TextTier_changeLabels_wrapped(TextTier arg0,long arg1,long arg2,const char32_t* arg3,const char32_t* arg4,int arg5,long* arg6,long* arg7) {
+PRAAT_LIB_EXPORT void TextTier_changeLabels_wrapped(TextTier arg0,integer arg1,integer arg2,conststring32 arg3,conststring32 arg4,bool arg5,intptr_t* arg6,intptr_t* arg7) {
 	try {
 		TextTier_changeLabels(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 	} catch (const char* e) {
@@ -2999,7 +3057,7 @@ PRAAT_LIB_EXPORT void TextTier_changeLabels_wrapped(TextTier arg0,long arg1,long
 }
 
 // TextGrid_changeLabels_wrapped -> TextGrid_changeLabels
-PRAAT_LIB_EXPORT void TextGrid_changeLabels_wrapped(TextGrid arg0,int arg1,long arg2,long arg3,const char32_t* arg4,const char32_t* arg5,int arg6,long* arg7,long* arg8) {
+PRAAT_LIB_EXPORT void TextGrid_changeLabels_wrapped(TextGrid arg0,integer arg1,integer arg2,integer arg3,conststring32 arg4,conststring32 arg5,bool arg6,intptr_t* arg7,intptr_t* arg8) {
 	try {
 		TextGrid_changeLabels(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
 	} catch (const char* e) {
@@ -3012,7 +3070,7 @@ PRAAT_LIB_EXPORT void TextGrid_changeLabels_wrapped(TextGrid arg0,int arg1,long 
 }
 
 // IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals_wrapped -> IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals
-PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals_wrapped(IntervalTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
 		IntervalTier_removeBoundariesBetweenIdenticallyLabeledIntervals(arg0,arg1);
 	} catch (const char* e) {
@@ -3025,7 +3083,7 @@ PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledInte
 }
 
 // IntervalTier_cutIntervalsOnLabelMatch_wrapped -> IntervalTier_cutIntervalsOnLabelMatch
-PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch_wrapped(IntervalTier arg0,const char32_t* arg1) {
+PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
 		IntervalTier_cutIntervalsOnLabelMatch(arg0,arg1);
 	} catch (const char* e) {
@@ -3038,7 +3096,7 @@ PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch_wrapped(IntervalTier
 }
 
 // IntervalTier_cutIntervals_minimumDuration_wrapped -> IntervalTier_cutIntervals_minimumDuration
-PRAAT_LIB_EXPORT void IntervalTier_cutIntervals_minimumDuration_wrapped(IntervalTier arg0,const char32_t* arg1,double arg2) {
+PRAAT_LIB_EXPORT void IntervalTier_cutIntervals_minimumDuration_wrapped(IntervalTier arg0,conststring32 arg1,double arg2) {
 	try {
 		IntervalTier_cutIntervals_minimumDuration(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3051,7 +3109,7 @@ PRAAT_LIB_EXPORT void IntervalTier_cutIntervals_minimumDuration_wrapped(Interval
 }
 
 // IntervalTier_setLaterEndTime_wrapped -> IntervalTier_setLaterEndTime
-PRAAT_LIB_EXPORT void IntervalTier_setLaterEndTime_wrapped(IntervalTier arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void IntervalTier_setLaterEndTime_wrapped(IntervalTier arg0,double arg1,conststring32 arg2) {
 	try {
 		IntervalTier_setLaterEndTime(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3064,7 +3122,7 @@ PRAAT_LIB_EXPORT void IntervalTier_setLaterEndTime_wrapped(IntervalTier arg0,dou
 }
 
 // IntervalTier_setEarlierStartTime_wrapped -> IntervalTier_setEarlierStartTime
-PRAAT_LIB_EXPORT void IntervalTier_setEarlierStartTime_wrapped(IntervalTier arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void IntervalTier_setEarlierStartTime_wrapped(IntervalTier arg0,double arg1,conststring32 arg2) {
 	try {
 		IntervalTier_setEarlierStartTime(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3090,7 +3148,7 @@ PRAAT_LIB_EXPORT void IntervalTier_moveBoundary_wrapped(IntervalTier arg0,long a
 }
 
 // TextTier_setLaterEndTime_wrapped -> TextTier_setLaterEndTime
-PRAAT_LIB_EXPORT void TextTier_setLaterEndTime_wrapped(TextTier arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TextTier_setLaterEndTime_wrapped(TextTier arg0,double arg1,conststring32 arg2) {
 	try {
 		TextTier_setLaterEndTime(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3103,7 +3161,7 @@ PRAAT_LIB_EXPORT void TextTier_setLaterEndTime_wrapped(TextTier arg0,double arg1
 }
 
 // TextTier_setEarlierStartTime_wrapped -> TextTier_setEarlierStartTime
-PRAAT_LIB_EXPORT void TextTier_setEarlierStartTime_wrapped(TextTier arg0,double arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT void TextTier_setEarlierStartTime_wrapped(TextTier arg0,double arg1,conststring32 arg2) {
 	try {
 		TextTier_setEarlierStartTime(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3116,7 +3174,7 @@ PRAAT_LIB_EXPORT void TextTier_setEarlierStartTime_wrapped(TextTier arg0,double 
 }
 
 // TextGrid_setEarlierStartTime_wrapped -> TextGrid_setEarlierStartTime
-PRAAT_LIB_EXPORT void TextGrid_setEarlierStartTime_wrapped(TextGrid arg0,double arg1,const char32_t* arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void TextGrid_setEarlierStartTime_wrapped(TextGrid arg0,double arg1,conststring32 arg2,conststring32 arg3) {
 	try {
 		TextGrid_setEarlierStartTime(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -3129,7 +3187,7 @@ PRAAT_LIB_EXPORT void TextGrid_setEarlierStartTime_wrapped(TextGrid arg0,double 
 }
 
 // TextGrid_setLaterEndTime_wrapped -> TextGrid_setLaterEndTime
-PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime_wrapped(TextGrid arg0,double arg1,const char32_t* arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime_wrapped(TextGrid arg0,double arg1,conststring32 arg2,conststring32 arg3) {
 	try {
 		TextGrid_setLaterEndTime(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -3141,10 +3199,10 @@ PRAAT_LIB_EXPORT void TextGrid_setLaterEndTime_wrapped(TextGrid arg0,double arg1
 	}
 }
 
-// IntervalTiers_append_inline_wrapped -> IntervalTiers_append_inline
-PRAAT_LIB_EXPORT void IntervalTiers_append_inline_wrapped(IntervalTier arg0,IntervalTier arg1,bool arg2) {
+// IntervalTiers_append_inplace_wrapped -> IntervalTiers_append_inplace
+PRAAT_LIB_EXPORT void IntervalTiers_append_inplace_wrapped(IntervalTier arg0,IntervalTier arg1,bool arg2) {
 	try {
-		IntervalTiers_append_inline(arg0,arg1,arg2);
+		IntervalTiers_append_inplace(arg0,arg1,arg2);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3154,10 +3212,10 @@ PRAAT_LIB_EXPORT void IntervalTiers_append_inline_wrapped(IntervalTier arg0,Inte
 	}
 }
 
-// TextTiers_append_inline_wrapped -> TextTiers_append_inline
-PRAAT_LIB_EXPORT void TextTiers_append_inline_wrapped(TextTier arg0,TextTier arg1,bool arg2) {
+// TextTiers_append_inplace_wrapped -> TextTiers_append_inplace
+PRAAT_LIB_EXPORT void TextTiers_append_inplace_wrapped(TextTier arg0,TextTier arg1,bool arg2) {
 	try {
-		TextTiers_append_inline(arg0,arg1,arg2);
+		TextTiers_append_inplace(arg0,arg1,arg2);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3167,10 +3225,10 @@ PRAAT_LIB_EXPORT void TextTiers_append_inline_wrapped(TextTier arg0,TextTier arg
 	}
 }
 
-// TextGrids_append_inline_wrapped -> TextGrids_append_inline
-PRAAT_LIB_EXPORT void TextGrids_append_inline_wrapped(TextGrid arg0,TextGrid arg1,bool arg2) {
+// TextGrids_append_inplace_wrapped -> TextGrids_append_inplace
+PRAAT_LIB_EXPORT void TextGrids_append_inplace_wrapped(TextGrid arg0,TextGrid arg1,bool arg2) {
 	try {
-		TextGrids_append_inline(arg0,arg1,arg2);
+		TextGrids_append_inplace(arg0,arg1,arg2);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3181,7 +3239,7 @@ PRAAT_LIB_EXPORT void TextGrids_append_inline_wrapped(TextGrid arg0,TextGrid arg
 }
 
 // TextGrid_create_wrapped -> TextGrid_create
-PRAAT_LIB_EXPORT TextGrid TextGrid_create_wrapped(double arg0,double arg1,const char32_t* arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT TextGrid TextGrid_create_wrapped(double arg0,double arg1,conststring32 arg2,conststring32 arg3) {
 	try {
 		return TextGrid_create(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3195,7 +3253,7 @@ PRAAT_LIB_EXPORT TextGrid TextGrid_create_wrapped(double arg0,double arg1,const 
 }
 
 // TextGrid_countLabels_wrapped -> TextGrid_countLabels
-PRAAT_LIB_EXPORT long TextGrid_countLabels_wrapped(TextGrid arg0,long arg1,const char32_t* arg2) {
+PRAAT_LIB_EXPORT integer TextGrid_countLabels_wrapped(TextGrid arg0,integer arg1,conststring32 arg2) {
 	try {
 		return TextGrid_countLabels(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3209,7 +3267,7 @@ PRAAT_LIB_EXPORT long TextGrid_countLabels_wrapped(TextGrid arg0,long arg1,const
 }
 
 // TextGrid_getStartingPoints_wrapped -> TextGrid_getStartingPoints
-PRAAT_LIB_EXPORT PointProcess TextGrid_getStartingPoints_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getStartingPoints_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return TextGrid_getStartingPoints(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3223,7 +3281,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getStartingPoints_wrapped(TextGrid arg0,l
 }
 
 // TextGrid_getEndPoints_wrapped -> TextGrid_getEndPoints
-PRAAT_LIB_EXPORT PointProcess TextGrid_getEndPoints_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getEndPoints_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return TextGrid_getEndPoints(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3237,7 +3295,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getEndPoints_wrapped(TextGrid arg0,long a
 }
 
 // TextGrid_getCentrePoints_wrapped -> TextGrid_getCentrePoints
-PRAAT_LIB_EXPORT PointProcess TextGrid_getCentrePoints_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getCentrePoints_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return TextGrid_getCentrePoints(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3251,7 +3309,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getCentrePoints_wrapped(TextGrid arg0,lon
 }
 
 // TextGrid_getPoints_wrapped -> TextGrid_getPoints
-PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return TextGrid_getPoints(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3265,7 +3323,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_wrapped(TextGrid arg0,long arg1
 }
 
 // TextGrid_getPoints_preceded_wrapped -> TextGrid_getPoints_preceded
-PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_preceded_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3,int arg4,const char32_t* arg5) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_preceded_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3,enum kMelder_string arg4,conststring32 arg5) {
 	try {
 		return TextGrid_getPoints_preceded(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3279,7 +3337,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_preceded_wrapped(TextGrid arg0,
 }
 
 // TextGrid_getPoints_followed_wrapped -> TextGrid_getPoints_followed
-PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_followed_wrapped(TextGrid arg0,long arg1,int arg2,const char32_t* arg3,int arg4,const char32_t* arg5) {
+PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_followed_wrapped(TextGrid arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3,enum kMelder_string arg4,conststring32 arg5) {
 	try {
 		return TextGrid_getPoints_followed(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3293,7 +3351,7 @@ PRAAT_LIB_EXPORT PointProcess TextGrid_getPoints_followed_wrapped(TextGrid arg0,
 }
 
 // TextGrid_checkSpecifiedTierNumberWithinRange_wrapped -> TextGrid_checkSpecifiedTierNumberWithinRange
-PRAAT_LIB_EXPORT Function TextGrid_checkSpecifiedTierNumberWithinRange_wrapped(TextGrid arg0,long arg1) {
+PRAAT_LIB_EXPORT Function TextGrid_checkSpecifiedTierNumberWithinRange_wrapped(TextGrid arg0,integer arg1) {
 	try {
 		return TextGrid_checkSpecifiedTierNumberWithinRange(arg0,arg1);
 	} catch (const char* e) {
@@ -3307,7 +3365,7 @@ PRAAT_LIB_EXPORT Function TextGrid_checkSpecifiedTierNumberWithinRange_wrapped(T
 }
 
 // TextGrid_checkSpecifiedTierIsIntervalTier_wrapped -> TextGrid_checkSpecifiedTierIsIntervalTier
-PRAAT_LIB_EXPORT IntervalTier TextGrid_checkSpecifiedTierIsIntervalTier_wrapped(TextGrid arg0,long arg1) {
+PRAAT_LIB_EXPORT IntervalTier TextGrid_checkSpecifiedTierIsIntervalTier_wrapped(TextGrid arg0,integer arg1) {
 	try {
 		return TextGrid_checkSpecifiedTierIsIntervalTier(arg0,arg1);
 	} catch (const char* e) {
@@ -3321,7 +3379,7 @@ PRAAT_LIB_EXPORT IntervalTier TextGrid_checkSpecifiedTierIsIntervalTier_wrapped(
 }
 
 // TextGrid_checkSpecifiedTierIsPointTier_wrapped -> TextGrid_checkSpecifiedTierIsPointTier
-PRAAT_LIB_EXPORT TextTier TextGrid_checkSpecifiedTierIsPointTier_wrapped(TextGrid arg0,long arg1) {
+PRAAT_LIB_EXPORT TextTier TextGrid_checkSpecifiedTierIsPointTier_wrapped(TextGrid arg0,integer arg1) {
 	try {
 		return TextGrid_checkSpecifiedTierIsPointTier(arg0,arg1);
 	} catch (const char* e) {
@@ -3348,7 +3406,7 @@ PRAAT_LIB_EXPORT void TextGrid_addTier_copy_wrapped(TextGrid arg0,Function arg1)
 }
 
 // TextGrid_removeTier_wrapped -> TextGrid_removeTier
-PRAAT_LIB_EXPORT void TextGrid_removeTier_wrapped(TextGrid arg0,long arg1) {
+PRAAT_LIB_EXPORT void TextGrid_removeTier_wrapped(TextGrid arg0,integer arg1) {
 	try {
 		TextGrid_removeTier(arg0,arg1);
 	} catch (const char* e) {
@@ -3361,7 +3419,7 @@ PRAAT_LIB_EXPORT void TextGrid_removeTier_wrapped(TextGrid arg0,long arg1) {
 }
 
 // TextGrid_extractPart_wrapped -> TextGrid_extractPart
-PRAAT_LIB_EXPORT TextGrid TextGrid_extractPart_wrapped(TextGrid arg0,double arg1,double arg2,int arg3) {
+PRAAT_LIB_EXPORT TextGrid TextGrid_extractPart_wrapped(TextGrid arg0,double arg1,double arg2,bool arg3) {
 	try {
 		return TextGrid_extractPart(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3401,7 +3459,7 @@ PRAAT_LIB_EXPORT void TextGrid_convertToUnicode_wrapped(TextGrid arg0) {
 }
 
 // TextGrid_insertBoundary_wrapped -> TextGrid_insertBoundary
-PRAAT_LIB_EXPORT void TextGrid_insertBoundary_wrapped(TextGrid arg0,int arg1,double arg2) {
+PRAAT_LIB_EXPORT void TextGrid_insertBoundary_wrapped(TextGrid arg0,integer arg1,double arg2) {
 	try {
 		TextGrid_insertBoundary(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3414,7 +3472,7 @@ PRAAT_LIB_EXPORT void TextGrid_insertBoundary_wrapped(TextGrid arg0,int arg1,dou
 }
 
 // TextGrid_removeBoundaryAtTime_wrapped -> TextGrid_removeBoundaryAtTime
-PRAAT_LIB_EXPORT void TextGrid_removeBoundaryAtTime_wrapped(TextGrid arg0,int arg1,double arg2) {
+PRAAT_LIB_EXPORT void TextGrid_removeBoundaryAtTime_wrapped(TextGrid arg0,integer arg1,double arg2) {
 	try {
 		TextGrid_removeBoundaryAtTime(arg0,arg1,arg2);
 	} catch (const char* e) {
@@ -3427,7 +3485,7 @@ PRAAT_LIB_EXPORT void TextGrid_removeBoundaryAtTime_wrapped(TextGrid arg0,int ar
 }
 
 // TextGrid_setIntervalText_wrapped -> TextGrid_setIntervalText
-PRAAT_LIB_EXPORT void TextGrid_setIntervalText_wrapped(TextGrid arg0,int arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void TextGrid_setIntervalText_wrapped(TextGrid arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		TextGrid_setIntervalText(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -3440,7 +3498,7 @@ PRAAT_LIB_EXPORT void TextGrid_setIntervalText_wrapped(TextGrid arg0,int arg1,lo
 }
 
 // TextGrid_insertPoint_wrapped -> TextGrid_insertPoint
-PRAAT_LIB_EXPORT void TextGrid_insertPoint_wrapped(TextGrid arg0,int arg1,double arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void TextGrid_insertPoint_wrapped(TextGrid arg0,integer arg1,double arg2,conststring32 arg3) {
 	try {
 		TextGrid_insertPoint(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -3453,7 +3511,7 @@ PRAAT_LIB_EXPORT void TextGrid_insertPoint_wrapped(TextGrid arg0,int arg1,double
 }
 
 // TextGrid_setPointText_wrapped -> TextGrid_setPointText
-PRAAT_LIB_EXPORT void TextGrid_setPointText_wrapped(TextGrid arg0,int arg1,long arg2,const char32_t* arg3) {
+PRAAT_LIB_EXPORT void TextGrid_setPointText_wrapped(TextGrid arg0,integer arg1,integer arg2,conststring32 arg3) {
 	try {
 		TextGrid_setPointText(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -3521,7 +3579,7 @@ PRAAT_LIB_EXPORT Table TextGrid_downto_Table_wrapped(TextGrid arg0,bool arg1,int
 }
 
 // Ltas_create_wrapped -> Ltas_create
-PRAAT_LIB_EXPORT Ltas Ltas_create_wrapped(long arg0,double arg1) {
+PRAAT_LIB_EXPORT Ltas Ltas_create_wrapped(integer arg0,double arg1) {
 	try {
 		return Ltas_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3633,7 +3691,7 @@ PRAAT_LIB_EXPORT Ltas PointProcess_Sound_to_Ltas_wrapped(PointProcess arg0,Sound
 }
 
 // PointProcess_Sound_to_Ltas_harmonics_wrapped -> PointProcess_Sound_to_Ltas_harmonics
-PRAAT_LIB_EXPORT Ltas PointProcess_Sound_to_Ltas_harmonics_wrapped(PointProcess arg0,Sound arg1,long arg2,double arg3,double arg4,double arg5) {
+PRAAT_LIB_EXPORT Ltas PointProcess_Sound_to_Ltas_harmonics_wrapped(PointProcess arg0,Sound arg1,integer arg2,double arg3,double arg4,double arg5) {
 	try {
 		return PointProcess_Sound_to_Ltas_harmonics(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -3675,7 +3733,7 @@ PRAAT_LIB_EXPORT Ltas Sound_to_Ltas_pitchCorrected_wrapped(Sound arg0,double arg
 }
 
 // Interpreter_create_wrapped -> Interpreter_create
-PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(char32* arg0,ClassInfo arg1) {
+PRAAT_LIB_EXPORT Interpreter Interpreter_create_wrapped(const char32* arg0,ClassInfo arg1) {
 	try {
 		return Interpreter_create(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {

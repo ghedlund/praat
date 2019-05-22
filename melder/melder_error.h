@@ -18,6 +18,10 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PRAAT_LIB
+#include "../sys/praatlib.h"
+#endif
+
 /********** ERROR **********/
 
 class MelderError {
@@ -79,7 +83,7 @@ bool Melder_hasError (conststring32 partialError);
 void Melder_clearError ();
 	/* Cancel all stored error messages. */
 
-conststring32 Melder_getError ();
+PRAAT_LIB_EXPORT conststring32 Melder_getError ();
 	/* Returns the error string. Mainly used with str32str. */
 
 void Melder_setErrorProc (void (*p_errorProc) (conststring32));

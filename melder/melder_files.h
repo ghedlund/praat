@@ -18,6 +18,10 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef PRAAT_LIB
+#include "../sys/praatlib.h"
+#endif
+
 #if defined (_WIN32)
 	#define Melder_DIRECTORY_SEPARATOR  '\\'
 #else
@@ -48,17 +52,17 @@ typedef struct structMelderDir *MelderDir;
 conststring32 MelderFile_name (MelderFile file);
 conststring32 MelderDir_name (MelderDir dir);
 void Melder_pathToDir (conststring32 path, MelderDir dir);
-void Melder_pathToFile (conststring32 path, MelderFile file);
+PRAAT_LIB_EXPORT void Melder_pathToFile (conststring32 path, MelderFile file);
 void Melder_relativePathToFile (conststring32 path, MelderFile file);
 conststring32 Melder_dirToPath (MelderDir dir);
 	/* Returns a pointer internal to 'dir', like "/u/paul/praats" or "D:\Paul\Praats" */
-conststring32 Melder_fileToPath (MelderFile file);
+PRAAT_LIB_EXPORT conststring32 Melder_fileToPath (MelderFile file);
 void MelderFile_copy (MelderFile file, MelderFile copy);
 void MelderDir_copy (MelderDir dir, MelderDir copy);
 bool MelderFile_equal (MelderFile file1, MelderFile file2);
 bool MelderDir_equal (MelderDir dir1, MelderDir dir2);
 void MelderFile_setToNull (MelderFile file);
-bool MelderFile_isNull (MelderFile file);
+PRAAT_LIB_EXPORT bool MelderFile_isNull (MelderFile file);
 void MelderDir_setToNull (MelderDir dir);
 bool MelderDir_isNull (MelderDir dir);
 void MelderDir_getFile (MelderDir parent, conststring32 fileName, MelderFile file);
@@ -68,14 +72,14 @@ void MelderDir_getParentDir (MelderDir file, MelderDir parent);
 bool MelderDir_isDesktop (MelderDir dir);
 void MelderDir_getSubdir (MelderDir parent, conststring32 subdirName, MelderDir subdir);
 void Melder_rememberShellDirectory ();
-conststring32 Melder_getShellDirectory ();
+PRAAT_LIB_EXPORT conststring32 Melder_getShellDirectory ();
 void Melder_getHomeDir (MelderDir homeDir);
 void Melder_getPrefDir (MelderDir prefDir);
 void Melder_getTempDir (MelderDir tempDir);
 
 bool MelderFile_exists (MelderFile file);
 bool MelderFile_readable (MelderFile file);
-integer MelderFile_length (MelderFile file);
+PRAAT_LIB_EXPORT integer MelderFile_length (MelderFile file);
 void MelderFile_delete (MelderFile file);
 
 /* The following two should be combined with each other and with Windows extension setting: */
