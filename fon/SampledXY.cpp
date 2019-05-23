@@ -95,11 +95,11 @@ double SampledXY_getY1(SampledXY me) {
         return my y1;
 }
 
-double SampledXY_indexToY (SampledXY me, long   index) { return my y1 + (index - 1  ) * my dy; }
+double SampledXY_indexToY (SampledXY me, integer index) { return my y1 + (index - 1  ) * my dy; }
 double SampledXY_yToIndex (SampledXY me, double y) { return (y - my y1) / my dy + 1.0; }
-long SampledXY_yToLowIndex     (SampledXY me, double y) { return (long) floor ((y - my y1) / my dy + 1.0); }
-long SampledXY_yToHighIndex    (SampledXY me, double y) { return (long) ceil  ((y - my y1) / my dy + 1.0); }
-long SampledXY_yToNearestIndex (SampledXY me, double y) { return (long) round ((y - my y1) / my dy + 1.0); }
+integer SampledXY_yToLowIndex     (SampledXY me, double y) { return (integer) floor ((y - my y1) / my dy + 1.0); }
+integer SampledXY_yToHighIndex    (SampledXY me, double y) { return (integer) ceil  ((y - my y1) / my dy + 1.0); }
+integer SampledXY_yToNearestIndex (SampledXY me, double y) { return (integer) round ((y - my y1) / my dy + 1.0); }
 #endif
 
 /* End of file SampledXY.cpp */
