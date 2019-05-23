@@ -764,11 +764,11 @@ double Sampled_getX1(Sampled me) {
         return my x1;
 }
 
-double Sampled_indexToX (Sampled me, long   index) { return my x1 + (index - 1  ) * my dx; }
+double Sampled_indexToX (Sampled me, integer index) { return my x1 + (index - 1  ) * my dx; }
 double Sampled_xToIndex (Sampled me, double x) { return (x - my x1) / my dx + 1.0; }
-integer Sampled_xToLowIndex     (Sampled me, double x) { return (long) floor ((x - my x1) / my dx + 1.0); }
-integer Sampled_xToHighIndex    (Sampled me, double x) { return (long) ceil  ((x - my x1) / my dx + 1.0); }
-integer Sampled_xToNearestIndex (Sampled me, double x) { return (long) round ((x - my x1) / my dx + 1.0); }
+integer Sampled_xToLowIndex     (Sampled me, double x) { return (integer) floor ((x - my x1) / my dx + 1.0); }
+integer Sampled_xToHighIndex    (Sampled me, double x) { return (integer) ceil  ((x - my x1) / my dx + 1.0); }
+integer Sampled_xToNearestIndex (Sampled me, double x) { return (integer) round ((x - my x1) / my dx + 1.0); }
 #endif
 
 /* End of file Sampled.cpp */

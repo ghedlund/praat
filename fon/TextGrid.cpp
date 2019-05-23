@@ -349,9 +349,9 @@ Thing_implement (FunctionList, Ordered, 0);
 Thing_implement (TextGrid, Function, 0);
 
 #ifdef PRAAT_LIB
-long TextGrid_numberOfTiers (TextGrid me) { return my tiers -> size; }
+integer TextGrid_numberOfTiers (TextGrid me) { return my tiers -> size; }
 
-Function TextGrid_tier (TextGrid me, long i) { return static_cast <Function> (my tiers -> at [i]); }
+Function TextGrid_tier (TextGrid me, integer i) { return static_cast <Function> (my tiers -> at [i]); }
 
 void TextGrid_repair (TextGrid me) {
 	me -> v_repair();
@@ -551,7 +551,7 @@ void TextGrid_addTier_copy (TextGrid me, Function anyTier) {
 	}
 }
 
-void TextGrid_removeTier (TextGrid me, long tierNumber) {
+void TextGrid_removeTier (TextGrid me, integer tierNumber) {
 	if(my tiers->size <= 1)
 		Melder_throw(U"Sorry, I refuse to remove the last tier.");
 	if (tierNumber > my tiers->size) tierNumber = my tiers->size;

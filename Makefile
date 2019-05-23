@@ -53,7 +53,7 @@ library:
 	$(MAKE) -C external/portaudio
 	$(MAKE) -C external/espeak
 	$(MAKE) -C kar
-	$(MAKE) -C num
+	$(MAKE) -C melder
 	$(MAKE) -C sys
 	$(MAKE) -C dwsys
 	$(MAKE) -C stat
@@ -72,7 +72,7 @@ library:
 		FFNet/libFFNet.a gram/libgram.a EEG/libEEG.a \
 		LPC/libLPC.a dwtools/libdwtools.a \
 		fon/libfon.a stat/libstat.a dwsys/libdwsys.a \
-		sys/libsys.a num/libnum.a kar/libkar.a \
+		sys/libsys.a melder/libmelder.a kar/libkar.a \
 		external/espeak/libespeak.a external/portaudio/libportaudio.a \
 		external/flac/libflac.a external/mp3/libmp3.a \
 		external/glpk/libglpk.a external/gsl/libgsl.a \

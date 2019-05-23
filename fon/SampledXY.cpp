@@ -83,7 +83,7 @@ double SampledXY_getYMax(SampledXY me) {
         return my ymax;
 }
 
-long SampledXY_getNy(SampledXY me) {
+integer SampledXY_getNy(SampledXY me) {
         return my ny;
 }
 

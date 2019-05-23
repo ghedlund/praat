@@ -5,7 +5,7 @@
 
 CC = /mingw64/bin/gcc -std=gnu99 -isystem /mingw64/include
 
-CXX = /mingw64/bin/g++ -std=gnu++0x -isystem /mingw64/include/c++/4.7.0 -isystem /mingw64/include -Wshadow -m64
+CXX = /mingw64/bin/g++ -std=gnu++17 -Wshadow -m64
 
 CFLAGS = -DPRAAT_LIB -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0501 -DUNICODE -D_FILE_OFFSET_BITS=64 -Dmain=wingwmain -O1 -pthread
 
