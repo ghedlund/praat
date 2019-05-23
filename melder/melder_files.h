@@ -44,6 +44,10 @@ struct structMelderFile {
 };
 typedef struct structMelderFile *MelderFile;
 
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT MelderFile MelderFile_new ();
+#endif
+
 struct structMelderDir {
 	char32 path [kMelder_MAXPATH+1];
 };
