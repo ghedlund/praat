@@ -5,7 +5,7 @@
 
 CC = gcc -std=gnu99
 
-CXX = g++ -std=c++0x
+CXX = g++ -std=gnu++17
 
 CFLAGS = -DPRAAT_LIB -D_FILE_OFFSET_BITS=64 -fPIC -DUNIX -Dlinux `pkg-config --cflags gtk+-2.0` -Werror=missing-prototypes -Werror=implicit -Wreturn-type -Wunused -Wunused-parameter -Wuninitialized -O1 -g1 -pthread
 

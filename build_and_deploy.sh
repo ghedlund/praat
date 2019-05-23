@@ -8,15 +8,11 @@ REPO_URL=https://phon.ca/artifacts/libs-release-local/
 
 MAKEFILE_DEFS=makefile.defs
 
-WIN32X86_FOLDER=win32-x86
-MAKEFILE_DEFS_WIN32X86=makefiles/makefile.defs.mingw32.lib
-
 WIN32X64_FOLDER=win32-x86-64
 WIN32AMD64_FOLDER=win32-amd64
 MAKEFILE_DEFS_WIN32X64=makefiles/makefile.defs.mingw64.lib
 
 WIN32_TARGET=jpraat.dll
-WIN32_JAR=libjpraat-win32-x86.jar
 WIN32X64_JAR=libjpraat-win32-x86-64.jar
 WIN32AMD64_JAR=libjpraat-win32-amd64.jar
 
@@ -58,26 +54,6 @@ if [ -f $WIN32_TARGET ]; then
 	mvn deploy:deploy-file -DrepositoryId=$REPO -Durl=$REPO_URL -DgroupId=$GROUP -DartifactId=$ARTIFACT -Dversion=$VER -Dpackaging=jar -Dclassifier=win32-amd64 -Dfile=$WIN32AMD64_JAR
 else
 	echo "Target for win32-x86-64 not built"
-	exit 1
-fi
-
-# win32-x86-64 + win32-amd64
-cleanup
-ln -s $MAKEFILE_DEFS_WIN32X86 makefile.defs
-make library
-
-if [ -f $WIN32X86_FOLDER ]; then
-	rm -rf $WIN32X86_FOLDER
-fi
-mkdir $WIN32X86_FOLDER
-
-if [ -f $WIN32_TARGET ]; then
-	cp $WIN32_TARGET $WIN32X86_FOLDER
-
-	jar cvf $WIN32_JAR $WIN32X86_FOLDER
-mvn deploy:deploy-file -DrepositoryId=$REPO -Durl=$REPO_URL -DgroupId=$GROUP -DartifactId=$ARTIFACT -Dversion=$VER -Dpackaging=jar -Dclassifier=win32-x86 -Dfile=$WIN32_JAR	
-else
-	echo "Target for win32-x86 not built"
 	exit 1
 fi
 
