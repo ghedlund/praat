@@ -235,7 +235,7 @@ double Matrix_getValueAtXY (Matrix me, double x, double y) {
 }
 
 double Matrix_getSum (Matrix me) {
-	return NUMsum (my z.get());
+	return NUMsum (my z.all());
 }
 
 double Matrix_getNorm (Matrix me) {
@@ -394,9 +394,9 @@ void Matrix_paintSurface (Matrix me, Graphics g, double xmin, double xmax, doubl
 	if (maximum <= minimum) { minimum -= 1.0; maximum += 1.0; }
 	Graphics_setInner (g);
 	Graphics_setWindow (g, -1.0, 1.0, minimum, maximum);
-	Graphics_surface (g, my z.at_deprecated,
-		ixmin, ixmax, Matrix_columnToX (me, ixmin), Matrix_columnToX (me, ixmax),
-		iymin, iymax, Matrix_rowToY (me, iymin), Matrix_rowToY (me, iymax),
+	Graphics_surface (g, my z.part (iymin, iymax, ixmin, ixmax),
+		Matrix_columnToX (me, ixmin), Matrix_columnToX (me, ixmax),
+		Matrix_rowToY (me, iymin), Matrix_rowToY (me, iymax),
 		minimum, maximum, elevation, azimuth);
 	Graphics_unsetInner (g);
 }

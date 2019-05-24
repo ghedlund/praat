@@ -2,7 +2,7 @@
 #define _Pitch_h_
 /* Pitch.h
  *
- * Copyright (C) 1992-2007,2009,2011,2012,2014-2018 Paul Boersma
+ * Copyright (C) 1992-2007,2009,2011,2012,2014-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "Sampled.h"
 #include "Graphics.h"
+#include "Table.h"
 Thing_declare (Interpreter);
 
 #include "Pitch_enums.h"
@@ -50,7 +51,7 @@ PRAAT_LIB_EXPORT autoPitch Pitch_create (double tmin, double tmax, integer nt, d
 		my frame [1..nt]. intensity == 0.0; // silent
 */
 
-void Pitch_Frame_init (Pitch_Frame me, int nCandidates);
+void Pitch_Frame_init (Pitch_Frame me, integer nCandidates);
 /*
 	Function:
 		create space for a number of candidates; space already there is disposed of.
@@ -122,6 +123,9 @@ PRAAT_LIB_EXPORT void Pitch_setCeiling (Pitch me, double ceiling);
 	Postcondition:
 		my ceiling = ceiling;
 */
+
+autoMAT Pitch_Frame_getAllCandidates (Pitch_Frame me);
+autoMAT Pitch_getAllCandidatesInFrame (Pitch me, integer frameNumber);
 
 PRAAT_LIB_EXPORT void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshold,
 	double octaveCost, double octaveJumpCost, double voicedUnvoicedCost,
@@ -200,6 +204,9 @@ PRAAT_LIB_EXPORT void Pitch_step (Pitch me, double step, double precision, doubl
 */
 
 PRAAT_LIB_EXPORT void Pitch_formula (Pitch me, conststring32 formula, Interpreter interpreter);
+
+autoTable Pitch_tabulateCandidatesInFrame (Pitch me, integer frameNumber);
+autoTable Pitch_tabulateCandidates (Pitch me);
 
 /* End of file Pitch.h */
 #endif

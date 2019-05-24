@@ -109,5 +109,7 @@ PRAAT_LIB_EXPORT void Spectrum_getNearestMaximum (Spectrum me, double frequency,
 PRAAT_LIB_EXPORT double Spectrum_getValueAtSample(Spectrum me, long isamp, long which, int units);
 #endif
 
+MelderPoint Spectrum_getNearestMaximum (Spectrum me, double frequency);
+
 /* End of file Spectrum.h */
 #endif

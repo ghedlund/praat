@@ -1,6 +1,6 @@
 /* Matrix_extensions.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,22 +90,12 @@ void Matrix_scatterPlot (Matrix me, Graphics g, integer icx, integer icy,
 	}
 }
 
-static autoVEC nummat_vectorize (constMAT m, integer rowmin, integer rowmax, integer colmin, integer colmax, bool byColumns) {
-	integer numberOfElements = (rowmax - rowmin + 1) * (colmax - colmin + 1), index = 0;
-	autoVEC result (numberOfElements, kTensorInitializationType::RAW);   // TODO: this does two things, namely making a window and vectorizing
-	if (byColumns) {
-		for (integer icol = colmin; icol <= colmax; icol ++) {
-			for (integer irow = rowmin; irow <= rowmax; irow ++) {
-				result [++ index] = m [irow] [icol];
-			}
-		}
-	} else {
-		for (integer irow = rowmin; irow <= rowmax; irow ++) {
-			for (integer icol = colmin; icol <= colmax; icol ++) {
-				result [++ index] = m [irow] [icol];
-			}
-		}
-	}
+static autoVEC nummat_vectorize (constMATVU const& m, integer rowmin, integer rowmax, integer colmin, integer colmax) {
+	integer numberOfElements = (rowmax - rowmin + 1) * (colmax - colmin + 1);
+	autoVEC result = newVECraw (numberOfElements);
+	for (integer irow = rowmin, index = 1; irow <= rowmax; irow ++)
+		for (integer icol = colmin; icol <= colmax; icol ++)
+			result [index ++] = m [irow] [icol];
 	return result;
 }
 
@@ -122,7 +112,7 @@ void Matrix_drawAsSquares_inside (Matrix me, Graphics g, double xmin, double xma
 	} else if (drawingOrder == kGraphicsMatrixCellDrawingOrder::Random) {
 		Permutation_permuteRandomly_inplace (p.get(), 1, numberOfCells);
 	} else if (drawingOrder == kGraphicsMatrixCellDrawingOrder::IncreasingValues || drawingOrder == kGraphicsMatrixCellDrawingOrder::DecreasingValues) {
-		autoVEC v = nummat_vectorize (my z.get(), rowmin, rowmax, colmin, colmax, false);
+		autoVEC v = nummat_vectorize (my z.get(), rowmin, rowmax, colmin, colmax);
 		NUMsortTogether (v.get(), p -> p.get());
 		if (drawingOrder == kGraphicsMatrixCellDrawingOrder::DecreasingValues) {
 			Permutation_reverse_inline (p.get(), 1, numberOfCells);
@@ -131,9 +121,8 @@ void Matrix_drawAsSquares_inside (Matrix me, Graphics g, double xmin, double xma
 		Permutation_tableJump_inline (p.get(), numberOfColumns, 1);
 	}
 	
-	double extremum = NUMextremum (my z.get(), 1, my ny, 1, my nx);
+	double extremum = fabs (NUMextremum (my z.get()));
 
-	extremum = fabs (extremum);
 	Graphics_Colour colour = Graphics_inqColour (g);
 	double scaleFactor = sqrt (cellAreaScaleFactor);
 	for (integer i = 1; i <= numberOfCells; i++) {
@@ -287,7 +276,7 @@ void Matrix_drawDistribution (Matrix me, Graphics g, double xmin, double xmax, d
 
 	if (nBins < 1) nBins = 10;
 
-	autoVEC freq = newVECraw (nBins);
+	autoVEC freq = newVECzero (nBins);
 	double binWidth = (maximum - minimum) / nBins;
 	integer nxy = 0;
 	for (integer i = iymin; i <= iymax; i ++) {
@@ -397,6 +386,24 @@ autoMatrix Matrix_solveEquation (Matrix me, double tolerance) {
 			thy z [1] [j] = x [j];
 		}
 		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": matrix equation not solved.");
+	}
+}
+
+autoMatrix Matrix_solveEquation (Matrix me, Matrix thee, double tolerance) {
+	try {
+		Melder_require (my ny == thy ny, U"The number of rows must be equal.");
+		
+		if (my ny < my nx) {
+			Melder_warning (U"Solution is not unique (there are fewer equations than unknowns).");
+		}
+
+		autoMatrix him = Matrix_create (0.5, 0.5 + thy nx, thy nx, 1, 1, 0.5, 0.5 + my nx, my nx, 1, 1);
+		autoSVD svd = SVD_createFromGeneralMatrix (my z.get());
+		SVD_zeroSmallSingularValues (svd.get(), tolerance);
+		SVD_solve_preallocated (svd.get(), thy z.get(), his z.get());
+		return him;
 	} catch (MelderError) {
 		Melder_throw (me, U": matrix equation not solved.");
 	}
@@ -630,6 +637,18 @@ void Matrix_Eigen_complex (Matrix me, autoMatrix *out_eigenvectors, autoMatrix *
 		}
 	}catch (MelderError) {
 		Melder_throw (U"Cannot create Eigenvalues from Matrix.");
+	}
+}
+
+autoMatrix SVD_to_Matrix (SVD me, integer from, integer to) {
+	try {
+		autoMAT synthesis = SVD_synthesize (me, from, to);
+		autoMatrix thee = Matrix_create (0.5, 0.5 + synthesis.ncol, synthesis.ncol, 1.0, 1.0,
+										 0.5, 0.5 + synthesis.nrow, synthesis.nrow, 1.0, 1.0);
+		thy z.get() <<= synthesis.get();
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": no Matrix synthesized.");
 	}
 }
 

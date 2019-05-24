@@ -1,6 +1,6 @@
 /* Eigen.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,8 +110,9 @@ void Eigen_init (Eigen me, integer numberOfEigenvalues, integer dimension) {
 	Eigenvectors: the columns of the matrix V
 	Eigenvalues: D_i^2
 */
-void Eigen_initFromSquareRoot (Eigen me, constMAT a) {
-	Melder_assert (a.nrow >= 1);
+void Eigen_initFromSquareRoot (Eigen me, constMATVU const& a) {
+	Melder_require (a.nrow >= 1,
+		U"The matrix must at least have one row.");
 	integer nsv = std::min (a.nrow, a.ncol);
 	my dimension = a.ncol;
 	autoSVD svd = SVD_createFromGeneralMatrix (a);
@@ -141,7 +142,6 @@ void Eigen_initFromSquareRoot (Eigen me, constMAT a) {
 
 
 void Eigen_initFromSquareRootPair (Eigen me, constMAT a, constMAT b) {
-	//Melder_assert (a.nrow >= a.ncol && b.nrow >= b.ncol);   // pggb: this cannot be an assert, and seems too strict anyway
 	Melder_require (a.ncol == b.ncol,
 		U"The numbers of columns should be equal, not ", a.ncol, U" and ", b.ncol, U".");
 	// Eigen has not been inited yet.
@@ -166,7 +166,8 @@ void Eigen_initFromSquareRootPair (Eigen me, constMAT a, constMAT b) {
 	(void) NUMlapack_dggsvd (& jobu, & jobv, & jobq, & m, & n, & p, & k, & ll,
 		& ac [1][1], & lda, & bc [1][1], & ldb, alpha.begin(), beta.begin(), u, & ldu,
 		v, & ldv, & q [1][1], & ldq, work.begin(), iwork.begin(), & info);
-	Melder_require (info == 0, U"dggsvd fails with code ", info, U".");
+	Melder_require (info == 0,
+		U"dggsvd fails with code ", info, U".");
 
 	// Calculate the eigenvalues (alpha[i]/beta[i])^2 and store in alpha[i].
 
@@ -188,7 +189,8 @@ void Eigen_initFromSquareRootPair (Eigen me, constMAT a, constMAT b) {
 		}
 	}
 
-	Melder_require (ll - numberOfDeselected > 0, U"No eigenvectors can be found. Matrix too singular.");
+	Melder_require (ll - numberOfDeselected > 0,
+		U"No eigenvectors can be found. Matrix too singular.");
 
 	Eigen_init (me, ll - numberOfDeselected, a.ncol);
 
@@ -205,7 +207,7 @@ void Eigen_initFromSquareRootPair (Eigen me, constMAT a, constMAT b) {
 	MATnormalizeRows_inplace (my eigenvectors.get(), 2.0, 1.0);
 }
 
-void Eigen_initFromSymmetricMatrix (Eigen me, constMAT a) {
+void Eigen_initFromSymmetricMatrix (Eigen me, constMATVU const& a) {
 	Melder_assert (a.ncol == a.nrow);
 	if (NUMisEmpty (my eigenvectors))   // ppgb: BUG dubious logic
 		Eigen_init (me, a.ncol, a.ncol);
@@ -293,11 +295,9 @@ void Eigen_sort (Eigen me) {
 }
 
 void Eigen_invertEigenvector (Eigen me, integer ivec) {
-
-	if (ivec < 1 || ivec > my numberOfEigenvalues) {
-		return;
-	}
-
+	Melder_require (ivec >= 1 and ivec <= my numberOfEigenvalues,
+		U"The eigenvector number should be in the interval from 1 to ", my numberOfEigenvalues, U".");
+	
 	for (integer j = 1; j <= my dimension; j ++) {
 		my eigenvectors [ivec] [j] = - my eigenvectors [ivec] [j];
 	}
@@ -366,7 +366,7 @@ void Eigen_drawEigenvector (Eigen me, Graphics g, integer ivec, integer first, i
 	// If ymax < ymin the eigenvector will automatically be drawn inverted.
 
 	if (ymax == ymin) {
-		NUMextrema (vec, first, last, & ymin, & ymax);
+		NUMextrema (vec.part (first, last), & ymin, & ymax);
 		ymax *= w;
 		ymin *= w;
 	}
@@ -423,8 +423,10 @@ static autoVEC Eigens_getAnglesBetweenSubspaces (Eigen me, Eigen thee, integer i
 
 	integer nmin = std::min (my numberOfEigenvalues, thy numberOfEigenvalues);
 
-	Melder_require (my dimension == thy dimension, U"The eigenvectors should have equal dimensions.");
-	Melder_require (ivec_from > 0 && ivec_from <= ivec_to && ivec_to <= nmin, U"Eigenvector range too large.");
+	Melder_require (my dimension == thy dimension,
+		U"The eigenvectors should have equal dimensions.");
+	Melder_require (ivec_from > 0 && ivec_from <= ivec_to && ivec_to <= nmin,
+		U"Eigenvector range too large.");
 
 	/*
 		Algorithm 12.4.3 Golub & van Loan
@@ -435,10 +437,8 @@ static autoVEC Eigens_getAnglesBetweenSubspaces (Eigen me, Eigen thee, integer i
 
 	autoVEC angles_degrees = newVECraw (numberOfVectors);
 
-	autoMAT c = newMATmul (
-			my eigenvectors.horizontalBand (ivec_from, ivec_to),
-			thy eigenvectors. horizontalBand (ivec_from, ivec_to). transpose()
-	);
+	autoMAT c = newMATmul (my eigenvectors.horizontalBand (ivec_from, ivec_to),
+			thy eigenvectors. horizontalBand (ivec_from, ivec_to). transpose());
 	autoSVD svd = SVD_createFromGeneralMatrix (c.get());
 	for (integer i = 1; i <= numberOfVectors; i ++) {
 		angles_degrees [i] = acos (svd -> d [i]) * (180.0 / NUMpi);

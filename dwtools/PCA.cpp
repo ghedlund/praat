@@ -2,7 +2,7 @@
  *
  * Principal Component Analysis
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ integer PCA_getNumberOfObservations (PCA me) {
 	return my numberOfObservations;
 }
 
-void PCA_getEqualityOfEigenvalues (PCA me, integer from, integer to, int conservative, double *p_prob, double *p_chisq, double *p_df) {
+void PCA_getEqualityOfEigenvalues (PCA me, integer from, integer to, int conservative, double *out_prob, double *out_chisq, double *out_df) {
 	double sum = 0.0, sumln = 0.0;
 
 	double prob = undefined, df = undefined, chisq = undefined;
@@ -119,15 +119,12 @@ void PCA_getEqualityOfEigenvalues (PCA me, integer from, integer to, int conserv
 		chisq = n * (r * log (sum / r) - sumln);
 		prob = NUMchiSquareQ (chisq, df);
 	}
-	if (p_prob) {
-		*p_prob = prob;
-	}
-	if (p_chisq) {
-		*p_chisq = chisq;
-	}
-	if (p_df) {
-		*p_df = df;
-	}
+	if (out_prob)
+		*out_prob = prob;
+	if (out_chisq)
+		*out_chisq = chisq;
+	if (out_df)
+		*out_df = df;
 }
 
 /* the low level routines 
@@ -243,7 +240,7 @@ autoTableOfReal PCA_TableOfReal_to_TableOfReal_projectRows (PCA me, TableOfReal 
 		}
 
 		autoTableOfReal him = TableOfReal_create (thy numberOfRows, numberOfDimensionsToKeep);
-		Eigen_TableOfReal_into_TableOfReal_projectRows (me, thee, 1, him.get(), 1, numberOfDimensionsToKeep);
+		MATmul (his data.get(), thy data.get(), my eigenvectors.horizontalBand(1, numberOfDimensionsToKeep).transpose()); 
 		his rowLabels.all() <<= thy rowLabels.all();
 		TableOfReal_setSequentialColumnLabels (him.get(), 0, 0, U"pc", 1, 1);
 		return him;
@@ -258,7 +255,7 @@ autoConfiguration PCA_TableOfReal_to_Configuration (PCA me, TableOfReal thee, in
 			numberOfDimensionsToKeep = my numberOfEigenvalues;
 
 		autoConfiguration him = Configuration_create (thy numberOfRows, numberOfDimensionsToKeep);
-		Eigen_TableOfReal_into_TableOfReal_projectRows (me, thee, 1, him.get(), 1, numberOfDimensionsToKeep);
+		MATmul (his data.get(), thy data.get(), my eigenvectors.horizontalBand(1, numberOfDimensionsToKeep).transpose()); 
 		his rowLabels.all() <<= thy rowLabels.all();
 		TableOfReal_setSequentialColumnLabels (him.get(), 0, 0, U"pc", 1, 1);
 		return him;
@@ -281,7 +278,7 @@ autoTableOfReal PCA_Configuration_to_TableOfReal_reconstruct (PCA me, Configurat
 		his columnLabels.all() <<= my labels.all();
 		his rowLabels.all() <<= thy rowLabels.all();
 
-		MATVUmul (his data.get(), thy data.get(), my eigenvectors.get());
+		MATmul (his data.get(), thy data.get(), my eigenvectors.get());
 		
 		return him;
 	} catch (MelderError) {

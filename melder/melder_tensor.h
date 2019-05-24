@@ -2,7 +2,7 @@
 #define _melder_tensor_h_
 /* melder_tensor.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,28 +66,6 @@ void NUMvector_insert_generic (integer elementSize, byte **v, integer lo, intege
 	On failure, *v and *hi are not changed.
 */
 
-/********** Arrays with two indices **********/
-
-void * NUMmatrix_generic (integer elementSize, integer row1, integer row2, integer col1, integer col2, bool zero);
-/*
-	Function:
-		create a matrix [row1...row2] [col1...col2]; if `zero`, then all values are initialized to 0.
-	Preconditions:
-		row2 >= row1;
-		col2 >= col1;
-*/
-
-void NUMmatrix_free_generic (integer elementSize, byte **m, integer row1, integer col1) noexcept;
-/*
-	Function:
-		destroy a matrix m created with NUM...matrix.
-	Preconditions:
-		if m != nullptr: row1 and col1
-		must have the same value as with the creation of the matrix.
-*/
-
-integer NUM_getTotalNumberOfArrays ();   // for debugging
-
 template <class T>
 T* NUMvector (integer from, integer to) {
 	T* result = reinterpret_cast <T*> (NUMvector_generic (sizeof (T), from, to, true));
@@ -117,11 +95,6 @@ bool NUMvector_equal (const T* v1, const T* v2, integer lo, integer hi) {
 }
 
 template <class T>
-void NUMvector_copyElements (const T* vfrom, T* vto, integer lo, integer hi) {
-	NUMvector_copyElements_generic (sizeof (T), reinterpret_cast <const byte *> (vfrom), reinterpret_cast <byte *> (vto), lo, hi);
-}
-
-template <class T>
 void NUMvector_append (T** v, integer lo, integer *hi) {
 	NUMvector_append_generic (sizeof (T), reinterpret_cast <byte **> (v), lo, hi);
 }
@@ -130,6 +103,8 @@ template <class T>
 void NUMvector_insert (T** v, integer lo, integer *hi, integer position) {
 	NUMvector_insert_generic (sizeof (T), reinterpret_cast <byte **> (v), lo, hi, position);
 }
+
+integer NUM_getTotalNumberOfArrays ();   // for debugging
 
 template <class T>
 class autoNUMvector {
@@ -175,73 +150,6 @@ public:
 		}
 		d_from = from;
 		d_ptr = NUMvector<T> (from, to, zero);
-	}
-};
-
-template <class T>
-T** NUMmatrix (integer row1, integer row2, integer col1, integer col2) {
-	T** result = static_cast <T**> (NUMmatrix_generic (sizeof (T), row1, row2, col1, col2, true));
-	return result;
-}
-
-template <class T>
-T** NUMmatrix (integer row1, integer row2, integer col1, integer col2, bool zero) {
-	T** result = static_cast <T**> (NUMmatrix_generic (sizeof (T), row1, row2, col1, col2, zero));
-	return result;
-}
-
-template <class T>
-void NUMmatrix_free (T** ptr, integer row1, integer col1) noexcept {
-	NUMmatrix_free_generic (sizeof (T), reinterpret_cast <byte **> (ptr), row1, col1);
-}
-
-template <class T>
-class autoNUMmatrix {
-	T** d_ptr;
-	integer d_row1, d_col1;
-public:
-	autoNUMmatrix (integer row1, integer row2, integer col1, integer col2) : d_row1 (row1), d_col1 (col1) {
-		d_ptr = NUMmatrix<T> (row1, row2, col1, col2, true);
-	}
-	autoNUMmatrix (integer row1, integer row2, integer col1, integer col2, bool zero) : d_row1 (row1), d_col1 (col1) {
-		d_ptr = NUMmatrix<T> (row1, row2, col1, col2, zero);
-	}
-	autoNUMmatrix (T **ptr, integer row1, integer col1) : d_ptr (ptr), d_row1 (row1), d_col1 (col1) {
-	}
-	autoNUMmatrix () : d_ptr (nullptr), d_row1 (0), d_col1 (0) {
-	}
-	~autoNUMmatrix () {
-		if (d_ptr)
-			NUMmatrix_free_generic (sizeof (T), reinterpret_cast <byte **> (d_ptr), d_row1, d_col1);
-	}
-	T*& operator[] (integer row) {
-		return d_ptr [row];
-	}
-	T** peek () const {
-		return d_ptr;
-	}
-	T** transfer () {
-		T** temp = d_ptr;
-		d_ptr = nullptr;
-		return temp;
-	}
-	void reset (integer row1, integer row2, integer col1, integer col2) {
-		if (d_ptr) {
-			NUMmatrix_free_generic (sizeof (T), reinterpret_cast <byte **> (d_ptr), d_row1, d_col1);
-			d_ptr = nullptr;
-		}
-		d_row1 = row1;
-		d_col1 = col1;
-		d_ptr = NUMmatrix<T> (row1, row2, col1, col2, true);
-	}
-	void reset (integer row1, integer row2, integer col1, integer col2, bool zero) {
-		if (d_ptr) {
-			NUMmatrix_free_generic (sizeof (T), reinterpret_cast <byte **> (d_ptr), d_row1, d_col1);
-			d_ptr = nullptr;
-		}
-		d_row1 = row1;
-		d_col1 = col1;
-		d_ptr = NUMmatrix<T> (row1, row2, col1, col2, zero);
 	}
 };
 
@@ -330,6 +238,7 @@ public:
 	T * firstCell = nullptr;
 	integer size = 0;
 	integer stride = 1;
+	vectorview () = default;
 	vectorview (const vector<T>& other) :
 			firstCell (& other.at [1]), size (other.size), stride (1) { }
 	explicit vectorview (T * const firstCell_, integer const size_, integer const stride_) :
@@ -381,6 +290,7 @@ public:
 	const T * firstCell = nullptr;
 	integer size = 0;
 	integer stride = 1;
+	constvectorview () = default;
 	constvectorview (const constvector<T>& other) :
 			firstCell (& other.at [1]), size (other.size), stride (1) { }
 	constvectorview (const vector<T>& other) :
@@ -411,7 +321,7 @@ public:
 */
 template <typename T>
 class autovector : public vector<T> {
-	integer capacity = 0;
+	integer _capacity = 0;
 public:
 	autovector (): vector<T> (nullptr, 0) { }   // come into existence without a payload
 	explicit autovector (integer givenSize, kTensorInitializationType initializationType) {   // come into existence and manufacture a payload
@@ -419,11 +329,11 @@ public:
 		our at = ( givenSize == 0 ? nullptr
 				: NUMvector<T> (1, givenSize, initializationType == kTensorInitializationType::ZERO) );
 		our size = givenSize;
-		our capacity = givenSize;
+		our _capacity = givenSize;
 	}
 	~autovector () {   // destroy the payload (if any)
 		our reset ();
-		our capacity = 0;
+		our _capacity = 0;
 	}
 	vector<T> get () const { return vector<T> (our at, our size); }   // let the public use the payload (they may change the values of the elements but not the at-pointer or the size)
 	vectorview<T> all () const { return vectorview<T> (& our at [1], our size, 1); }
@@ -431,13 +341,13 @@ public:
 		our reset();
 		our at = given.at;
 		our size = given.size;
-		our capacity = given.size;
+		our _capacity = given.size;
 	}
 	vector<T> releaseToAmbiguousOwner () {   // sell the payload to a non-autovector
 		T *oldAt = our at;
 		our at = nullptr;   // disown ourselves, preventing automatic destruction of the payload
 		integer oldSize = our size;
-		our capacity = 0;
+		our _capacity = 0;
 		return vector<T> (oldAt, oldSize);
 	}
 	/*
@@ -452,17 +362,17 @@ public:
 	autovector (autovector&& other) noexcept : vector<T> { other.get() } {   // enable move constructor
 		other.at = nullptr;   // disown source
 		other.size = 0;   // to keep the source in a valid state
-		other.capacity = 0;
+		other._capacity = 0;
 	}
 	autovector& operator= (autovector&& other) noexcept {   // enable move assignment
 		if (other.at != our at) {
 			our reset ();
 			our at = other.at;
 			our size = other.size;
-			our capacity = other.capacity;
+			our _capacity = other._capacity;
 			other.at = nullptr;   // disown source
 			other.size = 0;   // to keep the source in a valid state
-			other.capacity = 0;
+			other._capacity = 0;
 		}
 		return *this;
 	}
@@ -475,21 +385,14 @@ public:
 	}
 	autovector&& move () noexcept { return static_cast <autovector&&> (*this); }   // enable constriction and assignment for l-values (variables) via explicit move()
 	/*
-		Unlike std::vector, our vector is not really designed for dynamic resizing,
-		i.e. it has no `capacity` member. This is because our vectors should mainly feel happy
-		in an environment with matrixes, tensor3s and tensor4s, for which dynamic resizing
-		makes little sense.
-		The following functions, however, do support dynamic resizing,
-		but the capacity should be kept in an external integer.
-
-		Some of these functions are capable of keeping a valid `at` pointer
+		Some of the following functions are capable of keeping a valid `at` pointer
 		while `size` can at the same time be zero.
 	*/
-	void initWithCapacity (integer *inout_capacity, kTensorInitializationType initializationType = kTensorInitializationType::ZERO) {
-		if (*inout_capacity > 0)
-			our at = NUMvector<T> (1, *inout_capacity, initializationType == kTensorInitializationType::ZERO);
+	void initWithCapacity (integer capacity, kTensorInitializationType initializationType = kTensorInitializationType::ZERO) {
+		if (capacity > 0)
+			our at = NUMvector<T> (1, capacity, initializationType == kTensorInitializationType::ZERO);
 		our size = 0;
-		our capacity = *inout_capacity;
+		our _capacity = capacity;
 	}
 	/*
 		If the new size N is less than the current size S,
@@ -506,18 +409,15 @@ public:
 		elsewhere than at the head of the vector,
 		you should shift the elements after resizing.
 	*/
-	void resize (integer newSize, integer *inout_capacity = nullptr,
-		kTensorInitializationType initializationType = kTensorInitializationType::ZERO)
-	{
-		const integer currentCapacity = ( inout_capacity ? *inout_capacity : our size );
-		if (newSize > currentCapacity) {
+	void resize (integer newSize, kTensorInitializationType initializationType = kTensorInitializationType::ZERO) {
+		if (newSize > our _capacity) {
 			/*
 				The new capacity is at least twice the old capacity.
 				When starting at a capacity of 0, and continually upsizing by one,
 				the capacity sequence will be: 0, 11, 33, 77, 165, 341, 693, 1397,
 				2805, 5621, 11253, 22517, 45045, 90101, 180213, 360437, 720885...
 			*/
-			integer newCapacity = ( inout_capacity ? newSize + our size + 10 : newSize );
+			integer newCapacity = newSize + our size + 10;
 			/*
 				Create without change.
 			*/
@@ -529,14 +429,12 @@ public:
 				newAt [i] = our at [i];
 			if (our at) NUMvector_free (our at, 1);
 			our at = newAt;
-			if (inout_capacity)
-				*inout_capacity = newCapacity;
-			our capacity = newCapacity;
+			our _capacity = newCapacity;
 		}
 		our size = newSize;
 	}
-	void insert (integer position, const T& value, integer *inout_capacity = nullptr) {
-		resize (our size + 1, inout_capacity, kTensorInitializationType::RAW);
+	void insert (integer position, const T& value) {
+		resize (our size + 1, kTensorInitializationType::RAW);
 		Melder_assert (position >= 1 && position <= our size);
 		for (integer i = our size; i > position; i --)
 			our at [i] = our at [i - 1];
@@ -559,15 +457,15 @@ autovector<T> newvectorzero (integer size) {
 	return autovector<T> (size, kTensorInitializationType::ZERO);
 }
 template <typename T>
-autovector<T> newvectorcopy (constvector<T> source) {
+autovector<T> newvectorcopy (constvectorview<T> source) {
 	autovector<T> result = newvectorraw<T> (source.size);
 	for (integer i = 1; i <= source.size; i ++)
 		result [i] = source [i];
 	return result;
 }
 template <typename T>
-autovector<T> newvectorcopy (vector<T> source) {
-	return newvectorcopy (constvector<T> (source));
+autovector<T> newvectorcopy (vectorview<T> source) {
+	return newvectorcopy (constvectorview<T> (source));
 }
 
 template <typename T>
@@ -577,20 +475,15 @@ class matrixview;
 template <typename T>
 class constmatrixview;
 
-#define PACKED_TENSORS  0
-
 template <typename T>
 class matrix {
 public:
-	T **at_deprecated = nullptr;   // deprecated; WATCH OUT: when removed, change MatrixEditor
+	T *cells = nullptr;
 	integer nrow = 0, ncol = 0;
-	T *cells = nullptr;   // the future
 public:
 	matrix () = default;
-	//matrix (T *givenCells, integer givenNrow, integer givenNcol) :
-	//		cells (givenCells), nrow (givenNrow), ncol (givenNcol) { }
-	explicit matrix (T **givenAt, integer givenNrow, integer givenNcol) :
-			cells (givenAt ? & givenAt [1] [1] : nullptr), at_deprecated (givenAt), nrow (givenNrow), ncol (givenNcol) { }
+	explicit matrix (T *givenCells, integer givenNrow, integer givenNcol) :
+			cells (givenCells), nrow (givenNrow), ncol (givenNcol) { }
 	matrix (const matrix& other) = default;
 	matrix (const automatrix<T>& other) = delete;
 	matrix& operator= (const matrix&) = default;
@@ -600,7 +493,6 @@ public:
 	}
 	vector<T> row (integer rowNumber) const {
 		Melder_assert (rowNumber >= 1 && rowNumber <= our nrow);
-		Melder_assert (our at_deprecated);
 		Melder_assert (our cells);
 		return vector<T> (our cells + (rowNumber - 1) * our ncol - 1, our ncol);
 	}
@@ -611,12 +503,12 @@ public:
 	vectorview<T> diagonal () const {
 		return vectorview<T> (our cells, std::min (our nrow, our ncol), our ncol + 1);
 	}
-	matrix<T> horizontalBand (integer firstRow, integer lastRow) const {
+	matrixview<T> horizontalBand (integer firstRow, integer lastRow) const {
 		Melder_assert (firstRow >= 1 && firstRow <= our nrow);
 		Melder_assert (lastRow >= 0 && lastRow <= our nrow);
 		const integer newNrow = lastRow - (firstRow - 1);
-		if (newNrow <= 0) return matrix<T> ();
-		return matrix<T> (& our at_deprecated [firstRow - 1], newNrow, our ncol);
+		if (newNrow <= 0) return matrixview<T> ();
+		return matrixview<T> (our cells + (firstRow - 1) * our ncol, newNrow, our ncol, our ncol, 1);
 	}
 	matrixview<T> verticalBand (integer firstColumn, integer lastColumn) const {
 		Melder_assert (firstColumn >= 1 && firstColumn <= our ncol);
@@ -637,7 +529,7 @@ public:
 			newNrow, newNcol, our ncol, 1
 		);
 	}
-	matrixview<T> transpose () {
+	matrixview<T> transpose () const {
 		return matrixview<T> (our cells, our ncol, our nrow, 1, our ncol);
 	}
 };
@@ -688,7 +580,7 @@ public:
 			newNrow, newNcol, our rowStride, our colStride
 		);
 	}
-	matrixview<T> transpose () {
+	matrixview<T> transpose () const {
 		return matrixview<T> (our firstCell, our ncol, our nrow, our colStride, our rowStride);
 	}
 };
@@ -697,21 +589,17 @@ template <typename T>
 class constmatrix {
 public:
 	const T *cells = nullptr;
-	const T * const * at_deprecated = nullptr;
 	integer nrow = 0, ncol = 0;
 	constmatrix () = default;
-	//constmatrix (const T *givenCells, integer givenNrow, integer givenNcol): cells (givenCells), nrow (givenNrow), ncol (givenNcol) { }
-	explicit constmatrix (const T * const *givenAt, integer givenNrow, integer givenNcol) :
-			cells (givenAt ? & givenAt [1] [1] : nullptr), at_deprecated (givenAt), nrow (givenNrow), ncol (givenNcol) { }
+	//explicit constmatrix (const T *givenCells, integer givenNrow, integer givenNcol): cells (givenCells), nrow (givenNrow), ncol (givenNcol) { }
 	constmatrix (matrix<T> mat) :
-			cells (mat.cells), at_deprecated (mat.at_deprecated), nrow (mat.nrow), ncol (mat.ncol) { }
+			cells (mat.cells), nrow (mat.nrow), ncol (mat.ncol) { }
 
 	constvector<T> operator[] (integer rowNumber) const {
 		return constvector<T> (our cells + (rowNumber - 1) * our ncol - 1, our ncol);
 	}
 	constvector<T> row (integer rowNumber) const {
 		Melder_assert (rowNumber >= 1 && rowNumber <= our nrow);
-		Melder_assert (our at_deprecated);
 		Melder_assert (our cells);
 		return constvector<T> (our cells + (rowNumber - 1) * our ncol - 1, our ncol);
 	}
@@ -722,12 +610,12 @@ public:
 	constvectorview<T> diagonal () const {
 		return constvectorview<T> (our cells, std::min (our nrow, our ncol), our ncol + 1);
 	}
-	constmatrix<T> horizontalBand (integer firstRow, integer lastRow) const {
+	constmatrixview<T> horizontalBand (integer firstRow, integer lastRow) const {
 		Melder_assert (firstRow >= 1 && firstRow <= our nrow);
 		Melder_assert (lastRow >= 0 && lastRow <= our nrow);
 		const integer newNrow = lastRow - (firstRow - 1);
-		if (newNrow <= 0) return constmatrix<T> ();
-		return constmatrix<T> (our cells + (firstRow - 1) * our ncol, newNrow, our ncol);
+		if (newNrow <= 0) return constmatrixview<T> ();
+		return constmatrixview<T> (our cells + (firstRow - 1) * our ncol, newNrow, our ncol, our ncol, 1);
 	}
 	constmatrixview<T> verticalBand (integer firstColumn, integer lastColumn) const {
 		Melder_assert (firstColumn >= 1 && firstColumn <= our ncol);
@@ -748,7 +636,7 @@ public:
 			newNrow, newNcol, our ncol, 1
 		);
 	}
-	constmatrixview<T> transpose () {
+	constmatrixview<T> transpose () const {
 		return constmatrixview<T> (our cells, our ncol, our nrow, 1, our ncol);
 	}
 };
@@ -772,7 +660,12 @@ public:
 	constvectorview<T> operator[] (integer i) const {
 		return constvectorview<T> (our firstCell + (i - 1) * our rowStride, our ncol, our colStride);
 	}
+	constvectorview<T> row (integer rowNumber) const {
+		Melder_assert (rowNumber >= 1 && rowNumber <= our nrow);
+		return constvectorview<T> (our firstCell + (rowNumber - 1) * our rowStride, our ncol, our colStride);
+	}
 	constvectorview<T> column (integer columnNumber) const {
+		Melder_assert (columnNumber >= 1 && columnNumber <= our ncol);
 		return constvectorview<T> (our firstCell + (columnNumber - 1) * our colStride, our nrow, our rowStride);
 	}
 	constvectorview<T> diagonal () const {
@@ -801,7 +694,7 @@ public:
 			our rowStride, our colStride
 		);
 	}
-	constmatrixview<T> transpose () {
+	constmatrixview<T> transpose () const {
 		return constmatrixview<T> (our firstCell, our ncol, our nrow, our colStride, our rowStride);
 	}
 };
@@ -820,45 +713,29 @@ public:
 	explicit automatrix (integer givenNrow, integer givenNcol, kTensorInitializationType initializationType) {   // come into existence and manufacture a payload
 		Melder_assert (givenNrow >= 0);
 		Melder_assert (givenNcol >= 0);
-		#if PACKED_TENSORS
 		our cells = ( givenNrow == 0 || givenNcol == 0 ? nullptr
 				: NUMvector<T> (0, givenNrow * givenNcol - 1, initializationType == kTensorInitializationType::ZERO));
-		#else
-		our at_deprecated = ( givenNrow == 0 || givenNcol == 0 ? nullptr
-				: NUMmatrix<T> (1, givenNrow, 1, givenNcol, initializationType == kTensorInitializationType::ZERO));
-		our cells = our at_deprecated ? & our at_deprecated [1] [1] : nullptr;
-		#endif
 		our nrow = givenNrow;
 		our ncol = givenNcol;
 	}
 	~automatrix () {   // destroy the payload (if any)
-		#if PACKED_TENSORS
-		if (our cells) NUMvector_free (our cells, 1);
-		#else
-		if (our at_deprecated) NUMmatrix_free (our at_deprecated, 1, 1);
-		#endif
+		if (our cells) NUMvector_free (our cells, 0);
 	}
 	//matrix<T> get () { return { our at, our nrow, our ncol }; }   // let the public use the payload (they may change the values in the cells but not the at-pointer, nrow or ncol)
 	const matrix<T>& get () const { return *this; }   // let the public use the payload (they may change the values in the cells but not the at-pointer, nrow or ncol)
 	matrixview<T> all () const {
-		#if PACKED_TENSORS
 		return matrixview<T> (our cells, our nrow, our ncol, our ncol, 1);
-		#else
-		return matrixview<T> (& our at_deprecated [1] [1], our nrow, our ncol, our ncol, 1);
-		#endif
 	}
 	void adoptFromAmbiguousOwner (matrix<T> given) {   // buy the payload from a non-automatrix
 		our reset();
 		our cells = given.cells;
-		our at_deprecated = given.at_deprecated;
 		our nrow = given.nrow;
 		our ncol = given.ncol;
 	}
 	matrix<T> releaseToAmbiguousOwner () {   // sell the payload to a non-automatrix
-		T **oldAt = our at_deprecated;
-		our at_deprecated = nullptr;   // disown ourselves, preventing automatic destruction of the payload
-		our cells = nullptr;
-		return matrix<T> (oldAt, our nrow, our ncol);
+		T *oldCells = our cells;
+		our cells = nullptr;   // disown ourselves, preventing automatic destruction of the payload
+		return matrix<T> (oldCells, our nrow, our ncol);
 	}
 	/*
 		Disable copying via construction or assignment (which would violate unique ownership of the payload).
@@ -871,14 +748,12 @@ public:
 	*/
 	automatrix (automatrix&& other) noexcept : matrix<T> { other.get() } {   // enable move constructor
 		other.cells = nullptr;   // disown source
-		other.at_deprecated = nullptr;   // disown source
 		other.nrow = 0;   // to keep the source in a valid state
 		other.ncol = 0;   // to keep the source in a valid state
 	}
 	automatrix& operator= (automatrix&& other) noexcept {   // enable move assignment
-		#if PACKED_TENSORS
 		if (other.cells != our cells) {
-			if (our cells) NUMvector_free (our cells, 1);
+			if (our cells) NUMvector_free (our cells, 0);
 			our cells = other.cells;
 			our nrow = other.nrow;
 			our ncol = other.ncol;
@@ -886,34 +761,13 @@ public:
 			other.nrow = 0;   // to keep the source in a valid state
 			other.ncol = 0;   // to keep the source in a valid state
 		}
-		#else
-		if (other.at_deprecated != our at_deprecated) {
-			if (our at_deprecated) NUMmatrix_free (our at_deprecated, 1, 1);
-			our at_deprecated = other.at_deprecated;
-			our cells = other.cells;
-			our nrow = other.nrow;
-			our ncol = other.ncol;
-			other.at_deprecated = nullptr;   // disown source
-			other.cells = nullptr;   // disown source
-			other.nrow = 0;   // to keep the source in a valid state
-			other.ncol = 0;   // to keep the source in a valid state
-		}
-		#endif
 		return *this;
 	}
 	void reset () noexcept {   // on behalf of ambiguous owners (otherwise this could be in autoMAT)
-		#if PACKED_TENSORS
 		if (our cells) {
-			NUMvector_free (our cells, 1);
+			NUMvector_free (our cells, 0);
 			our cells = nullptr;
 		}
-		#else
-		if (our at_deprecated) {
-			NUMmatrix_free (our at_deprecated, 1, 1);
-			our at_deprecated = nullptr;
-			our cells = nullptr;
-		}
-		#endif
 		our nrow = 0;
 		our ncol = 0;
 	}
@@ -929,32 +783,20 @@ automatrix<T> newmatrixzero (integer nrow, integer ncol) {
 	return automatrix<T> (nrow, ncol, kTensorInitializationType::ZERO);
 }
 template <typename T>
-vector<T> asvector (matrix<T> const& x) {
-	#if PACKED_TENSORS
-	return vector<T> (x.cells, x.nrow * x.ncol);
-	#else
-	return vector<T> (& x [1] [0], x.nrow * x.ncol);
-	#endif
-}
-template <typename T>
-constvector<T> asvector (constmatrix<T> const& x) {
-	return constvector<T> (& x [1] [0], x.nrow * x.ncol);
-}
-template <typename T>
-void matrixcopy_preallocated (matrixview<T> const& target, constmatrixview<T> const& source) {
+void matrixcopy (matrixview<T> const& target, constmatrixview<T> const& source) {
 	Melder_assert (source.nrow == target.nrow && source.ncol == target.ncol);
 	for (integer irow = 1; irow <= source.nrow; irow ++)
 		for (integer icol = 1; icol <= source.ncol; icol ++)
 			target [irow] [icol] = source [irow] [icol];
 }
 template <typename T>
-void matrixcopy_preallocated (matrixview<T> const& target, matrixview<T> const& source) {
-	matrixcopy_preallocated (target, constmatrixview<T> (source));
+void matrixcopy (matrixview<T> const& target, matrixview<T> const& source) {
+	matrixcopy (target, constmatrixview<T> (source));
 }
 template <typename T>
 automatrix<T> newmatrixcopy (constmatrixview<T> const& source) {
 	automatrix<T> result = newmatrixraw<T> (source.nrow, source.ncol);
-	matrixcopy_preallocated (result.all(), source);
+	matrixcopy (result.all(), source);
 	return result;
 }
 template <typename T>
@@ -1304,7 +1146,7 @@ autotensor3<T> newtensor3zero (integer ndim1, integer ndim2, integer ndim3) {
 	return autotensor3<T> (ndim1, ndim2, ndim3, kTensorInitializationType::ZERO);
 }
 template <typename T>
-void tensor3copy_preallocated (tensor3<T> const& target, consttensor3<T> const& source) {
+void tensor3copy (tensor3<T> const& target, consttensor3<T> const& source) {
 	Melder_assert (source.ndim1 == target.ndim1 && source.ndim2 == target.ndim2 && source.ndim3 == target.ndim3);
 	for (integer idim1 = 1; idim1 <= source.ndim1; idim1 ++)
 		for (integer idim2 = 1; idim2 <= source.ndim2; idim2 ++)
@@ -1312,13 +1154,13 @@ void tensor3copy_preallocated (tensor3<T> const& target, consttensor3<T> const& 
 				target [idim1] [idim2] [idim3] = source [idim1] [idim2] [idim3];
 }
 template <typename T>
-void tensor3copy_preallocated (tensor3<T> const& target, tensor3<T> const& source) {
-	tensor3copy_preallocated (target, consttensor3<T> (source));
+void tensor3copy (tensor3<T> const& target, tensor3<T> const& source) {
+	tensor3copy (target, consttensor3<T> (source));
 }
 template <typename T>
 autotensor3<T> newtensor3copy (consttensor3<T> const& source) {
 	autotensor3<T> result = newtensor3raw<T> (source.ndim1, source.ndim2, source.ndim3);
-	tensor3copy_preallocated (result.get(), source);
+	tensor3copy (result.get(), source);
 	return result;
 }
 template <typename T>
@@ -1389,7 +1231,7 @@ inline autoVEC newVECraw (integer size) {
 inline autoVEC newVECzero (integer size) {
 	return newvectorzero <double> (size);
 }
-inline autoVEC newVECcopy (constVEC source) {
+inline autoVEC newVECcopy (constVECVU const& source) {
 	return newvectorcopy (source);
 }
 
@@ -1412,12 +1254,14 @@ inline autoINTVEC newINTVECraw (integer size) {
 inline autoINTVEC newINTVECzero (integer size) {
 	return newvectorzero <integer> (size);
 }
-inline autoINTVEC newINTVECcopy (constINTVEC source) {
+inline autoINTVEC newINTVECcopy (constINTVECVU const& source) {
 	return newvectorcopy (source);
 }
 
 using BOOLVEC = vector <bool>;
+using BOOLVECVU = vectorview <bool>;
 using constBOOLVEC = constvector <bool>;
+using constBOOLVECVU = constvectorview <bool>;
 using autoBOOLVEC = autovector <bool>;
 inline autoBOOLVEC newBOOLVECraw (integer size) {
 	return newvectorraw <bool> (size);
@@ -1425,7 +1269,7 @@ inline autoBOOLVEC newBOOLVECraw (integer size) {
 inline autoBOOLVEC newBOOLVECzero (integer size) {
 	return newvectorzero <bool> (size);
 }
-inline autoBOOLVEC newBOOLVECcopy (constBOOLVEC source) {
+inline autoBOOLVEC newBOOLVECcopy (constBOOLVECVU const& source) {
 	return newvectorcopy (source);
 }
 
@@ -1515,8 +1359,8 @@ inline autoBYTEMAT newBYTEMATcopy (constBYTEMATVU source) {
 	return newmatrixcopy (source);
 }
 
-conststring32 Melder_VEC (constVEC value);
-conststring32 Melder_MAT (constMAT value);
+conststring32 Melder_VEC (constVECVU const& value);
+conststring32 Melder_MAT (constMATVU const& value);
 
 inline void operator<<= (INTVECVU const& target, constINTVECVU const& source) {
 	Melder_assert (target.size == source.size);

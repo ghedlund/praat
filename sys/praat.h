@@ -2,7 +2,7 @@
 #define _praat_h_
 /* praat.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,11 +81,11 @@ void praat_addAction4_ (ClassInfo class1, integer n1, ClassInfo class2, integer 
 /*
 	'title' is the name that will appear in the dynamic menu,
 		and also the command that is used in command files;
-		this title is reference-copied.
+		this title is deep-copied.
 	'callback' refers to a function prototyped like this:
-		static int DO_Class_action (UiForm sendingForm, int narg, Stackel args, conststring32 sendingString, Interpreter interpreter, void *closure);
-		this function should throw an exception if the command failed,
-		and return 1 if the command was executed successfully;
+		static void DO_Class_action (UiForm sendingForm, int narg, Stackel args, conststring32 sendingString,
+				Interpreter interpreter, conststring32 invokingButtonTitle, bool modified, void *closure);
+		this function should throw an exception if the command failed;
 		this function will be called by 'praat' when the user clicks a menu command,
 		in which case 'sendingForm', 'args' and 'sendingString' and 'closure' will be null;
 		it is also called by scripts,
@@ -183,9 +183,10 @@ typedef struct {   /* Readonly */
 	int totalBeingCreated;
 	integer uniqueId;
 } structPraatObjects, *PraatObjects;
-typedef struct {   // readonly
+typedef struct {   // read-only
 	Graphics graphics;   /* The Graphics associated with the Picture window or HyperPage window or Demo window. */
-	int font, fontSize, lineType;
+	int font, lineType;
+	double fontSize;
 	Graphics_Colour colour;
 	double lineWidth, arrowSize, speckleSize, x1NDC, x2NDC, y1NDC, y2NDC;
 } structPraatPicture, *PraatPicture;
@@ -717,10 +718,10 @@ void praat_name2 (char32 *name, ClassInfo klas1, ClassInfo klas2);
 #define STRING_ONE_END  Melder_information (result); END_NO_NEW_DATA
 
 #define NUMVEC_ONE(klas)  FIND_ONE (klas)
-#define NUMVEC_ONE_END  if (interpreter) theInterpreterNumvec = result.move(); else Melder_information (constVEC (result.get())); END_NO_NEW_DATA
+#define NUMVEC_ONE_END  if (interpreter) theInterpreterNumvec = result.move(); else Melder_information (constVECVU (result.all())); END_NO_NEW_DATA
 
 #define NUMMAT_ONE(klas)  FIND_ONE (klas)
-#define NUMMAT_ONE_END  if (interpreter) theInterpreterNummat = result.move(); else Melder_information (constMAT (result.get())); END_NO_NEW_DATA
+#define NUMMAT_ONE_END  if (interpreter) theInterpreterNummat = result.move(); else Melder_information (constMATVU (result.all())); END_NO_NEW_DATA
 
 #define MODIFY_EACH(klas)  LOOP { iam_LOOP (klas);
 #define MODIFY_EACH_END  praat_dataChanged (me); } END_NO_NEW_DATA

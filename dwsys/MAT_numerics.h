@@ -1,7 +1,7 @@
 #pragma once
 /* MAT_numerics.h
  *
- * Copyright (C) 2018 David Weenink
+ * Copyright (C) 2018-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ void MAT_getEigenSystemFromSymmetricMatrix (constMAT a, autoMAT *out_eigenvector
 		if (out_eigenvectors) eigenvectors corresponding to the eigenvalues, stored as row-wise vectors.
 */
 
-void MAT_getEigenSystemFromSymmetricMatrix_preallocated (MAT eigenvectors, VEC eigenvalues, constMAT a, bool sortAscending);
+void MAT_getEigenSystemFromSymmetricMatrix_preallocated (MAT eigenvectors, VEC eigenvalues, constMATVU const& a, bool sortAscending);
 /*
 	Input:
 		a, a symmetric a.ncol x a.ncol matrix
@@ -66,11 +66,11 @@ void MAT_eigenvectors_decompress (constMAT eigenvectors, constVEC eigenvalues_re
 	Decompresses each eigenvector row into two consecutive columns (real and imaginary part)
 */
 
-void MAT_asPrincipalComponents_preallocated (MAT pc, constMAT m);
-autoMAT MAT_asPrincipalComponents (constMAT m, integer numberOfComponents);
+void MAT_asPrincipalComponents_preallocated (MATVU pc, constMATVU const& m, integer numberOfComponents);
+autoMAT MAT_asPrincipalComponents (constMATVU m, integer numberOfComponents);
 
-void MATpseudoInverse_preallocated (MAT target, constMAT m, double tolerance);
-autoMAT MATpseudoInverse (constMAT m, double tolerance);
+void MATpseudoInverse (MATVU const& target, constMATVU const& mat, double tolerance);
+autoMAT newMATpseudoInverse (constMATVU const& mat, double tolerance);
 /*
 	Determines the pseudo-inverse Y^-1 of Y[1..nrow][1..ncol] via s.v.d.
 	Alternative notation for pseudo-inverse: (Y'.Y)^-1.Y'

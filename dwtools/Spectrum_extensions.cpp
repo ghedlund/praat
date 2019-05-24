@@ -1,6 +1,6 @@
 /* Spectrum_extensions.cpp
  *
- * Copyright (C) 1993-2017 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -409,15 +409,5 @@ autoSpectrum Spectrum_compressFrequencyDomain (Spectrum me, double fmax, integer
 		Melder_throw (me, U": not compressed.");
 	}
 }
-
-#if 0
-static void Spectrum_fitTiltLine (Spectrum me, double fmin, double fmax, bool logf, double bandwidth, double *a, double *intercept, int method) {
-	(void) me; (void) fmin; (void) fmax; (void) logf; (void) bandwidth; (void) a; (void) intercept; (void) method;
-	try {
-	} catch (MelderError) {
-		Melder_throw (U"Tilt line not fitted.");
-	}
-}
-#endif
 
 /* End of file Spectrum_extensions.cpp */

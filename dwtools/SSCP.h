@@ -2,7 +2,7 @@
 #define _SSCP_h_
 /* SSCP.h
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ autoSSCP SSCP_create (integer dimension);
 
 void SSCP_reset (SSCP me);
 
-void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, conststring32 label, int fontSize);
+void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, conststring32 label, double fontSize);
 
 double SSCP_getEllipseScalefactor (SSCP me, double scale, bool confidence);
 
@@ -106,7 +106,7 @@ autoTableOfReal SSCP_extractCentroid (SSCP me);
 autoTableOfReal Covariance_to_TableOfReal_randomSampling (Covariance me, integer numberOfData);
 /* Generate a table with data based on the covariance matrix */
 
-void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VEC vec, VEC buf);
+void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VECVU vec, VEC buf);
 /*
 	A convenience function to avoid the calculation of the PCA each time we want to generate a random vector
 	The PCA must be the result of a previous SSCP_to_PCA call !
@@ -162,9 +162,9 @@ autoTableOfReal Correlation_confidenceIntervals (Correlation me, double confiden
 */
 
 /* Precondition ||vector|| = 1 */
-void Covariance_getMarginalDensityParameters (Covariance me, constVEC vector, double *p_mu, double *p_stdev);
+void Covariance_getMarginalDensityParameters (Covariance me, constVECVU const& vector, double *p_mu, double *p_stdev);
 
-double Covariance_getMarginalProbabilityAtPosition (Covariance me, constVEC vector, double x);
+double Covariance_getMarginalProbabilityAtPosition (Covariance me, constVECVU const& vector, double x);
 
 double Covariance_getProbabilityAtPosition_string (Covariance me, conststring32 xpos);
 
@@ -220,9 +220,9 @@ autoSSCP SSCPList_to_SSCP_pool (SSCPList me);
 
 void SSCPList_getHomegeneityOfCovariances_box (SSCPList me, double *out_probability, double *out_chisq, double *out_df);
 
-autoSSCP SSCP_toTwoDimensions (SSCP me, constVEC v1, constVEC v2);
+autoSSCP SSCP_toTwoDimensions (SSCP me, constVECVU const& v1, constVECVU const& v2);
 
-autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVEC v1, constVEC v2);
+autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVECVU const& v1, constVECVU const& v2);
 
 autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, integer d1, integer d2);
 
@@ -230,7 +230,7 @@ autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, integer d1, integer d2)
 
 void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g, double scale,
 	bool confidence, conststring32 label, integer d1, integer d2, double xmin, double xmax,
-	double ymin, double ymax, int fontSize, bool garnish);
+	double ymin, double ymax, double fontSize, bool garnish);
 
 void SSCPList_getEllipsesBoundingBoxCoordinates (SSCPList me, double scale, bool confidence,
 	double *xmin, double *xmax, double *ymin, double *ymax);

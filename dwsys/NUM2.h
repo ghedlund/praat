@@ -2,7 +2,7 @@
 #define _NUM2_h_
 /* NUM2.h
  *
- * Copyright (C) 1997-2018 David Weenink
+ * Copyright (C) 1997-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,43 +69,36 @@ autostring32vector string32vector_searchAndReplace (string32vector me,
 	'nstringmatches'.
 */
 
-void MATprintMatlabForm (constMAT m, conststring32 name);
+void MATprintMatlabForm (constMATVU const& m, conststring32 name);
 /*
 	Print a matrix in a form that can be used as input for octave/matlab.
 							1 2 3
 	Let A be the matrix:	4 5 6
 							7 8 9
-	The output from NUMdmatrix_printAsOctaveForm (A, 3, 3, "M") will be
-	M=[	1, 2, 3;
-		4, 5, 6;
-		7, 8, 9 ];
+	The output from MATprintMatlabForm (A, "M") will be
+	M= [1, 2, 3;
+	    4, 5, 6;
+	    7, 8, 9];
 */
 
-inline integer NUMmax (const constINTVEC& vec) {
-	if (NUMisEmpty (vec)) return undefined;
-	integer maximum = vec [1];
-	for (integer i = 2; i <= vec.size; i ++) {
-		const integer value = vec [i];
-		if (value > maximum) maximum = value;
-	}
-	return maximum;
+inline bool NUMisNonNegative (constVECVU const&  vec) {
+	for (integer i = 1; i <= vec.size; i ++)
+		if (vec [i] < 0.0)
+			return false;
+	return true;
+}
+inline bool NUMisNonNegative (constMATVU const& mat) {
+	for (integer irow = 1; irow <= mat.nrow; irow ++)
+		for (integer icol = 1; icol <= mat.ncol; icol ++)
+			if (mat [irow] [icol] < 0.0)
+				return false;
+	return true;
 }
 
-inline integer NUMmin (const constINTVEC& vec) {
-	if (NUMisEmpty (vec)) return undefined;
-	integer minimum = vec [1];
-	for (integer i = 2; i <= vec.size; i ++) {
-		const integer value = vec [i];
-		if (value < minimum) minimum = value;
-	}
-	return minimum;
-}
-
-template<typename T>
-inline integer NUMmaxPos (vector<T> v) {
+inline integer NUMmaxPos (constVECVU const& v) {
 	if (NUMisEmpty (v)) return 0;
 	integer index = 1;
-	T maximum = v [1];
+	double maximum = v [1];
 	for (integer i = 2; i <= v.size; i ++) {
 		if (v [i] > maximum) {
 			maximum = v [i];
@@ -115,11 +108,36 @@ inline integer NUMmaxPos (vector<T> v) {
 	return index;	
 }
 
-template<typename T>
-inline integer NUMminPos (vector<T> v) {
+inline integer NUMmaxPos (constINTVECVU const& v) {
 	if (NUMisEmpty (v)) return 0;
 	integer index = 1;
-	T minimum = v [1];
+	integer maximum = v [1];
+	for (integer i = 2; i <= v.size; i ++) {
+		if (v [i] > maximum) {
+			maximum = v [i];
+			index = i;
+		}
+	}
+	return index;	
+}
+
+inline integer NUMminPos (constVECVU const& v) {
+	if (NUMisEmpty (v)) return 0;
+	integer index = 1;
+	double minimum = v [1];
+	for (integer i = 2; i <= v.size; i ++) {
+		if (v [i] < minimum) {
+			minimum = v [i];
+			index = i;
+		}
+	}
+	return index;	
+}
+
+inline integer NUMminPos (constINTVECVU const& v) {
+	if (NUMisEmpty (v)) return 0;
+	integer index = 1;
+	integer minimum = v [1];
 	for (integer i = 2; i <= v.size; i ++) {
 		if (v [i] < minimum) {
 			minimum = v [i];
@@ -136,68 +154,9 @@ inline integer NUMminPos (vector<T> v) {
  *	 lo and hi should be valid indices in the array.
 */
 
-inline void NUMextrema (constVEC x, double *out_minimum, double *out_maximum) {
+inline void NUMextrema (constVECVU const& x, double *out_minimum, double *out_maximum) {
 	if (out_minimum) *out_minimum = NUMmin (x);
 	if (out_maximum) *out_maximum = NUMmax (x);
-}
-
-inline void NUMextrema (constVEC v, integer lo, integer hi, double *out_min, double *out_max) {
-	double min = v [lo];
-	double max = min;
-	for (integer i = lo + 1; i <= hi; i++) {
-		if (v [i] < min) min = v [i];
-		else if (v [i] > max) max = v [i];
-	}
-	if (out_min) *out_min = min;
-	if (out_max) *out_max = max;
-}
-
-inline void NUMextrema (constINTVEC v, integer lo, integer hi, double *out_min, double *out_max) {
-	integer min = v [lo];
-	integer max = min;
-	for (integer i = lo + 1; i <= hi; i++) {
-		if (v [i] < min) min = v [i];
-		else if (v [i] > max) max = v [i];
-	}
-	if (out_min) *out_min = min;
-	if (out_max) *out_max = max;
-}
-
-inline double NUMmax (constMAT x, integer rb, integer re, integer cb, integer ce) {
-	Melder_assert (rb > 0 && rb <= re && re <= x.nrow);
-	Melder_assert (cb > 0 && cb <= ce && ce <= x.ncol);
-	double max = x [rb] [cb];
-	for (integer irow = rb; irow <= re; irow ++)
-		for (integer icol = cb; icol <= ce; icol ++) {
-			const double value = x [irow] [icol];
-			if (value > max) max = value;
-		}
-	return max;
-}
-
-inline double NUMmin (constMAT x, integer rb, integer re, integer cb, integer ce) {
-	Melder_assert (rb > 0 && rb <= re && re <= x.nrow);
-	Melder_assert (cb > 0 && cb <= ce && ce <= x.ncol);
-	double min = x [rb] [cb];
-	for (integer irow = rb; irow <= re; irow ++)
-		for (integer icol = cb; icol <= ce; icol ++) {
-			const double value = x [irow] [icol];
-			if (value < min) min = value;
-		}
-	return min;
-}
-
-inline void NUMextrema (constMAT x, integer rb, integer re, integer cb, integer ce, double *out_min, double *out_max) {
-	double min = NUMmin (x, rb, re, cb, ce);
-	double max = NUMmax (x, rb, re, cb, ce);
-	if (out_min) *out_min = min;
-	if (out_max) *out_max = max;
-}
-
-inline double NUMextremum (constMAT x, integer rb, integer re, integer cb, integer ce) {
-	double min = NUMmin (x, rb, re, cb, ce);
-	double max = NUMmax (x, rb, re, cb, ce);
-	return std::max (fabs (min), fabs (max));
 }
 
 /* NUMvector_clip
@@ -205,7 +164,7 @@ inline double NUMextremum (constMAT x, integer rb, integer re, integer cb, integ
 	c[i] = c[i] < min ? min : (c[i] > max ? max : c[i])
 */
 
-inline void VECclip_inplace (VEC x, double min, double max) {
+inline void VECclip_inplace_inline (VEC x, double min, double max) {
 	for (integer i = 1; i <= x.size; i ++)
 		if (x [i] < min)
 			x [i] = min;
@@ -213,78 +172,67 @@ inline void VECclip_inplace (VEC x, double min, double max) {
 			x [i] = max;
 }
 
-inline double NUMvtmv (constVEC x, constMAT m) { // x'. M . x
-	Melder_assert (x.size == m.nrow && m.nrow == m.ncol);
-	longdouble result = 0.0;
-	for (integer k = 1; k <= x.size; k ++)
-		result += x [k] * NUMinner (m.row (k), x); 
-	return (double) result;
-}	
-
-inline double NUMmul_vtmv (constVEC x, constMAT m, constVEC y) { // x'. M . y
+inline double NUMmul (constVECVU const& x, constMATVU const& m, constVECVU const& y) { // x'. M . y
 	Melder_assert (x.size == m.nrow);
-	Melder_assert (y.size = m.ncol);
+	Melder_assert (y.size == m.ncol);
 	longdouble result = 0.0;
 	for (integer k = 1; k <= x.size; k ++)
 		result += x [k] * NUMinner (m.row (k), y); 
 	return (double) result;
 }	
 
-inline autoVEC VECnorm_columns (constMAT x, double power) {
-	autoVEC norm = newVECraw (x.ncol);
-	for (integer icol = 1; icol <= norm.size; icol ++)
-		norm [icol] = NUMnorm (x.column (icol), power);
-	return norm;
-}
-
-inline autoVEC VECnorm_rows (constMAT x, double power) {
+inline autoVEC VECnorm_rows (constMATVU const& x, double power) {
 	autoVEC norm = newVECraw (x.nrow);
 	for (integer irow = 1; irow <= norm.size; irow ++)
 		norm [irow] = NUMnorm (x.row (irow), power);
 	return norm;
 }
 
-inline void VECnormalize_inplace (VEC v, double power, double norm) {
-	Melder_assert (norm > 0.0);
-	double oldnorm = NUMnorm (v, power);
+inline void VECnormalize_inplace (VECVU const& vec, double power, double newNorm) {
+	Melder_assert (newNorm > 0.0);
+	double oldnorm = NUMnorm (vec, power);
 	if (oldnorm > 0.0)
-		v  *=  norm / oldnorm;
+		vec  *=  newNorm / oldnorm;
 }
 
-inline void MATnormalizeRows_inplace (MAT a, double power, double norm) {
+inline void MATnormalize_inplace (MATVU const& mat, double power, double newNorm) {
+	Melder_assert (newNorm > 0.0);
+	double oldnorm = NUMnorm (mat, power);
+	if (oldnorm > 0.0)
+		mat  *=  newNorm / oldnorm;
+}
+
+inline void MATnormalizeRows_inplace (MATVU const& a, double power, double norm) {
 	Melder_assert (norm > 0.0);
 	for (integer irow = 1; irow <= a.nrow; irow ++)
 		VECnormalize_inplace (a.row (irow), power, norm);
 }
 
-inline void MATnormalize_inplace (MAT a, double power, double norm) {
-	Melder_assert (norm > 0.0);
-	VECnormalize_inplace (asvector (a), power, norm); 
+inline void MATnormalizeColumns_inplace (MATVU const& a, double power, double norm) {
+	MATnormalizeRows_inplace (a.transpose(), power, norm);
 }
-
-void MATnormalizeColumns_inplace (MAT a, double power, double norm);
 /*
 	Scale a[.][j] such that sqrt (Sum(a[i][j]^2, i=1..nPoints)) = norm.
 */
 
-void VECsmoothByMovingAverage_preallocated (VEC out, constVEC in, integer window);
+void VECsmoothByMovingAverage_preallocated (VECVU const& out, constVECVU const& in, integer window);
 
-autoMAT MATcovarianceFromColumnCentredMatrix (constMAT x, integer ndf);
+autoMAT MATcovarianceFromColumnCentredMatrix (constMATVU const& x, integer ndf);
 /*
 	Calculate covariance matrix(ncols x ncols) from data matrix (nrows x ncols);
 	The matrix x must be column centered.
 	covar[i][j] = sum (k=1..nrows, x[i]k]*x[k][j])/(nrows - ndf)
 */
 
-void MATmtm_weighRows_preallocated (MAT result, constMAT data, constVEC rowWeights);
+void MATmtm_weighRows (MATVU const& result, constMATVU const& data, constVECVU const& rowWeights);
 
-inline autoMAT MATmtm_weighRows (constMAT data, constVEC rowWeights) {
+inline autoMAT newMATmtm_weighRows (constMATVU const& data, constVECVU const& rowWeights) {
 	autoMAT result = newMATraw (data.ncol, data.ncol);
-	MATmtm_weighRows_preallocated (result.get(), data, rowWeights);
+	MATmtm_weighRows (result.get(), data, rowWeights);
 	return result;
 }
 
-double NUMmultivariateKurtosis (constMAT x, int method);
+double NUMmultivariateKurtosis (constMATVU const& x, int method);
 /*
 	calculate multivariate kurtosis.
 	method = 1 : Schott (2001), J. of Statistical planning and Inference 94, 25-36.
@@ -475,32 +423,11 @@ double NUMmahalanobisDistance (constMAT lowerInverse, constVEC v, constVEC m);
 
 double NUMtrace (const constMATVU& a);
 double NUMtrace2 (const constMATVU& x, const constMATVU& y);
-double NUMtrace2_nn (const constMAT& x, const constMAT& y);
-double NUMtrace2_nt (const constMAT& x, const constMAT& y);
-double NUMtrace2_tn (const constMAT& x, const constMAT& y);
-double NUMtrace2_tt (const constMAT& x, const constMAT& y);
 /*
-	Calculates the trace from a product matrix
-	_nn : trace (X.Y)
-	_nt : trace (X.Y')
-	_tn : trace (X'.Y) = trace (Y'.X)
-	_tt : trace (X'.Y') = trace ((Y.X)') = trace (Y.X)
+	Calculates the trace from a product matrix x*y
 */
 
-void MATprojectRowsOnEigenspace_preallocated (MAT projection, integer toColumn, constMAT data, integer fromColumn, constMAT eigenvectors);
-/* Input:
-	data[numberOfRows, from_col - 1 + my dimension] 
-		contains the 'numberOfRows' vectors to be projected on the eigenspace. 
-	eigenvectors [numberOfEigenvectors][dimension] 
-		the eigenvectors stored as rows
-   Input/Output
-		projection [numberOfRows, to_colbegin - 1 + numberOfDimensionsToKeep] 
-		the projected vectors from 'data'
-
-   Project (part of) the vectors in matrix 'data' along the 'numberOfEigenvectors' eigenvectors into the matrix 'projection'.
- */
-
-void MATprojectColumnsOnEigenspace_preallocated (MAT projection, constMAT data, constMAT eigenvectors);
+void MATprojectColumnsOnEigenspace_preallocated (MAT projection, constMATVU const& data, constMATVU const& eigenvectors);
 /* Input:
  	data[dimension, numberOfColumns]
  		contains the column vectors to be projected on the eigenspace.
@@ -535,14 +462,14 @@ integer NUMsolveQuadraticEquation (double a, double b, double c, double *x1, dou
 	If no roots found then x1 and x2 will not be changed.
 */
 
-autoVEC NUMsolveEquation (constMAT a, constVEC b, double tol);
+autoVEC NUMsolveEquation (constMATVU const& a, constVECVU const& b, double tol);
 /*
 	Solve the equation: A.x = b for x;
 	a[1..nr][1..nc], b[1..nr] and the unknown x[1..nc]
 	Algorithm: s.v.d.
 */
 
-autoMAT NUMsolveEquations (constMAT a, constMAT b, double tol);
+autoMAT NUMsolveEquations (constMATVU const& a, constMATVU const& b, double tol);
 /*
 	Solve the equations: A.X = B;
 	a[1..nr][1..nc], b[1..nr][1..nc2] and the unknown x[1..nc][1..nc2]
@@ -587,7 +514,7 @@ autoVEC NUMsolveWeaklyConstrainedLinearRegression (constMAT f, constVEC phi, dou
 		alpha >= 0
 */
 
-void NUMprocrustes (constMAT x, constMAT y, autoMAT *out_rotation, autoVEC *out_translation, double *out_scale);
+void NUMprocrustes (constMATVU const& x, constMATVU const& y, autoMAT *out_rotation, autoVEC *out_translation, double *out_scale);
 /*
 	Given two configurations x and y (nPoints x nDimensions), find the
 	the Procrustes rotation/reflection matrix T, the translation vector v and the scaling
@@ -865,7 +792,7 @@ double NUMformantfilter_amplitude (double fc, double bw, double f);
 	Preconditions: f > 0 && bw > 0
 */
 
-double NUMburg_preallocated (VEC a, constVEC x);
+double VECburg (VEC a, constVEC x);
 /*
 	Calculates linear prediction coefficients according to the algorithm
 	from J.P. Burg as described by N.Anderson in Childers, D. (ed), Modern
@@ -873,7 +800,7 @@ double NUMburg_preallocated (VEC a, constVEC x);
 	Returns the sum of squared sample values or 0.0 if failure
 */
 
-autoVEC NUMburg (constVEC x, integer numberOfPredictionCoefficients, double *out_xms);
+autoVEC newVECburg (constVEC x, integer numberOfPredictionCoefficients, double *out_xms);
 
 void NUMdmatrix_to_dBs (MAT m, double ref, double factor, double floor);
 /*
@@ -923,13 +850,13 @@ double NUMcubicSplineInterpolation (constVEC xa, constVEC ya, constVEC y2a, doub
 	a value of x, this routine returns an interpolated value y.
 */
 
-autoVEC NUMbiharmonic2DSplineInterpolation_getWeights (constVEC x, constVEC y, constVEC w);
+autoVEC NUMbiharmonic2DSplineInterpolation_getWeights (constVECVU const& x, constVECVU const& y, constVECVU const& w);
 /*
 	Input: x[1..numberOfPoints], y[1..numberOfPoints], (xp,yp)
 	Output: interpolated result
 */
 
-double NUMbiharmonic2DSplineInterpolation (constVEC x, constVEC y, constVEC w, double xp, double yp);
+double NUMbiharmonic2DSplineInterpolation (constVECVU const& x, constVECVU const& y, constVECVU const& w, double xp, double yp);
 /* Biharmonic spline interpolation based on Green's function.
 	. Given z[i] values at points (x[i],y[i]) for i=1..n, 
 	Get value at new point (px,py).
@@ -956,6 +883,7 @@ double NUMsinc (const double x);
 int NUMgetOrientationOfPoints (double x1, double y1, double x2, double y2, double x3, double y3);
 /* Traverse points 1, 2 and 3. If we travel counter-clockwise the result will be 1,
 	if we travel clockwise the result will be -1 and the result will be 0 if 3 is on the line segment between 1 and 2.
+	J. O'Rourke: Computational Geometry, 2nd Edition, Code 1.5
 */
 
 int NUMdoLineSegmentsIntersect (double x1, double y1, double x2, double y2, double x3, double y3,
@@ -1268,7 +1196,7 @@ inline double NUMmean_weighted (constVEC x, constVEC w) {
 	return inproduct / wsum;
 }
 
-inline void VECchainRows_preallocated (VEC v, MAT m) {
+inline void VECchainRows_preallocated (VECVU const& v, constMATVU const& m) {
 	Melder_assert (m.nrow * m.ncol == v.size);
 	integer k = 1;
 	for (integer irow = 1; irow <= m.nrow; irow ++)
@@ -1276,13 +1204,13 @@ inline void VECchainRows_preallocated (VEC v, MAT m) {
 			v [k ++] = m [irow] [icol];
 }
 
-inline autoVEC VECchainRows (MAT m) {
+inline autoVEC VECchainRows (constMATVU const& m) {
 	autoVEC result = newVECraw (m.nrow * m.ncol);
 	VECchainRows_preallocated (result.get(), m);
 	return result;
 }
 
-inline void VECchainColumns_preallocated (VEC v, MAT m) {
+inline void VECchainColumns_preallocated (VEC const& v, constMATVU const& m) {
 	Melder_assert (m.nrow * m.ncol == v.size);
 	integer k = 1;
 	for (integer icol = 1; icol <= m.ncol; icol ++)
@@ -1290,7 +1218,7 @@ inline void VECchainColumns_preallocated (VEC v, MAT m) {
 			v [k ++] = m [irow] [icol];
 }
 
-inline autoVEC VECchainColumns (MAT m) {
+inline autoVEC VECchainColumns (constMATVU const& m) {
 	autoVEC result = newVECraw (m.nrow * m.ncol);
 	VECchainColumns_preallocated (result.get(), m);
 	return result;
@@ -1300,10 +1228,11 @@ inline autoVEC VECchainColumns (MAT m) {
 void MATmul3 (MATVU const & target, constMATVU& X, constMATVU& Y, constMATVU& Z);
 
 /* Z = X.Y.X' */
-void MATmul3_VMVt (MATVU target, constMAT X, constMAT Y);
+void MATmul3_XYXt (MATVU const& target, constMAT const& X, constMAT const& Y);
 
-/* Z = X'.Y.X */
-void MATmul3_VtMV (MATVU target, constMAT x, constMAT y);	
+/* Z = X.Y.X where Y is a symmetric matrix */
+void MATmul3_XYsXt (MATVU const& target, constMAT const& X, constMAT const& Y);
+
 /*
 	First row (n elements) is at v[1]..v[n],
 	second row (n-1 elements) is at v[n+1],..,v[n+n-1],

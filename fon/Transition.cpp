@@ -1,6 +1,6 @@
 /* Transition.cpp
  *
- * Copyright (C) 1997-2012,2015-2018 Paul Boersma
+ * Copyright (C) 1997-2012,2015-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,11 +111,11 @@ static void print4 (char *buffer, double value, int iformat, int width, int prec
 }
 
 void Transition_drawAsNumbers (Transition me, Graphics g, int iformat, int precision) {
-	double maxTextWidth = 0, maxTextHeight = 0;
+	double maxTextWidth = 0.0, maxTextHeight = 0.0;
 	Graphics_setInner (g);
 	Graphics_setWindow (g, 0.5, my numberOfStates + 0.5, 0.0, 1.0);
-	double leftMargin = Graphics_dxMMtoWC (g, 1.0);
-	double lineSpacing = Graphics_dyMMtoWC (g, 1.5 * Graphics_inqFontSize (g) * 25.4 / 72.0);
+	const double leftMargin = Graphics_dxMMtoWC (g, 1.0);
+	const double lineSpacing = Graphics_dyMMtoWC (g, 1.5 * Graphics_inqFontSize (g) * 25.4 / 72.0);
 	Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_BOTTOM);
 	for (integer col = 1; col <= my numberOfStates; col ++) {
 		if (my stateLabels && my stateLabels [col] && my stateLabels [col] [0]) {
@@ -184,7 +184,6 @@ autoTransition Transition_power (Transition me, integer power) {
 		autoTransition thee = Data_copy (me);
 		autoTransition him = Data_copy (me);
 		for (integer ipow = 2; ipow <= power; ipow ++) {
-			std::swap (his data.at_deprecated, thy data.at_deprecated);   // OPTIMIZE
 			std::swap (his data.cells, thy data.cells);   // OPTIMIZE
 			for (integer irow = 1; irow <= my numberOfStates; irow ++) {
 				for (integer icol = 1; icol <= my numberOfStates; icol ++) {

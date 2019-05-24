@@ -1,6 +1,6 @@
 /* Graphics_record.cpp
  *
- * Copyright (C) 1992-2011,2013,2014,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #define RECORDING_HEADER_LENGTH 2
 
 double * _Graphics_check (Graphics me, integer number) {
+	Melder_assert (number >= 0);
 	static bool messageHasAlreadyBeenShownOnce = false;
 	double *result = nullptr;
 	double *record = my record;
@@ -39,7 +40,8 @@ double * _Graphics_check (Graphics me, integer number) {
 			}
 			return nullptr;
 		}
-		my record = record; my nrecord = nrecord;
+		my record = record;
+		my nrecord = nrecord;
 	}
 	if (nrecord < my irecord + RECORDING_HEADER_LENGTH + number) {
 		while (nrecord < my irecord + RECORDING_HEADER_LENGTH + number) nrecord *= 2;
@@ -55,7 +57,8 @@ double * _Graphics_check (Graphics me, integer number) {
 			}
 			return nullptr;
 		}
-		my record = record; my nrecord = nrecord;
+		my record = record;
+		my nrecord = nrecord;
 	}
 	result = my record + my irecord;
 	my irecord += number + RECORDING_HEADER_LENGTH;
@@ -192,7 +195,7 @@ void Graphics_play (Graphics me, Graphics thee) {
 				Graphics_setFont (thee, (enum kGraphics_font) get);
 			} break;
 			case SET_FONT_SIZE: {
-				Graphics_setFontSize (thee, (int) get);
+				Graphics_setFontSize (thee, get);
 			} break;
 			case SET_FONT_STYLE: {
 				Graphics_setFontStyle (thee, (int) get);

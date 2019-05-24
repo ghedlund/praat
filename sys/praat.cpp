@@ -1,6 +1,6 @@
 /* praat.cpp
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1830,18 +1830,15 @@ void praat_run () {
 		Melder_assert (xc.size == 0);
 		MAT yn;
 		Melder_assert (! yn.cells);
-		Melder_assert (! yn.at_deprecated);
 		Melder_assert (yn.nrow == 0);
 		Melder_assert (yn.ncol == 0);
 		MAT y { };
 		Melder_assert (! y.cells);
-		Melder_assert (! y.at_deprecated);
 		Melder_assert (y.nrow == 0);
 		Melder_assert (y.ncol == 0);
 		//autoMAT z {y.at,y.nrow,y.ncol};   // explicit construction not OK
 		autoMAT a = autoMAT { };
 		Melder_assert (! a.cells);
-		Melder_assert (! a.at_deprecated);
 		Melder_assert (a.nrow == 0);
 		Melder_assert (a.ncol == 0);
 		//a = z.move();

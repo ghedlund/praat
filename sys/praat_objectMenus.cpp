@@ -280,10 +280,10 @@ DO
 			Melder_information (result. stringResult.get());
 		} break;
 		case kFormula_EXPRESSION_TYPE_NUMERIC_VECTOR: {
-			Melder_information (constVEC (result. numericVectorResult));
+			Melder_information (constVECVU (result. numericVectorResult));
 		} break;
 		case kFormula_EXPRESSION_TYPE_NUMERIC_MATRIX: {
-			Melder_information (constMAT (result. numericMatrixResult));
+			Melder_information (constMATVU (result. numericMatrixResult));
 		}
 	}
 END }
@@ -640,8 +640,8 @@ void praat_addMenus (GuiWindow window) {
 	}
 	
 	MelderString_append (& itemTitle_about, U"About ", praatP.title.get(), U"...");
+	praat_addMenuCommand (U"Objects", U"Praat", itemTitle_about.string, nullptr, praat_UNHIDABLE, WINDOW_About);
 	#ifdef macintosh
-		praat_addMenuCommand (U"Objects", U"Praat", itemTitle_about.string, nullptr, praat_UNHIDABLE, WINDOW_About);
 		#if cocoa
 			/*
 			 * HACK: give the following command weird names,
@@ -655,9 +655,6 @@ void praat_addMenus (GuiWindow window) {
 			praat_addMenuCommand (U"Objects", U"Window", U"Zoom   ", nullptr, praat_UNHIDABLE | praat_NO_API, PRAAT_zoom);
 			praat_addMenuCommand (U"Objects", U"Window", U"Close   ", nullptr, 'W' | praat_NO_API, PRAAT_close);
 		#endif
-	#endif
-	#ifdef UNIX
-		praat_addMenuCommand (U"Objects", U"Praat", itemTitle_about.string, nullptr, praat_UNHIDABLE, WINDOW_About);
 	#endif
 	praat_addMenuCommand (U"Objects", U"Praat", U"-- script --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"Praat", U"New Praat script", nullptr, praat_NO_API, WINDOW_praat_newScript);
@@ -715,10 +712,8 @@ void praat_addMenus2 () {
 	praat_addMenuCommand (U"Objects", U"ApplicationHelp",
 		Melder_cat (U"Search ", praatP.title.get(), U" manual..."),
 		nullptr, 'M' | praat_NO_API, HELP_SearchManual);
-	#ifdef _WIN32
-		praat_addMenuCommand (U"Objects", U"Help", U"-- about --", nullptr, 0, nullptr);
-		praat_addMenuCommand (U"Objects", U"Help", itemTitle_about.string, nullptr, praat_UNHIDABLE, WINDOW_About);
-	#endif
+	praat_addMenuCommand (U"Objects", U"ApplicationHelp", U"-- about --", nullptr, 0, nullptr);
+	praat_addMenuCommand (U"Objects", U"ApplicationHelp", itemTitle_about.string, nullptr, praat_UNHIDABLE, WINDOW_About);
 
 	#if defined (macintosh) || defined (_WIN32)
 		Gui_setOpenDocumentCallback (cb_openDocument);

@@ -1,6 +1,6 @@
 /* NUM2.cpp
  *
- * Copyright (C) 1993-2018 David Weenink, Paul Boersma 2017
+ * Copyright (C) 1993-2019 David Weenink, Paul Boersma 2017
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ struct pdf2_struct {
 	double df2;
 };
 
-void MATprintMatlabForm (constMAT m, conststring32 name) {
+void MATprintMatlabForm (constMATVU const& m, conststring32 name) {
 	integer npc = 5;
 	ldiv_t n = ldiv (m.ncol, npc);
 
@@ -110,57 +110,43 @@ void MATprintMatlabForm (constMAT m, conststring32 name) {
 	MelderInfo_close ();
 }
 
-void MATnormalizeColumns_inplace (MAT a, double power, double norm) {
-	Melder_assert (norm > 0.0);
-	autoVEC column = newVECraw (a.nrow);
-	for (integer icol = 1; icol <= a.ncol; icol ++) {
-		for (integer irow = 1; irow <= column.size; irow ++)
-			column [irow] = a [irow] [icol];
-		VECnormalize_inplace (column.get(), power, norm);
-		for (integer irow = 1; irow <= column.size; irow ++)
-			a [irow] [icol] = column [irow];
-	}
-}
-
-void VECsmoothByMovingAverage_preallocated (VEC out, constVEC in, integer window) {
+void VECsmoothByMovingAverage_preallocated (VECVU const& out, constVECVU const& in, integer window) {
 	Melder_assert (out.size == in.size);
+	Melder_require (window > 0, U"The averaging window should be larger than 0.");
 	for (integer i = 1; i <= out.size; i ++) {
 		integer jfrom = i - window / 2, jto = i + window / 2;
-		if (window % 2 == 0) {
+		if (window % 2 == 0)
 			jto --;
-		}
-		jfrom = jfrom < 1 ? 1 : jfrom;
-		jto = jto > out.size ? out.size : jto;
-		out [i] = 0.0;
-		for (integer j = jfrom; j <= jto; j ++) {
-			out [i] += in [j];
-		}
-		out [i] /= jto - jfrom + 1;
+		if (jfrom < 1)
+			jfrom = 1;
+		if (jto > out.size)
+			jto = out.size;
+		out [i] = NUMmean (in.part (jfrom, jto));
 	}
 }
 
-autoMAT MATcovarianceFromColumnCentredMatrix (constMAT x, integer ndf) {
+autoMAT MATcovarianceFromColumnCentredMatrix (constMATVU const& x, integer ndf) {
 	Melder_require (ndf >= 0 && x.nrow - ndf > 0, U"Invalid arguments.");
 	autoMAT covar = newMATmtm (x);
 	covar.all()  *=  1.0 / (x.nrow - ndf);
 	return covar;
 }
 
-static void MATweighRows (MAT x, constVEC y) {
+static void MATweighRows (MATVU const& x, constVECVU const& y) {
 	Melder_assert (x.nrow == y.size);
 	for (integer irow = 1; irow <= x.nrow; irow ++)
 		x.row (irow)  *=  y [irow];
 }
 
-void MATmtm_weighRows_preallocated (MAT result, constMAT data, constVEC rowWeights) {
+void MATmtm_weighRows (MATVU const& result, constMATVU const& data, constVECVU const& rowWeights) {
 	Melder_assert (data.nrow == rowWeights.size);
-	Melder_assert (data.ncol = result.ncol);
+	Melder_assert (data.ncol == result.ncol);
 	Melder_assert (result.nrow == result.ncol);
 	result <<= 0.0;
 	if (true) {
 		autoMAT outer = newMATraw (result.ncol, result.ncol);
 		for (integer irow = 1; irow <= data.nrow; irow ++) {
-			MATouter_preallocated (outer.all(), data.row (irow), data.row (irow));
+			MATouter (outer.all(), data.row (irow), data.row (irow));
 			result  +=  outer.all()  *  rowWeights [irow];
 		}
 	} else {
@@ -169,17 +155,17 @@ void MATmtm_weighRows_preallocated (MAT result, constMAT data, constVEC rowWeigh
 		for (integer irow = 1; irow <= w.size; irow ++) 
 			w [irow] = sqrt (rowWeights [irow]);
 		MATweighRows (d.get(), w.get());
-		MATmtm_preallocated (result, d.get());
+		MATmtm (result, d.get());
 	}
 }
 
-inline void MATmul_rows_inplace (MAT x, constVEC v) { // TODO better name??
+inline void MATmul_rows_inplace (MATVU const& x, constVECVU const& v) { // TODO better name??
 	Melder_assert (x.nrow == v.size);
 	for (integer irow = 1; irow <= x.nrow; irow ++)
 		x.row (irow)  *=  v [irow];
 }
 
-double NUMmultivariateKurtosis (constMAT m, int method) {
+double NUMmultivariateKurtosis (constMATVU const& m, int method) {
 	double kurt = undefined;
 	if (m.nrow < 5) {
 		return kurt;
@@ -323,55 +309,25 @@ double NUMmahalanobisDistance (constMAT lowerInverse, constVEC v, constVEC m) {
 double VECdominantEigenvector_inplace (VEC inout_q, constMAT m, double tolerance) {
 	Melder_assert (m.nrow == m.ncol && inout_q.size == m.nrow);
 
-	double lambda0, lambda = NUMvtmv (inout_q, m); //  q'. M . q
+	double lambda0, lambda = NUMmul (inout_q, m, inout_q); //  q'. M . q
 	//Melder_require (lambda > 0.0, U"Zero matrices ??");
 	autoVEC z = newVECraw (m.nrow);
 	integer numberOfIterations = 0;
 	do {
 		lambda0 = lambda;
-		VECmul_preallocated (z.get(), m, inout_q);
+		VECmul (z.get(), m, inout_q);
 		VECnormalize_inplace (z.get(), 2.0, 1.0);
-		lambda = NUMvtmv (z.get(), m); // z'. M . z
+		lambda = NUMmul (z.get(), m, z.get()); // z'. M . z
 	} while (fabs (lambda - lambda0) > tolerance || ++ numberOfIterations < 30);
 	inout_q <<= z.all();
 	return lambda;
 }
 
-/* Input:
-		data [numberOfRows, from_col - 1 + my dimension] 
-		contains the 'numberOfRows' vectors to be projected on the eigenspace. 
-		eigenvectors [numberOfEigenvectors] [dimension] the eigenvectors stored as rows
-	Input/Output
-		projection [numberOfRows, to_colbegin - 1 + numberOfEigenvectors] 
-		the projected vectors from 'data'
-
-	Project (part of) the vectors in matrix 'data' along the 'numberOfEigenvectors' eigenvectors into the matrix 'projection'.
-	*/
-void MATprojectRowsOnEigenspace_preallocated (MAT projection, integer toColumn, constMAT data, integer fromColumn, constMAT eigenvectors) {
-	Melder_assert (projection.nrow = data.nrow);
-	fromColumn = fromColumn <= 0 ? 1 : fromColumn;
-	toColumn = toColumn <= 0 ? 1 : toColumn;
-	Melder_assert (fromColumn + eigenvectors.ncol - 1 <= data.ncol);
-	Melder_assert (toColumn + eigenvectors.nrow - 1 <= projection.ncol);
-	for (integer irow = 1; irow <= data.nrow; irow ++)
-		for (integer icol = 1; icol <= eigenvectors.nrow; icol ++) {
-			longdouble r = 0.0;
-			for (integer k = 1; k <= eigenvectors.ncol; k ++) {
-				r += eigenvectors [icol] [k] * data [irow] [fromColumn + k - 1];
-			}
-			projection [irow] [toColumn + icol - 1] = (double) r;
-		}
-}
-
-void MATprojectColumnsOnEigenspace_preallocated (MAT projection, constMAT data, constMAT eigenvectors) {
+void MATprojectColumnsOnEigenspace_preallocated (MAT projection, constMATVU const& data, constMATVU const& eigenvectors) {
 	Melder_assert (data.nrow == eigenvectors.ncol && projection.nrow == eigenvectors.nrow);
 	for (integer icol = 1; icol <= data.ncol; icol ++)
 		for (integer irow = 1; irow <= eigenvectors.nrow; irow ++) {
-			longdouble r = 0.0;
-			for (integer k = 1; k <= eigenvectors.ncol; k ++) {
-				r += eigenvectors [irow] [k] * data [k] [icol];
-			}
-			projection [irow] [icol] = (double) r;
+			projection [irow] [icol] = NUMinner (eigenvectors.row (irow), data.column (icol));
 		}
 	// MATmul_tt (data.get(), eigenvectors.get()) ??
 }
@@ -380,7 +336,7 @@ integer NUMsolveQuadraticEquation (double a, double b, double c, double *x1, dou
 	return gsl_poly_solve_quadratic (a, b, c, x1, x2);
 }
 
-autoVEC NUMsolveEquation (constMAT a, constVEC b, double tolerance) {
+autoVEC NUMsolveEquation (constMATVU const& a, constVECVU const& b, double tolerance) {
 	Melder_assert (a.nrow == b.size);
 	autoSVD me = SVD_createFromGeneralMatrix (a);
 	SVD_zeroSmallSingularValues (me.get(), tolerance);
@@ -388,26 +344,18 @@ autoVEC NUMsolveEquation (constMAT a, constVEC b, double tolerance) {
 	return x;
 }
 
-autoMAT NUMsolveEquations (constMAT a, constMAT b, double tolerance) {
+autoMAT NUMsolveEquations (constMATVU const& a, constMATVU const& b, double tolerance) {
 	Melder_assert (a.nrow == b.nrow);
-	double tol = tolerance > 0 ? tolerance : NUMfpp -> eps * a.nrow;
+	double tol = ( tolerance > 0.0 ? tolerance : NUMfpp -> eps * a.nrow );
 	
 	autoSVD me = SVD_createFromGeneralMatrix (a);
 	autoMAT x = newMATraw (b.nrow, b.ncol);
-	autoVEC bt = newVECraw (b.nrow);
 
 	SVD_zeroSmallSingularValues (me.get(), tol);
 
 	for (integer k = 1; k <= b.ncol; k ++) {
-		for (integer j = 1; j <= b.nrow; j ++) { // copy b[.][k]
-			bt [j] = b [j] [k];
-		}
-
-		autoVEC xt = SVD_solve (me.get(), bt.get());
-
-		for (integer j = 1; j <= b.nrow; j ++) {
-			x [j] [k] = xt [j];
-		}
+		autoVEC xt = SVD_solve (me.get(), b.column (k));
+		x.column (k) <<= xt.all();
 	}
 	return x;
 }
@@ -433,10 +381,7 @@ autoVEC NUMsolveNonNegativeLeastSquaresRegression (constMAT m, constVEC d, doubl
 				mjr += mij * ri;
 				mjmj += mij * mij;
 			}
-			b [j] = mjr / mjmj;
-			if (b [j] < 0.0) {
-				b [j] = 0.0;
-			}
+			b [j] = std::max (0.0, double (mjr / mjmj));
 		}
 
 		// Calculate t(b) and compare with previous result.
@@ -473,7 +418,7 @@ static void nr_func (double x, double *f, double *df, void *data) {
 		double t1 = (my delta [i] - x);
 		double t2 = my y [i] / t1;
 		double t3 = t2 * t2 * my delta [i];
-		*f  += t3;
+		*f += t3;
 		*df += t3 * 2.0 / t1;
 	}
 }
@@ -737,7 +682,7 @@ autoVEC NUMsolveWeaklyConstrainedLinearRegression (constMAT f, constVEC phi, dou
 }
 
 
-void NUMprocrustes (constMAT x, constMAT y, autoMAT *out_rotation, autoVEC *out_translation, double *out_scale) {
+void NUMprocrustes (constMATVU const& x, constMATVU const& y, autoMAT *out_rotation, autoVEC *out_translation, double *out_scale) {
 	Melder_assert (x.nrow == y.nrow && x.ncol == y.ncol);
 	Melder_assert (x.nrow >= x.ncol);
 	bool orthogonal = ! out_translation || ! out_scale; // else similarity transform
@@ -758,7 +703,7 @@ void NUMprocrustes (constMAT x, constMAT y, autoMAT *out_rotation, autoVEC *out_
 	// 2. Decompose C by SVD: C = UDV' (our SVD has eigenvectors stored row-wise V!)
 
 	autoSVD svd = SVD_createFromGeneralMatrix (c.get());
-	double trace = NUMsum (svd -> d.get());
+	double trace = NUMsum (svd -> d.all());
 	Melder_require (trace > 0.0, U"NUMprocrustes: degenerate configuration(s).");
 
 	// 3. T = VU'
@@ -779,8 +724,8 @@ void NUMprocrustes (constMAT x, constMAT y, autoMAT *out_rotation, autoVEC *out_
 
 		// tr X'J YT == tr xc' yt
 
-		double traceXtJYT = NUMtrace2_tn (xc.get(), yt.get()); // trace (Xc'.(YT))
-		double traceYtJY = NUMtrace2_tn (y, yc.get()); // trace (Y'.Yc)
+		double traceXtJYT = NUMtrace2 (xc.transpose(), yt.get()); // trace (Xc'.(YT))
+		double traceYtJY = NUMtrace2 (y.transpose(), yc.get()); // trace (Y'.Yc)
 		longdouble scale = traceXtJYT / traceYtJY;
 
 		// 5. Translation vector tr = (X - sYT)'1 / x.nrow
@@ -1416,7 +1361,7 @@ b2 = & work [n+1];
 aa = & work [n+n+1];
 for (i=1; i<=n+n+n; i ++) work [i]=0;
 */
-double NUMburg_preallocated (VEC a, constVEC x) {
+double VECburg (VEC a, constVEC x) {
 	integer n = x.size, m = a.size;
 	for (integer j = 1; j <= m; j ++) {
 		a [j] = 0.0;
@@ -1485,9 +1430,9 @@ double NUMburg_preallocated (VEC a, constVEC x) {
 	return xms;
 }
 
-autoVEC NUMburg (constVEC x, integer numberOfPredictionCoefficients, double *out_xms) {
+autoVEC newVECburg (constVEC x, integer numberOfPredictionCoefficients, double *out_xms) {
 	autoVEC a = newVECraw (numberOfPredictionCoefficients);
-	double xms = NUMburg_preallocated (a.get(), x);
+	double xms = VECburg (a.get(), x);
 	if (out_xms) *out_xms = xms;
 	return a;
 }
@@ -1591,14 +1536,14 @@ double NUMcubicSplineInterpolation (constVEC x, constVEC y, constVEC y2, double 
 	integer klo = 1, khi = x.size;
 	while (khi - klo > 1) {
 		integer k = (khi + klo) >> 1;
-		if (x [k] > xin) {
+		if (x [k] > xin)
 			khi = k;
-		} else {
+		else
 			klo = k;
-		}
 	}
 	double h = x [khi] - x [klo];
-	Melder_require (h != 0.0, U"NUMcubicSplineInterpolation: bad input value.");
+	Melder_require (h != 0.0,
+		U"NUMcubicSplineInterpolation: bad input value.");
 	
 	double a = (x [khi] - xin) / h;
 	double b = (xin - x [klo]) / h;
@@ -1632,15 +1577,15 @@ int NUMgetOrientationOfPoints (double x1, double y1, double x2, double y2, doubl
 	longdouble dx2 = x2 - x1, dy2 = y2 - y1;
 	longdouble dx3 = x3 - x1, dy3 = y3 - y1;
 	if (dx2 * dy3 > dy2 * dx3)
-		orientation = 1;
-	else if (dx2 * dy3 < dy2 * dx3)
 		orientation = -1;
+	else if (dx2 * dy3 < dy2 * dx3)
+		orientation = 1;
 	else {
 		if ((dx2 * dx3 < 0) || (dy2 * dy3 < 0))
 			orientation = -1;
 		else if ((dx2 * dx2 + dy2 * dy2) >= (dx3 * dx3 + dy3 * dy3))
 			orientation = 0;
-		else 
+		else
 			orientation = 1;
 	}
 	return orientation;
@@ -1671,7 +1616,7 @@ int NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2
 			x1 y21 - y1 x21 = x3 y21 - y3 x21 +t (x43 y21 - y43 x21)
 		Combining:
 			y31 x21 - x31 y21 = t (x43 y21 - y43 x21)
-		Therefor at the intersection we have:
+		Therefore at the intersection we have:
 
 			t = (y31 x21 - x31 y21) / (x43 y21 - y43 x21)
 
@@ -1684,23 +1629,24 @@ int NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2
 
 	for (integer i = 1; i <= 4; i ++) {
 		double denom = (x [i + 1] - x [i]) * (y2 - y1) - (y [i + 1] - y [i]) * (x2 - x1);
-		double s, t, x3, y3;
 		if (denom == 0.0)
 			continue;
-		/* We have an intersection. */
-		t = ((y [i] - y1) * (x2 - x1) - (x [i] - x1) * (y2 - y1)) / denom;
-		if (t < 0 || t >= 1)
+		
+		// We have an intersection.
+		
+		double t = ((y [i] - y1) * (x2 - x1) - (x [i] - x1) * (y2 - y1)) / denom;
+		if (t < 0.0 || t >= 1.0)
 			continue;
-		/* Intersection is within rectangle side. */
-		x3 = x [i] + t * (x [i + 1] - x [i]);
-		y3 = y [i] + t * (y [i + 1] - y [i]);
-		/* s must also be valid */
-		if (x1 != x2)
-			s = (x3 - x1) / (x2 - x1);
-		else
-			s = (y3 - y1) / (y2 - y1);
-
-		if (s < 0 || s >= 1)
+		
+		// Intersection is within rectangle side.
+		
+		double x3 = x [i] + t * (x [i + 1] - x [i]);
+		double y3 = y [i] + t * (y [i + 1] - y [i]);
+		
+		// s must also be valid
+		
+		double s = ( x1 != x2 ? (x3 - x1) / (x2 - x1) : (y3 - y1) / (y2 - y1) );
+		if (s < 0.0 || s >= 1.0)
 			continue;
 
 		ni ++;
@@ -1713,19 +1659,19 @@ int NUMgetIntersectionsWithRectangle (double x1, double y1, double x2, double y2
 }
 
 bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2, double xr1, double yr1, double xr2, double yr2, double *out_xo1, double *out_yo1, double *out_xo2, double *out_yo2) {
-	int ncrossings = 0;
-	bool xswap, yswap;
+	integer ncrossings = 0;
+	double x, y, a, b;
 	double xc [5], yc [5], xmin, xmax, ymin, ymax;
-
 	double xo1 = xl1, yo1 = yl1, xo2 = xl2, yo2 = yl2;
 
-	// This test first because we expect the majority of the tested segments to be
-	// within the rectangle
+	// This test first because we expect the majority of the tested segments to be within the rectangle
+	
 	if (xl1 >= xr1 && xl1 <= xr2 && yl1 >= yr1 && yl1 <= yr2 &&
 			xl2 >= xr1 && xl2 <= xr2 && yl2 >= yr1 && yl2 <= yr2)
-		return true;
+		goto end;
 
 	// All lines that are completely outside the rectangle
+	
 	if ( (xl1 <= xr1 && xl2 <= xr1) || (xl1 >= xr2 && xl2 >= xr2) ||
 			(yl1 <= yr1 && yl2 <= yr1) || (yl1 >= yr2 && yl2 >= yr2))
 		return false;
@@ -1733,6 +1679,7 @@ bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2,
 
 	// At least line spans (part of) the rectangle.
 	// Get extremes in x and y of the line for easy testing further on.
+	bool xswap, yswap;
 	if (xl1 < xl2) {
 		xmin = xl1;
 		xmax = xl2;
@@ -1751,25 +1698,31 @@ bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2,
 		ymax = yl1;
 		yswap = true;
 	}
-	bool hline = yl1 == yl2, vline = xl1 == xl2;
-	if (hline) {
-		if (xmin < xr1) xo1 = xr1;
-		if (xmax > xr2) xo2 = xr2;
-		if (xswap) std::swap (xo1, xo2);
-		return true;
+	
+	if (yl1 == yl2) {
+		if (xmin < xr1)
+			xo1 = xr1;
+		if (xmax > xr2)
+			xo2 = xr2;
+		if (xswap)
+			std::swap (xo1, xo2);
+		goto end;
 	}
-	if (vline) {
-		if (ymin < yr1) yo1 = yr1;
-		if (ymax > yr2) yo2 = yr2;
-		if (yswap) std::swap (yo1, yo2);
-		return true;
+	if (xl1 == xl2) {
+		if (ymin < yr1)
+			yo1 = yr1;
+		if (ymax > yr2)
+			yo2 = yr2;
+		if (yswap)
+			std::swap (yo1, yo2);
+		goto end;
 	}
 
 	// Now we know that the line from (x1,y1) to (x2,y2) is neither horizontal nor vertical.
 	// Parametrize it as y = ax + b
 
-	double a = (yl1 - yl2) / (xl1 - xl2);
-	double b = yl1 - a * xl1;
+	a = (yl1 - yl2) / (xl1 - xl2);
+	b = yl1 - a * xl1;
 
 
 	//	To determine the crossings we have to avoid counting the crossings in a corner twice.
@@ -1777,7 +1730,7 @@ bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2,
 	//	and exclusive (..<..<) at the horizontal borders.
 
 
-	double y = a * xr1 + b; // Crossing at y with left border: x = xr1
+	y = a * xr1 + b; // Crossing at y with left border: x = xr1
 
 	if (y >= yr1 && y <= yr2 && xmin < xr1) { // Within vertical range?
 		xc [++ ncrossings] = xr1;
@@ -1786,7 +1739,7 @@ bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2,
 		yc [2] = xl1 > xl2 ? yl1 : yl2;
 	}
 
-	double x = (yr2 - b) / a; // Crossing at x with top border: y = yr2
+	x = (yr2 - b) / a; // Crossing at x with top border: y = yr2
 
 	if (x > xr1 && x < xr2 && ymax > yr2) { // Within horizontal range?
 		xc [++ ncrossings] = x;
@@ -1827,16 +1780,23 @@ bool NUMclipLineWithinRectangle (double xl1, double yl1, double xl2, double yl2,
 	*/
 	if (ncrossings == 1 && (xl1 < xr1 || xl1 > xr2 || yl1 < yr1 || yl1 > yr2) &&
 		(xl2 < xr1 || xl2 > xr2 || yl2 < yr1 || yl2 > yr2))
-		return true;
+		goto end;
 
 	if ((xc [1] > xc [2] && ! xswap) || (xc [1] < xc [2] && xswap)) {
 		std::swap (xc [1], xc [2]);
 		std::swap (yc [1], yc [2]);
 	}
-	if (out_xo1) *out_xo1 = xc [1]; 
-	if (out_yo1) *out_yo1 = yc [1]; 
-	if (out_xo2) *out_xo2 = xc [2]; 
-	if (out_yo2) *out_yo2 = yc [2]; 
+	xo1 = xc [1];
+	yo1 = yc [1];
+	xo2 = xc [2];
+	yo2 = yc [2];
+	
+end:
+	
+	if (out_xo1) *out_xo1 = xo1;
+	if (out_yo1) *out_yo1 = yo1;
+	if (out_xo2) *out_xo2 = xo2;
+	if (out_yo2) *out_yo2 = yo2;
 	return true;
 }
 
@@ -2034,7 +1994,7 @@ void NUMlineFit_theil (constVEC x, constVEC y, double *out_m, double *out_interc
 						mbs [++ index] = (y [j] - y [i]) / (x [j] - x [i]);
 			}
 			VECsort_inplace (mbs.part (1, numberOfCombinations));
-			m = NUMquantile (mbs.get(), 0.5);
+			m = NUMquantile (mbs.part (1, numberOfCombinations), 0.5);
 			for (integer i = 1; i <= x.size; i ++)
 				mbs [i] = y [i] - m * x [i];
 			VECsort_inplace (mbs.part (1, x.size));
@@ -2572,7 +2532,7 @@ void NUMlngamma_complex (double zr, double zi, double *out_lnr, double *out_arg)
 	if (out_arg) *out_arg = ln_arg;
 }
 
-autoVEC NUMbiharmonic2DSplineInterpolation_getWeights (constVEC x, constVEC y, constVEC z) {
+autoVEC NUMbiharmonic2DSplineInterpolation_getWeights (constVECVU const& x, constVECVU const& y, constVECVU const& z) {
 	Melder_assert (x.size == y.size && x.size == z.size);
 	autoMAT g = newMATraw (x.size, x.size);
 	/*
@@ -2591,7 +2551,7 @@ autoVEC NUMbiharmonic2DSplineInterpolation_getWeights (constVEC x, constVEC y, c
 	return w;
 }
 
-double NUMbiharmonic2DSplineInterpolation (constVEC x, constVEC y, constVEC w, double xp, double yp) {
+double NUMbiharmonic2DSplineInterpolation (constVECVU const& x, constVECVU const& y, constVECVU const& w, double xp, double yp) {
 	Melder_assert (x.size == y.size && x.size == w.size);
 	longdouble result = 0.0;
 	for (integer i = 1; i <= x.size; i ++) {
@@ -2696,7 +2656,7 @@ double NUMfrobeniusnorm (constMAT x) {
 				longdouble absxi = fabs (x [i] [j]);
 				if (scale < absxi) {
 					longdouble t = scale / absxi;
-					ssq = 1 + ssq * t * t;
+					ssq = 1.0 + ssq * t * t;
 					scale = absxi;
 				} else {
 					longdouble t = absxi / scale;
@@ -2723,32 +2683,6 @@ double NUMtrace2 (const constMATVU& x, const constMATVU& y) {
 		for (integer k = 1; k <= x.ncol; k ++)
 			trace += x [irow] [k] * y [k] [irow];
 	return (double) trace;
-}
-
-double NUMtrace2_nn (const constMAT& x, const constMAT& y) {
-	Melder_assert (x.ncol == y.nrow && x.nrow == y.ncol);
-	longdouble trace = 0.0;
-	for (integer irow = 1; irow <= x.nrow; irow ++)
-		for (integer k = 1; k <= x.ncol; k ++)
-			trace += x [irow] [k] * y [k] [irow];
-	return (double) trace;
-}
-
-double NUMtrace2_tn (const constMAT& x, const constMAT& y) {
-	Melder_assert (x.ncol == y.ncol && x.nrow == y.nrow);
-	longdouble trace = 0.0;
-	for (integer irow = 1; irow <= x.ncol; irow ++)
-		for (integer k = 1; k <= x.nrow; k ++)
-			trace += x [k] [irow] * y [k] [irow];
-	return (double) trace;
-}
-
-double NUMtrace2_nt (const constMAT& x, const constMAT& y) {
-	return NUMtrace2_tn (y, x);
-}
-
-double NUMtrace2_tt (const constMAT& x, const constMAT& y) {
-	return NUMtrace2_nn (y, x);
 }
 
 void NUMeigencmp22 (double a, double b, double c, double *out_rt1, double *out_rt2, double *out_cs1, double *out_sn1) {
@@ -2831,7 +2765,7 @@ void NUMeigencmp22 (double a, double b, double c, double *out_rt1, double *out_r
 	if (out_sn1) *out_sn1 = (double) sn1;
 }
 
-void MATmul3_VMVt (MATVU target, constMAT x, constMAT y) { // X.Y.X'
+void MATmul3_XYXt (MATVU const& target, constMAT const& x, constMAT const& y) { // X.Y.X'
 	Melder_assert (x.ncol == y.nrow && y.ncol == x.ncol);
 	Melder_assert (target.nrow == target.ncol && target.nrow == x.nrow);
 	for (integer irow = 1; irow <= target.nrow; irow ++)
@@ -2843,10 +2777,19 @@ void MATmul3_VMVt (MATVU target, constMAT x, constMAT y) { // X.Y.X'
 		}
 }
 
-void MATmul3_VtMV (MATVU target, constMAT x, constMAT y) { // X'.Y.X'
-	Melder_assert (x.nrow == y.nrow && y.ncol == x.nrow);
-	Melder_assert (target.nrow == target.ncol && target.nrow == x.ncol);
-	autoMAT xTranspose = newMATtranspose (x);
-	MATmul3_VMVt (target, xTranspose.get(), y);
+void MATmul3_XYsXt (MATVU const& target, constMAT const& x, constMAT const& y) { // X.Y.X'
+	Melder_assert (x.ncol == y.nrow && y.ncol == x.ncol);
+	Melder_assert (target.nrow == target.ncol && target.nrow == x.nrow);
+	for (integer irow = 1; irow <= target.nrow; irow ++)
+		for (integer icol = irow; icol <= target.ncol; icol ++) {
+			longdouble sum = 0.0;
+			for (integer k = 1; k <= x.ncol; k ++)
+				sum += x [irow] [k] * NUMinner (y.row (k), x.row (icol));
+			target [irow] [icol] = sum;
+		}
+	for (integer irow = 1; irow <= target.nrow; irow ++)
+		for (integer icol = irow + 1; icol <= target.ncol; icol ++)
+			target [icol] [irow] = target [irow] [icol];
 }
+
 /* End of file NUM2.cpp */

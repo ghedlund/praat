@@ -1,6 +1,6 @@
 /* SVD.cpp
  *
- * Copyright (C) 1994-2018 David Weenink
+ * Copyright (C) 1994-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #include "../melder/melder.h"
 #include "NUMclapack.h"
 #include "NUMcblas.h"
+#include "NUM2.h"
 
 #include "oo_DESTROY.h"
 #include "SVD_def.h"
@@ -63,7 +64,7 @@
 void structSVD :: v_info () {
 	MelderInfo_writeLine (U"Number of rows: ", numberOfRows);
 	MelderInfo_writeLine (U"Number of columns: ", numberOfColumns);
-	MelderInfo_writeLine (U"This matrix is", (isTransposed ? U"" : U"not "), U" transposed.");
+	MelderInfo_writeLine (U"This matrix is", (isTransposed ? U"" : U" not "), U" transposed.");
 }
 
 Thing_implement (SVD, Daata, 1);
@@ -96,13 +97,10 @@ autoSVD SVD_create (integer numberOfRows, integer numberOfColumns) {
 	}
 }
 
-autoSVD SVD_createFromGeneralMatrix (constMAT m) {
+autoSVD SVD_createFromGeneralMatrix (constMATVU const& m) {
 	try {
 		autoSVD me = SVD_create (m.nrow, m.ncol);
-		for (integer i = 1; i <= my numberOfRows; i ++) {
-			for (integer j = 1; j <= my numberOfColumns; j ++)
-				my u [i] [j] = my isTransposed ? m [j] [i] : m [i] [j];
-		}
+		my u.get() <<= ( my isTransposed ? m.transpose() : m );
 		SVD_compute (me.get());
 		return me;
 	} catch (MelderError) {
@@ -111,13 +109,10 @@ autoSVD SVD_createFromGeneralMatrix (constMAT m) {
 }
 
 
-void SVD_svd_d (SVD me, constMAT m) {
-	Melder_assert ((my numberOfRows == m.nrow && my numberOfColumns == m.ncol) ||
+void SVD_update (SVD me, constMATVU const& m) {
+	Melder_assert ((! my isTransposed && my numberOfRows == m.nrow && my numberOfColumns == m.ncol) ||
 		(my isTransposed && my numberOfRows == m.ncol && my numberOfColumns == m.nrow));
-	for (integer i = 1; i <= my numberOfRows; i ++) {
-		for (integer j = 1; j <= my numberOfColumns; j ++)
-			my u [i] [j] = my isTransposed ? m [j] [i] : m [i] [j];
-	}
+	my u.get() <<= ( my isTransposed ? m.transpose() : m );
 	SVD_compute (me);
 }
 
@@ -180,11 +175,11 @@ void SVD_getSquared_preallocated (MAT m, SVD me, bool inverse) {
 			for (integer k = 1; k <= my numberOfColumns; k ++) {
 				if (my d [k] > 0.0) {
 					longdouble dsq = my d [k] * my d [k];
-					longdouble factor = inverse ? 1.0 / dsq : dsq;
+					longdouble factor = ( inverse ? 1.0 / dsq : dsq );
 					val += my v [i] [k] * my v [j] [k] * factor;
 				}
 			}
-			m [i] [j] = (double) val;
+			m [i] [j] = double (val);
 		}
 	}
 }
@@ -195,28 +190,49 @@ autoMAT SVD_getSquared (SVD me, bool inverse) {
 	return result;
 }
 
-autoVEC SVD_solve (SVD me, constVEC b) {
+void SVD_solve_preallocated (SVD me, constVECVU const& b, VECVU result) {
 	try {
 		/*
 			Solve UDV' x = b.
 			Solution: x = V D^-1 U' b
 		*/
 		Melder_assert (my numberOfRows == b.size);
+		Melder_assert (result.size == my numberOfColumns);
 		autoVEC t = newVECzero (my numberOfColumns);
 		for (integer j = 1; j <= my numberOfColumns; j ++) {
-			longdouble tmp = 0.0;
+			longdouble sum = 0.0;
 			if (my d [j] > 0.0) {
 				for (integer i = 1; i <= my numberOfRows; i ++)
-					tmp += my u [i] [j] * b [i];
-				tmp /= my d [j];
+					sum += my u [i] [j] * b [i];
+				sum /= my d [j];
 			}
-			t [j] = (double) tmp;
+			t [j] = (double) sum;
 		}
-
-		autoVEC x = newVECmul (my v.get(), t.get());
-		return x;
+		VECmul (result, my v.get(), t.get());
 	} catch (MelderError) {
 		Melder_throw (me, U": not solved.");
+	}
+}
+
+autoVEC SVD_solve (SVD me, constVECVU const& b) {
+	Melder_assert (my numberOfRows == b.size);
+	autoVEC result = newVECzero (my numberOfColumns);
+	SVD_solve_preallocated (me, b, result.get());
+	return result;
+}
+
+/*
+	Solve UDV' X = B.
+*/
+void SVD_solve_preallocated (SVD me, constMATVU const& b, MATVU result) {
+	Melder_assert (b.nrow == my numberOfRows && b.ncol == result.ncol);
+	Melder_assert (result.nrow == my numberOfColumns);
+	autoVEC bcol = newVECraw (b.nrow);
+	autoVEC resultcol = newVECraw (result.nrow);
+	for (integer icol = 1; icol <= b.ncol; icol ++) {
+		bcol.get() <<= b.column (icol);
+		SVD_solve_preallocated (me, bcol.get(), resultcol.get());
+		result.column (icol) <<= resultcol.get();
 	}
 }
 
@@ -295,27 +311,27 @@ integer SVD_getRank (SVD me) {
 
 /*
 	SVD of A = U D V'.
-	If u [i] is the i-th column vector of U and v [i] the i-th column vector of V and s [i] the i-th singular value,
-	we can write the svd expansion  A = sum_{i=1}^n {d [i] u [i] v [i]'}.
-	Golub & van Loan, 3rd ed, p 71.
+	This can be written as A = sum_{r=1}^n d[i] u[i]v[i]', where u[i] and [v[i] are columnvectors
+	(Golub & van Loan, 3rd ed, p 71).
+	If (internally) the matrix was transposed we can rewrite this as A=sum_{r=1}^n d[i] u[i]'v[i].
 */
 autoMAT SVD_synthesize (SVD me, integer sv_from, integer sv_to) {
-	if (sv_to == 0) sv_to = my numberOfColumns;
+	if (sv_to == 0)
+		sv_to = my numberOfColumns;
 	try {
 		Melder_require (sv_from > 0 && sv_from <= sv_to && sv_to <= my numberOfColumns, U"Indices must be in range [1, ", my numberOfColumns, U"].");
 		long nrow = my numberOfRows;
 		long ncol = my numberOfColumns;
 		if (my isTransposed) std::swap (nrow, ncol);
 		autoMAT result = newMATzero (nrow, ncol);
+		autoMAT outer = newMATzero (nrow, ncol);
+
 		for (integer k = sv_from; k <= sv_to; k ++) {
-			for (integer i = 1; i <= my numberOfRows; i ++)
-				for (integer j = 1; j <= my numberOfColumns; j ++) {
-					double value = my d [k] * my u [i] [k] * my v [j] [k];
-					if (my isTransposed)
-						result [j] [i] += value;
-					else
-						result [i] [j] += value;
-				}
+			if (my isTransposed)
+				MATouter (outer.get(), my v.column(k), my u.column(k));
+			else
+				MATouter (outer.get(), my u.column(k), my v.row(k)); // because the transposed of v is in the svd!
+			result.get() += outer.get() * my d [k];
 		}
 		return result;
 	} catch (MelderError) {
@@ -344,7 +360,7 @@ autoGSVD GSVD_create (integer numberOfColumns) {
 	}
 }
 
-autoGSVD GSVD_create_d (constMAT m1, constMAT m2) {
+autoGSVD GSVD_create (constMATVU const& m1, constMATVU const& m2) {
 	try {
 		integer m = m1.nrow, n = m1.ncol, p = m2.nrow;
 		integer lwork = std::max (std::max (3 * n, m), p) + n;
@@ -376,7 +392,7 @@ autoGSVD GSVD_create_d (constMAT m1, constMAT m2) {
 
 		// Transpose q
 
-		MATtranspose_preallocated (my q.get(), q.get());
+		MATtranspose (my q.get(), q.get());
 
 		// Get R from a(1:k+l,n-k-l+1:n)
 

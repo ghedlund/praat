@@ -23,6 +23,10 @@
 */
 using longdouble = long double;   // typically 80 bits ("extended") precision, but stored in 96 or 128 bits; on some platforms only 64 bits
 
+struct MelderPoint {
+	double x, y;
+};
+
 struct MelderRealRange {
 	double min, max;
 	bool isEmpty () { return ! (max > min); }   // note edge case: will return true if min or max is NaN
@@ -30,6 +34,10 @@ struct MelderRealRange {
 		double result = max - min;
 		return std::max (result, 0.0);
 	}
+};
+
+struct MelderGaussianStats {
+	double mean, stdev;
 };
 
 /* End of file melder_real.h */

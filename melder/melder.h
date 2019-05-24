@@ -2,7 +2,7 @@
 #define _melder_h_
 /* melder.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ typedef struct { double red, green, blue, transparency; } double_rgbt;
 #include "melder_textencoding.h"   // str32len_utf8, Melder_32to8
 #include "melder_atof.h"
 #include "melder_files.h"   // Melder_fopen, MelderFile, MelderDir
-#include "melder_tensor.h"   // NUMvector, autoNUMmatrix, VEC, autoMAT, Melder_VEC
+#include "melder_tensor.h"   // autoNUMvector, VEC, autoMAT, Melder_VEC
 #include "melder_strvec.h"   // string32vector, autostring32vector (requires NUMvector)
 #include "melder_sort.h"   // VECsort_inplace (requires VEC), NUMsort_str (requires string32vector)
 
@@ -151,8 +151,6 @@ void Melder_init ();   // inits NUmrandom, alloc, message, Melder_systemVersion
 #include "PAIRWISE_SUM.h"
 
 #include "NUM.h"
-#include "MelderIntegerRange.h"
-#include "MelderRealRange.h"
 #include "STR.h"
 #include "VEC.h"
 #include "MAT.h"

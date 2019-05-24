@@ -1,6 +1,6 @@
 /* SSCP.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,8 +91,8 @@ Thing_implement (Correlation, SSCP, 0);
 
 void structSSCP :: v_info () {
 	structTableOfReal :: v_info ();
-	double zmin = NUMmin (asvector (data.get()));
-	double zmax = NUMmax (asvector (data.get()));
+	double zmin = NUMmin (our data.all());
+	double zmax = NUMmax (our data.all());
 	MelderInfo_writeLine (U"Minimum value: ", zmin);
 	MelderInfo_writeLine (U"Maximum value: ", zmax);
 }
@@ -181,7 +181,7 @@ autoSSCPList SSCPList_extractTwoDimensions (SSCPList me, integer d1, integer d2)
 	}
 }
 
-void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, conststring32 label, int fontSize) {
+void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, conststring32 label, double fontSize) {
 	try {
 		integer nsteps = 100;
 		autoVEC x = newVECraw (nsteps + 1);
@@ -209,7 +209,7 @@ void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, c
 		}
 		Graphics_polyline (g, nsteps + 1, & x [1], & y [1]);
 		if (label && fontSize > 0) {
-			int oldFontSize = Graphics_inqFontSize (g);
+			const double oldFontSize = Graphics_inqFontSize (g);
 			Graphics_setFontSize (g, fontSize);
 			Graphics_setTextAlignment (g, Graphics_CENTRE, Graphics_HALF);
 			Graphics_text (g, my centroid [1], my centroid [2], label);
@@ -220,7 +220,7 @@ void SSCP_drawTwoDimensionalEllipse_inside (SSCP me, Graphics g, double scale, c
 	}
 }
 
-autoSSCP SSCP_toTwoDimensions (SSCP me, constVEC v1, constVEC v2) {
+autoSSCP SSCP_toTwoDimensions (SSCP me, constVECVU const& v1, constVECVU const& v2) {
 	try {
 		Melder_assert (v1.size == v2.size && v1.size == my numberOfColumns);
 		autoSSCP thee = SSCP_create (2);
@@ -238,9 +238,9 @@ autoSSCP SSCP_toTwoDimensions (SSCP me, constVEC v1, constVEC v2) {
 			}
 			thy data [2] [1] = thy data [1] [2];
 		} else {
-			thy data [1] [1] = NUMmul_vtmv (v1, my data.get(), v1);
-			thy data [2] [2] = NUMmul_vtmv (v2, my data.get(), v2);
-			thy data [1] [2] = thy data [2] [1] = NUMmul_vtmv (v1, my data.get(), v2);
+			thy data [1] [1] = NUMmul (v1, my data.get(), v1);
+			thy data [2] [2] = NUMmul (v2, my data.get(), v2);
+			thy data [1] [2] = thy data [2] [1] = NUMmul (v1, my data.get(), v2);
 		}
 
 		thy centroid [1] = NUMinner (v1, my centroid.get());
@@ -309,8 +309,9 @@ double SSCP_getFractionVariation (SSCP me, integer from, integer to) {
 	return trace > 0.0 ? sum / trace : undefined;
 }
 
-void SSCP_drawConcentrationEllipse (SSCP me, Graphics g, double scale, int confidence, integer d1, integer d2, double xmin, double xmax, double ymin, double ymax, int garnish) {
-
+void SSCP_drawConcentrationEllipse (SSCP me, Graphics g, double scale, int confidence,
+	integer d1, integer d2, double xmin, double xmax, double ymin, double ymax, int garnish)
+{
 	Melder_require (d1 > 0 && d1 <= my numberOfRows && d2 > 0 && d2 <= my numberOfRows && d1 != d2, U"Incorrect axes.");
 
 	autoSSCP thee = _SSCP_extractTwoDimensions (me, d1, d2);
@@ -376,7 +377,7 @@ double SSCP_getCumulativeContributionOfComponents (SSCP me, integer from, intege
 }
 
 /* For nxn matrix only ! */
-void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VEC vec, VEC buf) {
+void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VECVU vec, VEC buf) {
 	// Generate the multi-normal vector elements N(0,sigma)
 	Melder_require (thy dimension == my numberOfRows, 
 		U"The PCA must have the same dimension as the Covariance.");
@@ -387,7 +388,7 @@ void Covariance_PCA_generateOneVector_inline (Covariance me, PCA thee, VEC vec, 
 
 	// Rotate back
 	
-	VECmul_preallocated (vec, buf, thy eigenvectors.get());
+	VECmul (vec, buf, thy eigenvectors.get());
 	vec  +=  my centroid.get();
 }
 
@@ -420,10 +421,10 @@ autoSSCP TableOfReal_to_SSCP (TableOfReal me, integer rowb, integer rowe, intege
 				U").\nThe SSCP will not have full dimensionality. This may be a problem in later analysis steps."
 			);
 		autoSSCP thee = SSCP_create (part.ncol);
-		VECcolumnMeans_preallocated (thy centroid.get(), part.get());
+		VECcolumnMeans (thy centroid.get(), part.get());
 		part.all()  -=  thy centroid.all();
 		SSCP_setNumberOfObservations (thee.get(), part.nrow);
-		MATmtm_preallocated (thy data.get(), part.get());   // sum of squares and cross products = T'T
+		MATmtm (thy data.get(), part.get());   // sum of squares and cross products = T'T
 		for (integer j = 1; j <= part.ncol; j ++) {
 			conststring32 label = my columnLabels [colb - 1 + j].get();
 			TableOfReal_setColumnLabel (thee.get(), j, label);
@@ -451,14 +452,14 @@ autoSSCP TableOfReal_to_SSCP_rowWeights (TableOfReal me, integer rowb, integer r
 				U").\nThe SSCP will not have full dimensionality. This may be a problem in later analysis steps."
 			);
 		autoSSCP thee = SSCP_create (part.ncol);
-		VECcolumnMeans_preallocated (thy centroid.get(), part.get());
+		VECcolumnMeans (thy centroid.get(), part.get());
 		part.all()  -=  thy centroid.all();
 		SSCP_setNumberOfObservations (thee.get(), part.nrow);
 		if (weightColumnNumber != 0) {
 			autoVEC rowWeights = newVECcolumn (my data.horizontalBand (rowb, rowe), weightColumnNumber);
-			MATmtm_weighRows_preallocated (thy data.get(), part.get(), rowWeights.get());
+			MATmtm_weighRows (thy data.get(), part.get(), rowWeights.get());
 		} else
-			MATmtm_preallocated (thy data.get(), part.get());   // sum of squares and cross products = T'T
+			MATmtm (thy data.get(), part.get());   // sum of squares and cross products = T'T
 		for (integer j = 1; j <= part.ncol; j ++) {
 			conststring32 label = my columnLabels [colb - 1 + j].get();
 			TableOfReal_setColumnLabel (thee.get(), j, label);
@@ -502,7 +503,7 @@ autoTableOfReal Covariance_TableOfReal_mahalanobis (Covariance me, TableOfReal t
 		MATlowerCholeskyInverse_inplace (covari.get(), nullptr);
 
 		if (useTableCentroid)
-			VECcolumnMeans_preallocated (centroid.get(), thy data.get());
+			VECcolumnMeans (centroid.get(), thy data.get());
 		for (integer k = 1; k <= thy numberOfRows; k ++) {
 			his data [k] [1] = sqrt (NUMmahalanobisDistance (covari.get(), thy data.row (k), centroid.get()));
 			if (thy rowLabels [k])
@@ -740,7 +741,7 @@ autoCCA SSCP_to_CCA (SSCP me, integer ny) {
 		autoMAT a = newMATmul (sxx.transpose(), syx.transpose());
 		Melder_assert (a.nrow == nx && a.ncol == ny);
 
-		autoGSVD gsvd = GSVD_create_d (a.get(), syy.get());
+		autoGSVD gsvd = GSVD_create (a.get(), syy.get());
 		autoMAT ri = newMATcopy (gsvd -> r.get());
 		
 		autoCCA thee = Thing_new (CCA);
@@ -865,7 +866,7 @@ autoCovariance CovarianceList_to_Covariance_between (CovarianceList me) {
 		for (integer i = 1; i <= my size; i ++) {
 			Covariance covi = my at [i];
 			mean.all() <<= covi -> centroid.all()  -  thy centroid.all();
-			MATouter_preallocated (outer.get(), mean.get(), mean.get());
+			MATouter (outer.get(), mean.get(), mean.get());
 			thy data.all()  +=  outer.all()  *  covi -> numberOfObservations; // Y += aX
 		}
 		thy data.all()  *=  1.0 / (thy numberOfObservations - 1.0);
@@ -930,7 +931,7 @@ void SSCPList_getHomegeneityOfCovariances_box (SSCPList me, double *out_prob, do
 	if (out_df) *out_df = df;
 }
 
-autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVEC v1, constVEC v2) {
+autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVECVU const& v1, constVECVU const& v2) {
 	try {
 		autoSSCPList thee = SSCPList_create ();
 		for (integer i = 1; i <= my size; i ++) {
@@ -948,7 +949,7 @@ autoSSCPList SSCPList_toTwoDimensions (SSCPList me, constVEC v1, constVEC v2) {
 void SSCPList_drawConcentrationEllipses (SSCPList me, Graphics g,
 	double scale, bool confidence, conststring32 label,
 	integer d1, integer d2, double xmin, double xmax, double ymin, double ymax,
-	int fontSize, bool garnish)
+	double fontSize, bool garnish)
 {
 	SSCP t = my at [1];
 
@@ -1218,7 +1219,7 @@ static autoCovariance Covariances_pool (Covariance me, Covariance thee) {
 static double traceOfSquaredMatrixProduct (constMAT const& s1, constMAT const& s2) {
 	// tr ((s1*s2)^2), s1, s2 are symmetric
 	autoMAT m = newMATmul (s1, s2);
-	double trace2 = NUMtrace2_nn (m.get(), m.get());
+	double trace2 = NUMtrace2 (m.get(), m.get());
 	return trace2;
 }
 
@@ -1246,23 +1247,19 @@ double Covariance_getProbabilityAtPosition (Covariance me, constVEC x) {
 	return p;
 }
 
-double Covariance_getMarginalProbabilityAtPosition (Covariance me, constVEC vector, double x) {
+double Covariance_getMarginalProbabilityAtPosition (Covariance me, constVECVU const& vector, double x) {
 	double mu, stdev;
-	Covariance_getMarginalDensityParameters (me, vector, &mu, &stdev);
+	Covariance_getMarginalDensityParameters (me, vector, & mu, & stdev);
 	double dx = (x - mu) / stdev;
 	double p = (NUM1_sqrt2pi / stdev) * exp (- 0.5 * dx * dx);
 	return p;
 }
 
 /* Precondition ||v|| = 1 */
-void Covariance_getMarginalDensityParameters (Covariance me, constVEC v, double *out_mu, double *out_stdev) {
+void Covariance_getMarginalDensityParameters (Covariance me, constVECVU const& v, double *out_mu, double *out_stdev) {
 	Melder_assert (v.size == my numberOfColumns);
-	if (out_mu) {
-		longdouble mu = 0.0;
-		for (integer m = 1; m <= my numberOfColumns; m ++)
-			mu += v [m] * my centroid [m];
-		*out_mu = double (mu);
-	}
+	if (out_mu)
+		*out_mu = NUMinner (v, my centroid.get());
 	if (out_stdev) {
 		longdouble stdev = 0.0;
 		if (my numberOfRows == 1) { // 1xn diagonal matrix
@@ -1335,9 +1332,9 @@ double Covariances_getMultivariateCentroidDifference (Covariance me, Covariance 
 
 		autoMAT si = MATinverse_fromLowerCholeskyInverse (s.get());
 		double tr_s1sisqr = traceOfSquaredMatrixProduct (s1.get(), si.get());
-		double tr_s1si = NUMtrace2_nn (s1.get(), si.get());
+		double tr_s1si = NUMtrace2 (s1.get(), si.get());
 		double tr_s2sisqr = traceOfSquaredMatrixProduct (s2.get(), si.get());
-		double tr_s2si = NUMtrace2_nn (s2.get(), si.get());
+		double tr_s2si = NUMtrace2 (s2.get(), si.get());
 
 		double nu = (p + p * p) / ( (tr_s1sisqr + tr_s1si * tr_s1si) / n1 + (tr_s2sisqr + tr_s2si * tr_s2si) / n2);
 		df2 = nu - p + 1;
@@ -1418,13 +1415,13 @@ void Covariances_equality (CovarianceList me, int method, double *out_prob, doub
 				Covariance ci = my at [i];
 				double ni = ci -> numberOfObservations - 1;
 				autoMAT s1 = newMATmul (ci -> data.get(), si.get());
-				double trace_ii = NUMtrace2_nn (s1.get(), s1.get());
+				double trace_ii = NUMtrace2 (s1.get(), s1.get());
 				trace += (ni / ns) * (1 - (ni / ns)) * trace_ii;
 				for (integer j = i + 1; j <= numberOfMatrices; j ++) {
 					Covariance cj = my at [j];
 					double nj = cj -> numberOfObservations - 1;
 					autoMAT s2 = newMATmul (cj -> data.get(), si.get());
-					double trace_ij = NUMtrace2_nn (s1.get(), s2.get());
+					double trace_ij = NUMtrace2 (s1.get(), s2.get());
 					trace -= 2.0 * (ni / ns) * (nj / ns) * trace_ij;
 				}
 			}

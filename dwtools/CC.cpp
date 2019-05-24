@@ -1,6 +1,6 @@
 /* CC.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 
 Thing_implement (CC, Sampled, 1);
 
-static integer CC_getMaximumNumberOfCoefficientsUsed (CC me) {
+integer CC_getMaximumNumberOfCoefficientsUsed (CC me) {
 	integer numberOfCoefficients = 0;
 	for (integer iframe = 1; iframe <= my nx; iframe ++) {
 		CC_Frame cf = & my frame [iframe];
@@ -139,7 +139,7 @@ void CC_drawC0 (CC me, Graphics g, double xmin, double xmax, double ymin, double
 			ymax += 1.0;
 		}
 	} else
-		VECclip_inplace (c.get(), ymin, ymax);
+		VECclip_inplace_inline (c.get(), ymin, ymax);
 
 	Graphics_setInner (g);
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);

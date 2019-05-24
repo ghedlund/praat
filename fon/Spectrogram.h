@@ -2,7 +2,7 @@
 #define _Spectrogram_h_
 /* Spectrogram.h
  *
- * Copyright (C) 1992-2011,2015,2017 David Weenink & Paul Boersma
+ * Copyright (C) 1992-2007,2011,2012,2015-2019 David Weenink & Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,12 +54,12 @@ PRAAT_LIB_EXPORT autoSpectrogram Spectrogram_create (double tmin, double tmax, i
 		dt > 0.0;
 		df > 0.0;
 	Postconditions:
-		result -> xmin = tmin;		result -> ymin = fmin;
-		result -> xmax = tmax;		result -> ymax = fmax;
-		result -> nx = nt;			result -> ny = nf;
-		result -> dx = dt;			result -> dy = df;
-		result -> x1 = t1;			result -> y1 = f1;
-		result -> z [1..nf] [1..nt] = 0.0;
+		result -> xmin == tmin;		result -> ymin == fmin;
+		result -> xmax == tmax;		result -> ymax == fmax;
+		result -> nx == nt;			result -> ny == nf;
+		result -> dx == dt;			result -> dy == df;
+		result -> x1 == t1;			result -> y1 == f1;
+		result -> z [1..nf] [1..nt] == 0.0;
 */
 
 void Spectrogram_paintInside (Spectrogram me, Graphics g,

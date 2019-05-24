@@ -24,6 +24,7 @@
 #ifdef macintosh
 	#include <Accelerate/Accelerate.h>
 	#import <MetalPerformanceShaders/MetalPerformanceShaders.h>
+	#include <OpenCL/opencl.h>
 #endif
 
 void MATcentreEachColumn_inplace (MATVU const& x) noexcept {
@@ -44,7 +45,7 @@ void MATdoubleCentre_inplace (MATVU const& x) noexcept {
 	MATcentreEachColumn_inplace (x);
 }
 
-void MATmtm_preallocated (MATVU const& target, constMATVU const& x) noexcept {
+void MATmtm (MATVU const& target, constMATVU const& x) noexcept {
 	Melder_assert (target.nrow == x.ncol);
 	Melder_assert (target.ncol == x.ncol);
 	#if 0
@@ -82,7 +83,7 @@ void MATmtm_preallocated (MATVU const& target, constMATVU const& x) noexcept {
 	#endif
 }
 
-void MATVUmul_ (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
+void MATmul_ (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
 	/*
 		Precise matrix multiplication, using pairwise summation.
 	*/
@@ -163,7 +164,7 @@ void MATVUmul_ (MATVU const& target, constMATVU const& x, constMATVU const& y) n
 	}
 }
 
-void MATVUmul_forceAllocation_ (MATVU const& target, constMATVU x, constMATVU y) {
+void MATmul_forceAllocation_ (MATVU const& target, constMATVU x, constMATVU y) {
 	/*
 		As seen above, the only multiplication that stays fast for large sizes,
 		if X and Y are packed row-major matrices, is X.Y';
@@ -212,9 +213,9 @@ void MATVUmul_forceAllocation_ (MATVU const& target, constMATVU x, constMATVU y)
 	}
 }
 
-void MATVUmul_allowAllocation_ (MATVU const& target, constMATVU x, constMATVU y) {
+void MATmul_allowAllocation_ (MATVU const& target, constMATVU x, constMATVU y) {
 	/*
-		The faster of MATVUmul_ and MATVUmul_forceAllocation.
+		The faster of MATmul_ and MATmul_forceAllocation.
 		Allocation takes place only for larger matrices, e.g. from size 47 on
 		(100,000 flops).
 
@@ -341,7 +342,7 @@ void MATVUmul_allowAllocation_ (MATVU const& target, constMATVU x, constMATVU y)
 	}
 }
 
-static inline void MATVUmul_rough_naiveReferenceImplementation (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
+static inline void MATmul_rough_naiveReferenceImplementation (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
 	/*
 		If x.colStride == size and y.colStride == 1,
 		this version is 0.073, 1.32, 1.17, 0.58 Gflop/s for size = 1,10,100,1000.
@@ -354,9 +355,9 @@ static inline void MATVUmul_rough_naiveReferenceImplementation (MATVU const& tar
 		}
 	}
 }
-void MATVUmul_fast_ (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
+void MATmul_fast_ (MATVU const& target, constMATVU const& x, constMATVU const& y) noexcept {
 	if ((false)) {
-		MATVUmul_rough_naiveReferenceImplementation (target, x, y);
+		MATmul_rough_naiveReferenceImplementation (target, x, y);
 	} else if (y.colStride == 1) {
 		/*
 			This case is appropriate for the multiplication of full matrices
@@ -424,7 +425,7 @@ void MATVUmul_fast_ (MATVU const& target, constMATVU const& x, constMATVU const&
 					X.Y'
 				The speed is 0.064, 1.18, 1.67, 1.69 Gflop/s for size = 1,10,100,1000.
 			*/
-			MATVUmul_ (target, x, y);
+			MATmul_ (target, x, y);
 		} else {
 			/*
 				This case will be appropriate for the multiplication of full matrices
@@ -459,26 +460,53 @@ void MATVUmul_fast_ (MATVU const& target, constMATVU const& x, constMATVU const&
 			A rare case: the strides of y are both greater than 1.
 			We do not bother to optimize these cases yet.
 		*/
-		MATVUmul_rough_naiveReferenceImplementation (target, x, y);
+		MATmul_rough_naiveReferenceImplementation (target, x, y);
 	}
 }
 
-void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU const& y) {
+void MATmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU const& y) {
 #ifdef macintosh
 	if (@available (macOS 10.13, *)) {
 		/*
-			The speed is 0.000'003, 0.003, 0.66, 2.24, 3.46,  9.6, 13.0, 20.1, 20.0, 21.0, 27.5, 34.2, 77 Gflop/s
-			for size =           1,    10,  100,  200,  500, 1000, 2000, 3000, 5000, 6000, 7000, 8000, 10000.
+			The speed is 0.000'002, 0.002, 1.00, 8.0, 16.1,  21, 14.3,  35, 16.3,  51,  22,   62,   58,   60,   58,   57,   135,   223,   360,   465,   519,   580,   577,   579,  1125,  1108,  1087,  1175,  1194 Gflop/s
+			for size =           1,    10,  100, 200,  300, 400,  500, 600,  700, 800, 900, 1000, 2000, 3000, 5000, 7000, 10000, 12000, 15000, 17000, 18000, 18500, 18700, 18800, 18900, 19000, 20000, 21000, 22000.
 		*/
 		static bool gpuInited = false;
 		static id <MTLDevice> gpuDevice;
 		static id <MTLCommandQueue> gpuQueue;
 		if (! gpuInited) {
-			gpuDevice = MTLCreateSystemDefaultDevice ();
-			Melder_casual (U"GPU device", Melder_pointer (gpuDevice));
+			NSArray <id<MTLDevice>> *gpuDeviceList = MTLCopyAllDevices ();
+			NSUInteger numberOfGpuDevices = [gpuDeviceList count];
+			Melder_casual (U"Found ", numberOfGpuDevices, U" GPU devices.");
+			if (numberOfGpuDevices < 2) {
+				/*
+					Easy choice.
+				*/
+				gpuDevice = MTLCreateSystemDefaultDevice ();
+			} else {
+				int externalGpuDeviceNumber = -1, discreteGpuDeviceNumber = -1;
+				for (NSUInteger idevice = 0; idevice < numberOfGpuDevices; idevice ++) {
+					id <MTLDevice> device = [gpuDeviceList objectAtIndex: idevice];
+					autostring32 deviceName = Melder_8to32 ([[device name] UTF8String]);
+					Melder_casual (U"GPU device ", idevice, U": ", deviceName.get());
+					if (device. removable)
+						externalGpuDeviceNumber = int (idevice);
+					else if (! device. lowPower)
+						discreteGpuDeviceNumber = int (idevice);
+				}
+				if (externalGpuDeviceNumber != -1)
+					gpuDevice = [gpuDeviceList objectAtIndex: NSUInteger (externalGpuDeviceNumber)];
+				else if (discreteGpuDeviceNumber != -1)
+					gpuDevice = [gpuDeviceList objectAtIndex: NSUInteger (discreteGpuDeviceNumber)];
+				else
+					gpuDevice = MTLCreateSystemDefaultDevice ();   // unlikely fallback
+			}
+			autostring32 deviceName = Melder_8to32 ([[gpuDevice name] UTF8String]);
+			Melder_casual (U"GPU device for computing: ", deviceName.get());
 			gpuInited = true;
 			gpuQueue = [gpuDevice newCommandQueue];
 		}
+//Melder_casual (U"start ", Melder_stopwatch ());
 		MPSMatrixMultiplication *matrixMultiplication = [[MPSMatrixMultiplication alloc]
 			initWithDevice: gpuDevice
 			resultRows: integer_to_uinteger (target.nrow)
@@ -487,7 +515,7 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 		];
 		Melder_assert (matrixMultiplication != nil);
 
-		uinteger xRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (x.ncol)  dataType:MPSDataTypeFloat32];
+		uinteger xRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (x.ncol)  dataType: MPSDataTypeFloat32];
 		uinteger xRowStrideInFloats = xRowStrideInBytes / sizeof (float);
 		autovector <float> x32 = newvectorzero <float> (integer (uinteger (x.nrow) * xRowStrideInFloats));
 		for (integer irow = 1; irow <= x.nrow; irow ++) {
@@ -496,7 +524,7 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 				*prow ++ = float (x [irow] [icol]);
 		}
 
-		uinteger yRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (y.ncol)  dataType:MPSDataTypeFloat32];
+		uinteger yRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (y.ncol)  dataType: MPSDataTypeFloat32];
 		uinteger yRowStrideInFloats = yRowStrideInBytes / sizeof (float);
 		autovector <float> y32 = newvectorzero <float> (integer (uinteger (y.nrow) * yRowStrideInFloats));
 		for (integer irow = 1; irow <= y.nrow; irow ++) {
@@ -505,21 +533,22 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 				*prow ++ = float (y [irow] [icol]);
 		}
 
-		uinteger targetRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (y.ncol)  dataType:MPSDataTypeFloat32];
+		uinteger targetRowStrideInBytes = [MPSMatrixDescriptor rowBytesForColumns: uinteger (y.ncol)  dataType: MPSDataTypeFloat32];
 		uinteger targetRowStrideInFloats = targetRowStrideInBytes / sizeof (float);
 		autovector <float> target32 = newvectorzero <float> (integer (uinteger (target.nrow) * targetRowStrideInFloats));
 
-		uinteger x32length = (uinteger (x.nrow) * xRowStrideInBytes);
-		id <MTLBuffer> bufferX = [gpuDevice newBufferWithBytes: & x32 [1]  length: x32length  options: MTLResourceStorageModeShared];
+		uinteger x32length = uinteger (x.nrow) * xRowStrideInBytes;
+		id <MTLBuffer> bufferX = [gpuDevice newBufferWithBytes: & x32 [1]  length: x32length  options: MTLResourceStorageModeManaged];
 		Melder_assert (bufferX != nil);
 
-		uinteger y32length = (uinteger (y.nrow) * yRowStrideInBytes);
-		id <MTLBuffer> bufferY = [gpuDevice newBufferWithBytes: & y32 [1]  length: y32length  options: MTLResourceStorageModeShared];
+		uinteger y32length = uinteger (y.nrow) * yRowStrideInBytes;
+		id <MTLBuffer> bufferY = [gpuDevice newBufferWithBytes: & y32 [1]  length: y32length  options: MTLResourceStorageModeManaged];
 		Melder_assert (bufferY != nil);
 
-		uinteger target32length = (uinteger (target.nrow) * targetRowStrideInBytes);
+		uinteger target32length = uinteger (target.nrow) * targetRowStrideInBytes;
 		id <MTLBuffer> bufferTarget = [gpuDevice newBufferWithBytes: & target32 [1]  length: target32length  options: MTLResourceStorageModeShared];
 		Melder_assert (bufferTarget != nil);
+//Melder_casual (U"to GPU ", Melder_stopwatch ());
 
 		MPSMatrixDescriptor *descriptorX =
 			[MPSMatrixDescriptor matrixDescriptorWithRows: uinteger (x.nrow)
@@ -551,7 +580,28 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 			rightMatrix: mpsY
 			resultMatrix: mpsTarget];
 		[commandBuffer commit];
+		/*
+			For testing.
+		*/
+		constexpr integer numberOfTimes = 0;
+		id <MTLCommandBuffer> commandBuffers [numberOfTimes];
+		for (integer itime = 0; itime < numberOfTimes; itime ++) {
+			commandBuffers [itime] = [gpuQueue commandBuffer];
+			[matrixMultiplication encodeToCommandBuffer: commandBuffers [itime]
+				leftMatrix: mpsX
+				rightMatrix: mpsTarget
+				resultMatrix: mpsY];
+			[matrixMultiplication encodeToCommandBuffer: commandBuffers [itime]
+				leftMatrix: mpsX
+				rightMatrix: mpsY
+				resultMatrix: mpsTarget];
+			[commandBuffers [itime] commit];
+		}
 		[commandBuffer waitUntilCompleted];
+		for (integer itime = 0; itime < numberOfTimes; itime ++) {
+			[commandBuffers [itime] waitUntilCompleted];
+		}
+//Melder_casual (U"in GPU ", Melder_stopwatch ());
 		NSError *error = [commandBuffer error];
 		if (error) {
 			/*
@@ -572,14 +622,15 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 				localizedDescription.get(), localizedFailureReason.get(), localizedRecoverySuggestion.get());
 		}
 		[error release];
-		float *rawPointer = (float *) [bufferTarget contents];
+		const float * const rawPointer = (const float *) [bufferTarget contents];
 		for (integer irow = 1; irow <= target.nrow; irow ++) {
-			float *prow = rawPointer + uinteger (irow - 1) * targetRowStrideInFloats;
+			const float * prow = rawPointer + uinteger (irow - 1) * targetRowStrideInFloats;
 			for (integer icol = 1; icol <= target.ncol; icol ++) {
-				double value = double (*prow ++);
+				const double value = double (*prow ++);
 				target [irow] [icol] = value;
 			}
 		}
+//Melder_casual (U"from GPU ", Melder_stopwatch ());
 		[bufferX release];
 		[bufferY release];
 		[bufferTarget release];
@@ -591,21 +642,124 @@ void MATVUmul_forceMetal_ (MATVU const& target, constMATVU const& x, constMATVU 
 		//[descriptorY release];
 		//[descriptorTarget release];
 		[pool release];   // this releases `commandBuffer`
+		/*
+			Check the result.
+		*/
+		//return;
+		const integer numberOfChecks = Melder_iround (pow (target.nrow * target.ncol, 0.33333));
+		integer numberOfUnexpectedZeroes = 0;
+		for (integer icheck = 1; icheck <= numberOfChecks; icheck ++) {
+			const integer rowNumber = NUMrandomInteger (1, target.nrow);
+			const integer columnNumber = NUMrandomInteger (1, target.ncol);
+			const double targetValue = target [rowNumber] [columnNumber];
+			double checkedValue = 0.0;
+			for (integer i = 1; i <= x.ncol; i ++)
+				checkedValue += x [rowNumber] [i] * y [i] [columnNumber];
+			if (checkedValue != 0.0) {
+				//Melder_require (targetValue != 0.0,
+				//	U"GPU matrix multiplication incorrect: unexpected zero at row ", rowNumber, U" and column ", columnNumber, U": value should be ", checkedValue, U".");
+				if (targetValue == 0.0) {
+					numberOfUnexpectedZeroes ++;
+				} else {
+					const double relativeError = fabs (checkedValue / targetValue - 1.0);
+					if (relativeError > 10.0) Melder_casual
+							(U"GPU matrix multiplication warning: unexpected imprecision of ", relativeError, U".");
+				}
+			}
+		}
+		if (numberOfUnexpectedZeroes > 0) Melder_casual
+				(U"GPU matrix multiplication warning: found ", numberOfUnexpectedZeroes, U" unexpected zeroes, out of ", numberOfChecks, U".");
 		return;
 	}
 #else
-	MATVUmul(target, x, y);
+	MATmul(target, x, y);
 #endif
 }
 
-void MATouter_preallocated (MATVU const& target, constVECVU const& x, constVECVU const& y) {
+void MATmul_forceOpenCL_ (MATVU const& target, constMATVU const& x, constMATVU const& y) {
+#ifdef macintosh
+	static bool gpuInited = false;
+	static cl_context openclContext = nullptr;
+	static cl_command_queue commandQueue = nullptr;
+	static cl_kernel kernel = nullptr;
+	if (! gpuInited) {
+		cl_platform_id platformIDs = nullptr;
+		cl_uint numberOfPlatforms;
+		cl_int status = clGetPlatformIDs (1, & platformIDs, & numberOfPlatforms);
+		cl_device_id deviceIDs = nullptr;
+		cl_uint numberOfDevices;
+		status = clGetDeviceIDs (platformIDs, CL_DEVICE_TYPE_GPU, 1, & deviceIDs, & numberOfDevices);
+		openclContext = clCreateContext (nullptr, 1, & deviceIDs, nullptr, nullptr, & status);
+		commandQueue = clCreateCommandQueue (openclContext, deviceIDs, 0, & status);
+		conststring8 sourceText = "__kernel void vector_add(__global const int *A, __global const int *B, __global int *C) {"
+
+    /* Get the index of the current element to be processed */
+    	"int i = get_global_id(0);"
+
+    /* Do the operation */
+    	"C[i] = A[i] + B[i];"
+		"}";
+		size_t sourceSize = strlen (sourceText);
+		cl_program program = clCreateProgramWithSource (openclContext, 1,
+            (const char **) & sourceText, (const size_t *) & sourceSize, & status);
+		status = clBuildProgram (program, 1, & deviceIDs, nullptr, nullptr, nullptr);
+		kernel = clCreateKernel (program, "MATmul_opencl", & status);
+	}
+	#if 0
+	// Create memory buffers on the device for each vector
+    cl_mem a_mem_obj = clCreateBuffer (context, CL_MEM_READ_ONLY,
+            LIST_SIZE * sizeof(int), NULL, &ret);
+    cl_mem b_mem_obj = clCreateBuffer (context, CL_MEM_READ_ONLY,
+            LIST_SIZE * sizeof(int), NULL, &ret);
+    cl_mem c_mem_obj = clCreateBuffer (context, CL_MEM_WRITE_ONLY,
+            LIST_SIZE * sizeof(int), NULL, &ret);
+	// Copy the lists A and B to their respective memory buffers
+    ret = clEnqueueWriteBuffer(command_queue, a_mem_obj, CL_TRUE, 0,
+            LIST_SIZE * sizeof(int), A, 0, NULL, NULL);
+    ret = clEnqueueWriteBuffer(command_queue, b_mem_obj, CL_TRUE, 0,
+            LIST_SIZE * sizeof(int), B, 0, NULL, NULL);
+	// Set the arguments of the kernel
+    ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&a_mem_obj);
+    ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&b_mem_obj);
+    ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&c_mem_obj);
+
+    // Execute the OpenCL kernel on the list
+    size_t global_item_size = LIST_SIZE; // Process the entire lists
+    size_t local_item_size = 64; // Divide work items into groups of 64
+    ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL,
+            &global_item_size, &local_item_size, 0, NULL, NULL);
+
+    // Read the memory buffer C on the device to the local variable C
+    int *C = (int*)malloc(sizeof(int)*LIST_SIZE);
+    ret = clEnqueueReadBuffer(command_queue, c_mem_obj, CL_TRUE, 0,
+            LIST_SIZE * sizeof(int), C, 0, NULL, NULL);
+
+    // Display the result to the screen
+    for(i = 0; i < LIST_SIZE; i++)
+        printf("%d + %d = %d\n", A[i], B[i], C[i]);
+    // Clean up
+    ret = clFlush(command_queue);
+    ret = clFinish(command_queue);
+   ret = clReleaseMemObject(a_mem_obj);
+    ret = clReleaseMemObject(b_mem_obj);
+    ret = clReleaseMemObject(c_mem_obj);
+    free(A);
+    free(B);
+    free(C);
+    #endif
+#else
+	MATmul(target, x, y);
+#endif
+}
+
+void MATouter (MATVU const& target, constVECVU const& x, constVECVU const& y) {
 	for (integer irow = 1; irow <= x.size; irow ++)
 		for (integer icol = 1; icol <= y.size; icol ++)
 			target [irow] [icol] = x [irow] * y [icol];
 }
 autoMAT newMATouter (constVECVU const& x, constVECVU const& y) {
 	autoMAT result = newMATraw (x.size, y.size);
-	MATouter_preallocated (result.get(), x, y);
+	MATouter (result.get(), x, y);
 	return result;
 }
 
@@ -660,6 +814,11 @@ autoMAT newMATpeaks (constVECVU const& x, bool includeEdges, int interpolate, bo
 			result [2] [i] *= -1.0;
 	}
 	return result;
+}
+
+void MATpower (MATVU const& target, constMATVU const& mat, double power) {
+	for (integer irow = 1; irow <= target.nrow; irow ++)
+		VECpower (target.row (irow), mat.row (irow), power);
 }
 
 /* End of file MAT.cpp */

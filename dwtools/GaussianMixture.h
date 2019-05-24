@@ -2,7 +2,7 @@
 #define _GaussianMixture_h_
 /* GaussianMixture.h
  *
- * Copyright (C) 2010-2018 David Weenink
+ * Copyright (C) 2010-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,11 +44,11 @@ void GaussianMixture_unExpandPCA (GaussianMixture me);
 
 void GaussianMixture_drawConcentrationEllipses (GaussianMixture me, Graphics g,
 	double scale, int confidence, char32 *label, int pcaDirections, integer d1, integer d2,
-	double xmin, double xmax, double ymin, double ymax, int fontSize, int garnish);
+	double xmin, double xmax, double ymin, double ymax, double fontSize, int garnish);
 
 void GaussianMixture_PCA_drawConcentrationEllipses (GaussianMixture me, PCA him, Graphics g,
 	double scale, int confidence, char32 *label, integer d1, integer d2,
-	double xmin, double xmax, double ymin, double ymax, int fontSize, int garnish);
+	double xmin, double xmax, double ymin, double ymax, double fontSize, int garnish);
 
 void GaussianMixture_drawMarginalPdf (GaussianMixture me, Graphics g, integer d, double xmin, 
 	double xmax, double ymin, double ymax, integer npoints, integer nbins, int garnish);
@@ -96,7 +96,7 @@ double GaussianMixture_getProbabilityAtPosition (GaussianMixture me, constVEC v)
 
 double GaussianMixture_getProbabilityAtPosition_string (GaussianMixture me, conststring32 pos);
 
-double GaussianMixture_getMarginalProbabilityAtPosition (GaussianMixture me, constVEC pos, double x);
+double GaussianMixture_getMarginalProbabilityAtPosition (GaussianMixture me, constVECVU const& pos, double x);
 
 autoCorrelation GaussianMixture_TableOfReal_to_Correlation (GaussianMixture me, TableOfReal thee);
 /* Correlation between components based on the data in the table */

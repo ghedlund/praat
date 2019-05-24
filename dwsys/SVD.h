@@ -1,6 +1,6 @@
 /* SVD.h
  *
- * Copyright (C) 1994-2018 David Weenink
+ * Copyright (C) 1994-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,9 +36,9 @@ autoSVD SVD_create (integer numberOfRows, integer numberOfColumns);
 	where eps is the floating point precision, approximately 2.2e-16
 */
 
-autoSVD SVD_createFromGeneralMatrix (constMAT m);
+autoSVD SVD_createFromGeneralMatrix (constMATVU const& m);
 
-void SVD_svd_d (SVD me, constMAT m);
+void SVD_update (SVD me, constMATVU const& m);
 /*
 	Perform SVD analysis on matrix M, i.e., decompose M as M = UDV'.
 	Watch out: dataType contains V, not V' !!
@@ -46,10 +46,13 @@ void SVD_svd_d (SVD me, constMAT m);
 
 void SVD_compute (SVD me);
 
-autoVEC SVD_solve (SVD me, constVEC b);
+void SVD_solve_preallocated (SVD me, constVECVU const& b, VECVU result);
+autoVEC SVD_solve (SVD me, constVECVU const& b);
 /* Solve Ax = b */
 
-void SVD_solve2 (SVD me, double b[], double x[], double fractionOfSumOfSingularValues);
+/* Solve A*X = B */
+void SVD_solve_preallocated (SVD me, constMATVU const& b, MATVU result);
+autoMAT SVD_solve (SVD me, constMATVU const& b);
 
 void SVD_sort (SVD me);
 /*
@@ -92,7 +95,7 @@ integer SVD_getRank (SVD me);
 
 autoGSVD GSVD_create (integer numberOfColumns);
 
-autoGSVD GSVD_create_d (constMAT m1, constMAT m2);
+autoGSVD GSVD_create (constMATVU const& m1, constMATVU const& m2);
 
 void GSVD_setTolerance (GSVD me, double tolerance);
 

@@ -51,7 +51,7 @@ PRAAT_LIB_EXPORT double Ltas_convertSpecialToStandardUnit (Ltas me, double value
 		x1				// Centre of first band (Hz).
 		ymin, ymax, dy, y1 = 1.0
 		ny = 1
-		z [1] [1..nx]		// The intensity per band, in db/Hz.
+		z [1] [1..nx]		// The intensity per band, in dB/Hz.
 */
 
 PRAAT_LIB_EXPORT autoLtas Ltas_create (integer nx, double dx);

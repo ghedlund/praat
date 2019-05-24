@@ -1550,7 +1550,31 @@ DO
 	MODIFY_EACH_WEAK_END
 }
 
-FORM (REAL_Pitch_getMinimum, U"Pitch: Get minimum", 0) {
+FORM (NUMMAT_Pitch_getAllCandidatesInFrame, U"Pitch: Get all candidates in frame", nullptr) {
+	NATURAL (frameNumber, U"Frame number", U"1")
+	OK
+DO
+	NUMMAT_ONE (Pitch)
+		autoMAT result = Pitch_getAllCandidatesInFrame (me, frameNumber);
+	NUMMAT_ONE_END
+}
+
+FORM (NEW_Pitch_tabulateCandidatesInFrame, U"Pitch: Tabulate candidates in frame", nullptr) {
+	NATURAL (frameNumber, U"Frame number", U"1")
+	OK
+DO
+	CONVERT_EACH (Pitch)
+		autoTable result = Pitch_tabulateCandidatesInFrame (me, frameNumber);
+	CONVERT_EACH_END (my name.get(), U"_", frameNumber)
+}
+
+DIRECT (NEW_Pitch_tabulateCandidates) {
+	CONVERT_EACH (Pitch)
+		autoTable result = Pitch_tabulateCandidates (me);
+	CONVERT_EACH_END (my name.get())
+}
+
+FORM (REAL_Pitch_getMinimum, U"Pitch: Get minimum", nullptr) {
 	praat_TimeFunction_RANGE (fromTime, toTime)
 	OPTIONMENU_ENUM (kPitch_unit, unit, U"Unit", kPitch_unit::DEFAULT)
 	RADIOx (interpolation, U"Interpolation", 2, 0)
@@ -2414,6 +2438,26 @@ DO
 	NUMBER_ONE_END (U" (kurtosis)")
 }
 
+FORM (REAL_Spectrum_getSoundPressureLevelOfNearestMaximum, U"Spectrum: Get sound pressure level of nearest maximum", U"Spectrum: Get sound pressure level of nearest maximum...") {
+	POSITIVE (frequency, U"Frequency (Hz)", U"1000.0")
+	OK
+DO
+	NUMBER_ONE (Spectrum)
+		MelderPoint maximum = Spectrum_getNearestMaximum (me, frequency);
+		double result = maximum. y;
+	NUMBER_ONE_END (U" \"dB/Hz\"")
+}
+
+FORM (REAL_Spectrum_getFrequencyOfNearestMaximum, U"Spectrum: Get frequency of nearest maximum", U"Spectrum: Get frequency of nearest maximum...") {
+	POSITIVE (frequency, U"Frequency (Hz)", U"1000.0")
+	OK
+DO
+	NUMBER_ONE (Spectrum)
+		MelderPoint maximum = Spectrum_getNearestMaximum (me, frequency);
+		double result = maximum. x;
+	NUMBER_ONE_END (U" Hz")
+}
+
 DIRECT (INTEGER_Spectrum_getNumberOfBins) {
 	NUMBER_ONE (Spectrum)
 		integer result = my nx;
@@ -3200,6 +3244,11 @@ praat_addAction1 (classFormant, 0, U"Hack", nullptr, 0, nullptr);
 		praat_addAction1 (classPitch, 1, U"Get slope without octave jumps", nullptr, 1, REAL_Pitch_getMeanAbsSlope_noOctave);
 		praat_addAction1 (classPitch, 2, U"-- query two --", nullptr, 1, nullptr);
 		praat_addAction1 (classPitch, 2, U"Count differences", nullptr, 1, INFO_Pitch_difference);
+		praat_addAction1 (classPitch, 2, U"-- hack --", nullptr, 1, nullptr);
+		praat_addAction1 (classPitch, 1, U"Internal", nullptr, 1, nullptr);
+			praat_addAction1 (classPitch, 0, U"Tabulate candidates", nullptr, 2, NEW_Pitch_tabulateCandidates);
+			praat_addAction1 (classPitch, 0, U"Tabulate candidates in frame...", nullptr, 2, NEW_Pitch_tabulateCandidatesInFrame);
+			praat_addAction1 (classPitch, 1, U"Get all candidates in frame...", nullptr, 2, NUMMAT_Pitch_getAllCandidatesInFrame);
 	praat_addAction1 (classPitch, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_TimeFunction_modify_init (classPitch);
 		praat_addAction1 (classPitch, 0, U"Formula...", nullptr, 1, MODIFY_Pitch_formula);
@@ -3288,6 +3337,9 @@ praat_addAction1 (classPolygon, 0, U"Hack -", nullptr, 0, nullptr);
 		praat_addAction1 (classSpectrum, 1, U"Get skewness...", nullptr, 1, REAL_Spectrum_getSkewness);
 		praat_addAction1 (classSpectrum, 1, U"Get kurtosis...", nullptr, 1, REAL_Spectrum_getKurtosis);
 		praat_addAction1 (classSpectrum, 1, U"Get central moment...", nullptr, 1, REAL_Spectrum_getCentralMoment);
+		praat_addAction1 (classSpectrum, 1, U"-- search --", nullptr, 1, nullptr);
+		praat_addAction1 (classSpectrum, 1, U"Get frequency of nearest maximum...", nullptr, 1, REAL_Spectrum_getFrequencyOfNearestMaximum);
+		praat_addAction1 (classSpectrum, 1, U"Get sound pressure level of nearest maximum...", nullptr, 1, REAL_Spectrum_getSoundPressureLevelOfNearestMaximum);
 	praat_addAction1 (classSpectrum, 0, U"Modify -", nullptr, 0, nullptr);
 		praat_addAction1 (classSpectrum, 0, U"Formula...", nullptr, 1, MODIFY_Spectrum_formula);
 		praat_addAction1 (classSpectrum, 0, U"Filter (pass Hann band)...", nullptr, 1, MODIFY_Spectrum_passHannBand);

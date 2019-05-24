@@ -1,6 +1,6 @@
 /* ContingencyTable.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,18 +61,16 @@ autoContingencyTable ContingencyTable_create (integer numberOfRows, integer numb
 double ContingencyTable_chisqProbability (ContingencyTable me) {
 	double chisq, df;
 	ContingencyTable_chisq (me, & chisq, & df);
-	if (chisq == 0.0 && df == 0.0) {
+	if (chisq == 0.0 && df == 0.0)
 		return 0.0;
-	}
 	return NUMchiSquareQ (chisq, df);
 }
 
 double ContingencyTable_cramersStatistic (ContingencyTable me) {
-	if (my numberOfRows == 1 || my numberOfColumns == 1) {
+	if (my numberOfRows == 1 || my numberOfColumns == 1)
 		return 0.0;
-	}
 
-	double sum = NUMsum (my data.get());
+	double sum = NUMsum (my data.all());
 
 	integer nmin = std::min (my numberOfColumns, my numberOfRows);
 
@@ -80,27 +78,26 @@ double ContingencyTable_cramersStatistic (ContingencyTable me) {
 	
 	double chisq, df;
 	ContingencyTable_chisq (me, & chisq, & df);
-	if (chisq == 0.0 && df == 0.0) {
+	if (chisq == 0.0 && df == 0.0)
 		return 0.0;
-	}
 	return sqrt (chisq / (sum * nmin));
 }
 
 double ContingencyTable_contingencyCoefficient (ContingencyTable me) {
 	
-	double chisq, df, sum = NUMsum (my data.get());
+	double chisq, df, sum = NUMsum (my data.all());
 	ContingencyTable_chisq (me, & chisq, & df);
-	if (chisq == 0.0 && df == 0.0) {
+	if (chisq == 0.0 && df == 0.0)
 		return 0.0;
-	}
+
 	return sqrt (chisq / (chisq + (double) sum));
 }
 
 void ContingencyTable_chisq (ContingencyTable me, double *out_chisq, double *out_df) {
 	
-	autoVEC rowSums = newVECsumPerRow (my data.get());
-	autoVEC columnSums = newVECsumPerColumn (my data.get());
-	double totalSum = NUMsum (my data.get());
+	autoVEC rowSums = newVECrowSums (my data.get());
+	autoVEC columnSums = newVECcolumnSums (my data.get());
+	double totalSum = NUMsum (my data.all());
 	
 	integer nrow = my numberOfRows, ncol = my numberOfColumns;
 	
@@ -154,7 +151,8 @@ autoContingencyTable Confusion_to_ContingencyTable (Confusion me) {
 
 autoContingencyTable TableOfReal_to_ContingencyTable (TableOfReal me) {
 	try {
-		Melder_require (TableOfReal_checkNonNegativity (me), U"All values in the table should be positive.");
+		Melder_require (TableOfReal_isNonNegative (me),
+			U"No cell in the table should be negative.");
 		autoContingencyTable thee = Thing_new (ContingencyTable);
 		my structTableOfReal :: v_copy (thee.get());
 		return thee;
