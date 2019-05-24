@@ -26,15 +26,15 @@ PRAAT_LIB_EXPORT autoPitch Sound_to_Pitch (Sound me, double timeStep,
 /* Calls Sound_to_Pitch_ac with default arguments. */
 
 PRAAT_LIB_EXPORT autoPitch Sound_to_Pitch_ac (Sound me, double timeStep, double minimumPitch,
-	double periodsPerWindow, int maxnCandidates, int accurate,
+	double periodsPerWindow, integer maxnCandidates, int accurate,
 	double silenceThreshold, double voicingThreshold, double octaveCost,
 	double octaveJumpCost, double voicedUnvoicedCost, double maximumPitch);
 /* Calls Sound_to_Pitch_any with AC method. */
 
 PRAAT_LIB_EXPORT autoPitch Sound_to_Pitch_cc (Sound me, double timeStep, double minimumPitch,
-	double periodsPerWindow, int maxnCandidates, int accurate,
-	double silenceThreshold, double voicingThreshold, double octaveCost,
-	double octaveJumpCost, double voicedUnvoicedCost, double maximumPitch);
+        double periodsPerWindow, integer maxnCandidates, int accurate,
+        double silenceThreshold, double voicingThreshold, double octaveCost,
+        double octaveJumpCost, double voicedUnvoicedCost, double maximumPitch);
 /* Calls Sound_to_Pitch_any with FCC method. */
 
 PRAAT_LIB_EXPORT autoPitch Sound_to_Pitch_any (Sound me,

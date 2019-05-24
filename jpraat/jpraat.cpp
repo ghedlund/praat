@@ -1159,7 +1159,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_wrapped(Sound arg0,double arg1,double arg2
 }
 
 // Sound_to_Pitch_ac_wrapped -> Sound_to_Pitch_ac
-PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_ac_wrapped(Sound arg0,double arg1,double arg2,double arg3,int arg4,int arg5,double arg6,double arg7,double arg8,double arg9,double arg10,double arg11) {
+PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_ac_wrapped(Sound arg0,double arg1,double arg2,double arg3,integer arg4,int arg5,double arg6,double arg7,double arg8,double arg9,double arg10,double arg11) {
 	try {
 		return Sound_to_Pitch_ac(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1173,7 +1173,7 @@ PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_ac_wrapped(Sound arg0,double arg1,double a
 }
 
 // Sound_to_Pitch_cc_wrapped -> Sound_to_Pitch_cc
-PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_cc_wrapped(Sound arg0,double arg1,double arg2,double arg3,int arg4,int arg5,double arg6,double arg7,double arg8,double arg9,double arg10,double arg11) {
+PRAAT_LIB_EXPORT Pitch Sound_to_Pitch_cc_wrapped(Sound arg0,double arg1,double arg2,double arg3,integer arg4,int arg5,double arg6,double arg7,double arg8,double arg9,double arg10,double arg11) {
 	try {
 		return Sound_to_Pitch_cc(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11).releaseToAmbiguousOwner();
 	} catch (const char* e) {
@@ -1268,19 +1268,6 @@ PRAAT_LIB_EXPORT Spectrum Spectrum_cepstralSmoothing_wrapped(Spectrum arg0,doubl
 		jpraat_set_error("Unknown error");
 	}
 	return NULL;
-}
-
-// Spectrum_getNearestMaximum_wrapped -> Spectrum_getNearestMaximum
-PRAAT_LIB_EXPORT void Spectrum_getNearestMaximum_wrapped(Spectrum arg0,double arg1,double* arg2,double* arg3) {
-	try {
-		Spectrum_getNearestMaximum(arg0,arg1,arg2,arg3);
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
 }
 
 // Sound_to_Spectrum_wrapped -> Sound_to_Spectrum
@@ -1465,7 +1452,7 @@ PRAAT_LIB_EXPORT Table Formant_downto_Table_wrapped(Formant arg0,bool arg1,bool 
 }
 
 // Sound_to_Formant_any_wrapped -> Sound_to_Formant_any
-PRAAT_LIB_EXPORT Formant Sound_to_Formant_any_wrapped(Sound arg0,double arg1,int arg2,double arg3,double arg4,int arg5,double arg6,double arg7) {
+PRAAT_LIB_EXPORT Formant Sound_to_Formant_any_wrapped(Sound arg0,double arg1,integer arg2,double arg3,double arg4,int arg5,double arg6,double arg7) {
 	try {
 		return Sound_to_Formant_any(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7).releaseToAmbiguousOwner();
 	} catch (const char* e) {

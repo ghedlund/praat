@@ -21,7 +21,7 @@
 
 #include "praatlib.h"
 
-PRAAT_LIB_EXPORT autoFormant Sound_to_Formant_any (Sound me, double timeStep, int numberOfPoles, double maximumFrequency,
+PRAAT_LIB_EXPORT autoFormant Sound_to_Formant_any (Sound me, double timeStep, integer numberOfPoles, double maximumFrequency,
 	double halfdt_window, int which, double preemphasisFrequency, double safetyMargin);
 /*
 	Which = 1: Burg.

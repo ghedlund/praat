@@ -49,6 +49,10 @@
 	#include <gdk/gdkx.h>
 #endif
 
+#ifdef PRAAT_LIB
+#include "../dwsys/NUMmachar.h"
+#endif
+
 Thing_implement (Praat_Command, Thing, 0);
 
 #define EDITOR  theCurrentPraatObjects -> list [IOBJECT]. editors
@@ -1457,7 +1461,7 @@ void praat_lib_init()
 		Melder_systemVersion = sys1 * 10000 + sys2 * 100 + sys3;
 	#endif
     
-	//NUMmachar ();
+	NUMmachar ();
 	//NUMinit ();
 	Melder_textEncoding_prefs ();
 	Melder_alloc_init ();
