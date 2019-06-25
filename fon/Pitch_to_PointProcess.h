@@ -20,10 +20,14 @@
 #include "PointProcess.h"
 #include "Sound.h"
 
-autoPointProcess Pitch_to_PointProcess (Pitch pitch);
+#ifdef PRAAT_LIB
+#include "praatlib.h"
+#endif
 
-autoPointProcess Sound_Pitch_to_PointProcess_cc (Sound sound, Pitch pitch);
+PRAAT_LIB_EXPORT autoPointProcess Pitch_to_PointProcess (Pitch pitch);
 
-autoPointProcess Sound_Pitch_to_PointProcess_peaks (Sound sound, Pitch pitch, int includeMaxima, int includeMinima);
+PRAAT_LIB_EXPORT autoPointProcess Sound_Pitch_to_PointProcess_cc (Sound sound, Pitch pitch);
+
+PRAAT_LIB_EXPORT autoPointProcess Sound_Pitch_to_PointProcess_peaks (Sound sound, Pitch pitch, int includeMaxima, int includeMinima);
 
 /* End of file Pitch_to_PointProcess.h */
