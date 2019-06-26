@@ -10,6 +10,7 @@
 #include "../fon/Sampled.h"
 #include "../fon/Matrix.h"
 #include "../fon/Pitch.h"
+#include "../fon/Pitch_to_PointProcess.h"
 #include "../fon/Sound.h"
 #include "../fon/Spectrogram.h"
 #include "../fon/Sound_and_Spectrogram.h"
@@ -713,6 +714,48 @@ PRAAT_LIB_EXPORT void Pitch_formula_wrapped(Pitch arg0,conststring32 arg1,Interp
 	} catch (...) {
 		jpraat_set_error("Unknown error");
 	}
+}
+
+// Pitch_to_PointProcess_wrapped -> Pitch_to_PointProcess
+PRAAT_LIB_EXPORT PointProcess Pitch_to_PointProcess_wrapped(Pitch arg0) {
+	try {
+		return Pitch_to_PointProcess(arg0).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// Sound_Pitch_to_PointProcess_cc_wrapped -> Sound_Pitch_to_PointProcess_cc
+PRAAT_LIB_EXPORT PointProcess Sound_Pitch_to_PointProcess_cc_wrapped(Sound arg0,Pitch arg1) {
+	try {
+		return Sound_Pitch_to_PointProcess_cc(arg0,arg1).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// Sound_Pitch_to_PointProcess_peaks_wrapped -> Sound_Pitch_to_PointProcess_peaks
+PRAAT_LIB_EXPORT PointProcess Sound_Pitch_to_PointProcess_peaks_wrapped(Sound arg0,Pitch arg1,int arg2,int arg3) {
+	try {
+		return Sound_Pitch_to_PointProcess_peaks(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
 }
 
 // Sound_readFromSoundFile_wrapped -> Sound_readFromSoundFile

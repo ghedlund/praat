@@ -54,5 +54,9 @@ PRAAT_LIB_EXPORT double PointProcess_getMeanPeriod (PointProcess me, double tmin
 PRAAT_LIB_EXPORT double PointProcess_getStdevPeriod (PointProcess me, double tmin, double tmax,
 	double minimumPeriod, double maximumPeriod, double maximumPeriodFactor);
 
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT double PointProcess_getValueAtIndex(PointProcess me, integer idx);
+#endif
+
 /* End of file PointProcess.h */
 #endif

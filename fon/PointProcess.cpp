@@ -481,4 +481,10 @@ double PointProcess_getStdevPeriod (PointProcess me, double tmin, double tmax,
 	return sqrt (double (sum2 / (numberOfPeriods - 1)));
 }
 
+#ifdef PRAAT_LIB
+double PointProcess_getValueAtIndex(PointProcess me, integer idx) {
+	return my t[idx];
+}
+#endif
+
 /* End of file PointProcess.cpp */
