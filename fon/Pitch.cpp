@@ -171,7 +171,7 @@ double Pitch_convertSpecialToStandardUnit (Pitch me, double value, integer ileve
 	return my v_convertSpecialToStandardUnit(value, ilevel, unit);
 }
 
-double Pitch_getValueAtSample (Pitch me, long isamp, integer ilevel, int unit) {
+double Pitch_getValueAtSample (Pitch me, integer isamp, integer ilevel, int unit) {
 	return my v_getValueAtSample(isamp, ilevel, unit);
 }
 
