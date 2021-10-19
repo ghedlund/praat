@@ -2,7 +2,7 @@
 #define _Data_h_
 /* Data.h
  *
- * Copyright (C) 1992-2012,2013-2018 Paul Boersma
+ * Copyright (C) 1992-2012,2013-2019,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,14 +65,14 @@ Thing_define (Daata, Thing) {
 	virtual bool v_hasGetDy        () { return false; }   virtual double        v_getDy        ()                                       { return undefined; }
 	virtual bool v_hasGetX         () { return false; }   virtual double        v_getX         (integer /* ix */)                       { return undefined; }
 	virtual bool v_hasGetY         () { return false; }   virtual double        v_getY         (integer /* iy */)                       { return undefined; }
-	virtual bool v_hasGetRowStr    () { return false; }   virtual conststring32 v_getRowStr    (integer /* irow */)                     { return nullptr;      }
-	virtual bool v_hasGetColStr    () { return false; }   virtual conststring32 v_getColStr    (integer /* icol */)                     { return nullptr;      }
+	virtual bool v_hasGetRowStr    () { return false; }   virtual conststring32 v_getRowStr    (integer /* irow */)                     { return nullptr;   }
+	virtual bool v_hasGetColStr    () { return false; }   virtual conststring32 v_getColStr    (integer /* icol */)                     { return nullptr;   }
 	virtual bool v_hasGetCell      () { return false; }   virtual double        v_getCell      ()                                       { return undefined; }
-	virtual bool v_hasGetCellStr   () { return false; }   virtual conststring32 v_getCellStr   ()                                       { return nullptr; }
+	virtual bool v_hasGetCellStr   () { return false; }   virtual conststring32 v_getCellStr   ()                                       { return nullptr;   }
 	virtual bool v_hasGetVector    () { return false; }   virtual double        v_getVector    (integer /* irow */, integer /* icol */) { return undefined; }
-	virtual bool v_hasGetVectorStr () { return false; }   virtual conststring32 v_getVectorStr (integer /* icol */)                     { return nullptr;      }
+	virtual bool v_hasGetVectorStr () { return false; }   virtual conststring32 v_getVectorStr (integer /* icol */)                     { return nullptr;   }
 	virtual bool v_hasGetMatrix    () { return false; }   virtual double        v_getMatrix    (integer /* irow */, integer /* icol */) { return undefined; }
-	virtual bool v_hasGetMatrixStr () { return false; }   virtual conststring32 v_getMatrixStr (integer /* irow */, integer /* icol */) { return nullptr;      }
+	virtual bool v_hasGetMatrixStr () { return false; }   virtual conststring32 v_getMatrixStr (integer /* irow */, integer /* icol */) { return nullptr;   }
 	virtual bool v_hasGetFunction0 () { return false; }   virtual double        v_getFunction0 ()                                       { return undefined; }
 	virtual bool v_hasGetFunction1 () { return false; }   virtual double        v_getFunction1 (integer /* irow */, double /* x */)     { return undefined; }
 	virtual bool v_hasGetFunction2 () { return false; }   virtual double        v_getFunction2 (double /* x */, double /* y */)         { return undefined; }
@@ -94,8 +94,8 @@ autoDaata _Data_copy (Daata me);
 bool Data_equal (Daata data1, Daata data2);
 /*
 	Message:
-		"return 1 if the shallow or deep attributes of 'data1' and 'data2' are equal;
-		 otherwise, return 0."
+		"return true if the shallow or deep attributes of 'data1' and 'data2' are equal;
+		 otherwise, return false."
 	Comment:
 		Data_equal (data, Data_copy (data)) should always return 1; the names are not compared.
 */
@@ -310,7 +310,7 @@ PRAAT_LIB_EXPORT autoDaata Data_readFromFile (MelderFile file);
 Purpose:
 	to read a file with data of any kind.
 Return value:
-	the object read from `file`.
+	the object read from `file`, or null if there was no object (as with Picture_readFromPraatPictureFile).
 Failure:
 	the file was not recognized.
 Behaviour:
@@ -321,7 +321,7 @@ Behaviour:
 	If not, the recognizers installed with Data_recognizeFileType are tried.
 */
 
-extern structMelderDir Data_directoryBeingRead;
+inline structMelderDir Data_directoryBeingRead { };
 
 int Data_publish (autoDaata me);
 

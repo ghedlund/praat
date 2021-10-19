@@ -23,7 +23,7 @@ Thing_implement (ActivationList, Matrix, 2);
 int _ActivationList_checkElements (ActivationList me) {
 	for (integer i = 1; i <= my ny; i ++) {
 		for (integer j = 1; j <= my nx; j ++) {
-			if (my z[i][j] < 0.0 || my z [i] [j] > 1.0) {
+			if (my z [i] [j] < 0.0 || my z [i] [j] > 1.0) {
 				return 0;
 			}
 		}
@@ -48,7 +48,7 @@ autoActivationList ActivationList_create (integer ny, integer nx) {
 autoActivationList Matrix_to_ActivationList (Matrix me) {
 	try {
 		autoActivationList thee = ActivationList_create (my ny, my nx);
-		thy z.get() <<= my z.get();
+		thy z.all()  <<=  my z.get();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to ActivationList.");
@@ -58,7 +58,7 @@ autoActivationList Matrix_to_ActivationList (Matrix me) {
 autoMatrix ActivationList_to_Matrix (ActivationList me) {
 	try {
 		autoMatrix thee = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, my ymin, my ymax, my ny, my dy, my y1);
-		thy z.get() <<= my z.get();
+		thy z.all()  <<=  my z.get();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Matrix.");

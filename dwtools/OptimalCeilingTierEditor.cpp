@@ -1,6 +1,6 @@
 /* OptimalCeilingTierEditor.cpp
  *
- * Copyright (C) 2015 David Weenink
+ * Copyright (C) 2015-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,18 +28,17 @@ void structOptimalCeilingTierEditor :: v_createHelpMenuItems (EditorMenu menu) {
 	EditorMenu_addCommand (menu, U"OptimalCeilingTier help", 0, menu_cb_OptimalCeilingTierHelp);
 }
 
-void structOptimalCeilingTierEditor :: v_play (double fromTime, double toTime) {
-	if (our d_sound.data) {
-		Sound_playPart (our d_sound.data, fromTime, toTime, theFunctionEditor_playCallback, this);
-	} else {
-		//OptimalCeilingTier_playPart (data, fromTime, toTime, false);
-	}
+void structOptimalCeilingTierEditor :: v_play (double startTime, double endTime) {
+	if (our d_sound.data)
+		Sound_playPart (our d_sound.data, startTime, endTime, theFunctionEditor_playCallback, this);
+	//else
+	//	OptimalCeilingTier_playPart (data, startTime, endTime, false);
 }
 
 autoOptimalCeilingTierEditor OptimalCeilingTierEditor_create (conststring32 title, OptimalCeilingTier octier, Sound sound, bool ownSound) {
 	try {
 		autoOptimalCeilingTierEditor me = Thing_new (OptimalCeilingTierEditor);
-		RealTierEditor_init (me.get(), title, (RealTier) octier, sound, ownSound);
+		RealTierEditor_init (me.get(), classOptimalCeilingTierArea, title, octier, sound, ownSound);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"OptimalCeilingTier window not created.");

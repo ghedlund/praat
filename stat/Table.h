@@ -2,7 +2,7 @@
 #define _Table_h_
 /* Table.h
  *
- * Copyright (C) 2002-2011,2012,2014,2015,2017 Paul Boersma
+ * Copyright (C) 2002-2012,2014-2019,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +26,13 @@ Thing_declare (Interpreter);
 
 #include "Table_def.h"
 
-void Table_initWithColumnNames (Table me, integer numberOfRows, conststring32 columnNames);
-PRAAT_LIB_EXPORT autoTable Table_createWithColumnNames (integer numberOfRows, conststring32 columnNames);
+void Table_initWithColumnNames (Table me, integer numberOfRows, constSTRVEC columnNames);
+autoTable Table_createWithColumnNames (integer numberOfRows, constSTRVEC columnNames);
 void Table_initWithoutColumnNames (Table me, integer numberOfRows, integer numberOfColumns);
 PRAAT_LIB_EXPORT autoTable Table_createWithoutColumnNames (integer numberOfRows, integer numberOfColumns);
 #define Table_create Table_createWithoutColumnNames
+
+void Table_checkSpecifiedColumnNumbersWithinRange (Table me, constINTVECVU const& columnNumbers);
 
 autoTable Tables_append (OrderedOf<structTable>* me);
 PRAAT_LIB_EXPORT void Table_appendRow (Table me);
@@ -46,6 +48,9 @@ PRAAT_LIB_EXPORT void Table_insertColumn (Table me, integer column, conststring3
 PRAAT_LIB_EXPORT void Table_setColumnLabel (Table me, integer column, conststring32 label /* cattable */);
 PRAAT_LIB_EXPORT integer Table_findColumnIndexFromColumnLabel (Table me, conststring32 label) noexcept;
 PRAAT_LIB_EXPORT integer Table_getColumnIndexFromColumnLabel (Table me, conststring32 columnLabel);
+integer Table_findColumnIndexFromColumnLabel (Table me, conststring32 label) noexcept;
+integer Table_getColumnIndexFromColumnLabel (Table me, conststring32 columnLabel);
+autoINTVEC Table_columnNamesToNumbers (Table me, constSTRVEC const& columnNames);
 autoINTVEC Table_getColumnIndicesFromColumnLabelString (Table me, conststring32 string);
 PRAAT_LIB_EXPORT integer Table_searchColumn (Table me, integer column, conststring32 value) noexcept;
 
@@ -94,8 +99,8 @@ PRAAT_LIB_EXPORT bool Table_getExtrema (Table me, integer icol, double *minimum,
 void Table_formula (Table me, integer column, conststring32 formula, Interpreter interpreter);
 void Table_formula_columnRange (Table me, integer column1, integer column2, conststring32 expression, Interpreter interpreter);
 
-void Table_sortRows_Assert (Table me, constINTVEC columns);
-PRAAT_LIB_EXPORT void Table_sortRows_string (Table me, conststring32 columns_string);
+void Table_sortRows_Assert (Table me, constINTVECVU const& columns);
+void Table_sortRows (Table me, constSTRVEC columns);
 PRAAT_LIB_EXPORT void Table_randomizeRows (Table me) noexcept;
 PRAAT_LIB_EXPORT void Table_reflectRows (Table me) noexcept;
 

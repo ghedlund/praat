@@ -2,7 +2,7 @@
 #define _melder_string_h_
 /* MelderString.h
  *
- * Copyright (C) 1992-2019 Paul Boersma
+ * Copyright (C) 1992-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,16 +27,16 @@
 		- automatically convert numbers, objects, file names, vectors, and matrices to strings
 */
 
-typedef struct {
-	int64 length;
-	int64 bufferSize;
-	char16 *string;   // a growing buffer, rarely shrunk (can only be freed by MelderString16_free)
-} MelderString16;
-typedef struct {
-	int64 length;
-	int64 bufferSize;
-	char32 *string;   // a growing buffer, rarely shrunk (can only be freed by MelderString_free)
-} MelderString;
+struct MelderString16 {
+	int64 length = 0;
+	int64 bufferSize = 0;
+	char16 *string = nullptr;   // a growing buffer, rarely shrunk (can only be freed by MelderString16_free)
+};
+struct MelderString {
+	int64 length = 0;
+	int64 bufferSize = 0;
+	char32 *string = nullptr;   // a growing buffer, rarely shrunk (can only be freed by MelderString_free)
+};
 
 void MelderString16_free (MelderString16 *me);   // frees the buffer (and sets other attributes to zero)
 void MelderString_free (MelderString *me);   // frees the buffer (and sets other attributes to zero)
@@ -45,7 +45,7 @@ void MelderString_empty (MelderString *me);   // sets to empty string (buffer sh
 void MelderString_expand (MelderString *me, int64 sizeNeeded);   // increases the buffer size; there's normally no need to call this
 void MelderString_ncopy (MelderString *me, conststring32 source, int64 n);
 
-inline static void _recursiveTemplate_MelderString_append (MelderString *me, const MelderArg& arg) {
+inline void _recursiveTemplate_MelderString_append (MelderString *me, const MelderArg& arg) {
 	if (arg._arg) {
 		const char32 *newEndOfStringLocation = stp32cpy (& my string [my length], arg._arg);   // this will append a null character
 		my length = newEndOfStringLocation - & my string [0];
@@ -65,8 +65,9 @@ void _recursiveTemplate_MelderString_append (MelderString *me, const MelderArg& 
 
 template <typename... Args>
 void MelderString_append (MelderString *me, const MelderArg& first, Args... rest) {
-	integer extraLength = MelderArg__length (first, rest...);
-	integer sizeNeeded = my length + extraLength + 1;
+	const integer extraLength = MelderArg__length (first, rest...);
+	const integer sizeNeeded = my length + extraLength + 1;
+	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		MelderString_expand (me, sizeNeeded);
 	_recursiveTemplate_MelderString_append (me, first, rest...);
@@ -75,9 +76,11 @@ void MelderString_append (MelderString *me, const MelderArg& first, Args... rest
 template <typename... Args>
 void MelderString_copy (MelderString *me, const MelderArg& first, Args... rest) {
 	constexpr int64 FREE_THRESHOLD_BYTES = 10'000;
-	if (my bufferSize * (int64) sizeof (char32) >= FREE_THRESHOLD_BYTES) MelderString_free (me);
-	integer length = MelderArg__length (first, rest...);
-	integer sizeNeeded = length + 1;
+	if (my bufferSize * (int64) sizeof (char32) >= FREE_THRESHOLD_BYTES)
+		MelderString_free (me);
+	const integer length = MelderArg__length (first, rest...);
+	const integer sizeNeeded = length + 1;
+	Melder_assert (sizeNeeded > 0);   // this assertion was added to silence an analyzer complaint
 	if (sizeNeeded > my bufferSize)
 		MelderString_expand (me, sizeNeeded);
 	my length = 0;
@@ -94,8 +97,12 @@ int64 MelderString_allocationSize ();
 int64 MelderString_deallocationSize ();
 
 struct autoMelderString : MelderString {
-	autoMelderString () { length = 0; bufferSize = 0; string = nullptr; }
-	~autoMelderString () { MelderString_free (this); }
+	autoMelderString () {
+		// inherited zero initialization suffices
+	}
+	~autoMelderString () {
+		MelderString_free (this);
+	}
 };
 
 /* End of file MelderString.h */

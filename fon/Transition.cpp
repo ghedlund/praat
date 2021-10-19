@@ -1,6 +1,6 @@
 /* Transition.cpp
  *
- * Copyright (C) 1997-2012,2015-2019 Paul Boersma
+ * Copyright (C) 1997-2012,2015-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,8 +66,8 @@ void Transition_init (Transition me, integer numberOfStates) {
 	if (numberOfStates < 1)
 		Melder_throw (U"Cannot create empty matrix.");
 	my numberOfStates = numberOfStates;
-	my stateLabels = autostring32vector (numberOfStates);
-	my data = newMATzero (my numberOfStates, my numberOfStates);
+	my stateLabels = autoSTRVEC (numberOfStates);
+	my data = zero_MAT (my numberOfStates, my numberOfStates);
 }
 
 autoTransition Transition_create (integer numberOfStates) {

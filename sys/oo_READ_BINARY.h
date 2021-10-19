@@ -1,6 +1,6 @@
 /* oo_READ_BINARY.h
  *
- * Copyright (C) 1994-2009,2011-2018 Paul Boersma
+ * Copyright (C) 1994-2009,2011-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,14 +26,6 @@
 		our x [_i] = binget##storage (_filePointer_); \
 	}
 
-#define oo_VECTOR(type, storage, x, min, max)  \
-	{ \
-		integer _min = (min), _max = (max); \
-		if (_max >= _min) { \
-			our x = NUMvector_readBinary_##storage (_min, _max, _filePointer_); \
-		} \
-	}
-
 #define oo_ANYVEC(type, storage, x, sizeExpression)  \
 	{ \
 		integer _size = (sizeExpression); \
@@ -55,21 +47,6 @@
 #define oo_ENUMx(kType, storage, x)  \
 	our x = (kType) binget##storage (_filePointer_, (int) kType::MIN, (int) kType::MAX, U"" #kType);
 
-//#define oo_ENUMx_SET(kType, storage, x, setType)  \
-//	for (int _i = 0; _i <= (int) setType::MAX; _i ++) { \
-//		our x [_i] = (kType) binget##storage (_filePointer_, (int) kType::MIN, (int) kType::MAX, U"" #kType); \
-//	}
-
-//#define oo_ENUMx_VECTOR(kType, storage, x, min, max)  \
-//	{ \
-//		integer _min = (min), _max = (max); \
-//		if (_max >= _min) { \
-//			our x = NUMvector <kType> (_min, _max); \
-//			for (integer _i = _min; _i <= _max; _i ++) { \
-//				our x [_i] = (kType) binget##storage (_filePointer_, (int) kType::MIN, (int) kType::MAX, U"" #kType); \
-//		} \
-//	}
-
 #define oo_STRINGx(storage, x)  \
 	our x = binget##storage (_filePointer_);
 
@@ -82,7 +59,7 @@
 	{ \
 		integer _size = (n); \
 		if (_size >= 1) { \
-			our x = autostring32vector (_size); \
+			our x = autoSTRVEC (_size); \
 			for (integer _i = 1; _i <= _size; _i ++) { \
 				our x [_i] = binget##storage (_filePointer_); \
 			} \
@@ -97,16 +74,16 @@
 		our x [_i]. readBinary (_filePointer_, _formatVersion_); \
 	}
 
-#define oo_STRUCT_VECTOR_FROM(Type, x, min, max)  \
-	{ \
-		integer _min = (min), _max = (max); \
-		if (_max >= _min) { \
-			our x = NUMvector <struct##Type> (_min, _max); \
-			for (integer _i = _min; _i <= _max; _i ++) { \
-				our x [_i]. readBinary (_filePointer_, _formatVersion_); \
-			} \
+#define oo_STRUCTVEC(Type, x, n)  \
+{ \
+	integer _size = (n); \
+	if (_size >= 1) { \
+		our x = newvectorzero <struct##Type> (_size); \
+		for (integer _i = 1; _i <= _size; _i ++) { \
+			our x [_i]. readBinary (_filePointer_, _formatVersion_); \
 		} \
-	}
+	} \
+}
 
 #define oo_OBJECT(Class, formatVersion, x)  \
 	{ \

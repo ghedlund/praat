@@ -2,7 +2,7 @@
 #define _melder_files_h_
 /* melder_files.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2018,2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,12 +78,15 @@ void MelderDir_getSubdir (MelderDir parent, conststring32 subdirName, MelderDir 
 void Melder_rememberShellDirectory ();
 PRAAT_LIB_EXPORT conststring32 Melder_getShellDirectory ();
 void Melder_getHomeDir (MelderDir homeDir);
+inline structMelderDir Melder_preferencesFolder { };
 void Melder_getPrefDir (MelderDir prefDir);
 void Melder_getTempDir (MelderDir tempDir);
 
 bool MelderFile_exists (MelderFile file);
 bool MelderFile_readable (MelderFile file);
 PRAAT_LIB_EXPORT integer MelderFile_length (MelderFile file);
+bool Melder_tryToWriteFile (MelderFile file);
+bool Melder_tryToAppendFile (MelderFile file);
 void MelderFile_delete (MelderFile file);
 
 /* The following two should be combined with each other and with Windows extension setting: */

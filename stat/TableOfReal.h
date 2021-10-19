@@ -2,7 +2,7 @@
 #define _TableOfReal_h_
 /* TableOfReal.h
  *
- * Copyright (C) 1992-2011,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2009,2011,2012,2015-2018,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,14 +62,14 @@ PRAAT_LIB_EXPORT void TableOfReal_sortByColumn (TableOfReal me, integer column1,
 PRAAT_LIB_EXPORT void TableOfReal_writeToHeaderlessSpreadsheetFile (TableOfReal me, MelderFile file);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile (MelderFile file);
 
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowRanges (TableOfReal me, conststring32 ranges);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnRanges (TableOfReal me, conststring32 ranges);
+autoTableOfReal TableOfReal_extractRowsByNumber (TableOfReal me, constINTVECVU const& rowNumbers);
+autoTableOfReal TableOfReal_extractColumnsByNumber (TableOfReal me, constINTVECVU const& columnNumbers);
 
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereColumn (TableOfReal me, integer icol, kMelder_number which, double criterion);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereRow (TableOfReal me, integer icol, kMelder_number which, double criterion);
 
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhereLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
-PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhereLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhoseLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
+PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhoseLabel (TableOfReal me, kMelder_string which, conststring32 criterion);
 
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractRowsWhere (TableOfReal me, conststring32 condition, Interpreter interpreter);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_extractColumnsWhere (TableOfReal me, conststring32 condition, Interpreter interpreter);

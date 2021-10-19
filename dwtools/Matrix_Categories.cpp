@@ -28,11 +28,11 @@ autoTableOfReal Matrix_Categories_to_TableOfReal (Matrix me, Categories thee) {
 		TableOfReal_setSequentialColumnLabels (him.get(), 0, 0, nullptr, 1, 1);
 
 		for (integer i = 1; i <= my ny; i ++) {
-			SimpleString category = thy at [i];
+			const SimpleString category = thy at [i];
 			his rowLabels [i] = Melder_dup (category -> string.get());
 		}
 		
-		his data.get() <<= my z.get();
+		his data.all()  <<=  my z.all();
 		
 		return him;
 	} catch (MelderError) {

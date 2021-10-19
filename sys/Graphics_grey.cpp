@@ -1,6 +1,6 @@
 /* Graphics_grey.cpp
  *
- * Copyright (C) 1992-2011,2017 Paul Boersma
+ * Copyright (C) 1992-2008,2011,2012,2015-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ typedef struct {
 static EdgeContour EdgeContour_create (integer numberOfPoints) {
 	EdgeContour result = Melder_calloc (structEdgeContour, 1);
 	result -> numberOfPoints = numberOfPoints;
-	result -> x = newVECzero (numberOfPoints);
-	result -> y = newVECzero (numberOfPoints);
+	result -> x = zero_VEC (numberOfPoints);
+	result -> y = zero_VEC (numberOfPoints);
 	return result;   // LEAK
 }
 static void EdgeContour_delete (EdgeContour e) {
@@ -57,8 +57,8 @@ typedef struct {
 static ClosedContour ClosedContour_create (integer numberOfPoints) {
 	ClosedContour result = Melder_calloc (structClosedContour, 1);
 	result -> numberOfPoints = numberOfPoints;
-	result -> x = newVECzero (numberOfPoints);
-	result -> y = newVECzero (numberOfPoints);
+	result -> x = zero_VEC (numberOfPoints);
+	result -> y = zero_VEC (numberOfPoints);
 	return result;   // LEAK
 }
 static void ClosedContour_delete (ClosedContour c) {
@@ -235,7 +235,9 @@ static void makeClosedContour (integer row0, integer col0, integer ori0) {
 
 	/* Find out whether the point is inside or outside the contour. */
 
-	if (! NUMrotationsPointInPolygon (x1, y1, numberOfPoints, x.at, y.at)) up = ! up;
+	if (! NUMrotationsPointInPolygon (x1, y1, numberOfPoints,
+			x.asArgumentToFunctionThatExpectsOneBasedArray(), y.asArgumentToFunctionThatExpectsOneBasedArray()))
+		up = ! up;
 
 	double xmin = 1e308, xmax = -1e308, ymin = 1e308, ymax = -1e308;
 	c -> grey = up ? iBorder + 1 : iBorder;
@@ -356,8 +358,9 @@ static void smallGrey () {
 			int edge1 = edge0;
 			int darkness;
 			do {
-				/* Follow one edge contour.
-				 */
+				/*
+					Follow one edge contour.
+				*/
 				EdgePoint p = & edgePoints [edge1];
 				integer iContour = p -> iContour;
 				EdgeContour c = edgeContours [iContour];
@@ -386,8 +389,9 @@ static void smallGrey () {
 				}
 				edge1 = edge1 % numberOfEdgePoints + 1;
 
-				/* Round some corners.
-				 */
+				/*
+					Round some corners.
+				*/
 				while (edgePoints [edge1].grey == -1) {
 					++ iPoint;
 					Melder_assert (iPoint <= MAXGREYPATH);
@@ -401,22 +405,24 @@ static void smallGrey () {
 				}
 			}
 			while (edge1 != edge0);
-			fillGrey (iPoint, x, y, darkness);
+			fillGrey (iPoint, x.all(), y.all(), darkness);
 		}
 	}
 	if (numberOfEdgeContours == 0) {
 		int i = 1;
-		while (i <= numberOfBorders && border [i] < data [row1] [col1]) i ++;
+		while (i <= numberOfBorders && border [i] < data [row1] [col1])
+			i ++;
 		x [1] = x [4] = xoff + col1 * dx;
 		x [2] = x [3] = xoff + col2 * dx;
 		y [1] = y [2] = yoff + row1 * dy;
 		y [3] = y [4] = yoff + row2 * dy;
-		fillGrey (4, x, y, i);
+		fillGrey (4, x.all(), y.all(), i);
 	}
 
-	/* Iterate over all the closed contours.
-	 * Those that are not enclosed by any other contour, are filled first.
-	 */
+	/*
+		Iterate over all the closed contours.
+		Those that are not enclosed by any other contour, are filled first.
+	*/
 	{
 		bool found;
 		do {
@@ -432,12 +438,14 @@ static void smallGrey () {
 							 ci -> xmin > cj -> xmin && ci -> xmax < cj -> xmax && 
 							 ci -> ymin > cj -> ymin && ci -> ymax < cj -> ymax)
 							enclosed = NUMrotationsPointInPolygon (ci -> x [1], ci -> y [1],
-										cj -> numberOfPoints, cj -> x.at, cj -> y.at);
+									cj -> numberOfPoints,
+									cj -> x.asArgumentToFunctionThatExpectsOneBasedArray(),
+									cj -> y.asArgumentToFunctionThatExpectsOneBasedArray());
 						j ++;
 					}
 					if (! enclosed) {
 						found = true;
-						fillGrey (ci -> numberOfPoints, ci -> x, ci -> y, ci -> grey);
+						fillGrey (ci -> numberOfPoints, ci -> x.all(), ci -> y.all(), ci -> grey);
 						ci -> drawn = 1;
 					}
 				}
@@ -455,7 +463,8 @@ void Graphics_grey (Graphics me, constMATVU const& z,
 	double x1WC, double x2WC, double y1WC, double y2WC,
 	int _numberOfBorders, double borders [])
 {
-	if (z.nrow <= 1 || z.ncol <= 1) return;
+	if (z.nrow <= 1 || z.ncol <= 1)
+		return;
 
 	/* Static variables. */
 
@@ -468,10 +477,10 @@ void Graphics_grey (Graphics me, constMATVU const& z,
 	xoff = x1WC - dx;
 	yoff = y1WC - dy;
 	if (NUMisEmpty (right.get())) {
-		right = newBOOLMATzero (MAXGREYSIDE, MAXGREYSIDE);   // BUG memory
-		below = newBOOLMATzero (MAXGREYSIDE, MAXGREYSIDE);
-		x = newVECzero (MAXGREYPATH);
-		y = newVECzero (MAXGREYPATH);
+		right = zero_BOOLMAT (MAXGREYSIDE, MAXGREYSIDE);   // BUG memory
+		below = zero_BOOLMAT (MAXGREYSIDE, MAXGREYSIDE);
+		x = zero_VEC (MAXGREYPATH);
+		y = zero_VEC (MAXGREYPATH);
 		edgeContours = Melder_calloc (EdgeContour, MAXGREYEDGECONTOURS * numberOfBorders) - 1;
 		closedContours = Melder_calloc (ClosedContour, MAXGREYCLOSEDCONTOURS * numberOfBorders) - 1;
 		edgePoints = Melder_calloc (structEdgePoint, MAXGREYEDGEPOINTS * numberOfBorders);

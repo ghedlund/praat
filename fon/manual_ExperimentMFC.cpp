@@ -1,6 +1,6 @@
 /* manual_ExperimentMFC.cpp
  *
- * Copyright (C) 2001-2011,2013,2015,2016 Paul Boersma
+ * Copyright (C) 2001-2011,2013,2015-2017,2019-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ NORMAL (U"This experiment will play 4 different stimuli to the listener, each 3 
 	"Thus, the listener is confronted with 12 trials.")
 MAN_END
 
-MAN_BEGIN (U"ExperimentMFC 2.2. The stimuli", U"ppgb", 20130101)
+MAN_BEGIN (U"ExperimentMFC 2.2. The stimuli", U"ppgb", 20201229)
 INTRO (U"You can see that the @@ExperimentMFC 2.1. The experiment file|example experiment@ "
 	"contains four different stimuli: %heed, %hid, %hood, and %hud. "
 	"These are the %names of the four stimuli.")
@@ -154,12 +154,12 @@ NORMAL (U"You need not use WAV files. You can also use AIFF files, "
 	"in which case %stimulusFileNameTail would probably be \".aiff\", or any other "
 	"type of sound file that Praat supports. But all sound files must have the same number of channels "
 	"(i.e. all mono or all stereo) and the same sampling frequency.")
-NORMAL (U"In this example, the experiment will look for the sound files in the directory #Sounds, "
-	"which has to be in the same directory as your experiment file. "
+NORMAL (U"In this example, the experiment will look for the sound files in the folder #Sounds, "
+	"which has to be in the same folder as your experiment file. "
 	"In other words, \"Sounds/heed.wav\" is a %%relative file path%.")
 NORMAL (U"Instead of a relative path, you can also supply a %%full file path%. "
 	"Such a path depends on your computer and on your operating system. "
-	"For instance, if you have a Windows computer and the stimuli are in the directory ##D:\\bsCorpus\\bsAutumn\\bsSpeaker23#, "
+	"For instance, if you have a Windows computer and the stimuli are in the folder ##D:\\bsCorpus\\bsAutumn\\bsSpeaker23#, "
 	"you can write")
 CODE (U"fileNameHead = \"D:\\bsCorpus\\bsAutumn\\bsSpeaker23\\bs\"")
 NORMAL (U"If you have a Macintosh (OS X) or Unix computer and the stimuli are in ##/Users/mietta/Sounds/Dutch#, you write")
@@ -167,18 +167,18 @@ CODE (U"fileNameHead = \"/Users/mietta/Sounds/Dutch/\"")
 NORMAL (U"But relative file paths will usually be preferred: they are more %portable. "
 	"The advantage of using relative file paths is that you can move your whole experiment (experiment file plus sounds) "
 	"from one computer to another without changing the experiment file, "
-	"as long as you put the experiment file in the same directory as where you put the directory #Sounds. "
+	"as long as you put the experiment file in the same folder as where you put the folder #Sounds. "
 	"Or you can put the whole experiment on a USB stick and run the experiment directly from the stick. "
-	"Since Praat supports the forward slash \"/\" as a directory separator on all computers, "
+	"Since Praat supports the forward slash \"/\" as a folder separator on all computers, "
 	"you can run the exact same experiment on Macintosh, Windows and Unix computers, "
 	"independent of the type of computer where you have created your experiment.")
 MAN_END
 
-MAN_BEGIN (U"ExperimentMFC 2.3. The carrier phrase", U"ppgb", 20051205)
+MAN_BEGIN (U"ExperimentMFC 2.3. The carrier phrase", U"ppgb", 20201229)
 NORMAL (U"The stimuli can be embedded in a %%carrier phrase%. "
 	"In the @@ExperimentMFC 2.1. The experiment file|example experiment@, we see that the stimulus "
 	"will be inserted between the sounds in the files ##weSayTheWord.wav# "
-	"and ##again.wav#, both of which are expected to be in the directory #Sounds. "
+	"and ##again.wav#, both of which are expected to be in the folder #Sounds. "
 	"If you do not want a carrier phrase, you do")
 CODE (U"stimulusCarrierBefore = \"\"")
 CODE (U"stimulusCarrierAfter = \"\"")
@@ -186,7 +186,7 @@ NORMAL (U"If you want only an introductory phrase before the stimulus, and nothi
 	"you do something like")
 CODE (U"stimulusCarrierBefore = \"listenTo\"")
 CODE (U"stimulusCarrierAfter = \"\"")
-NORMAL (U"and of course you supply the file ##listenTo.wav# in the directory #Sounds.")
+NORMAL (U"and of course you supply the file ##listenTo.wav# in the folder #Sounds.")
 NORMAL (U"If you want to have a short silence before every stimulus (and before the carrier phrase), "
 	"you supply a non-zero %stimulusInitialSilenceDuration, as in the example.")
 NORMAL (U"Since the carrier phrase is concatenated with the stimulus before it is played, it should have the same "
@@ -205,32 +205,32 @@ MAN_BEGIN (U"ExperimentMFC 2.5. Randomization strategies", U"ppgb", 20051205)
 NORMAL (U"The 3 times 4 stimuli will have to be played in a certain order. For the least random order, you say")
 CODE (U"randomize = <CyclicNonRandom>")
 NORMAL (U"In this case, the stimuli will be played in the order in which they were specified in the file, 3 times:")
-FORMULA (U"heed hid hood hud heed hid hood hud heed hid hood hud")
+EQUATION (U"heed hid hood hud heed hid hood hud heed hid hood hud")
 NORMAL (U"The most likely case in which you would want to use this randomization strategy, is if you have, say, 120 "
 	"different stimuli and you want to play them only once (%numberOfReplicationsPerStimulus = 1) in a fixed order.")
 NORMAL (U"The other extreme, the most random order, is")
 CODE (U"randomize = <WithReplacement>")
 NORMAL (U"In this case, a stimulus will be chosen at random 12 times without memory, for instance")
-FORMULA (U"hid hood hood heed hid hood hud hud hid hood heed hid")
+EQUATION (U"hid hood hood heed hid hood hud hud hid hood heed hid")
 NORMAL (U"The order will probably be different for each listener. "
 	"In this example, %hood and %hid occur four times each, %heed and %hud only twice each. "
 	"This strategy is too random for most experiments. Usually, you will want to have the same number "
 	"of replications of each stimulus. The most random way to do this is")
 CODE (U"randomize = <PermuteAll>")
 NORMAL (U"In this case, all stimuli will be played exactly 3 times, for instance")
-FORMULA (U"heed hood hud hud hid heed heed hud hood hid hid hood")
+EQUATION (U"heed hood hud hud hid heed heed hud hood hid hid hood")
 NORMAL (U"Quite often, you will want a less random order, namely one in which the 12 trials are divided into "
 	"3 blocks of 4 stimuli. Within each block, all 4 different stimuli occur in a random order:")
 CODE (U"randomize = <PermuteBalanced>")
 NORMAL (U"In this case, each stimulus occurs exactly once within each block:")
-FORMULA (U"heed hood hud hid hood hud hid heed heed hud hood hid")
+EQUATION (U"heed hood hud hid hood hud hid heed heed hud hood hid")
 NORMAL (U"This strategy ensures a certain spreading of the stimuli over the sequence of 12 trials. "
 	"As we see here, it is still possible that the same stimulus (%heed) occurs twice in a row, "
 	"namely as the last stimulus of the second block and the first stimulus of the third. "
 	"If you want to prevent that situation, you use")
 CODE (U"randomize = <PermuteBalancedNoDoublets>")
 NORMAL (U"This will ensure that the same stimulus is never applied twice in a row:")
-FORMULA (U"heed hood hud hid hood hud hid heed hud heed hood hid")
+EQUATION (U"heed hood hud hid hood hud hid heed hud heed hood hid")
 NORMAL (U"This randomization strategy is used in our example, and advised for most listening experiments "
 	"in which you want to minimize effects of stimulus order.")
 NORMAL (U"The randomization procedure does not interfere in any way with the breaks. The order is determined "
@@ -245,7 +245,7 @@ NORMAL (U"Before the experiment begins, the listener will see the %startText in 
 	"As you can see in the example, all these texts can consist of multiple lines.")
 MAN_END
 
-MAN_BEGIN (U"ExperimentMFC 2.7. Response categories", U"ppgb", 20110911)
+MAN_BEGIN (U"ExperimentMFC 2.7. Response categories", U"ppgb", 20201229)
 NORMAL (U"Every trial comes with the same set of response categories. "
 	"The @@ExperimentMFC 2.1. The experiment file|example experiment@ has five of them. "
 	"For each response category, you supply the area of the screen where a rectangle will be drawn. "
@@ -266,8 +266,8 @@ NORMAL (U"The border of the rectangles will be maroon, the background of the scr
 	"empty category specifications) light grey.")
 NORMAL (U"You can have a picture instead of a text on a response button, by using \\bsFI:")
 CODE1 (U"0.2 0.3 0.7 0.8 \"\\bsFIpictures/hello.jpg\" 40 \"m\" \"i\"")
-NORMAL (U"In this example, the picture ##hello.jpg# from the subdirectory #pictures "
-	"(i.e. a subdirectory of the directory where your experiment file is) "
+NORMAL (U"In this example, the picture ##hello.jpg# from the subfolder #pictures "
+	"(i.e. a subfolder of the folder where your experiment file is) "
 	"will be drawn into the rectangle [0.2, 0.3] \\xx [0.7, 0.8]. "
 	"This currently (September 2011) works only on the Mac and Windows.")
 MAN_END

@@ -2,7 +2,7 @@
 #define _Vector_h_
 /* Vector.h
  *
- * Copyright (C) 1992-2011,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2011,2012,2015-2018,2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,31 +44,30 @@ Thing_define (Vector, Matrix) {
 	VEC channel (integer channelNumber) { return z.row (channelNumber); }
 };
 
+#include "Vector_enums.h"
+integer kVector_valueInterpolation_to_interpolationDepth (kVector_valueInterpolation valueInterpolationType);
+integer kVector_peakInterpolation_to_interpolationDepth (kVector_peakInterpolation peakInterpolationType);
+
 #define Vector_CHANNEL_AVERAGE  0
 #define Vector_CHANNEL_1  1
 #define Vector_CHANNEL_2  2
-#define Vector_VALUE_INTERPOLATION_NEAREST  0
-#define Vector_VALUE_INTERPOLATION_LINEAR  1
-#define Vector_VALUE_INTERPOLATION_CUBIC  2
-#define Vector_VALUE_INTERPOLATION_SINC70  3
-#define Vector_VALUE_INTERPOLATION_SINC700  4
-PRAAT_LIB_EXPORT double Vector_getValueAtX (Vector me, double x, integer channel, int interpolation);
+PRAAT_LIB_EXPORT double Vector_getValueAtX (Vector me, double x, integer channel, kVector_valueInterpolation valueInterpolationType);
 
-PRAAT_LIB_EXPORT void Vector_getMinimumAndX (Vector me, double xmin, double xmax, integer channel, int interpolation,
+PRAAT_LIB_EXPORT void Vector_getMinimumAndX (Vector me, double xmin, double xmax, integer channel, kVector_peakInterpolation peakInterpolationType,
 	double *return_minimum, double *return_xOfMinimum);
-PRAAT_LIB_EXPORT void Vector_getMinimumAndXAndChannel (Vector me, double xmin, double xmax, int interpolation,
+PRAAT_LIB_EXPORT void Vector_getMinimumAndXAndChannel (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType,
 	double *return_minimum, double *return_xOfMinimum, integer *return_channelOfMinimum);
-PRAAT_LIB_EXPORT void Vector_getMaximumAndX (Vector me, double xmin, double xmax, integer channel, int interpolation,
+PRAAT_LIB_EXPORT void Vector_getMaximumAndX (Vector me, double xmin, double xmax, integer channel, kVector_peakInterpolation peakInterpolationType,
 	double *return_maximum, double *return_xOfMaximum);
-PRAAT_LIB_EXPORT void Vector_getMaximumAndXAndChannel (Vector me, double xmin, double xmax, int interpolation,
+PRAAT_LIB_EXPORT void Vector_getMaximumAndXAndChannel (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType,
 	double *return_maximum, double *return_xOfMaximum, integer *return_channelOfMaximum);
-PRAAT_LIB_EXPORT double Vector_getMinimum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT double Vector_getMaximum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT double Vector_getAbsoluteExtremum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT double Vector_getXOfMinimum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT double Vector_getXOfMaximum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT integer Vector_getChannelOfMinimum (Vector me, double xmin, double xmax, int interpolation);
-PRAAT_LIB_EXPORT integer Vector_getChannelOfMaximum (Vector me, double xmin, double xmax, int interpolation);
+PRAAT_LIB_EXPORT double Vector_getMinimum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT double Vector_getMaximum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT double Vector_getAbsoluteExtremum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT double Vector_getXOfMinimum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT double Vector_getXOfMaximum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT integer Vector_getChannelOfMinimum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
+PRAAT_LIB_EXPORT integer Vector_getChannelOfMaximum (Vector me, double xmin, double xmax, kVector_peakInterpolation peakInterpolationType);
 
 PRAAT_LIB_EXPORT double Vector_getMean (Vector me, double xmin, double xmax, integer channel);
 PRAAT_LIB_EXPORT double Vector_getStandardDeviation (Vector me, double xmin, double xmax, integer channel);

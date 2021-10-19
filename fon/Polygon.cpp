@@ -1,6 +1,6 @@
 /* Polygon.cpp
  *
- * Copyright (C) 1992-2012,2014-2018 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,8 +53,8 @@ void structPolygon :: v_readText (MelderReadText text, int /*formatVersion*/) {
 	our numberOfPoints = texgeti32 (text);
 	if (our numberOfPoints < 1)
 		Melder_throw (U"Cannot read a Polygon with only ", our numberOfPoints, U" points.");
-	our x = newVECraw (our numberOfPoints);
-	our y = newVECraw (our numberOfPoints);
+	our x = raw_VEC (our numberOfPoints);
+	our y = raw_VEC (our numberOfPoints);
 	for (integer i = 1; i <= our numberOfPoints; i ++) {
 		our x [i] = texgetr64 (text);
 		our y [i] = texgetr64 (text);
@@ -65,8 +65,8 @@ autoPolygon Polygon_create (integer numberOfPoints) {
 	try {
 		autoPolygon me = Thing_new (Polygon);
 		my numberOfPoints = numberOfPoints;
-		my x = newVECzero (numberOfPoints);
-		my y = newVECzero (numberOfPoints);
+		my x = zero_VEC (numberOfPoints);
+		my y = zero_VEC (numberOfPoints);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"Polygon not created.");
@@ -88,11 +88,11 @@ void Polygon_randomize (Polygon me) {
 double Polygon_perimeter (Polygon me) {
 	if (my numberOfPoints < 1) return 0.0;
 	double dx = my x [1] - my x [my numberOfPoints], dy = my y [1] - my y [my numberOfPoints];
-	double result = sqrt (dx * dx + dy * dy);
+	double result = hypot (dx, dy);
 	for (integer i = 1; i <= my numberOfPoints - 1; i ++) {
 		dx = my x [i] - my x [i + 1];
 		dy = my y [i] - my y [i + 1];
-		result += sqrt (dx * dx + dy * dy);
+		result += hypot (dx, dy);
 	}
 	return result;
 }
@@ -102,40 +102,40 @@ static void computeDistanceTable (Polygon me, INTMAT const& table) {
 		for (integer j = i + 1; j <= my numberOfPoints; j ++) {
 			double dx = my x [i] - my x [j], dy = my y [i] - my y [j];
 			table [i] [j] = table [j] [i] =
-				Melder_ifloor (sqrt (dx * dx + dy * dy));   // round to zero
+				Melder_ifloor (hypot (dx, dy));   // round to zero
 		}
 }
 
-static integer computeTotalDistance (constINTMAT const& distance, integer path [], integer numberOfCities) {
+static integer computeTotalDistance (constINTMATVU const& distance, constINTVECVU const& path) {
 	integer result = 0;
-	for (integer i = 1; i <= numberOfCities; i ++)
+	for (integer i = 2; i <= path.size; i ++)
 		result += distance [path [i - 1]] [path [i]];
 	return result;
 }
 
-static void shuffle (integer path [], integer numberOfCities) {
-	for (integer i = 1; i <= numberOfCities; i ++) {
-		integer j = NUMrandomInteger (i, numberOfCities);
+static void shuffle (INTVECVU const& path) {
+	for (integer i = 1; i < path.size; i ++) {
+		integer j = NUMrandomInteger (i, path.size - 1);
 		std::swap (path [i], path [j]);
 	}
-	path [0] = path [numberOfCities];
+	path [path.size] = path [1];
 }
   
-static bool tryExchange (constINTMAT const& distance, integer *path, integer numberOfCities, integer *totalDistance) {
+static bool tryExchange (constINTMATVU const& distance, INTVECVU const& path, integer *totalDistance) {
 	bool result = false;
-	integer b1 = path [0];
+	integer b1 = path [1];
 	integer b2nr = 1;
-	while (b2nr < numberOfCities - 1) {
-		integer b2 = path [b2nr];
+	while (b2nr < path.size - 2) {
+		integer b2 = path [b2nr + 1];
 		integer distance_b1_b2 = distance [b1] [b2];
 		integer d2nr = b2nr + 2;
-		integer d1 = path [d2nr - 1];
+		integer d1 = path [d2nr];
 		bool cont = true;
-		while (d2nr <= numberOfCities && cont) {
-			integer d2 = path [d2nr];
+		while (d2nr < path.size && cont) {
+			integer d2 = path [d2nr + 1];
 			integer gain = distance_b1_b2 + distance [d1] [d2] - distance [b1] [d1] - distance [b2] [d2];
 			if (gain > 0) {
-				integer below = b2nr, above = d2nr - 1;
+				integer below = b2nr + 1, above = d2nr;
 				cont = false;
 				do {
 					integer help = path [below];
@@ -147,55 +147,65 @@ static bool tryExchange (constINTMAT const& distance, integer *path, integer num
 			d1 = d2;
 			d2nr ++;
 		}
-		if (cont) { b1 = b2; b2nr ++; } else result = true;
+		if (cont) {
+			b1 = b2;
+			b2nr ++;
+		} else
+			result = true;
 	}
 	return result;
 }
 
-static bool tryAdoption (constINTMAT const& distance, integer *path, integer numberOfCities, integer *totalDistance)
+static bool tryAdoption (constINTMATVU const& distance, INTVECVU const& path, integer *totalDistance)
 {
-	integer *help = NUMvector <integer> (0, numberOfCities);
+	autoINTVEC help = zero_INTVEC (path.size);
 	bool result = false;
 
-	/* Compute maximum distance between two successive cities. */
-
-	integer city1 = path [0], city2 = path [1];
+	/*
+		Compute the maximum distance between two successive cities.
+	*/
+	integer city1 = path [1], city2 = path [2];
 	integer maximumDistance = distance [city1] [city2];
-	for (integer i = 2; i <= numberOfCities; i ++) {
+	for (integer i = 2; i < path.size; i ++) {
 		city1 = city2;
-		city2 = path [i];
+		city2 = path [i + 1];
 		if (distance [city1] [city2] > maximumDistance)
 			maximumDistance = distance [city1] [city2];
 	}
+
 	integer maximumGainLeft = maximumDistance;
-	for (integer i = 1; i <= numberOfCities; i ++) {
+	for (integer i = 1; i < path.size; i ++) {
 		bool cont = true;
 		integer b1, b2, distance_b1_b2, d1nr = 3, cc, e1nrMax = 6;
-		integer numberOfCitiesMinus1 = numberOfCities - 1;
-		for (integer j = 0; j <= numberOfCitiesMinus1; j ++) path [j] = path [j + 1];
-		path [numberOfCities] = path [0];
-		b1 = path [0];
-		b2 = path [1];
+		integer numberOfCitiesMinus1 = path.size - 2;
+		for (integer j = 1; j < path.size; j ++)
+			path [j] = path [j + 1];
+		path [path.size] = path [1];
+		b1 = path [1];
+		b2 = path [2];
 		distance_b1_b2 = distance [b1] [b2];
-		cc = path [2];
+		cc = path [3];
 		while (d1nr < numberOfCitiesMinus1 && cont) {
-			integer d1 = path [d1nr];
+			integer d1 = path [d1nr + 1];
 			integer gain1 = distance_b1_b2 + distance [d1] [cc] - distance [d1] [b2];
 			if (gain1 + maximumGainLeft > 0) {
 				integer e1nr = d1nr + 1;
-				integer dn = path [d1nr];
-				if (e1nrMax > numberOfCitiesMinus1) e1nrMax = numberOfCitiesMinus1;
+				integer dn = path [d1nr + 1];
+				Melder_clipRight (& e1nrMax, numberOfCitiesMinus1);
 				while (e1nr < e1nrMax && cont) {
-					integer e1 = path [e1nr];
+					integer e1 = path [e1nr + 1];
 					integer gain = gain1 + distance [dn] [e1] - distance [dn] [b1] - distance [cc] [e1];
 					if (gain > 0) {
 						integer nAdoption = e1nr - d1nr;
 						integer dnnr = e1nr - 1;
 						cont = false;
 						*totalDistance -= gain;
-						for (integer j = 0; j <= dnnr - 1; j ++) help [j] = path [j + 1];
-						for (integer j = 1; j <= nAdoption; j ++) path [j] = help [dnnr - j];
-						for (integer j = 0; j <= d1nr - 2; j ++) path [nAdoption + j + 1] = help [j];
+						for (integer j = 1; j <= dnnr; j ++)
+							help [j] = path [j + 1];
+						for (integer j = 1; j <= nAdoption; j ++)
+							path [j + 1] = help [dnnr - j + 1];
+						for (integer j = 1; j <= d1nr - 1; j ++)
+							path [nAdoption + j + 1] = help [j];
 					}
 					dn = e1;
 					e1nr ++;
@@ -207,7 +217,6 @@ static bool tryAdoption (constINTMAT const& distance, integer *path, integer num
 		}
 		result |= ! cont;
 	}
-	NUMvector_free (help, 0);
 	return result;
 }
 
@@ -218,24 +227,26 @@ void Polygon_salesperson (Polygon me, integer numberOfIterations) {
 		integer numberOfCities = my numberOfPoints;
 		if (numberOfCities < 1)
 			Melder_throw (U"No points.");
-		autoINTMAT distance = newINTMATzero (numberOfCities, numberOfCities);
+		autoINTMAT distance = zero_INTMAT (numberOfCities, numberOfCities);
 		computeDistanceTable (me, distance.get());
-		autoNUMvector <integer> path ((integer) 0, numberOfCities);
+		autoINTVEC path = zero_INTVEC (numberOfCities + 1);
 		for (integer i = 1; i <= numberOfCities; i ++)
 			path [i] = i;
-		path [0] = numberOfCities;   // close path
-		autoNUMvector <integer> shortestPath (NUMvector_copy (path.peek(), 0, numberOfCities), 0);
+		path [numberOfCities + 1] = 1;   // close path
+		autoINTVEC shortestPath = copy_INTVEC (path.all());
 		for (integer iteration = 1; iteration <= numberOfIterations; iteration ++) {
-			if (iteration > 1) shuffle (path.peek(), numberOfCities);
-			totalDistance = computeTotalDistance (distance.get(), path.peek(), numberOfCities);
-			if (iteration == 1) shortestDistance = totalDistance;
+			if (iteration > 1)
+				shuffle (path.all());
+			totalDistance = computeTotalDistance (distance.get(), path.all());
+			if (iteration == 1)
+				shortestDistance = totalDistance;
 			do {
 				do {
-				} while (tryExchange (distance.get(), path.peek(), numberOfCities, & totalDistance));
-			} while (tryAdoption (distance.get(), path.peek(), numberOfCities, & totalDistance));
+				} while (tryExchange (distance.get(), path.all(), & totalDistance));
+			} while (tryAdoption (distance.get(), path.all(), & totalDistance));
 			if (totalDistance < shortestDistance) {   // new shortest path
 				numberOfShortest = 1;
-				for (int i = 0; i <= numberOfCities; i ++) shortestPath [i] = path [i];
+				shortestPath.all()  <<=  path.all();
 				shortestDistance = totalDistance;
 			}
 			else if (totalDistance == shortestDistance)   // shortest path confirmed
@@ -305,7 +316,7 @@ void Polygon_drawClosed (Polygon me, Graphics g, double xmin, double xmax, doubl
 	Graphics_unsetInner (g);
 }
 
-void Polygon_paint (Polygon me, Graphics g, Graphics_Colour colour, double xmin, double xmax, double ymin, double ymax) {
+void Polygon_paint (Polygon me, Graphics g, MelderColour colour, double xmin, double xmax, double ymin, double ymax) {
 	Graphics_setInner (g);
 	setWindow (me, g, xmin, xmax, ymin, ymax);
 	Graphics_setColour (g, colour);

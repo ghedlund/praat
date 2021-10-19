@@ -2,7 +2,7 @@
 #define _melder_audio_h_
 /* melder_audio.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,9 @@ void MelderAudio_setUseInternalSpeaker (bool useInternalSpeaker);   // for HP-UX
 bool MelderAudio_getUseInternalSpeaker ();
 integer MelderAudio_getOutputBestSampleRate (integer fsamp);
 
-extern bool MelderAudio_isPlaying;
-void MelderAudio_play16 (int16 *buffer, integer sampleRate, integer numberOfSamples, int numberOfChannels,
+inline bool MelderAudio_isPlaying;
+inline bool MelderAudio_hasBeenInitialized;
+void MelderAudio_play16 (int16 *buffer, integer sampleRate, integer numberOfSamples, integer numberOfChannels,
 	bool (*playCallback) (void *playClosure, integer numberOfSamplesPlayed),   // return true to continue, false to stop
 	void *playClosure);
 bool MelderAudio_stopPlaying (bool isExplicit);   // returns true if sound was playing
@@ -109,9 +110,8 @@ public:
 
 /*
 	True if specified by the "asynchronous" directive in a script.
-	TODO: change to inline variable once C++17 is implemented completely on all platforms.
 */
-extern bool Melder_asynchronous;
+inline bool Melder_asynchronous;
 
 class autoMelderAsynchronous {
 	bool _disowned;

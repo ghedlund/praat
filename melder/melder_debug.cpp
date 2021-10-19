@@ -1,6 +1,6 @@
 /* melder_debug.cpp
  *
- * Copyright (C) 2000-2018 Paul Boersma
+ * Copyright (C) 2000-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 	#include <windows.h>
 #endif
 
-int Melder_debug = 0;
 /*
 Melder_debug will always be set to 0 when Praat starts up.
 If Melder_debug is temporarily set to the following values
@@ -67,10 +66,9 @@ the behaviour of Praat will temporarily change in the following ways:
 34: trace memory allocation and deallocation
 35: debugging on for QuickTime movie file opening
 37: debug autoThing
-38: debug autoNUMvector
 39: debug autostring
 40: debug Thing_new
-41: OTGrammar_getWinner: always first choice rather than random choice 
+41: OTGrammar_getWinner: always first choice rather than random choice
 42: OTGrammar_getWinner: always last choice rather than random choice
 43: trace class table initialization
 44: trace Collection
@@ -82,6 +80,10 @@ the behaviour of Praat will temporarily change in the following ways:
 50: compute sum, mean, stdev with first-element offset (80 bits)
 51: compute sum, mean, stdev with two cycles, as in R (80 bits)
 (other numbers than 48-51: compute sum, mean, stdev with simple pairwise algorithm, base case 64 [80 bits])
+52: debug Discriminant_TableOfReal_to_ClassificationTable
+53: trace running cursor
+54: ignore gdk_cairo_reset_clip
+55: trace Gui init, draw, destroy
 181: read and write native-endian real64
 900: use DG Meta Serif Science instead of Palatino
 1264: Mac: Sound_record_fixedTime uses microphone "FW Solo (1264)"
@@ -187,9 +189,6 @@ conststring16 MelderTrace::_peek32to16 (conststring32 string) {
 
 /********** TRACE **********/
 
-bool Melder_isTracing = false;
-structMelderFile MelderTrace::_file { };
-
 void Melder_tracingToFile (MelderFile file) {
 	MelderFile_copy (file, & MelderTrace::_file);
 	MelderFile_delete (& MelderTrace::_file);
@@ -201,7 +200,7 @@ FILE * MelderTrace::_open (conststring8 sourceCodeFileName, int lineNumber, cons
 		f = _wfopen ((const wchar_t *) MelderTrace::_peek32to16 (MelderTrace::_file. path), L"a");
 	#else
 		char utf8path [kMelder_MAXPATH+1];
-		Melder_str32To8bitFileRepresentation_inplace (MelderTrace::_file. path, utf8path);   // this Melder_xxx() function is OK to call
+		Melder_32to8_fileSystem_inplace (MelderTrace::_file. path, utf8path);   // this Melder_xxx() function is OK to call
 		f = fopen ((char *) utf8path, "a");
 	#endif
 	if (! f)

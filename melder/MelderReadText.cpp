@@ -1,6 +1,6 @@
 /* melder_readtext.cpp
  *
- * Copyright (C) 2008,2010-2012,2014-2017 Paul Boersma
+ * Copyright (C) 2008,2010-2012,2014-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
 
 char32 MelderReadText_getChar (MelderReadText me) {
 	if (my string32) {
-		if (* my readPointer32 == U'\0') return U'\0';
+		if (* my readPointer32 == U'\0')
+			return U'\0';
 		return * my readPointer32 ++;
 	} else {
 		if (* my readPointer8 == '\0') return U'\0';
@@ -135,7 +136,6 @@ conststring32 MelderReadText_getLineNumber (MelderReadText me) {
 				result ++;
 			p ++;
 		}
-		return Melder_integer (result);
 	}
 	return Melder_integer (result);
 }

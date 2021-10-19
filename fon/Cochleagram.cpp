@@ -1,6 +1,6 @@
 /* Cochleagram.cpp
  *
- * Copyright (C) 1992-2005,2007,2008,2011,2012,2015-2018 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2008,2011,2012,2015-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ void Cochleagram_paint (Cochleagram me, Graphics g, double tmin, double tmax, bo
 		{ 0.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0 };
 	try {
 		autoCochleagram copy = Data_copy (me);
-		if (tmax <= tmin) { tmin = my xmin; tmax = my xmax; }
+		Function_unidirectionalAutowindow (me, & tmin, & tmax);
 		integer itmin, itmax;
 		Matrix_getWindowSamplesX (me, tmin, tmax, & itmin, & itmax);
 		for (integer iy = 2; iy < my ny; iy ++)
@@ -73,7 +73,7 @@ double Cochleagram_difference (Cochleagram me, Cochleagram thee, double tmin, do
 			Melder_throw (U"Unequal time samplings.");
 		Melder_require (my ny == thy ny,
 			U"Unequal numbers of frequencies.");
-		if (tmax <= tmin) { tmin = my xmin; tmax = my xmax; }
+		Function_unidirectionalAutowindow (me, & tmin, & tmax);
 		integer itmin, itmax;
 		integer nt = Matrix_getWindowSamplesX (me, tmin, tmax, & itmin, & itmax);
 		Melder_require (nt > 0,
@@ -95,7 +95,7 @@ double Cochleagram_difference (Cochleagram me, Cochleagram thee, double tmin, do
 autoCochleagram Matrix_to_Cochleagram (Matrix me) {
 	try {
 		autoCochleagram thee = Cochleagram_create (my xmin, my xmax, my nx, my dx, my x1, my dy, my ny);
-		thy z.all() <<= my z.all();
+		thy z.all()  <<=  my z.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Cochleagram.");
@@ -105,7 +105,7 @@ autoCochleagram Matrix_to_Cochleagram (Matrix me) {
 autoMatrix Cochleagram_to_Matrix (Cochleagram me) {
 	try {
 		autoMatrix thee = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, my ymin, my ymax, my ny, my dy, my y1);
-		thy z.all() <<= my z.all();
+		thy z.all()  <<=  my z.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to Matrix.");

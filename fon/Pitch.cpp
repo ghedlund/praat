@@ -1,6 +1,6 @@
 /* Pitch.cpp
  *
- * Copyright (C) 1992-2009,2011,2012,2014-2018 Paul Boersma
+ * Copyright (C) 1992-2009,2011,2012,2014-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
  */
 
 #include "Pitch.h"
-#include <ctype.h>
 #include "Sound_and_Spectrum.h"
 #include "Matrix_and_Pitch.h"
 
@@ -138,9 +137,11 @@ double structPitch :: v_convertSpecialToStandardUnit (double value, integer leve
 	  (unit) == kPitch_unit::SEMITONES_200 || (unit) == kPitch_unit::SEMITONES_440 )
 
 double structPitch :: v_getValueAtSample (integer iframe, integer ilevel, int unit) {
-	double f = our frame [iframe]. candidate [1]. frequency;
-	if (! Pitch_util_frequencyIsVoiced (f, our ceiling)) return undefined;
-	return v_convertStandardToSpecialUnit (ilevel == Pitch_LEVEL_FREQUENCY ? f : our frame [iframe]. candidate [1]. strength, ilevel, unit);
+	const double f = our frames [iframe]. candidates [1]. frequency;
+	if (! Pitch_util_frequencyIsVoiced (f, our ceiling))
+		return undefined;
+	return v_convertStandardToSpecialUnit (ilevel == Pitch_LEVEL_FREQUENCY ? f :
+			our frames [iframe]. candidates [1]. strength, ilevel, unit);
 }
 
 #ifdef PRAAT_LIB
@@ -264,9 +265,9 @@ static integer Pitch_getMeanAbsoluteSlope (Pitch me,
 	double *out_hertz, double *out_mel, double *out_semitones, double *out_erb, double *out_withoutOctaveJumps)
 {
 	integer firstVoicedFrame = 0, lastVoicedFrame = 0, numberOfVoicedFrames = 0;
-	autoVEC frequencies = newVECraw (my nx);
+	autoVEC frequencies = raw_VEC (my nx);
 	for (integer i = 1; i <= my nx; i ++) {
-		double frequency = my frame [i]. candidate [1]. frequency;
+		const double frequency = my frames [i]. candidates [1]. frequency;
 		if (Pitch_util_frequencyIsVoiced (frequency, my ceiling)) {
 			frequencies [i] = frequency;
 			numberOfVoicedFrames ++;
@@ -348,6 +349,35 @@ integer Pitch_getMeanAbsSlope_noOctave (Pitch me, double *slope) {
 	return Pitch_getMeanAbsoluteSlope (me, nullptr, nullptr, nullptr, nullptr, slope);
 }
 
+MelderFraction Pitch_getFractionOfLocallyVoicedFrames (
+	Pitch me, double tmin, double tmax, double ceiling, double silenceThreshold, double voicingThreshold)
+{
+	MelderFraction result;
+	integer imin, imax;
+	result.denominator = Sampled_getWindowSamples (me, tmin, tmax, & imin, & imax);
+	for (integer i = imin; i <= imax; i ++) {
+		const Pitch_Frame frame = & my frames [i];
+		if (frame -> intensity >= silenceThreshold) {
+			for (integer icand = 1; icand <= frame -> nCandidates; icand ++) {
+				const Pitch_Candidate cand = & frame -> candidates [icand];
+				if (cand -> frequency > 0.0 && cand -> frequency < ceiling && cand -> strength >= voicingThreshold) {
+					result.numerator += 1.0;
+					break;   // next frame
+				}
+			}
+		}
+	}
+	return result;
+}
+
+MelderFraction Pitch_getFractionOfLocallyUnvoicedFrames (
+	Pitch me, double tmin, double tmax, double ceiling, double silenceThreshold, double voicingThreshold)
+{
+	MelderFraction fraction = Pitch_getFractionOfLocallyVoicedFrames (me, tmin, tmax, ceiling, silenceThreshold, voicingThreshold);
+	fraction.numerator = fraction.denominator - fraction.numerator;
+	return fraction;
+}
+
 void structPitch :: v_info () {
 	autoVEC frequencies = Sampled_getSortedValues (this, 0.0, 0.0, Pitch_LEVEL_FREQUENCY, (int) kPitch_unit::HERTZ);
 	structDaata :: v_info ();
@@ -362,11 +392,11 @@ void structPitch :: v_info () {
 	MelderInfo_writeLine (U"Ceiling at: ", our ceiling, U" Hz");
 
 	if (frequencies.size > 0) {   // quantiles
-		double quantile10 = NUMquantile (frequencies.get(), 0.10);
-		double quantile16 = NUMquantile (frequencies.get(), 0.16);
-		double quantile50 = NUMquantile (frequencies.get(), 0.50);   // median
-		double quantile84 = NUMquantile (frequencies.get(), 0.84);
-		double quantile90 = NUMquantile (frequencies.get(), 0.90);
+		const double quantile10 = NUMquantile (frequencies.get(), 0.10);
+		const double quantile16 = NUMquantile (frequencies.get(), 0.16);
+		const double quantile50 = NUMquantile (frequencies.get(), 0.50);   // median
+		const double quantile84 = NUMquantile (frequencies.get(), 0.84);
+		const double quantile90 = NUMquantile (frequencies.get(), 0.90);
 		MelderInfo_writeLine (U"\nEstimated quantiles:");
 		MelderInfo_writeLine (U"   10% = ",
 				Melder_single (quantile10), U" Hz = ",
@@ -394,7 +424,7 @@ void structPitch :: v_info () {
 				Melder_single (NUMhertzToSemitones (quantile90)), U" semitones above 100 Hz = ",
 				Melder_single (NUMhertzToErb (quantile90)), U" ERB");
 		if (frequencies.size > 1) {
-			double correction = sqrt (frequencies.size / (frequencies.size - 1.0));
+			const double correction = sqrt (frequencies.size / (frequencies.size - 1.0));
 			MelderInfo_writeLine (U"\nEstimated spreading:");
 			MelderInfo_writeLine (U"   84%-median = ",
 					Melder_half ((quantile84 - quantile50) * correction), U" Hz = ",
@@ -414,8 +444,8 @@ void structPitch :: v_info () {
 		}
 	}
 	if (frequencies.size > 0) {   // extrema, range, mean and standard deviation
-		double minimum = Pitch_getMinimum (this, xmin, xmax, kPitch_unit::HERTZ, false);
-		double maximum = Pitch_getMaximum (this, xmin, xmax, kPitch_unit::HERTZ, false);
+		const double minimum = Pitch_getMinimum (this, xmin, xmax, kPitch_unit::HERTZ, false);
+		const double maximum = Pitch_getMaximum (this, xmin, xmax, kPitch_unit::HERTZ, false);
 		MelderInfo_writeLine (U"\nMinimum ",
 				Melder_single (minimum), U" Hz = ",
 				Melder_single (NUMhertzToMel (minimum)), U" Mel = ",
@@ -431,20 +461,20 @@ void structPitch :: v_info () {
 				Melder_single (NUMhertzToMel (maximum) - NUMhertzToMel (minimum)), U" Mel = ",
 				Melder_half (NUMhertzToSemitones (maximum) - NUMhertzToSemitones (minimum)), U" semitones = ",
 				Melder_half (NUMhertzToErb (maximum) - NUMhertzToErb (minimum)), U" ERB");
-		double meanHertz = Pitch_getMean (this, 0, 0, kPitch_unit::HERTZ);
-		double meanMel = Pitch_getMean (this, 0, 0, kPitch_unit::MEL);
-		double meanSemitones = Pitch_getMean (this, 0, 0, kPitch_unit::SEMITONES_100);
-		double meanErb = Pitch_getMean (this, 0, 0, kPitch_unit::ERB);
+		const double meanHertz = Pitch_getMean (this, 0, 0, kPitch_unit::HERTZ);
+		const double meanMel = Pitch_getMean (this, 0, 0, kPitch_unit::MEL);
+		const double meanSemitones = Pitch_getMean (this, 0, 0, kPitch_unit::SEMITONES_100);
+		const double meanErb = Pitch_getMean (this, 0, 0, kPitch_unit::ERB);
 		MelderInfo_writeLine (U"Average: ",
 				Melder_single (meanHertz), U" Hz = ",
 				Melder_single (meanMel), U" Mel = ",
 				Melder_single (meanSemitones), U" semitones above 100 Hz = ",
 				Melder_single (meanErb), U" ERB");
 		if (frequencies.size > 1) {
-			double stdevHertz = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::HERTZ);
-			double stdevMel = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::MEL);
-			double stdevSemitones = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::SEMITONES_100);
-			double stdevErb = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::ERB);
+			const double stdevHertz = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::HERTZ);
+			const double stdevMel = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::MEL);
+			const double stdevSemitones = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::SEMITONES_100);
+			const double stdevErb = Pitch_getStandardDeviation (this, 0, 0, kPitch_unit::ERB);
 			MelderInfo_writeLine (U"Standard deviation: ",
 					Melder_half (stdevHertz), U" Hz = ",
 					Melder_half (stdevMel), U" Mel = ",
@@ -464,17 +494,9 @@ void structPitch :: v_info () {
 	}
 }
 
-void Pitch_Frame_init (Pitch_Frame me, integer nCandidates) {
-	/*
-	 * Create without change.
-	 */
-	autoNUMvector <structPitch_Candidate> candidate (1, nCandidates);
-	/*
-	 * Change without error.
-	 */
-	NUMvector_free (my candidate, 1);
-	my candidate = candidate.transfer();
-	my nCandidates = nCandidates;
+void Pitch_Frame_init (Pitch_Frame me, integer numberOfCandidates) {
+	my candidates = newvectorzero <structPitch_Candidate> (numberOfCandidates);
+	my nCandidates = numberOfCandidates;   // maintain invariant
 }
 
 autoPitch Pitch_create (double tmin, double tmax, integer nt, double dt, double t1,
@@ -485,12 +507,13 @@ autoPitch Pitch_create (double tmin, double tmax, integer nt, double dt, double 
 		Sampled_init (me.get(), tmin, tmax, nt, dt, t1);
 		my ceiling = ceiling;
 		my maxnCandidates = maxnCandidates;
-		my frame = NUMvector <structPitch_Frame> (1, nt);
+		my frames = newvectorzero <structPitch_Frame> (nt);
 
-		/* Put one candidate in every frame (unvoiced, silent). */
-		for (integer it = 1; it <= nt; it ++) {
-			Pitch_Frame_init (& my frame [it], 1);
-		}
+		/*
+			Put one candidate in every frame (unvoiced, silent).
+		*/
+		for (integer it = 1; it <= nt; it ++)
+			Pitch_Frame_init (& my frames [it], 1);
 
 		return me;
 	} catch (MelderError) {
@@ -505,33 +528,27 @@ void Pitch_setCeiling (Pitch me, double ceiling) {
 integer Pitch_getMaxnCandidates (Pitch me) {
 	integer result = 0;
 	for (integer i = 1; i <= my nx; i ++) {
-		integer nCandidates = my frame [i]. nCandidates;
-		if (nCandidates > result) result = nCandidates;
+		integer numberOfCandidates = my frames [i]. nCandidates;
+		if (numberOfCandidates > result)
+			result = numberOfCandidates;
 	}
 	return result;
 }
 
-static void Pitch_checkFrameNumber (Pitch me, integer frameNumber) {
-    Melder_require (frameNumber >= 1,
-    	U"The frame number should be at least 1, but is ", frameNumber, U" instead.");
-    Melder_require (frameNumber <= my nx,
-    	U"The frame number should at most the number of frames (", my nx, U"), but is ", frameNumber, U" instead.");
-}
-
 autoMAT Pitch_Frame_getAllCandidates (Pitch_Frame me) {
 	integer numberOfCandidates = my nCandidates;
-	autoMAT candidates = newMATraw (2, numberOfCandidates);
+	autoMAT candidates = raw_MAT (2, numberOfCandidates);
 	for (integer icand = 1; icand <= numberOfCandidates; icand ++) {
-		candidates [1] [icand] = my candidate [icand]. frequency;
-		candidates [2] [icand] = my candidate [icand]. strength;
+		candidates [1] [icand] = my candidates [icand]. frequency;
+		candidates [2] [icand] = my candidates [icand]. strength;
 	}
 	return candidates;
 }
 
 autoMAT Pitch_getAllCandidatesInFrame (Pitch me, integer frameNumber) {
 	try {
-    	Pitch_checkFrameNumber (me, frameNumber);
-    	Pitch_Frame frame = & my frame [frameNumber];
+    	my checkIndex (frameNumber);
+    	const Pitch_Frame frame = & my frames [frameNumber];
     	return Pitch_Frame_getAllCandidates (frame);
 	} catch (MelderError) {
 		Melder_throw (U"Pitch candidate matrix not created.");
@@ -562,16 +579,16 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 		voicedUnvoicedCost *= timeStepCorrection;
 
 		my ceiling = ceiling;
-		autoMAT delta = newMATzero (my nx, maxnCandidates);
-		autoINTMAT psi = newINTMATzero (my nx, maxnCandidates);
+		autoMAT delta = zero_MAT (my nx, maxnCandidates);
+		autoINTMAT psi = zero_INTMAT (my nx, maxnCandidates);
 
 		for (integer iframe = 1; iframe <= my nx; iframe ++) {
-			Pitch_Frame frame = & my frame [iframe];
+			const Pitch_Frame frame = & my frames [iframe];
 			double unvoicedStrength = ( silenceThreshold <= 0 ? 0.0 :
 				2.0 - frame -> intensity / (silenceThreshold / (1.0 + voicingThreshold)) );
 			unvoicedStrength = voicingThreshold + std::max (0.0, unvoicedStrength);
 			for (integer icand = 1; icand <= frame -> nCandidates; icand ++) {
-				Pitch_Candidate candidate = & frame -> candidate [icand];
+				const Pitch_Candidate candidate = & frame -> candidates [icand];
 				const bool voiceless = ! Pitch_util_frequencyIsVoiced (candidate -> frequency, ceiling2);
 				delta [iframe] [icand] = ( voiceless ? unvoicedStrength :
 					candidate -> strength - octaveCost * NUMlog2 (ceiling / candidate -> frequency) );
@@ -583,19 +600,19 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 		/* and a cost for a frequency jump. */
 
 		for (integer iframe = 2; iframe <= my nx; iframe ++) {
-			Pitch_Frame prevFrame = & my frame [iframe - 1], curFrame = & my frame [iframe];
-			constVEC prevDelta = delta [iframe - 1];
-			VEC curDelta = delta [iframe];
-			INTVEC curPsi = psi [iframe];
+			const Pitch_Frame prevFrame = & my frames [iframe - 1], curFrame = & my frames [iframe];
+			const constVEC prevDelta = delta [iframe - 1];
+			const VEC curDelta = delta [iframe];
+			const INTVEC curPsi = psi [iframe];
 			for (integer icand2 = 1; icand2 <= curFrame -> nCandidates; icand2 ++) {
-				const double f2 = curFrame -> candidate [icand2]. frequency;
+				const double f2 = curFrame -> candidates [icand2]. frequency;
 				maximum = -1e30;
 				place = 0;
 				for (integer icand1 = 1; icand1 <= prevFrame -> nCandidates; icand1 ++) {
-					double f1 = prevFrame -> candidate [icand1]. frequency;
+					double f1 = prevFrame -> candidates [icand1]. frequency;
 					double transitionCost;
-					bool previousVoiceless = ! Pitch_util_frequencyIsVoiced (f1, ceiling2);
-					bool currentVoiceless = ! Pitch_util_frequencyIsVoiced (f2, ceiling2);
+					const bool previousVoiceless = ! Pitch_util_frequencyIsVoiced (f1, ceiling2);
+					const bool currentVoiceless = ! Pitch_util_frequencyIsVoiced (f2, ceiling2);
 					if (currentVoiceless) {
 						if (previousVoiceless) {
 							transitionCost = 0.0;   // both voiceless
@@ -612,7 +629,7 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 								integer place1 = icand1;
 								for (integer jframe = iframe - 2; jframe >= 1; jframe --) {
 									place1 = psi [jframe + 1] [place1];
-									f1 = my frame [jframe]. candidate [place1]. frequency;
+									f1 = my frames [jframe]. candidates [place1]. frequency;
 									if (Pitch_util_frequencyIsVoiced (f1, ceiling)) {
 										transitionCost += octaveJumpCost * fabs (NUMlog2 (f1 / f2)) / (iframe - jframe);
 										break;
@@ -648,7 +665,7 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 
 		place = 1;
 		maximum = delta [my nx] [place];
-		for (integer icand = 2; icand <= my frame [my nx]. nCandidates; icand ++) {
+		for (integer icand = 2; icand <= my frames [my nx]. nCandidates; icand ++) {
 			if (delta [my nx] [icand] > maximum) {
 				place = icand;
 				maximum = delta [my nx] [place];
@@ -663,11 +680,9 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 					U"Frame ", iframe, U":",
 					U" swapping candidates 1 and ", place
 				);
-			Pitch_Frame frame = & my frame [iframe];
-			structPitch_Candidate help = frame -> candidate [1];
-			frame -> candidate [1] = frame -> candidate [place];
-			frame -> candidate [place] = help;
-			place = psi [iframe] [place];   // This assignment is challenging to CodeWarrior 11.
+			const Pitch_Frame frame = & my frames [iframe];
+			std::swap (frame -> candidates [1], frame -> candidates [place]);
+			place = psi [iframe] [place];
 		}
 
 		/* Pull formants: devoice frames with frequencies between ceiling and ceiling2. */
@@ -676,16 +691,14 @@ void Pitch_pathFinder (Pitch me, double silenceThreshold, double voicingThreshol
 			if (Melder_debug == 33)
 				Melder_casual (U"Pulling formants...");
 			for (integer iframe = my nx; iframe >= 1; iframe --) {
-				Pitch_Frame frame = & my frame [iframe];
-				Pitch_Candidate winner = & frame -> candidate [1];
-				double f = winner -> frequency;
+				const Pitch_Frame frame = & my frames [iframe];
+				const Pitch_Candidate winner = & frame -> candidates [1];
+				const double f = winner -> frequency;
 				if (f > ceiling && f < ceiling2) {
 					for (integer icand = 2; icand <= frame -> nCandidates; icand ++) {
-						Pitch_Candidate loser = & frame -> candidate [icand];
+						const Pitch_Candidate loser = & frame -> candidates [icand];
 						if (loser -> frequency == 0.0) {
-							structPitch_Candidate help = * winner;
-							* winner = * loser;
-							* loser = help;
+							std::swap (* winner, * loser);
 							break;
 						}
 					}
@@ -725,10 +738,10 @@ void Pitch_difference (Pitch me, Pitch thee) {
 		return;
 	}
 	for (integer i = 1; i <= my nx; i ++) {
-		double myf = my frame [i]. candidate [1]. frequency, thyf = thy frame [i]. candidate [1]. frequency;
-		int myUnvoiced = ! Pitch_util_frequencyIsVoiced (myf, my ceiling);
-		int thyUnvoiced = ! Pitch_util_frequencyIsVoiced (thyf, thy ceiling);
-		double t = Sampled_indexToX (me, i);
+		const double myf = my frames [i]. candidates [1]. frequency, thyf = thy frames [i]. candidates [1]. frequency;
+		const bool myUnvoiced = ! Pitch_util_frequencyIsVoiced (myf, my ceiling);
+		const bool thyUnvoiced = ! Pitch_util_frequencyIsVoiced (thyf, thy ceiling);
+		const double t = Sampled_indexToX (me, i);
 		if (myUnvoiced && ! thyUnvoiced) {
 			Melder_casual (
 				U"Frame ", i,
@@ -768,27 +781,33 @@ autoPitch Pitch_killOctaveJumps (Pitch me) {
 		integer nVoiced = 0, nUp = 0;
 		double lastFrequency = 0.0;
 		for (integer i = 1; i <= my nx; i ++) {
-			double f = my frame [i]. candidate [1]. frequency;
-			thy frame [i]. candidate [1]. strength = my frame [i]. candidate [1]. strength;
+			double f = my frames [i]. candidates [1]. frequency;
+			thy frames [i]. candidates [1]. strength = my frames [i]. candidates [1]. strength;
 			if (Pitch_util_frequencyIsVoiced (f, my ceiling)) {
 				nVoiced ++;
 				if (lastFrequency != 0.0) {
-					double fmin = lastFrequency * 0.7071, fmax = 2.0 * fmin;
-					while (f < fmin) { f *= 2.0; nUp ++; }
-					while (f > fmax) { f *= 0.5; nUp --; }
+					const double fmin = lastFrequency * 0.7071, fmax = 2.0 * fmin;
+					while (f < fmin) {
+						f *= 2.0;
+						nUp ++;
+					}
+					while (f > fmax) {
+						f *= 0.5;
+						nUp --;
+					}
 				}
-				lastFrequency = thy frame [i]. candidate [1]. frequency = f;
+				lastFrequency = thy frames [i]. candidates [1]. frequency = f;
 			}
 		}
 		thy ceiling *= 2.0;   // make room for some octave jumps
 		while (nUp > nVoiced / 2) {
 			for (integer i = 1; i <= thy nx; i ++)
-				thy frame [i]. candidate [1]. frequency *= 0.5;
+				thy frames [i]. candidates [1]. frequency *= 0.5;
 			nUp -= nVoiced;
 		}
 		while (nUp < - nVoiced / 2) {
 			for (integer i = 1; i <= thy nx; i ++)
-				thy frame [i]. candidate [1]. frequency *= 2.0;
+				thy frames [i]. candidates [1]. frequency *= 2.0;
 			nUp += nVoiced;
 		}
 		return thee;
@@ -801,23 +820,25 @@ autoPitch Pitch_interpolate (Pitch me) {
 	try {
 		autoPitch thee = Pitch_create (my xmin, my xmax, my nx, my dx, my x1, my ceiling, 2);
 		for (integer i = 1; i <= my nx; i ++) {
-			double f = my frame [i]. candidate [1]. frequency;
-			thy frame [i]. candidate [1]. strength = 0.9;
+			const double f = my frames [i]. candidates [1]. frequency;
+			thy frames [i]. candidates [1]. strength = 0.9;
 			if (Pitch_util_frequencyIsVoiced (f, my ceiling)) {
-				thy frame [i]. candidate [1]. frequency = f;
+				thy frames [i]. candidates [1]. frequency = f;
 			} else {
 				integer left, right;
 				double fleft = 0.0, fright = 0.0;
 				for (left = i - 1; left >= 1 && fleft == 0.0; left --) {
-					fleft = my frame [left]. candidate [1]. frequency;
-					if (fleft >= my ceiling) fleft = 0.0;
+					fleft = my frames [left]. candidates [1]. frequency;
+					if (fleft >= my ceiling)
+						fleft = 0.0;
 				}
 				for (right = i + 1; right <= my nx && fright == 0.0; right ++) {
-					fright = my frame [right]. candidate [1]. frequency;
-					if (fright >= my ceiling) fright = 0.0;
+					fright = my frames [right]. candidates [1]. frequency;
+					if (fright >= my ceiling)
+						fright = 0.0;
 				}
 				if (fleft != 0.0 && fright != 0.0)
-					thy frame [i]. candidate [1]. frequency =
+					thy frames [i]. candidates [1]. frequency =
 						((i - left) * fright + (right - i) * fleft) / (right - left);
 			}
 		}
@@ -835,9 +856,15 @@ autoPitch Pitch_subtractLinearFit (Pitch me, kPitch_unit unit) {
 		*/
 		integer imin = thy nx + 1, imax = 0;
 		for (integer i = 1; i <= my nx; i ++)
-			if (Pitch_isVoiced_i (thee.get(), i)) { imin = i; break; }
+			if (Pitch_isVoiced_i (thee.get(), i)) {
+				imin = i;
+				break;
+			}
 		for (integer i = imin + 1; i <= my nx; i ++)
-			if (! Pitch_isVoiced_i (thee.get(), i)) { imax = i - 1; break; }
+			if (! Pitch_isVoiced_i (thee.get(), i)) {
+				imax = i - 1;
+				break;
+			}
 		integer n = imax - imin + 1;
 		if (n <= 1) {
 			/*
@@ -850,19 +877,19 @@ autoPitch Pitch_subtractLinearFit (Pitch me, kPitch_unit unit) {
 		/*
 			Compute average pitch and time.
 		*/
-		double sum = 0.0;
-		for (integer i = imin; i <= imax; i ++) {
+		longdouble sum = 0.0;
+		for (integer i = imin; i <= imax; i ++)
 			sum += Sampled_getValueAtSample (thee.get(), i, Pitch_LEVEL_FREQUENCY, (int) unit);
-		}
-		double fmean = sum / n;
+		double fmean = double (sum) / n;
 		double tmean = thy x1 + (0.5 * (imin + imax) - 1) * thy dx;
 		/*
 			Compute slope.
 		*/
 		double numerator = 0.0, denominator = 0.0;
 		for (integer i = imin; i <= imax; i ++) {
-			double t = thy x1 + (i - 1) * thy dx - tmean;
-			double f = Sampled_getValueAtSample (thee.get(), i, Pitch_LEVEL_FREQUENCY, (int) unit) - fmean;
+			const double t = thy x1 + (i - 1) * thy dx - tmean;
+			const double f = Sampled_getValueAtSample (thee.get(), i, Pitch_LEVEL_FREQUENCY, (int) unit)
+					- fmean;
 			numerator += f * t;
 			denominator += t * t;
 		}
@@ -871,16 +898,15 @@ autoPitch Pitch_subtractLinearFit (Pitch me, kPitch_unit unit) {
 			Modify frequencies.
 		*/
 		for (integer i = imin; i <= imax; i ++) {
-			Pitch_Frame myFrame = & my frame [i], thyFrame = & thy frame [i];
-			Pitch_Candidate myCandidate = & myFrame -> candidate [1], thyCandidate = & thyFrame -> candidate [1];
-			double t = thy x1 + (i - 1) * thy dx - tmean, myFreq = myCandidate -> frequency;
-			double f = Sampled_getValueAtSample (thee.get(), i, Pitch_LEVEL_FREQUENCY, (int) unit);
-			f -= slope * t;
-			if (Pitch_util_frequencyIsVoiced (myFreq, my ceiling)) {
+			const Pitch_Frame myFrame = & my frames [i], thyFrame = & thy frames [i];
+			const Pitch_Candidate myCandidate = & myFrame -> candidates [1], thyCandidate = & thyFrame -> candidates [1];
+			const double t = thy x1 + (i - 1) * thy dx - tmean, myFreq = myCandidate -> frequency;
+			const double f = Sampled_getValueAtSample (thee.get(), i, Pitch_LEVEL_FREQUENCY, (int) unit)
+					- slope * t;
+			if (Pitch_util_frequencyIsVoiced (myFreq, my ceiling))
 				thyCandidate -> frequency = Function_convertSpecialToStandardUnit (me, f, Pitch_LEVEL_FREQUENCY, (int) unit);
-			} else {
+			else
 				thyCandidate -> frequency = 0.0;
-			}
 		}
 		return thee;
 	} catch (MelderError) {
@@ -892,8 +918,8 @@ autoPitch Pitch_smooth (Pitch me, double bandWidth) {
 	try {
 		autoPitch interp = Pitch_interpolate (me);
 		autoMatrix matrix1 = Pitch_to_Matrix (interp.get());
-		double logicalDuration = matrix1 -> xmax - matrix1 -> xmin;
-		double physicalDuration = matrix1 -> nx * matrix1 -> dx;
+		const double logicalDuration = matrix1 -> xmax - matrix1 -> xmin;
+		const double physicalDuration = matrix1 -> nx * matrix1 -> dx;
 		autoSound sound1 = Sound_create (
 			1,   // one channel
 			matrix1 -> xmin - logicalDuration,   // triply wide logical time domain (ignored)
@@ -905,9 +931,10 @@ autoPitch Pitch_smooth (Pitch me, double bandWidth) {
 
 		integer firstVoiced = 0, lastVoiced = 0;
 		for (integer i = 1; i <= matrix1 -> nx; i ++) {
-			double f = matrix1 -> z [1] [i];
+			const double f = matrix1 -> z [1] [i];
 			if (f != 0.0) {
-				if (! firstVoiced) firstVoiced = i;
+				if (! firstVoiced)
+					firstVoiced = i;
 				lastVoiced = i;
 				sound1 -> z [1] [i + matrix1 -> nx] = f;
 			}
@@ -934,7 +961,7 @@ autoPitch Pitch_smooth (Pitch me, double bandWidth) {
 
 		autoMatrix matrix2 = Matrix_create (my xmin, my xmax, my nx, my dx, my x1, 1.0, 1.0, 1, 1.0, 1.0);
 		for (integer i = 1; i <= my nx; i ++) {
-			double originalF0 = my frame [i]. candidate [1]. frequency;
+			const double originalF0 = my frames [i]. candidates [1]. frequency;
 			matrix2 -> z [1] [i] = ( Pitch_util_frequencyIsVoiced (originalF0, my ceiling) ?
 				sound2 -> z [1] [i + matrix2 -> nx] : 0.0 );
 		}
@@ -949,19 +976,19 @@ autoPitch Pitch_smooth (Pitch me, double bandWidth) {
 void Pitch_step (Pitch me, double step, double precision, double tmin, double tmax) {
 	Melder_assert (precision >= 0.0 && precision < 1.0);
 	integer imin, imax;
-	if (! Sampled_getWindowSamples (me, tmin, tmax, & imin, & imax)) return;
+	if (! Sampled_getWindowSamples (me, tmin, tmax, & imin, & imax))
+		return;
 	for (integer i = imin; i <= imax; i ++) {
-		Pitch_Frame frame = & my frame [i];
-		double currentFrequency = frame -> candidate [1]. frequency;
+		const Pitch_Frame frame = & my frames [i];
+		const double currentFrequency = frame -> candidates [1]. frequency;
 		if (Pitch_util_frequencyIsVoiced (currentFrequency, my ceiling)) {
-			double targetFrequency = currentFrequency * step;
-			double fmin = (1.0 - precision) * targetFrequency;
-			double fmax = (1.0 + precision) * targetFrequency;
+			const double targetFrequency = currentFrequency * step;
+			const double fmin = (1.0 - precision) * targetFrequency;
+			const double fmax = std::min ((1.0 + precision) * targetFrequency, my ceiling);
 			int nearestCandidate = 0;
 			double nearestDistance = my ceiling;
-			if (fmax > my ceiling) fmax = my ceiling;
 			for (int icand = 2; icand <= frame -> nCandidates; icand ++) {
-				double f = frame -> candidate [icand]. frequency;
+				const double f = frame -> candidates [icand]. frequency;
 				if (f > fmin && f < fmax) {
 					double localDistance = fabs (f - targetFrequency);
 					if (localDistance < nearestDistance) {
@@ -970,19 +997,17 @@ void Pitch_step (Pitch me, double step, double precision, double tmin, double tm
 					}
 				}
 			}
-			if (nearestCandidate) {   // swap candidates
-				struct structPitch_Candidate candidate = frame -> candidate [nearestCandidate];
-				frame -> candidate [nearestCandidate] = frame -> candidate [1];
-				frame -> candidate [1] = candidate;
-			}
+			if (nearestCandidate)
+				std::swap (frame -> candidates [nearestCandidate], frame -> candidates [1]);
 		}
 	}
 }
 
 static autoTable Pitch_Frame_tabulateCandidates (Pitch_Frame me) {
-	autoTable you = Table_createWithColumnNames (my nCandidates, U"frequency strength");
+	const conststring32 columnNames [] = { U"frequency", U"strength" };
+	autoTable you = Table_createWithColumnNames (my nCandidates, ARRAY_TO_STRVEC (columnNames));
 	for (integer icand = 1; icand <= my nCandidates; icand ++) {
-		Pitch_Candidate candidate = & my candidate [icand];
+		const Pitch_Candidate candidate = & my candidates [icand];
 		Table_setNumericValue (you.get(), icand, 1, candidate -> frequency);
 		Table_setNumericValue (you.get(), icand, 2, candidate -> strength);
 	}
@@ -990,23 +1015,24 @@ static autoTable Pitch_Frame_tabulateCandidates (Pitch_Frame me) {
 }
 
 autoTable Pitch_tabulateCandidatesInFrame (Pitch me, integer frameNumber) {
-	Pitch_checkFrameNumber (me, frameNumber);
-	Pitch_Frame frame = & my frame [frameNumber];
+	my checkIndex (frameNumber);
+	const Pitch_Frame frame = & my frames [frameNumber];
 	return Pitch_Frame_tabulateCandidates (frame);
 }
 
 autoTable Pitch_tabulateCandidates (Pitch me) {
 	integer totalNumberOfCandidates = 0;
 	for (integer iframe = 1; iframe <= my nx; iframe ++) {
-		Pitch_Frame frame = & my frame [iframe];
+		const Pitch_Frame frame = & my frames [iframe];
 		totalNumberOfCandidates += frame -> nCandidates;
 	}
-	autoTable result = Table_createWithColumnNames(totalNumberOfCandidates, U"frame frequency strength");
+	const conststring32 columnNames [] = { U"frame", U"frequency", U"strength" };
+	autoTable result = Table_createWithColumnNames (totalNumberOfCandidates, ARRAY_TO_STRVEC (columnNames));
 	integer rowNumber = 0;
 	for (integer iframe = 1; iframe <= my nx; iframe ++) {
-		Pitch_Frame frame = & my frame [iframe];
+		const Pitch_Frame frame = & my frames [iframe];
 		for (integer icand = 1; icand <= frame -> nCandidates; icand ++) {
-			Pitch_Candidate candidate = & frame -> candidate [icand];
+			const Pitch_Candidate candidate = & frame -> candidates [icand];
 			Table_setNumericValue (result.get(), ++ rowNumber, 1, double (iframe));
 			Table_setNumericValue (result.get(), rowNumber, 2, candidate -> frequency);
 			Table_setNumericValue (result.get(), rowNumber, 3, candidate -> strength);

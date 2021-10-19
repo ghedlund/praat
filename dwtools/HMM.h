@@ -2,7 +2,7 @@
 #define _HMM_h_
 /* HMM.h
  *
- * Copyright (C) 2010-2017 David Weenink
+ * Copyright (C) 2010-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,11 @@
 #include "SSCP.h"
 #include "Index.h"
 
+
 Thing_declare (HMMStateList);
 Thing_declare (HMMObservationList);
+
+#include "HMM_enums.h"
 
 #include "HMM_def.h"
 
@@ -109,14 +112,14 @@ autoHMM HMM_create (int leftToRight, integer numberOfStates, integer numberOfObs
 autoHMM HMM_createSimple (int leftToRight, conststring32 states_string, conststring32 symbols_string);
 
 autoHMM HMM_createContinuousModel (int leftToRight, integer numberOfStates, integer numberOfObservationSymbols,
-	integer numberOfMixtureComponentsPerSymbol, integer componentDimension, integer componentStorage);
+	integer numberOfMixtureComponentsPerSymbol, integer componentDimension, kHMMstorage componentStorage);
 
 autoHMM HMM_createFullContinuousModel (int leftToRight, integer numberOfStates, integer numberOfObservationSymbols,
 	integer numberOfFeatureStreams, integer *dimensionOfStream, integer *numberOfGaussiansforStream);
 
 autoHMM HMM_createFromHMMObservationSequence (HMMObservationSequence me, integer numberOfStates, int leftToRight);
 
-void HMM_draw (HMM me, Graphics g, int garnish);
+void HMM_draw (HMM me, Graphics g, bool garnish);
 
 void HMM_drawBackwardProbabilitiesIllustration (Graphics g, bool garnish);
 
@@ -148,11 +151,11 @@ void HMM_unExpandPCA (HMM me);
 /*
 	Set the probabilities. A probability zero value indicates that this p cannot be changed during training/learning.
 */
-void HMM_setTransitionProbabilities (HMM me, integer state_number, conststring32 state_probs);
+void HMM_setTransitionProbabilities (HMM me, integer state_number, constVECVU const& relativeProbabilities);
 
-void HMM_setEmissionProbabilities (HMM me, integer state_number, conststring32 emission_probs);
+void HMM_setEmissionProbabilities (HMM me, integer state_number, constVECVU const& relativeProbabilities);
 
-void HMM_setStartProbabilities (HMM me, conststring32 probs);
+void HMM_setStartProbabilities (HMM me, constVECVU const& relativeProbabilities);
 
 
 double HMM_getProbabilityAtTimeBeingInState (HMM me, integer itime, integer istate);
@@ -181,7 +184,7 @@ double HMM_HMMStateSequence_getProbability (HMM me, HMMStateSequence thee);
 
 void HMM_HMMObservationSequenceBag_learn (HMM me, HMMObservationSequenceBag thee, double delta_lnp, double minProb, int info);
 
-void HMM_HMMStateSequence_drawTrellis (HMM me, HMMStateSequence thee, Graphics g, int connect, int garnish);
+void HMM_HMMStateSequence_drawTrellis (HMM me, HMMStateSequence thee, Graphics g, bool connect, bool garnish);
 
 double HMM_HMMObservationSequence_getProbability (HMM me, HMMObservationSequence thee);
 

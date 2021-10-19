@@ -1,6 +1,6 @@
 /* GuiShell.cpp
  *
- * Copyright (C) 1993-2012,2015,2016,2017 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2018,2020,2021 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@ Thing_implement (GuiShell, GuiForm, 0);
 		GuiShell d_userData;
 	}
 	- (void) dealloc {   // override
+		if (Melder_debug == 55)
+			Melder_casual (U"\t\tGuiCocoaShell-", Melder_pointer (self), U" dealloc");
 		GuiShell me = d_userData;
 		my d_cocoaShell = nullptr;   // this is already under destruction, so undangle
 		forget (me);
@@ -40,7 +42,7 @@ Thing_implement (GuiShell, GuiForm, 0);
 		d_userData = static_cast <GuiShell> (userData);
 	}
 	- (void) keyDown: (NSEvent *) theEvent {
-		trace (U"key down");
+		trace (U"GuiCocoaShell: key down");
 		[super keyDown: theEvent];   // for automatic behaviour in dialog boxes; do GuiWindows have to override this to do nothing?
 	}
 	- (BOOL) windowShouldClose: (id) sender {
@@ -55,14 +57,40 @@ Thing_implement (GuiShell, GuiForm, 0);
 		}
 		return false;
 	}
+	- (void) cancelOperation: (id) sender {
+		trace (U"GuiCocoaShell: escape key pressed");
+		GuiCocoaShell *widget = (GuiCocoaShell *) sender;
+		GuiWindow me = (GuiWindow) [widget getUserData];
+		if (me && my classInfo == classGuiWindow && my d_escapeCallback) {
+			try {
+				structGuiMenuItemEvent event { nullptr, false, false, false };
+				my d_escapeCallback (my d_escapeBoss, & event);
+			} catch (MelderError) {
+				Melder_flushError (U"Cancelling in window not completely handled.");
+			}
+		} else {
+			trace (U"calling the global escape callback (1)");
+			if (theGuiEscapeMenuItemCallback) {
+				try {
+					trace (U"calling the global escape callback (2)");
+					structGuiMenuItemEvent event { nullptr, false, false, false };
+					theGuiEscapeMenuItemCallback (theGuiEscapeMenuItemBoss, & event);
+				} catch (MelderError) {
+					Melder_flushError (U"Cancelling not completely handled.");
+				}
+			}
+		}
+	}
 	@end
 #endif
 
 void structGuiShell :: v_destroy () noexcept {
 	#if cocoa
+		if (Melder_debug == 55)
+			Melder_casual (U"\t", Thing_messageNameAndAddress (this), U" v_destroy: cocoaShell ", Melder_pointer (our d_cocoaShell));
 		if (our d_cocoaShell) {
 			[our d_cocoaShell setUserData: nullptr];   // undangle reference to this
-			Melder_fatal (U"ordering out?");
+			Melder_fatal (U"ordering out?");   // TODO: how can this never be reached?
 			[our d_cocoaShell orderOut: nil];
 			[our d_cocoaShell close];
 			[our d_cocoaShell release];
@@ -75,11 +103,13 @@ void structGuiShell :: v_destroy () noexcept {
 int GuiShell_getShellWidth (GuiShell me) {
 	int width = 0;
 	#if gtk
-		width = GTK_WIDGET (my d_gtkWindow) -> allocation.width;
+		GtkAllocation allocation;
+		gtk_widget_get_allocation (GTK_WIDGET (my d_gtkWindow), & allocation);   // TODO: replace with gtk_window_get_size()
+		width = allocation.width;
 	#elif motif
 		width = my d_xmShell -> width;
 	#elif cocoa
-        return [my d_cocoaShell   frame].size.width;
+        width = [my d_cocoaShell   frame].size.width;
 	#endif
 	return width;
 }
@@ -87,11 +117,13 @@ int GuiShell_getShellWidth (GuiShell me) {
 int GuiShell_getShellHeight (GuiShell me) {
 	int height = 0;
 	#if gtk
-		height = GTK_WIDGET (my d_gtkWindow) -> allocation.height;
+		GtkAllocation allocation;
+		gtk_widget_get_allocation (GTK_WIDGET (my d_gtkWindow), & allocation);   // TODO: replace with gtk_window_get_size()
+		height = allocation.height;
 	#elif motif
 		height = my d_xmShell -> height;
 	#elif cocoa
-        return [my d_cocoaShell   frame].size.height;
+        height = [my d_cocoaShell   frame].size.height;
 	#endif
 	return height;
 }
@@ -108,21 +140,21 @@ void GuiShell_setTitle (GuiShell me, conststring32 title /* cattable */) {
 
 void GuiShell_drain (GuiShell me) {
 	#if gtk
-		//gdk_window_flush (gtk_widget_get_window (my d_gtkWindow));
-		gdk_flush ();
+		gdk_window_process_all_updates ();
 	#elif motif
-		/*
-			On Windows Motif, there is no graphics buffering.
-		*/
+		UpdateWindow (my d_xmShell -> window);
 	#elif cocoa
 		Melder_assert (my d_cocoaShell);
         [my d_cocoaShell   display];   // not just flushWindow
-		[NSApp
-			nextEventMatchingMask: NSAnyEventMask
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		NSEvent *nsEvent = [NSApp
+			nextEventMatchingMask: NSAppKitDefinedMask // NSAnyEventMask
 			untilDate: [NSDate distantPast]
 			inMode: NSDefaultRunLoopMode
-			dequeue: NO
+			dequeue: YES
 			];
+		[NSApp  sendEvent: nsEvent];
+		[pool release];
 	#endif
 }
 

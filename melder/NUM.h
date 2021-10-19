@@ -1,7 +1,7 @@
 #pragma once
 /* NUM.h
  *
- * Copyright (C) 2017-2019 Paul Boersma
+ * Copyright (C) 1992-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,35 +60,48 @@ bool NUMisEmpty (constmatrixview<T> const& x) noexcept {
 	return numberOfCells == 0;   // note: a matrix with 0 rows and 6 columns is a valid empty matrix, to which e.g. a row can be added
 }
 
-inline MelderRealRange NUMextrema (const constVECVU& vec) {
-	if (NUMisEmpty (vec)) return { undefined, undefined };
+inline bool NUMisEmpty (constSTRVEC const& x) noexcept {
+	return x.size == 0;
+}
+
+inline MelderRealRange NUMextrema (constVECVU const& vec) {
+	if (NUMisEmpty (vec))
+		return { undefined, undefined };
 	double minimum = vec [1], maximum = minimum;
 	for (integer i = 2; i <= vec.size; i ++) {
 		const double value = vec [i];
-		if (value < minimum) minimum = value;
-		if (value > maximum) maximum = value;
+		if (value < minimum)
+			minimum = value;
+		if (value > maximum)
+			maximum = value;
 	}
 	return { minimum, maximum };
 }
-inline MelderRealRange NUMextrema (const constMATVU& mat) {
-	if (NUMisEmpty (mat)) return { undefined, undefined };
+inline MelderRealRange NUMextrema (constMATVU const& mat) {
+	if (NUMisEmpty (mat))
+		return { undefined, undefined };
 	double minimum = mat [1] [1], maximum = minimum;
 	for (integer irow = 1; irow <= mat.nrow; irow ++) {
 		for (integer icol = 1; icol <= mat.ncol; icol ++) {
 			const double value = mat [irow] [icol];
-			if (value < minimum) minimum = value;
-			if (value > maximum) maximum = value;
+			if (value < minimum)
+				minimum = value;
+			if (value > maximum)
+				maximum = value;
 		}
 	}
 	return { minimum, maximum };
 }
-inline MelderIntegerRange NUMextrema (const constINTVECVU& vec) {
-	if (NUMisEmpty (vec)) return { INTEGER_MIN, INTEGER_MAX };
+inline MelderIntegerRange NUMextrema (constINTVECVU const& vec) {
+	if (NUMisEmpty (vec))
+		return { INTEGER_MIN, INTEGER_MAX };
 	integer minimum = vec [1], maximum = minimum;
 	for (integer i = 2; i <= vec.size; i ++) {
 		const integer value = vec [i];
-		if (value < minimum) minimum = value;
-		if (value > maximum) maximum = value;
+		if (value < minimum)
+			minimum = value;
+		if (value > maximum)
+			maximum = value;
 	}
 	return { minimum, maximum };
 }
@@ -124,10 +137,15 @@ inline bool NUMequal (double x, double y) {
 inline bool NUMequal (integer x, integer y) {
 	return x == y;
 }
+inline bool NUMequal (bool x, bool y) {
+	return x == y;
+}
 inline bool NUMequal (byte x, byte y) {
 	return x == y;
 }
-
+inline bool NUMequal (dcomplex x, dcomplex y) {
+	return x.real() == y.real() && x.imag() == y.imag(); // 
+}
 template <typename T>
 bool NUMequal (constvector<T> const& x, constvector<T> const& y) noexcept {
 	const integer n = x.size;
@@ -197,10 +215,28 @@ inline double NUMextremum (constMATVU const& mat) {
 	return std::max (fabs (range.min), fabs (range.max));
 }
 
+inline integer NUMfindFirst (constSTRVEC const& strvec, conststring32 str) {
+	for (integer i = 1; i <= strvec.size; i ++)
+		if (Melder_equ (strvec [i], str))
+			return i;
+	return 0;
+}
+inline integer NUMfindLast (constSTRVEC const& strvec, conststring32 str) {
+	for (integer i = strvec.size; i >= 1; i --)
+		if (Melder_equ (strvec [i], str))
+			return i;
+	return 0;
+}
+
 extern double NUMinner (constVECVU const& x, constVECVU const& y) noexcept;
 
+inline bool NUMisSquare (constMATVU const& x) noexcept {
+	return x.nrow == x.ncol;
+}
+
 inline bool NUMisSymmetric (constMATVU const& x) noexcept {
-	if (x.nrow != x.ncol) return false;
+	if (x.nrow != x.ncol)
+		return false;
 	const integer n = x.nrow;
 	for (integer irow = 1; irow <= n; irow ++)
 		for (integer icol = irow + 1; icol < n; icol ++)
@@ -209,8 +245,8 @@ inline bool NUMisSymmetric (constMATVU const& x) noexcept {
 	return true;
 }
 
-inline integer NUMlength (conststring32 str) {
-	return str ? str32len (str) : 0;
+inline double NUMlength (conststring32 str) {
+	return str ? double (str32len (str)) : 0.0;
 }
 
 inline double NUMlog2 (double x) {
@@ -218,32 +254,41 @@ inline double NUMlog2 (double x) {
 }
 
 inline double NUMmax (constVECVU const& vec) {
-	if (NUMisEmpty (vec)) return undefined;
+	if (NUMisEmpty (vec))
+		return undefined;
 	double maximum = vec [1];
 	for (integer i = 2; i <= vec.size; i ++) {
 		const double value = vec [i];
-		if (value > maximum) maximum = value;
+		if (value > maximum)
+			maximum = value;
 	}
 	return maximum;
 }
 inline integer NUMmax (const constINTVECVU& vec) {
-	if (NUMisEmpty (vec)) return INTEGER_MIN;
+	if (NUMisEmpty (vec))
+		return INTEGER_MIN;
 	integer maximum = vec [1];
 	for (integer i = 2; i <= vec.size; i ++) {
 		const integer value = vec [i];
-		if (value > maximum) maximum = value;
+		if (value > maximum)
+			maximum = value;
 	}
 	return maximum;
 }
 inline double NUMmax (constMATVU const& mat) {
-	if (NUMisEmpty (mat)) return undefined;
+	if (NUMisEmpty (mat))
+		return undefined;
 	double maximum = NUMmax (mat [1]);
 	for (integer irow = 2; irow <= mat.nrow; irow ++) {
 		const double value = NUMmax (mat [irow]);
-		if (value > maximum) maximum = value;
+		if (value > maximum)
+			maximum = value;
 	}
 	return maximum;
 }
+
+extern double NUMminimumLength (constSTRVEC const& x);
+extern double NUMmaximumLength (constSTRVEC const& x);
 
 extern double NUMmean (constVECVU const& vec);
 extern double NUMmean (constMATVU const& mat) noexcept;
@@ -252,29 +297,35 @@ extern MelderGaussianStats NUMmeanStdev (constVECVU const& vec) noexcept;
 extern MelderGaussianStats NUMmeanStdev (constMATVU const& mat) noexcept;
 
 inline double NUMmin (constVECVU const& vec) {
-	if (NUMisEmpty (vec)) return undefined;
+	if (NUMisEmpty (vec))
+		return undefined;
 	double minimum = vec [1];
 	for (integer i = 2; i <= vec.size; i ++) {
 		const double value = vec [i];
-		if (value < minimum) minimum = value;
+		if (value < minimum)
+			minimum = value;
 	}
 	return minimum;
 }
 inline integer NUMmin (const constINTVECVU& vec) {
-	if (NUMisEmpty (vec)) return INTEGER_MAX;
+	if (NUMisEmpty (vec))
+		return INTEGER_MAX;
 	integer minimum = vec [1];
 	for (integer i = 2; i <= vec.size; i ++) {
 		const integer value = vec [i];
-		if (value < minimum) minimum = value;
+		if (value < minimum)
+			minimum = value;
 	}
 	return minimum;
 }
 inline double NUMmin (constMATVU const& mat) {
-	if (NUMisEmpty (mat)) return undefined;
+	if (NUMisEmpty (mat))
+		return undefined;
 	double minimum = NUMmin (mat [1]);
 	for (integer irow = 2; irow <= mat.nrow; irow ++) {
 		const double value = NUMmin (mat [irow]);
-		if (value < minimum) minimum = value;
+		if (value < minimum)
+			minimum = value;
 	}
 	return minimum;
 }
@@ -309,8 +360,7 @@ extern double NUMsum2 (constMATVU const& mat);
 
 extern double NUMsumOfSquaredDifferences (constVECVU const& vec, double mean);
 
-extern double NUMsumsq (constVECVU const& vec) noexcept;
-extern double NUMsumsq (constMATVU const& mat) noexcept;
+extern double NUMtotalLength (constSTRVEC const& x);
 
 extern double NUMvariance (constVECVU const& vec) noexcept;
 extern double NUMvariance (constMATVU const& mat) noexcept;

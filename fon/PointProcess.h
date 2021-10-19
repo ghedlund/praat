@@ -2,7 +2,7 @@
 #define _PointProcess_h_
 /* PointProcess.h
  *
- * Copyright (C) 1992-2005,2007,2011,2015-2018 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2011,2015-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ PRAAT_LIB_EXPORT void PointProcess_init (PointProcess me, double startingTime, d
 PRAAT_LIB_EXPORT integer PointProcess_getLowIndex (PointProcess me, double t);
 PRAAT_LIB_EXPORT integer PointProcess_getHighIndex (PointProcess me, double t);
 PRAAT_LIB_EXPORT integer PointProcess_getNearestIndex (PointProcess me, double t);
-PRAAT_LIB_EXPORT integer PointProcess_getWindowPoints (PointProcess me, double tmin, double tmax, integer *p_imin, integer *p_imax);
+PRAAT_LIB_EXPORT MelderIntegerRange PointProcess_getWindowPoints (PointProcess me, double tmin, double tmax);
 PRAAT_LIB_EXPORT void PointProcess_addPoint (PointProcess me, double t);
 PRAAT_LIB_EXPORT void PointProcess_addPoints (PointProcess me, constVECVU const& times);
 PRAAT_LIB_EXPORT integer PointProcess_findPoint (PointProcess me, double t);
@@ -53,6 +53,8 @@ PRAAT_LIB_EXPORT double PointProcess_getMeanPeriod (PointProcess me, double tmin
 	double minimumPeriod, double maximumPeriod, double maximumPeriodFactor);
 PRAAT_LIB_EXPORT double PointProcess_getStdevPeriod (PointProcess me, double tmin, double tmax,
 	double minimumPeriod, double maximumPeriod, double maximumPeriodFactor);
+MelderCountAndFraction PointProcess_getCountAndFractionOfVoiceBreaks (PointProcess me, double tmin, double tmax,
+	double maximumPeriod);
 
 #ifdef PRAAT_LIB
 PRAAT_LIB_EXPORT double PointProcess_getValueAtIndex(PointProcess me, integer idx);

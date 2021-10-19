@@ -1,6 +1,6 @@
 /* praat_statistics.cpp
  *
- * Copyright (C) 1992-2012,2014-2018 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,11 @@
 #include <time.h>
 #include <locale.h>
 #include <thread>
+#if defined (macintosh)
+	#include <pwd.h>
+#endif
 #include "praatP.h"
+#include "GraphicsP.h"
 
 static struct {
 	integer batchSessions, interactiveSessions;
@@ -86,6 +90,50 @@ void praat_reportTextProperties () {
 	MelderInfo_close ();
 }
 
+#if defined (macintosh)
+static bool isSandboxed () {
+	//return !! NSProcessInfo.processInfo.environment [@"APP_SANDBOX_CONTAINER_ID"];
+	return !! Melder_getenv (U"APP_SANDBOX_CONTAINER_ID");
+}
+static kleenean hasFullDiskAccess () {
+	if (Melder_systemVersion < 101400)
+		return kleenean_YES;
+	NSFileManager *nsFileManager = [NSFileManager defaultManager];
+	//NSWorkspace *nsWorkspace = [NSWorkspace sharedWorkspace];
+	// to open the preferences at Full Disk Access: [nsWorkspace openURL: [NSURL URLWithString: @"x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"]];
+	NSString *nsUserHomeFolderPath;
+	if (isSandboxed ()) {
+		struct passwd *password = getpwuid (getuid ());
+		Melder_assert (!! password);
+		nsUserHomeFolderPath = [NSString stringWithUTF8String: password -> pw_dir];
+	} else {
+		nsUserHomeFolderPath = NSHomeDirectory ();
+	}
+	NSString *perhapsUnreadableFilePath = ( Melder_systemVersion < 101500 ?
+		[nsUserHomeFolderPath stringByAppendingPathComponent: @"Library/Safari/Bookmarks.plist"] :
+		[nsUserHomeFolderPath stringByAppendingPathComponent: @"Library/Safari/CloudTabs.db"]
+	);
+	structMelderFile file { };
+	Melder_pathToFile (Melder_peek8to32 ([perhapsUnreadableFilePath UTF8String]), & file);
+	if (! MelderFile_exists (& file))
+		return kleenean_UNKNOWN;
+	if (! MelderFile_readable (& file))
+		return kleenean_NO;
+	return kleenean_YES;
+}
+static NSString *getRealHomeDirectory () {
+	NSString *nsUserHomeFolderPath;
+	if (isSandboxed ()) {
+		struct passwd *password = getpwuid (getuid ());
+		Melder_assert (!! password);
+		nsUserHomeFolderPath = [NSString stringWithUTF8String: password -> pw_dir];
+	} else {
+		nsUserHomeFolderPath = NSHomeDirectory ();
+	}
+	return nsUserHomeFolderPath;
+}
+#endif
+
 void praat_reportSystemProperties () {
 	#define xstr(s) str(s)
 	#define str(s) #s
@@ -119,6 +167,16 @@ void praat_reportSystemProperties () {
 	#ifdef macintosh
 		MelderInfo_writeLine (U"system version is ", Melder_systemVersion, U".");
 	#endif
+	structMelderDir dir {};
+	Melder_getHomeDir (& dir);
+	MelderInfo_writeLine (U"Home folder: ", dir. path);
+	#ifdef macintosh
+		MelderInfo_writeLine (U"Full Disk Access: ", Melder_kleenean (hasFullDiskAccess ()));
+		MelderInfo_writeLine (U"Sandboxed: ", Melder_boolean (isSandboxed ()));
+		if (isSandboxed ())
+			MelderInfo_writeLine (U"Sandbox (application home) folder: ", Melder_peek8to32 ([NSHomeDirectory () UTF8String]));
+		MelderInfo_writeLine (U"User home folder: ", Melder_peek8to32 ([ getRealHomeDirectory () UTF8String]));
+	#endif
 	MelderInfo_close ();
 }
 
@@ -132,14 +190,14 @@ void praat_reportGraphicalProperties () {
 	#if defined (macintosh)
 		CGDirectDisplayID screen = CGMainDisplayID ();
 		CGSize screenSize_mm = CGDisplayScreenSize (screen);
-		double diagonal_mm = sqrt (screenSize_mm. width * screenSize_mm. width + screenSize_mm. height * screenSize_mm. height);
-		double diagonal_inch = diagonal_mm / 25.4;
+		const double diagonal_mm = hypot (screenSize_mm. width, screenSize_mm. height);
+		const double diagonal_inch = diagonal_mm / 25.4;
 		MelderInfo_writeLine (U"\nScreen size: ", screenSize_mm. width, U" x ", screenSize_mm. height,
 			U" mm (diagonal ", Melder_fixed (diagonal_mm, 1), U" mm = ", Melder_fixed (diagonal_inch, 1), U" inch)");
-		size_t screenWidth_pixels = CGDisplayPixelsWide (screen);
-		size_t screenHeight_pixels = CGDisplayPixelsHigh (screen);
+		const size_t screenWidth_pixels = CGDisplayPixelsWide (screen);
+		const size_t screenHeight_pixels = CGDisplayPixelsHigh (screen);
 		MelderInfo_writeLine (U"Screen \"resolution\": ", screenWidth_pixels, U" x ", screenHeight_pixels, U" pixels");
-		double resolution = 25.4 * screenWidth_pixels / screenSize_mm. width;
+		const double resolution = 25.4 * screenWidth_pixels / screenSize_mm. width;
 		MelderInfo_writeLine (U"Screen resolution: ", Melder_fixed (resolution, 1), U" pixels/inch");
 	#elif defined (_WIN32)
 		/*for (int i = 0; i <= 88; i ++)
@@ -148,26 +206,69 @@ void praat_reportGraphicalProperties () {
 	MelderInfo_close ();
 }
 
+#if cairo
+static void testFont (PangoFontMap *pangoFontMap, PangoContext *pangoContext, conststring32 fontName) {
+	PangoFontDescription *pangoFontDescription = pango_font_description_from_string (Melder_peek32to8 (fontName));
+	PangoFont *pangoFont = pango_font_map_load_font (pangoFontMap, pangoContext, pangoFontDescription);
+	PangoFontDescription *pangoFontDescription2 = pango_font_describe (pangoFont);
+	const char *familyName = pango_font_description_get_family (pangoFontDescription2);
+	MelderInfo_writeLine (U"Asking for font ", fontName, U" gives ", Melder_peek8to32 (familyName), U".");
+}
+#endif
+void praat_reportFontProperties () {
+	MelderInfo_open ();
+	MelderInfo_writeLine (U"Font replacement on this computer:\n");
+	#if cairo
+		PangoFontMap *pangoFontMap = pango_cairo_font_map_get_default ();
+		PangoContext *pangoContext = pango_font_map_create_context (pangoFontMap);
+		conststring32 fontNames [] = { U"Times", U"Roman", U"Serif",
+			U"Helvetica", U"Arial", U"Sans",
+			U"Courier", U"Courier New", U"Mono", U"Monospace",
+			U"Palatino", U"Palladio",
+			U"Doulos", U"Doulos SIL", U"Charis", U"Charis SIL",
+			U"Symbol", U"Dingbats",
+			nullptr
+		};
+		for (conststring32 *fontName = & fontNames [0]; !! *fontName; fontName ++)
+			testFont (pangoFontMap, pangoContext, *fontName);
+		g_object_unref (pangoContext);
+
+		MelderInfo_writeLine (U"\nAll fonts on this computer:\n");
+		PangoFontFamily **families;
+		int numberOfFamilies;
+		pango_font_map_list_families (pangoFontMap, & families, & numberOfFamilies);
+		for (int i = 0; i < numberOfFamilies; i ++)
+			MelderInfo_writeLine (i, U" ", Melder_peek8to32 (pango_font_family_get_name (families [i])));
+		g_free (families);
+	#endif
+	MelderInfo_close ();
+}
+
 void praat_reportMemoryUse () {
 	MelderInfo_open ();
 	MelderInfo_writeLine (U"Memory use by Praat:\n");
 	MelderInfo_writeLine (U"Currently in use:\n"
-		U"   Strings: ", MelderString_allocationCount () - MelderString_deallocationCount ());
-	MelderInfo_writeLine (U"   Arrays: ", NUM_getTotalNumberOfArrays ());
+			U"   Strings: ", MelderString_allocationCount () - MelderString_deallocationCount (),
+			U" (", Melder_bigInteger (MelderString_allocationSize () - MelderString_deallocationSize ()), U" characters)");
+	MelderInfo_writeLine (
+			U"   Arrays: ", MelderArray_allocationCount () - MelderArray_deallocationCount (),
+			U" (", Melder_bigInteger (MelderArray_cellAllocationCount () - MelderArray_cellDeallocationCount ()), U" cells)");
 	MelderInfo_writeLine (U"   Things: ", theTotalNumberOfThings,
-		U" (objects in list: ", theCurrentPraatObjects -> n, U")");
+		U" (objects in list: ", Melder_bigInteger (theCurrentPraatObjects -> n), U")");
 	integer numberOfMotifWidgets =
 	#if motif
 		Gui_getNumberOfMotifWidgets ();
-		MelderInfo_writeLine (U"   Motif widgets: ", numberOfMotifWidgets);
+		MelderInfo_writeLine (U"   Motif widgets: ", Melder_bigInteger (numberOfMotifWidgets));
 	#else
 		0;
 	#endif
 	MelderInfo_writeLine (U"   Other: ",
 		Melder_allocationCount () - Melder_deallocationCount ()
-		- theTotalNumberOfThings - NUM_getTotalNumberOfArrays ()
+		- theTotalNumberOfThings
 		- (MelderString_allocationCount () - MelderString_deallocationCount ())
-		- numberOfMotifWidgets);
+		- (MelderArray_allocationCount () - MelderArray_deallocationCount ())
+		- numberOfMotifWidgets
+	);
 	MelderInfo_writeLine (
 		U"\nMemory history of this session:\n"
 		U"   Total created: ", Melder_bigInteger (Melder_allocationCount ()), U" (", Melder_bigInteger (Melder_allocationSize ()), U" bytes)");
@@ -175,23 +276,32 @@ void praat_reportMemoryUse () {
 	MelderInfo_writeLine (U"   Reallocations: ", Melder_bigInteger (Melder_movingReallocationsCount ()), U" moving, ",
 		Melder_bigInteger (Melder_reallocationsInSituCount ()), U" in situ");
 	MelderInfo_writeLine (
-		U"   Strings created: ", Melder_bigInteger (MelderString_allocationCount ()), U" (", Melder_bigInteger (MelderString_allocationSize ()), U" bytes)");
+			U"   Strings created: ", Melder_bigInteger (MelderString_allocationCount ()),
+			U" (", Melder_bigInteger (MelderString_allocationSize ()), U" characters)");
 	MelderInfo_writeLine (
-		U"   Strings deleted: ", Melder_bigInteger (MelderString_deallocationCount ()), U" (", Melder_bigInteger (MelderString_deallocationSize ()), U" bytes)");
+			U"   Strings deleted: ", Melder_bigInteger (MelderString_deallocationCount ()),
+			U" (", Melder_bigInteger (MelderString_deallocationSize ()), U" characters)");
+	MelderInfo_writeLine (
+			U"   Arrays created: ", Melder_bigInteger (MelderArray_allocationCount ()),
+			U" (", Melder_bigInteger (MelderArray_cellAllocationCount ()), U" cells)");
+	MelderInfo_writeLine (
+			U"   Arrays deleted: ", Melder_bigInteger (MelderArray_deallocationCount ()),
+			U" (", Melder_bigInteger (MelderArray_cellDeallocationCount ()), U" cells)");
 	MelderInfo_writeLine (U"\nHistory of all sessions from ", statistics.dateOfFirstSession, U" until today:");
-	MelderInfo_writeLine (U"   Sessions: ", statistics.interactiveSessions, U" interactive, ",
-		statistics.batchSessions, U" batch");
+	MelderInfo_writeLine (U"   Sessions: ", Melder_bigInteger (statistics.interactiveSessions), U" interactive, ",
+		Melder_bigInteger (statistics.batchSessions), U" batch");
 	MelderInfo_writeLine (U"   Total memory use: ", Melder_bigInteger ((int64) statistics.memory + Melder_allocationSize ()), U" bytes");
-	MelderInfo_writeLine (U"\nNumber of fixed menu commands: ", praat_getNumberOfMenuCommands ());
-	MelderInfo_writeLine (U"Number of dynamic menu commands: ", praat_getNumberOfActions ());
+	MelderInfo_writeLine (U"\nNumber of fixed menu commands: ", Melder_bigInteger (praat_getNumberOfMenuCommands ()));
+	MelderInfo_writeLine (U"Number of dynamic menu commands: ", Melder_bigInteger (praat_getNumberOfActions ()));
 	MelderInfo_close ();
 }
 
 void MelderCasual_memoryUse (integer message) {
 	integer numberOfStrings = MelderString_allocationCount () - MelderString_deallocationCount ();
-	integer numberOfArrays = NUM_getTotalNumberOfArrays ();
+	integer numberOfArrays = MelderArray_allocationCount () - MelderArray_deallocationCount ();
 	integer numberOfThings = theTotalNumberOfThings;
-	integer numberOfOther = Melder_allocationCount () - Melder_deallocationCount () - numberOfStrings - numberOfArrays - numberOfThings;
+	integer numberOfOther = Melder_allocationCount () - Melder_deallocationCount ()
+			- numberOfStrings - numberOfArrays - numberOfThings;
 	Melder_casual (U"Memory ", message, U": ",
 		numberOfStrings, U" strings, ", numberOfArrays, U" arrays, ", numberOfThings, U" things, ", numberOfOther, U" other.");
 }

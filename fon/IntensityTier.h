@@ -2,7 +2,7 @@
 #define _IntensityTier_h_
 /* IntensityTier.h
  *
- * Copyright (C) 1992-2011,2015 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2010-2012,2015-2018,2020,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ Thing_define (IntensityTier, RealTier) {
 autoIntensityTier IntensityTier_create (double tmin, double tmax);
 
 void IntensityTier_draw (IntensityTier me, Graphics g, double tmin, double tmax,
-	double ymin, double ymax, conststring32 method, int garnish);
+	double ymin, double ymax, conststring32 method, bool garnish);
 
 autoIntensityTier PointProcess_upto_IntensityTier (PointProcess me, double intensity);
 autoIntensityTier Intensity_downto_IntensityTier (Intensity me);
@@ -42,6 +42,7 @@ autoIntensityTier IntensityTier_PointProcess_to_IntensityTier (IntensityTier me,
 autoTableOfReal IntensityTier_downto_TableOfReal (IntensityTier me);
 void Sound_IntensityTier_multiply_inplace (Sound me, IntensityTier intensity);
 autoSound Sound_IntensityTier_multiply (Sound me, IntensityTier intensity, int scale);
+autoIntensityTier RealTier_to_IntensityTier (RealTier me);
 
 /* End of file IntensityTier.h */
 #endif

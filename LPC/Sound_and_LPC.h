@@ -2,7 +2,7 @@
 #define _Sound_and_LPC_h_
 /* Sound_and_LPC.h
  *
- * Copyright (C) 1994-2011, 2015-2016 David Weenink
+ * Copyright (C) 1994-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,30 +28,31 @@
 #include "LPC.h"
 #include "Sound.h"
 
-autoLPC Sound_to_LPC_auto (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency);
+autoLPC Sound_to_LPC_autocorrelation (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency);
 
-autoLPC Sound_to_LPC_covar (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency);
+autoLPC Sound_to_LPC_covariance (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency);
 
 autoLPC Sound_to_LPC_burg (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency);
 
 autoLPC Sound_to_LPC_marple (Sound me, int predictionOrder, double analysisWidth, double dt, double preEmphasisFrequency, double tol1, double tol2);
 
+void Sound_into_LPC (Sound me, LPC thee, double analysisWidth, double preEmphasisFrequency, kLPC_Analysis method, double tol1, double tol2);
 /*
  * Function:
  *	Calculate linear prediction coefficients according to following model:
- *  Minimize E(m) = Sum(n=n0;n=n1; (x[n] + Sum(k=1;k=m; a[k]*x[n-k])))
+ *  Minimize E(m) = Sum(n=n0;n=n1; (x [n] + Sum(k=1;k=m; a [k]*x [n-k])))
  * Method:
  *  The minimization is carried out by solving the equations:
- *  Sum(i=1;i=m; a[i]*c[i][k]) = -c[0][k] for k=1,2,...,m
- *  where c[i][k] = Sum(n=n0;n=n1;x[n-i]*x[n-k])
+ *  Sum(i=1;i=m; a [i]*c [i] [k]) = -c [0] [k] for k=1,2,...,m
+ *  where c [i] [k] = Sum(n=n0;n=n1;x [n-i]*x [n-k])
  *  1. Covariance:
  *		n0=m; n1 = N-1;
- *      c[i][k] is symmetric, positive semi-definite matrix
+ *      c [i] [k] is symmetric, positive semi-definite matrix
  *  	Markel&Gray, LP of Speech, page 221;
  *  2. Autocorrelation
  *		signal is zero outside the interval;
  *      n0=-infinity; n1=infinity
- *      c[i][k] symmetric, positive definite Toeplitz matrix
+ *      c [i] [k] symmetric, positive definite Toeplitz matrix
  *  	Markel&Gray, LP of Speech, page 219;
  * Preconditions:
  *	predictionOrder > 0;
@@ -64,8 +65,6 @@ autoLPC Sound_to_LPC_marple (Sound me, int predictionOrder, double analysisWidth
  *	tol1 : stop iteration when E(m) / E(0) < tol1
  *	tol2 : stop iteration when (E(m)-E(m-1)) / E(m-1) < tol2,
  */
-
-void LPC_Frame_Sound_filterInverse (LPC_Frame me, Sound thee, integer channel);
 
 autoSound LPC_Sound_filter (LPC me, Sound thee, bool useGain);
 /*

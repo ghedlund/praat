@@ -2,7 +2,7 @@
 #define _Sound_extensions_h_
 /* Sound_extensions.h
  *
- * Copyright (C) 1993-2019 David Weenink
+ * Copyright (C) 1993-2021 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,9 @@ autoSound Sound_readFromDialogicADPCMFile (MelderFile file, double sampleRate);
 /*
 */
 
+autoSound Sound_readFromOggVorbisFile (MelderFile file);
+autoSound Sound_readFromOggOpusFile (MelderFile file);
+
 void Sound_writeToRawFile (Sound me, MelderFile file, const char *format, bool littleEndian, int nBitsCoding, bool unSigned);
 
 void Sound_into_Sound (Sound me, Sound to, double startTime);
@@ -62,10 +65,10 @@ void Sound_overwritePart (Sound me, double t1, double t2, Sound thee, double t3)
 
 void Sound_preEmphasis (Sound me, double preEmphasisFrequency);
 /* deEmphasis = exp(- 2 * NUMpi * deEmphasisFrequency * my dx); */
-/* for (i=my nx; i >=2; i-- ) my z[1][i] -= preEmphasis * my z[1][i-1]; */
+/* for (i=my nx; i >=2; i-- ) my z [1] [i] -= preEmphasis * my z [1] [i-1]; */
 
 void Sound_deEmphasis (Sound me, double preEmphasisFrequency);
-/*	for (i=2; i <= my nx; i++ ) my z[1][i] += deEmphasis * my z[1][i-1]; */
+/*	for (i=2; i <= my nx; i++ ) my z [1] [i] += deEmphasis * my z [1] [i-1]; */
 
 autoSound Sound_createGaussian (double windowDuration, double samplingFrequency);
 
@@ -108,13 +111,12 @@ double Sound_correlateParts (Sound me, double t1, double t2, double duration);
 	Correlate part (t1, t1+duration) with (t2, t2+duration)
 */
 
-double Sound_localMean (Sound me, double fromTime, double toTime);
 double Sound_localPeak (Sound me, double fromTime, double toTime, double reference);
 
 double Sound_getNearestLevelCrossing (Sound me, integer channel, double position, double level, kSoundSearchDirection searchDirection);
 
 autoSound Sound_localAverage (Sound me, double averaginginterval, int windowType);
-/* y[n] = sum(i=-n, i=n, x[n+i])/(2*n+1) */
+/* y [n] = sum(i=-n, i=n, x [n+i]) / (2*n+1) */
 
 double Sound_power (Sound me);
 
@@ -127,7 +129,7 @@ void Sound_scale_dB (Sound me, double level_dB);
 	where extremum is the maximum of the absolute values the signal values.
 */
 
-void Sound_fade (Sound me, int channel, double t, double fadeTime, int inout, bool fadeGlobal);
+void Sound_fade (Sound me, int channel, double t, double fadeTime, bool fadeOut, bool fadeGlobal);
 /* if inout <= 0 fade in with (1-cos)/2  else fade out with (1+cos)/2
 	channel = 0 (all), 1 (left), 2 (right).
 */
@@ -138,12 +140,12 @@ void Sound_draw_btlr (Sound me, Graphics g, double tmin, double tmax, double ami
 void Sound_drawWhere (Sound me, Graphics g, double tmin, double tmax, double minimum, double maximum,
 	bool garnish, conststring32 method, integer numberOfBisections, conststring32 formula, Interpreter interpreter);
 
-void Sound_paintWhere (Sound me, Graphics g, Graphics_Colour colour, double tmin, double tmax,
+void Sound_paintWhere (Sound me, Graphics g, MelderColour colour, double tmin, double tmax,
 	double minimum, double maximum, double level, bool garnish,
 	integer numberOfBisections, conststring32 formula, Interpreter interpreter
 );
 
-void Sounds_paintEnclosed (Sound me, Sound thee, Graphics g, Graphics_Colour colour, double tmin, double tmax,
+void Sounds_paintEnclosed (Sound me, Sound thee, Graphics g, MelderColour colour, double tmin, double tmax,
 	double minimum, double maximum, bool garnish);
 
 autoSound Sound_changeGender (Sound me, double pitchMin, double pitchMax, double pitchRatio, double formantFrequenciesRatio, double durationRatio);
@@ -154,10 +156,10 @@ autoSound Sound_changeGender_old (Sound me, double fmin, double fmax, double for
 
 autoSound Sound_Pitch_changeGender_old (Sound me, Pitch him, double formantRatio, double new_pitch, double pitchRangeFactor, double durationFactor);
 
-autoPointProcess Sound_to_PointProcess_getJumps (Sound me, double minimumJump, double dt);
+autoPointProcess Sound_to_PointProcess_getJumps (Sound me, integer channel, double minimumJump, double maximumDuration);
 /*
 	Marks jumps in the signal where the amplitude changes more than 'minimumJump'
-	within time dt
+	within a time interval of maximumDuration
 */
 
 autoSound Sound_changeSpeaker (Sound me, double pitchMin, double pitchMax,
@@ -182,8 +184,11 @@ autoTextGrid Sound_to_TextGrid_detectSilences (Sound me, double minPitch, double
 	double silenceThreshold, double minSilenceDuration, double minSoundingDuration,
 	conststring32 silentLabel, conststring32 soundingLabel);
 
+autoTextGrid Sound_to_TextGrid_detectVoiceActivity_lsfm (Sound me, double timeStep, double longTermWindow_r, double shorttimeAveragingWindow, double lowFrequencyThreshold, double highFrequencyThreshold, double lsfmThreshold, double silenceThreshold_dB, double minSilenceDuration, 
+	double minSoundingDuration,	conststring32 novoiceAcivityLabel, conststring32 voiceAcivityLabel);
+
 void Sound_getStartAndEndTimesOfSounding (Sound me, double minPitch, double timeStep,
-	double silenceThreshold, double minSilenceDuration, double minSoundingDuration, double *t1, double *t2);
+	double silenceThreshold, double minSilenceDuration, double minSoundingDuration, double *out_t1, double *out_t2);
 
 autoSound Sound_IntervalTier_cutPartsMatchingLabel (Sound me, IntervalTier thee, conststring32 match);
 /* Cut intervals that match the label from the sound. The starting time of the new sound is
@@ -196,8 +201,6 @@ double minSilenceDuration, double minSoundingDuration, double *startTimeOfSoundi
 
 autoSound Sound_trimSilences (Sound me, double trimDuration, bool onlyAtStartAndEnd, double minPitch, double timeStep,
     double silenceThreshold, double minSilenceDuration, double minSoundingDuration, autoTextGrid *tg, conststring32 trimLabel);
-
-autoSound Sound_copyChannelRanges (Sound me, conststring32 ranges);
 
 autoSound Sound_removeNoise (Sound me, double noiseStart, double noiseEnd, double windowLength, double minBandFilterFrequency, double maxBandFilterFrequency, double smoothing, kSoundNoiseReductionMethod method);
 

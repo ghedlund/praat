@@ -1,6 +1,6 @@
 /* Sound_to_Harmonicity_GNE.cpp
  *
- * Copyright (C) 1999-2011,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1999-2012,2015-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ autoMatrix Sound_to_Harmonicity_GNE (Sound me,
 		 * in the LPC object of the high frequencies, so that inverse
 		 * filtering would yield weakened high frequencies.
 		 */
-		autoLPC lpc = Sound_to_LPC_auto (original10k.get(), 13, 30e-3, 10e-3, 1e9);
+		autoLPC lpc = Sound_to_LPC_autocorrelation (original10k.get(), 13, 30e-3, 10e-3, 1e9);
 		autoSound flat = LPC_Sound_filterInverse (lpc.get(), original10k.get());
 		autoSpectrum flatSpectrum = Sound_to_Spectrum (flat.get(), true);
 		autoSpectrum hilbertSpectrum = Data_copy (flatSpectrum.get());
@@ -105,7 +105,7 @@ autoMatrix Sound_to_Harmonicity_GNE (Sound me,
 			 */
 			autoSound band = Spectrum_to_Sound (bandSpectrum.get());
 			/*if (graphics) {
-				Graphics_beginMovieFrame (graphics, & Graphics_WHITE);
+				Graphics_beginMovieFrame (graphics, & Melder_WHITE);
 				Spectrum_draw (bandSpectrum, graphics, 0, 5000, 0, 0, true);
 				Graphics_endMovieFrame (graphics, 0.0);
 			}*/
@@ -117,7 +117,7 @@ autoMatrix Sound_to_Harmonicity_GNE (Sound me,
 			 */
 			for (integer col = 1; col <= envelope [ienvelope] -> nx; col ++) {
 				double self = envelope [ienvelope] -> z [1] [col], other = hilbertBand -> z [1] [col];
-				envelope [ienvelope] -> z [1] [col] = sqrt (self * self + other * other);
+				envelope [ienvelope] -> z [1] [col] = hypot (self, other);
 			}
 			Vector_subtractMean (envelope [ienvelope].get());
 			/*
@@ -138,7 +138,7 @@ autoMatrix Sound_to_Harmonicity_GNE (Sound me,
 				/*
 				 * Step 5: the maximum of each correlation function
 				 */
-				double ccmax = Vector_getMaximum (crossCorrelation.get(), 0.0, 0.0, 0);
+				double ccmax = Vector_getMaximum (crossCorrelation.get(), 0.0, 0.0, kVector_peakInterpolation :: NONE);
 				cc -> z [row] [col] = ccmax;
 			}
 		}
@@ -148,7 +148,7 @@ autoMatrix Sound_to_Harmonicity_GNE (Sound me,
 		 */	
 		for (integer row = 2; row <= nenvelopes; row ++) {
 			for (integer col = 1; col <= row - 1; col ++) {
-				if (labs (row - col) < bandwidth / 2.0 / step) {
+				if (integer_abs (row - col) < bandwidth / 2.0 / step) {
 					cc -> z [row] [col] = 0.0;
 				}
 			}

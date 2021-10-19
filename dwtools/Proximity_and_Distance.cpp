@@ -1,6 +1,6 @@
 /* Proximity_and_Distance.cpp
  *
- * Copyright (C) 2018 David Weenink
+ * Copyright (C) 2018-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,14 +25,14 @@ autoDistance Dissimilarity_to_Distance (Dissimilarity me, kMDS_AnalysisScale sca
 
 		autoDistance thee = Distance_create (my numberOfRows);
 		TableOfReal_copyLabels (me, thee.get(), 1, 1);
-		if (scale == kMDS_AnalysisScale::Ordinal) {
+		if (scale == kMDS_AnalysisScale::ORDINAL) {
 			additiveConstant = Dissimilarity_getAdditiveConstant (me);
-			Melder_require (additiveConstant != undefined,
+			Melder_require (isdefined (additiveConstant),
 				U"The additive constant could not be determined. Something is wrong with your Dissimilarity.");
 		}
 		for (integer i = 1; i <= my numberOfRows - 1; i ++) {
 			for (integer j = i + 1; j <= my numberOfColumns; j ++) {
-				double d = 0.5 * (my data [i] [j] + my data [j] [i]) + additiveConstant;
+				const double d = 0.5 * (my data [i] [j] + my data [j] [i]) + additiveConstant;
 				thy data [i] [j] = thy data [j] [i] = d;
 			}
 		}
@@ -47,13 +47,12 @@ autoDissimilarity Distance_to_Dissimilarity (Distance me) {
 		autoDissimilarity thee = Dissimilarity_create (my numberOfRows);
 		TableOfReal_copyLabels (me, thee.get(), 1, 1);
 		Melder_assert (thy data.ncol == my numberOfColumns);
-		thy data.all() <<= my data.all();
+		thy data.all()  <<=  my data.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (U"Dissimilarity not created from Distance.");
 	}
 }
-
 
 autoDistanceList DissimilarityList_to_DistanceList (DissimilarityList me, kMDS_AnalysisScale scale) {
 	try {
@@ -69,3 +68,5 @@ autoDistanceList DissimilarityList_to_DistanceList (DissimilarityList me, kMDS_A
 		Melder_throw (me, U": no DistanceList created.");
 	}
 }
+
+/* End of file Proximity_and_Distance.cpp */

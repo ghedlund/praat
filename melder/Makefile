@@ -1,13 +1,13 @@
 # Makefile of the library "melder"
-# Paul Boersma, 4 September 2018
+# Paul Boersma, 16 August 2021
 
 include ../makefile.defs
 
-CPPFLAGS = -I../sys -I ../melder
+CPPFLAGS = -I ../melder
 
-OBJECTS = melder.o complex.o melder_alloc.o \
+OBJECTS = melder.o complex.o melder_alloc.o melder_colour.o \
 	melder_ftoa.o melder_console.o melder_textencoding.o melder_atof.o melder_files.o \
-	melder_tensor.o melder_sort.o melder_debug.o MelderFile.o melder_strings.o \
+	melder_sort.o melder_debug.o MelderFile.o melder_strings.o \
 	melder_search.o \
 	melder_info.o melder_error.o melder_warning.o melder_fatal.o melder_progress.o \
 	melder_play.o melder_help.o melder_time.o \
@@ -31,4 +31,4 @@ libmelder.a: $(OBJECTS)
 	$(AR) cq libmelder.a $(OBJECTS)
 	$(RANLIB) libmelder.a
 
-$(OBJECTS): ../kar/*.h ../sys/*.h ../dwsys/*.h
+$(OBJECTS): *.h ../kar/*.h ../sys/*.h ../dwsys/*.h

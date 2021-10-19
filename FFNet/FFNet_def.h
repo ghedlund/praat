@@ -38,7 +38,7 @@ oo_DEFINE_CLASS (FFNet, Daata)
 			numberOfOutputs = numberOfUnitsInLayer [numberOfLayers + 1];
 			for (integer ilayer = 1; ilayer <= numberOfLayers; ilayer ++)
 				numberOfUnitsInLayer [ilayer] = numberOfUnitsInLayer [ilayer + 1];
-			numberOfUnitsInLayer.resize (numberOfLayers);
+			numberOfUnitsInLayer. resize (numberOfLayers);
 		oo_VERSION_ELSE
 			oo_INTVEC (numberOfUnitsInLayer, numberOfLayers)
 		oo_VERSION_END
@@ -57,9 +57,9 @@ oo_DEFINE_CLASS (FFNet, Daata)
 		oo_INTEGER (dimension)
 
 		#if oo_DECLARING
-			double (*nonLinearity) (FFNet /* me */, double /* x */, double * /* deriv */);
+			double (*nonLinearity) (FFNet me, double x, double *deriv);
     		void *nlClosure;
-    		double (*costFunction) (FFNet /* me */, constVEC& /* target */);
+    		double (*costFunction) (FFNet me, constVEC const& target);
 			void *cfClosure;
 		#endif
 		

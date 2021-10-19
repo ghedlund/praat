@@ -2,7 +2,7 @@
 #define _Table_extensions_h_
 /* Table_extensions.h
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,14 @@
 #include "TableOfReal.h"
 #include "Collection.h"
 #include "Categories.h"
+#include "FileInMemoryManager.h"
 #include "Strings_.h"
 #include "SSCP.h"
 #include "Table.h"
 
 integer Table_getNumberOfRowsWhere (Table me, conststring32 formula, Interpreter interpreter);
 
-autoINTVEC Table_findRowsMatchingCriterion (Table me, conststring32 formula, Interpreter interpreter);
+autoINTVEC Table_listRowNumbersWhere (Table me, conststring32 formula, Interpreter interpreter);
 
 autoVEC Table_getColumnVector (Table me, integer columnNumber);
 
@@ -45,6 +46,8 @@ autoTable Table_create_weenink1983 ();
 autoTable Table_create_esposito2006 ();
 
 autoTable Table_create_ganong1980 ();
+
+autoTable FileInMemoryManager_downto_Table (FileInMemoryManager me, bool openFilesOnly);
 
 double Table_getMedianAbsoluteDeviation (Table me, integer columnNumber);
 
@@ -89,7 +92,7 @@ void Table_boxPlotsWhere (Table me, Graphics g,
 
 autoTable Table_extractRowsWhere (Table me, conststring32 formula, Interpreter interpreter);
 
-autoTable Table_extractColumnRanges (Table me, conststring32 ranges);
+autoTable Table_extractColumnsByNumber (Table me, constINTVECVU const& columnNumbers);
 
 autoTable Table_extractMahalanobisWhere (Table me,
 	conststring32 columnLabels, conststring32 factorColumn, double numberOfSigmas,

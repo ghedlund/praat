@@ -2,7 +2,7 @@
 #define _TimeSoundEditor_h_
 /* TimeSoundEditor.h
  *
- * Copyright (C) 1992-2012,2013,2014,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2007,2009-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ struct TimeSoundEditor_sound {
 	Sound data;
 	double minimum, maximum;
 	integer channelOffset;
-	bool *muteChannels;
+	autoBOOLVEC muteChannels;
 };
 
 Thing_define (TimeSoundEditor, FunctionEditor) {
@@ -54,10 +54,8 @@ Thing_define (TimeSoundEditor, FunctionEditor) {
 		override;
 	void v_createMenuItems_view (EditorMenu menu)
 		override;
-	bool v_click (double xbegin, double ybegin, bool shiftKeyPressed)
-		override;   // catch channel scrolling
-	bool v_clickB (double xbegin, double ybegin)
-		override;   // catch channel muting
+	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double y_fraction)
+		override;   // catch channel scrolling and channel muting (last checked 2020-07-22)
 
 	virtual void v_createMenuItems_view_sound (EditorMenu menu);
 	virtual void v_updateMenuItems_file ();

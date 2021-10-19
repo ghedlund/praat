@@ -37,7 +37,7 @@
 
 void Polygon_getExtrema (Polygon me, double *out_xmin, double *out_xmax, double *out_ymin, double *out_ymax);
 
-autoPolygon Polygon_createSimple (conststring32 xystring);
+autoPolygon Polygon_createSimple (constVECVU const& vertices_asXYPairs);
 
 autoPolygon Polygon_createFromRandomPoints (integer numberOfVertices, double xmin, double xmax, double ymin, double ymax);
 
@@ -58,12 +58,12 @@ autoPolygon Polygon_circularPermutation (Polygon me, integer nshift);
 // Is point (x,y) Inside, Outside, Boundary (Edge or Vertex) ?
 int Polygon_getLocationOfPoint (Polygon me, double x0, double y0, double eps);
 
-void Polygon_Categories_draw (Polygon me, Categories thee, Graphics graphics, double xmin, double xmax, double ymin, double ymax, int garnish);
+void Polygon_Categories_draw (Polygon me, Categories thee, Graphics graphics, double xmin, double xmax, double ymin, double ymax, bool garnish);
 /* reverse axis when min > max */
 
 void Polygon_drawMarks (Polygon me, Graphics g, double xmin, double xmax, double ymin, double ymax, double size_mm, conststring32 mark);
 
-autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, double ymin, double ymax, double level);
+autoPolygon Sound_to_Polygon (Sound me, integer channel, double tmin, double tmax, double ymin, double ymax, double level);
 /*
 	Post-conditions:
 
@@ -71,25 +71,25 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 	and the last at index i2, the Polygon will have np = 2 + ns + 2 + 1 points.
 	i1 = Sampled_xToHighIndex (me, tmin)
 	i2 = Sampled_xToLowIndex (me, tmax)
-	thy x[1] = tmin
-	thy y[1] = clip(level)
-	thy x[2] = tmin
-	thy y[2] = interpolated amplitude in 'channel' at tmin (or, averaged over all channels if channel = 0)
-	thy x[3] = my x1 + (i1 - 1) * my dx
-	thy y[3] = clip(my z[channel][i1]) (or, averaged over all channels if channel == 0)
+	thy x [1] = tmin
+	thy y [1] = clip(level)
+	thy x [2] = tmin
+	thy y [2] = interpolated amplitude in 'channel' at tmin (or, averaged over all channels if channel = 0)
+	thy x [3] = my x1 + (i1 - 1) * my dx
+	thy y [3] = clip(my z [channel] [i1]) (or, averaged over all channels if channel == 0)
 	...
-	thy x[ns+2] = my x1 +(i2 - 1) * my dx
-	thy y[ns+2] = clip(my z[channel][i2]) (or, averaged over all channels if channel == 0)
-	thy x[ns+3] = tmax
-	thy y[ns+3] = clip(interpolated amplitude in 'channel' at tmax (or, averaged over all channels if channel == 0))
-	thy x[ns+4] = tmax
-	thy y[ns+4] = clip(level)
-	thy x[ns+5] = thy x[1] (close the path)
-	thy y[ns+5] = thy y[1]
+	thy x [ns+2] = my x1 +(i2 - 1) * my dx
+	thy y [ns+2] = clip(my z [channel] [i2]) (or, averaged over all channels if channel == 0)
+	thy x [ns+3] = tmax
+	thy y [ns+3] = clip(interpolated amplitude in 'channel' at tmax (or, averaged over all channels if channel == 0))
+	thy x [ns+4] = tmax
+	thy y [ns+4] = clip(level)
+	thy x [ns+5] = thy x [1] (close the path)
+	thy y [ns+5] = thy y [1]
 	where clip(y) = y < ymin ? ymin : y > ymax ? ymax ; y;
 */
 
-autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, double tmin, double tmax, double ymin, double ymax);
+autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, integer channel, double tmin, double tmax, double ymin, double ymax);
 /* Area enclosed by the sounds */
 
 autoPolygon Polygons_union (Polygon me, Polygon thee);

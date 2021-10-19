@@ -1,6 +1,6 @@
 /* melder_fatal.cpp
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,9 @@
  */
 
 #include "melder.h"
-#include "../sys/MelderThread.h"
+#include <mutex>
 
-MelderThread_MUTEX (theMelder_fatal_mutex);
-
-void Melder_message_init () {
-	static bool inited = false;
-	if (! inited) { MelderThread_MUTEX_INIT (theMelder_fatal_mutex); inited = true; }
-}
+static std::mutex theMelder_fatal_mutex;
 
 static void defaultFatal (conststring32 message) {
 	MelderConsole::write (U"Fatal error: ", true);
@@ -38,12 +33,13 @@ constexpr int Melder_FATAL_BUFFER_SIZE { 2000 };
 static char32 theFatalBuffer [Melder_FATAL_BUFFER_SIZE];
 static const conststring32 theCrashMessage { U"Praat will crash. Notify the author (paul.boersma@uva.nl) with the following information:\n" };
 
-void Melder_fatal (const MelderArg& arg1,
+void Melder_fatal_ (const MelderArg& arg1,
 	const MelderArg& arg2, const MelderArg& arg3, const MelderArg& arg4,
 	const MelderArg& arg5, const MelderArg& arg6, const MelderArg& arg7,
-	const MelderArg& arg8, const MelderArg& arg9, const MelderArg& arg10)
+	const MelderArg& arg8, const MelderArg& arg9, const MelderArg& arg10,
+	const MelderArg& arg11, const MelderArg& arg12, const MelderArg& arg13)
 {
-	MelderThread_LOCK (theMelder_fatal_mutex);
+	std::lock_guard <std::mutex> lock (theMelder_fatal_mutex);
 	conststring32 s1  = arg1. _arg ? arg1. _arg : U"";   int64 length1  = str32len (s1);
 	conststring32 s2  = arg2. _arg ? arg2. _arg : U"";   int64 length2  = str32len (s2);
 	conststring32 s3  = arg3. _arg ? arg3. _arg : U"";   int64 length3  = str32len (s3);
@@ -54,6 +50,9 @@ void Melder_fatal (const MelderArg& arg1,
 	conststring32 s8  = arg8. _arg ? arg8. _arg : U"";   int64 length8  = str32len (s8);
 	conststring32 s9  = arg9. _arg ? arg9. _arg : U"";   int64 length9  = str32len (s9);
 	conststring32 s10 = arg10._arg ? arg10._arg : U"";   int64 length10 = str32len (s10);
+	conststring32 s11 = arg11._arg ? arg11._arg : U"";   int64 length11 = str32len (s11);
+	conststring32 s12 = arg12._arg ? arg12._arg : U"";   int64 length12 = str32len (s12);
+	conststring32 s13 = arg13._arg ? arg13._arg : U"";   int64 length13 = str32len (s13);
 	str32cpy (theFatalBuffer, theCrashMessage);
 	int64 length = str32len (theFatalBuffer);
 	if (length + length1  < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s1);  length += length1;  }
@@ -66,18 +65,20 @@ void Melder_fatal (const MelderArg& arg1,
 	if (length + length8  < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s8);  length += length8;  }
 	if (length + length9  < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s9);  length += length9;  }
 	if (length + length10 < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s10); length += length10; }
+	if (length + length11 < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s11); length += length11; }
+	if (length + length12 < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s12); length += length12; }
+	if (length + length13 < Melder_FATAL_BUFFER_SIZE) { str32cpy (theFatalBuffer + length, s13); length += length13; }
 	trace (U"FATAL: ", theFatalBuffer);
 	(*theFatalProc) (theFatalBuffer);
-	abort ();
 }
 
 void Melder_assert_ (const char *fileName, int lineNumber, const char *condition) {
 	/*
-	 * This function tries to make sure that it allocates no heap memory.
-	 * Hence, character conversion is done inline rather than with Melder_peek8to32(),
-	 * and Melder_integer() is also avoided.
-	 */
-	MelderThread_LOCK (theMelder_fatal_mutex);
+		This function tries to make sure that it allocates no heap memory.
+		Hence, character conversion is done in place rather than with Melder_peek8to32(),
+		and Melder_integer() is also avoided.
+	*/
+	std::lock_guard <std::mutex> lock (theMelder_fatal_mutex);
 	static char32 fileNameBuffer [1000], conditionBuffer [1000], lineNumberBuffer [40];
 	Melder_8to32_inplace (fileName, fileNameBuffer, kMelder_textInputEncoding::UTF8);
 	Melder_8to32_inplace (condition, conditionBuffer, kMelder_textInputEncoding::UTF8);
@@ -93,8 +94,8 @@ void Melder_assert_ (const char *fileName, int lineNumber, const char *condition
 	str32cpy (theFatalBuffer + str32len (theFatalBuffer), conditionBuffer);
 	str32cpy (theFatalBuffer + str32len (theFatalBuffer), U"\n");
 	trace (U"FATAL: ", theFatalBuffer);
+	//Melder_throw (theFatalBuffer);   // un-comment-out if you want to trace an assert
 	(*theFatalProc) (theFatalBuffer);   // ...but this call will use heap memory...
-	abort ();
 }
 
 void Melder_setFatalProc (void (*fatal) (conststring32))

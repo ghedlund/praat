@@ -1,14 +1,14 @@
 # Makefile of the library "sys"
-# Paul Boersma, 11 August 2018
+# Paul Boersma, 4 October 2020
 
 include ../makefile.defs
 
 # -I ../sys is there because e.g. Graphics.cpp include fon/Function.h, which again includes something from sys
-CPPFLAGS = -I ../melder -I ../sys
+CPPFLAGS = -I ../melder -I ../sys -I ../dwsys
 
 OBJECTS = Thing.o Data.o Simple.o Collection.o Strings.o \
    Graphics.o Graphics_linesAndAreas.o Graphics_text.o Graphics_colour.o \
-   Graphics_image.o Graphics_mouse.o Graphics_record.o \
+   Graphics_image.o Graphics_record.o \
    Graphics_utils.o Graphics_grey.o Graphics_altitude.o \
    GraphicsPostscript.o Graphics_surface.o \
    ManPage.o ManPages.o Script.o machine.o \
@@ -16,7 +16,7 @@ OBJECTS = Thing.o Data.o Simple.o Collection.o Strings.o \
    Preferences.o site.o \
    Picture.o Ui.o UiFile.o UiPause.o Editor.o DataEditor.o HyperPage.o Manual.o TextEditor.o \
    praat.o praat_actions.o praat_menuCommands.o praat_picture.o sendpraat.o sendsocket.o \
-   praat_script.o praat_statistics.o praat_logo.o praat_library.o praat_version.o \
+   praat_script.o praat_statistics.o praat_logo.o praat_library.o \
    praat_objectMenus.o InfoEditor.o ScriptEditor.o ButtonEditor.o Interpreter.o Formula.o \
    StringsEditor.o DemoEditor.o \
    motifEmulator.o GuiText.o GuiWindow.o Gui.o GuiObject.o GuiDrawingArea.o \

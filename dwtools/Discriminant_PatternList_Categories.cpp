@@ -1,6 +1,6 @@
 /* Discriminant_PatternList_Categories.cpp
  *
- * Copyright (C) 2004-2011, 2015 David Weenink
+ * Copyright (C) 2004-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 */
 
 #include "Discriminant_PatternList_Categories.h"
-#include "TableOfReal.h"
+#include "TableOfReal_and_Discriminant.h"
 #include "Matrix_Categories.h"
 
 autoDiscriminant PatternList_Categories_to_Discriminant (PatternList me, Categories thee) {

@@ -1,6 +1,6 @@
 /* manual_Script.cpp
  *
- * Copyright (C) 1992-2017 Paul Boersma
+ * Copyright (C) 1992-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,7 +227,7 @@ LIST_ITEM (U"4. Those action commands that match the currently selected objects 
 NORMAL (U"To execute any of these blue commands, just click on it.")
 MAN_END
 
-MAN_BEGIN (U"buttons file", U"ppgb", 20151020)
+MAN_BEGIN (U"buttons file", U"ppgb", 20201229)
 NORMAL (U"The file into which changes in the availability and visibility of commands in the fixed "
 	"and dynamic menus are recorded.")
 NORMAL (U"The buttons file is written to disk when you quit Praat, "
@@ -241,7 +241,7 @@ ENTRY (U"Hiding and showing buttons")
 NORMAL (U"To hide a built-in command from a fixed or dynamic menu, or to make a hidden command visible, "
 	"you typically use the @ButtonEditor.")
 ENTRY (U"Where is the buttons file?")
-NORMAL (U"The buttons file is in your Praat @@preferences directory@.")
+NORMAL (U"The buttons file is in your Praat @@preferences folder@.")
 NORMAL (UR"(On Windows the file is called ##Buttons5.ini#,
 for instance ##C:\bsUsers\bsMiep\bsPraat\bsButtons5.ini#.)")
 NORMAL (U"On MacOS it is called #Buttons5, "
@@ -250,15 +250,15 @@ NORMAL (U"On Linux it is called #buttons5, "
 	"for instance ##/home/miep/.praat-dir/buttons5#.")
 MAN_END
 
-MAN_BEGIN (U"Calculator", U"ppgb", 20021201)
+MAN_BEGIN (U"Calculator", U"ppgb", 20210228)
 INTRO (U"A window that allows you to calculate all kinds of simple or complicated mathematical and string expressions. "
-	"To show the calculator, type Command-U or choose the @@Calculator...@ command. "
-	"The result will be written to the Info window.")
+	"To show the calculator, type @@Keyboard shortcuts|Command-U@ or choose the @@Calculator...@ command. "
+	"The result will appear in the Info window.")
 NORMAL (U"See the @Formulas tutorial for all the things that you can calculate with this command.")
 MAN_END
 
 MAN_BEGIN (U"Calculator...", U"ppgb", 20050822)
-INTRO (U"A command in the @Goodies submenu of the @@Praat menu@ of the @@Object window@. Shortcut: Command-U. "
+INTRO (U"A command in the @Goodies submenu of the @@Praat menu@ of the @@Object window@. Shortcut: @@Keyboard shortcuts|Command-U@. "
 	"Choosing this command brings up Praat's @calculator.")
 MAN_END
 
@@ -271,7 +271,7 @@ MAN_BEGIN (U"differenceLimensToPhon", U"ppgb", 20021215)
 INTRO (U"A routine for converting intensity difference limens into sensation level, "
 	"the inverse of @phonToDifferenceLimens.")
 ENTRY (U"Formula")
-FORMULA (U"differenceLimensToPhon (%ndli) = ln (1 + %ndli / 30) / ln (61 / 60)")
+EQUATION (U"differenceLimensToPhon (%ndli) = ln (1 + %ndli / 30) / ln (61 / 60)")
 MAN_END
 
 MAN_BEGIN (U"Fixed menu commands", U"ppgb", 20120915)
@@ -324,7 +324,7 @@ MAN_END
 
 MAN_BEGIN (U"Formulas 1.1. Formulas in the calculator", U"ppgb", 20170916)
 INTRO (U"To use the Praat @calculator, go to the @@Praat menu@ "
-	"and choose @@Calculator...@ from the @Goodies submenu. Or simply type Command-U anywhere in Praat.")
+	"and choose @@Calculator...@ from the @Goodies submenu. Or simply type @@Keyboard shortcuts|Command-U@ anywhere in Praat.")
 ENTRY (U"Calculating numbers")
 NORMAL (U"You can do arithmetic computations. Type the formula")
 CODE (U"8*17")
@@ -536,7 +536,7 @@ CODE (U"x2 = x * x")
 CODE (U"writeInfoLine: \"The square of \", x, \" is \", x2, \".\"")
 NORMAL (U"This is an example of a simple @@Praat script@; it assigns the results of the numeric formulas $$99$ and $$x * x$ "
 	"to the numeric variables %x and %x2. Note that the formula $$x * x$ itself refers to the variable %x. "
-	"To run (execute) this script, type Command-R or choose #Run from the #Run menu. "
+	"To run (execute) this script, type @@Keyboard shortcuts|Command-R@ or choose #Run from the #Run menu. "
 	"Praat will then write the following text into the Info window:")
 CODE (U"The square of 99 is 9801.")
 NORMAL (U"For more information on scripts, see the @Scripting tutorial.")
@@ -789,7 +789,7 @@ TAG (U"##undefined")
 DEFINITION (U"a special value, see @undefined")
 MAN_END
 
-MAN_BEGIN (U"Formulas 5. Mathematical functions", U"ppgb", 20170718)
+MAN_BEGIN (U"Formulas 5. Mathematical functions", U"ppgb", 20200801)
 TAG (U"##abs (%x)")
 DEFINITION (U"absolute value")
 TAG (U"##round (%x)")
@@ -855,13 +855,23 @@ DEFINITION (U"the error function: 2/\\Vr%\\pi __0_\\in^%x exp(-%t^2) %dt")
 TAG (U"##erfc (%x)")
 DEFINITION (U"the complement of the error function: 1 - erf (%x)")
 TAG (U"##randomUniform (%min, %max)")
-DEFINITION (U"uniform random real number between %min (inclusive) and %max (exclusive)")
+DEFINITION (U"a uniform random real number between %min (inclusive) and %max (exclusive)")
 TAG (U"##randomInteger (%min, %max)")
-DEFINITION (U"uniform random integer number between %min and %max (inclusive)")
+DEFINITION (U"a uniform random integer number between %min and %max (inclusive)")
 TAG (U"##randomGauss (%\\mu, %\\si)")
-DEFINITION (U"Gaussian random real number with mean %\\mu and standard deviation %\\si")
+DEFINITION (U"a Gaussian random real number with mean %\\mu and standard deviation %\\si")
 TAG (U"##randomPoisson (%mean)")
-DEFINITION (U"Poisson random real number")
+DEFINITION (U"a Poisson random real number")
+TAG (U"##randomGamma (%%shape%, %%rate%)")
+DEFINITION (U"a random number drawn from a Gamma distribution with shape parameter %\\al "
+	"and rate parameter %\\be, which is defined as "
+	"%f(%x; %\\al, %\\be) = (1 / \\Ga (%\\al)) %\\be%^^%\\al^ %x^^%\\al\\-m1^ %e^^\\-m%\\be %x^, "
+	"for %x > 0, %\\al > 0 and %\\be > 0, following the method by @@Marsaglia & Tsang (2000)@")
+TAG (U"##random\\_ initializeWithSeedUnsafelyButPredictably (%seed)")
+DEFINITION (U"can be used in a script to create a reproducible sequence of random numbers "
+	"(warning: this exceptional situation will continue to exist throughout Praat until you call the following function)")
+TAG (U"##random\\_ initializeSafelyAndUnpredictably ()")
+DEFINITION (U"undoes the exceptional situation caused by the previous function")
 TAG (U"##lnGamma (%x)")
 DEFINITION (U"logarithm of the \\Ga function")
 TAG (U"##gaussP (%z)")
@@ -931,7 +941,7 @@ TAG (U"##besselK (%n, %x)")
 NORMAL (U"For functions with arrays, see @@Scripting 5.7. Vectors and matrices@.")
 MAN_END
 
-MAN_BEGIN (U"Formulas 6. String functions", U"ppgb", 20180318)
+MAN_BEGIN (U"Formulas 6. String functions", U"ppgb", 20180825)
 INTRO (U"String functions are functions that either return a text string or have at least one text string as an argument. "
 	"Since string computations are not very useful in the @calculator, in settings windows, or in creation and "
 	"modification formulas, this page only gives examples of strings in scripts, so that the example may contain "
@@ -1057,6 +1067,10 @@ DEFINITION (U"To write the day of the month into the Info window, you type:")
 		CODE2 (U"date\\$  = date\\$  ()")
 		CODE2 (U"day\\$  = mid\\$  (date\\$ , 9, 2)")
 		CODE2 (U"writeInfoLine: \"The month day is \", day\\$ , \".\"")
+TAG (U"##unicode\\$  (228)")
+DEFINITION (U"gives the 228th Unicode codepoint, i.e. \"ä\".")
+TAG (U"##unicode (\"ä\")")
+DEFINITION (U"gives the Unicode codepoint number of \"ä\", i.e. 228.")
 TAG (U"##extractNumber (\"Type: Sound\" + newline\\$  + \"Name: hello there\" + newline\\$  + \"Size: 44007\", \"Size:\")")
 DEFINITION (U"looks for a number after the first occurrence of \"Size:\" in the long string. Outcome: 44007. "
 	"This is useful in scripts that try to get information from long reports, as the following script that "
@@ -1262,6 +1276,27 @@ CODE (U"writeInfoLine: \"The sum of the cells along the diagonal is \", sumDiago
 NORMAL (U"The first version, which accesses the contents directly, is not only two lines shorter, but also three times faster.")
 MAN_END
 
+MAN_BEGIN (U"Functions", U"ppgb", 20210421)
+NORMAL (U"A growing list of functions that you can use in @formulas and @scripting...")
+LIST_ITEM (U"##abs (%x)# \\-- absolute value")
+LIST_ITEM (U"##arccos (%x)# \\-- inverse cosine")
+LIST_ITEM (U"##arcsin (%x)# \\-- inverse sine")
+LIST_ITEM (U"##arctan (%x)# \\-- inverse tangent")
+LIST_ITEM (U"##cos (%x)# \\-- cosine")
+LIST_ITEM (U"##cosh (%x)# \\-- hyperbolic cosine")
+LIST_ITEM (U"##exp (%x)# \\-- exponentiation")
+LIST_ITEM (U"##index (%%string\\$ %, %%part\\$ %)# \\-- look up a substring, or 0 if not found")
+LIST_ITEM (U"##index (%%strings\\$ \\# %, %%s\\$ %)# \\-- look up whether %%s\\$ % occurs in %%strings\\$ \\# %")
+LIST_ITEM (U"##mul\\# \\#  (%%a\\# \\# %, %%b\\# \\# %)# \\-- matrix multiplication")
+LIST_ITEM (U"##readFile\\$  (%%filePath\\$ %)# \\-- read a whole text file into a string")
+LIST_ITEM (U"##readLinesFromFile\\$ \\#  (%%filePath\\$ %)# \\-- read all lines from a text file")
+LIST_ITEM (U"##sin (%x)# \\-- sine")
+LIST_ITEM (U"##sinh (%x)# \\-- hyperbolic sine")
+LIST_ITEM (U"##splitByWhitespace\\$ \\#  (%%string\\$ %)# \\-- split a string into inks")
+LIST_ITEM (U"##tan (%x)# \\-- tangent")
+LIST_ITEM (U"##tanh (%x)# \\-- hyperbolic tangent")
+MAN_END
+
 MAN_BEGIN (U"Hidden commands", U"ppgb", 20110129)
 NORMAL (U"Some commands in Praat's fixed and dynamic menus are hidden by default. "
 	"You can still call hidden commands from scripts, run them by clicking on them in a @ButtonEditor, "
@@ -1317,15 +1352,15 @@ NORMAL (U"This macro mechanism is much more flexible than the usual opaque macro
 	"See the @Scripting tutorial for all the things that you can do in scripts.")
 MAN_END
 
-MAN_BEGIN (U"initialization script", U"ppgb", 20151020)
+MAN_BEGIN (U"initialization script", U"ppgb", 20201229)
 INTRO (U"Your initialization script is a normal @@Praat script@ that is run as soon as you start Praat.")
-NORMAL (U"On Unix or MacOS X, you create an initialization script by creating a file named \"praat-startUp\" "
-	"in the directory /usr/local, "
-	"or putting a file \".praat-user-startUp\" or \"praat-user-startUp\" in your home directory "
+NORMAL (U"On Unix or macOS, you create an initialization script by creating a file named \"praat-startUp\" "
+	"in the folder /usr/local, "
+	"or putting a file \".praat-user-startUp\" or \"praat-user-startUp\" in your home folder "
 	"(if you rename the Praat executable, these names have to change as well).")
 NORMAL (U"If you have more than one of these files, they are run in the above order.")
 NORMAL (U"On Windows, you create an initialization script by creating a file named "
-	"\"praat-user-startUp\" in your home directory, "
+	"\"praat-user-startUp\" in your home folder, "
 	"which could be C:\\bsUsers\\bsMiep if you are Miep.")
 NORMAL (U"If you have both of these files, they are run in the above order.")
 ENTRY (U"Example")
@@ -1365,7 +1400,7 @@ MAN_BEGIN (U"phonToDifferenceLimens", U"ppgb", 20021215)
 INTRO (U"A routine for converting sensation level in phons into intensity difference limen level, "
 	"the inverse of @differenceLimensToPhon.")
 ENTRY (U"Formula")
-FORMULA (U"phonToDifferenceLimens (%phon) = 30 \\.c ((61/60)^^ %phon^ \\-- 1)")
+EQUATION (U"phonToDifferenceLimens (%phon) = 30 \\.c ((61/60)^^ %phon^ \\-- 1)")
 ENTRY (U"Derivation")
 NORMAL (U"In first approximation, humans can detect an intensity difference of 1 phon, i.e. "
 	"if two sounds that differ only in intensity are played a short time after each other, "
@@ -1373,27 +1408,27 @@ NORMAL (U"In first approximation, humans can detect an intensity difference of 1
 NORMAL (U"But the sensitivity is somewhat better for louder sounds. "
 	"According to @@Jesteadt, Wier & Green (1977)@, the relative difference limen "
 	"of intensity is given by")
-FORMULA (U"DLI = \\De%I / %I = 0.463 \\.c (%I / %I__0_)^^ \\--0.072^")
+EQUATION (U"DLI = \\De%I / %I = 0.463 \\.c (%I / %I__0_)^^ \\--0.072^")
 NORMAL (U"In this formula, %I is the intensity of the sound in Watt/m^2, %I__0_ is the intensity of "
 	"the auditory threshold (i.e. 10^^\\--12^ Watt/m^2 at 1000 Hz), and \\De%I is the just noticeable difference.")
 NORMAL (U"@@Boersma (1998)|Boersma (1998: 109)@ calculates a difference-limen scale from this. "
 	"Given an intensity %I, the number of difference limens above threshold is ")
-FORMULA (U"\\in__%I0_^%I %dx \\De%I(%x) "
+EQUATION (U"\\in__%I0_^%I %dx \\De%I(%x) "
 	"= (1 / 0.463) \\in__%I0_^%I %dx %I__0_^^\\--0.072^ %x^^0.072\\--1^")
-FORMULA (U"= (1 / (0.463\\.c0.072)) ((%I/%I__0_)^^0.072^ \\-- 1)")
+EQUATION (U"= (1 / (0.463\\.c0.072)) ((%I/%I__0_)^^0.072^ \\-- 1)")
 NORMAL (U"The sensation level in phon is defined as")
-FORMULA (U"SL = 10 log__10_ (%I/%I__0_)")
+EQUATION (U"SL = 10 log__10_ (%I/%I__0_)")
 NORMAL (U"so that the number of difference limens above threshold is")
-FORMULA (U"(1 / (0.463\\.c0.072)) (10^^(0.072/10)(10log(%I/%I__0_))^ \\-- 1) "
+EQUATION (U"(1 / (0.463\\.c0.072)) (10^^(0.072/10)(10log(%I/%I__0_))^ \\-- 1) "
 	"= 30 \\.c (1.0167^^SL^ \\-- 1)")
 MAN_END
 
-MAN_BEGIN (U"plug-ins", U"ppgb", 20151020)
+MAN_BEGIN (U"plug-ins", U"ppgb", 20201229)
 INTRO (U"Experienced Praat script writers can distribute their product as a plug-in to Praat.")
 ENTRY (U"The Praat plug-in mechanism")
 NORMAL (U"When Praat starts up, it will execute all Praat scripts called ##setup.praat# "
 	"that reside in directories whose name starts with ##plugin_# and that themselves reside in "
-	"your Praat @@preferences directory@.")
+	"your Praat @@preferences folder@.")
 ENTRY (U"How to write a Praat plug-in")
 NORMAL (U"Suppose that you have a set of Praat scripts specialized in the analysis and synthesis of vocalizations of guinea pigs, "
 	"and that these scripts are called ##analyseQueak.praat# and ##createQueak.praat# (\"queak\" is what guinea pigs tend to say). "
@@ -1402,33 +1437,33 @@ NORMAL (U"Suppose that you have a set of Praat scripts specialized in the analys
 	"Only the latter script requires the user to supply some settings in a form, so the two menu commands "
 	"are ##Analyse queak# (without dots) and ##Create queak...# (with three dots), respectively. "
 	"Suppose now that you want to distribute those two commands to other guinea pig vocalization researchers.")
-NORMAL (U"What you do is that you create a Praat script called ##setup.praat# (in the same directory as the two other scripts), "
+NORMAL (U"What you do is that you create a Praat script called ##setup.praat# (in the same folder as the two other scripts), "
 	"that contains the following two lines:")
 CODE (U"@@Add action command...|Add action command:@ \"Sound\", 1, \"\", 0, \"\", 0, \"Analyse queak\", \"\", 0, \"analyseQueak.praat\"")
 CODE (U"@@Add menu command...|Add menu command:@ \"Objects\", \"New\", \"Create queak...\", \"\", 0, \"createQueak.praat\"")
 NORMAL (U"(If you ran this script, Praat would install those two commands in the correct menus, and remember them in the @@buttons file@; "
 	"but you are now going to install them in a different way.)")
-NORMAL (U"You now put the three scripts in a new directory called ##plugin_Queak#, "
-	"and put this directory in your Praat preferences directory. If you are on Windows, "
-	"you will now have a directory called something like ##C:\\bsUsers\\bsYour Name\\bsPraat\\bsplugin_Queak#.")
+NORMAL (U"You now put the three scripts in a new folder called ##plugin_Queak#, "
+	"and put this folder in your Praat preferences folder. If you are on Windows, "
+	"you will now have a folder called something like ##C:\\bsUsers\\bsYour Name\\bsPraat\\bsplugin_Queak#.")
 NORMAL (U"If you now start up Praat, Praat will automatically execute the script "
 	"##C:\\bsUsers\\bsYour Name\\bsPraat\\bsplugin_Queak\\bssetup.praat# "
 	"and thereby install the two buttons. The two buttons will %not be remembered in the buttons file, "
-	"but they will be installed at every Praat start-up. De-installation involves removing (or renaming) the ##plugin_Queak# directory.")
+	"but they will be installed at every Praat start-up. De-installation involves removing (or renaming) the ##plugin_Queak# folder.")
 NORMAL (U"To distribute the Queak plug-in among your colleague guinea pig researchers, you can use any installer program to put "
-	"the ##plugin_Queak# directory into the user's Praat preferences directory; or you could ask those colleagues to move "
-	"the ##plugin_Queak# directory there by hand.")
-ENTRY (U"The structure of your plug-in directory")
+	"the ##plugin_Queak# folder into the user's Praat preferences folder; or you could ask those colleagues to move "
+	"the ##plugin_Queak# folder there by hand.")
+ENTRY (U"The structure of your plug-in folder")
 NORMAL (U"In the example ##setup.praat# file above, the names of the scripts ##analyseQueak.praat# and ##createQueak.praat# "
-	"occur without any directory information. This works because Praat regards these file names as being relative to the directory "
+	"occur without any folder information. This works because Praat regards these file names as being relative to the folder "
 	"where ##setup.praat# is located. If your plug-in is much larger than two scripts, you may want to put subdirectories into "
-	"the directory ##plugin_Queak#. For instance, if you put ##analyseQueak.praat# into the subdirectory ##analysis#, "
+	"the folder ##plugin_Queak#. For instance, if you put ##analyseQueak.praat# into the subfolder ##analysis#, "
 	"your line in the ##setup.praat# script would look as follows:")
 CODE (U"@@Add action command...|Add action command:@ \"Sound\", 1, \"\", 0, \"\", 0, \"Analyse queak\", \"\", 0, \"analysis/analyseQueak.praat\"")
 NORMAL (U"The forward slash (\"/\") in this example makes your plug-in platform-independent: it will work unchanged "
 	"on Windows, Macintosh, and Unix.")
-NORMAL (U"Nothing prevents you from adding data files to your plug-in. For instance, your ##plugin_Queak# directory "
-	"could contain a subdirectory #sounds full of guinea pig recordings, and you could make them available in the New or Open menu.")
+NORMAL (U"Nothing prevents you from adding data files to your plug-in. For instance, your ##plugin_Queak# folder "
+	"could contain a subfolder #sounds full of guinea pig recordings, and you could make them available in the New or Open menu.")
 ENTRY (U"Using a plug-in for site-wide customization")
 NORMAL (U"If your local guinea pig research group shares a number of Praat scripts, these can be made available to everybody "
 	"in the following way:")
@@ -1439,8 +1474,8 @@ LIST_ITEM (U"2. Put this script where everybody can see it, "
 	"for instance in ##U:\\bsMaldenGuineaPigResearchButtons.praat#, where U is your shared computer.")
 LIST_ITEM (U"3. Create a file ##setup.praat# that contains only the following line:")
 CODE1 (U"runScript: \"U:\\bsMaldenGuineaPigResearchButtons.praat\"")
-LIST_ITEM (U"4. Put the ##setup.praat# file in a new directory called ##plugin_MaldenGuineaPigResearch#, "
-	"and distribute this directory among your local colleagues.")
+LIST_ITEM (U"4. Put the ##setup.praat# file in a new folder called ##plugin_MaldenGuineaPigResearch#, "
+	"and distribute this folder among your local colleagues.")
 NORMAL (U"This procedure allows all members of the group to automatically enjoy all the later changes in your "
 	"custom command set.")
 MAN_END
@@ -1454,19 +1489,19 @@ INTRO (U"An executable text that consists of menu commands and action commands."
 NORMAL (U"See the @Scripting tutorial.")
 MAN_END
 
-MAN_BEGIN (U"preferences directory", U"ppgb", 20151020)
-INTRO (U"The Praat preferences directory is the directory where Praat saves the @@preferences file@ and the @@buttons file@, "
-	"and where you can install @@plug-ins@ and save the preferences of your scripts (in your subdirectory of the #apps subdirectory). "
-	"If the preferences directory does not exist, it will automatically be created when you start Praat.")
+MAN_BEGIN (U"preferences folder", U"ppgb", 20201229)
+INTRO (U"The Praat preferences folder is the folder where Praat saves the @@preferences file@ and the @@buttons file@, "
+	"and where you can install @@plug-ins@ and save the preferences of your scripts (in your subfolder of the #apps subfolder). "
+	"If the preferences folder does not exist, it will automatically be created when you start Praat.")
 ENTRY (U"Windows")
-NORMAL (U"If you are user #Miep, your Praat preferences directory will be ##C:\\bsUsers\\bsMiep\\bsPraat\\bs#.")
+NORMAL (U"If you are user #Miep, your Praat preferences folder will be ##C:\\bsUsers\\bsMiep\\bsPraat\\bs#.")
 ENTRY (U"Macintosh")
-NORMAL (U"If you are user #miep, your Praat preferences directory will be ##/Users/miep/Library/Preferences/Praat Prefs/#.")
+NORMAL (U"If you are user #miep, your Praat preferences folder will be ##/Users/miep/Library/Preferences/Praat Prefs/#.")
 ENTRY (U"Linux")
-NORMAL (U"If your home directory is ##/home/miep/#, your Praat preferences directory will be ##/home/miep/.praat-dir/#.")
+NORMAL (U"If your home folder is ##/home/miep/#, your Praat preferences folder will be ##/home/miep/.praat-dir/#.")
 MAN_END
 
-MAN_BEGIN (U"preferences file", U"ppgb", 20151020)
+MAN_BEGIN (U"preferences file", U"ppgb", 20201229)
 NORMAL (U"The file into which some of your preferences are saved across your sessions with Praat. "
 	"For instance, if you change the font used by the Picture window to Palatino and quit Praat, "
 	"the Picture-window font will still be Palatino when you start Praat again.")
@@ -1474,7 +1509,7 @@ NORMAL (U"The preferences file is written to disk when you quit Praat, "
 	"and it is read when you start Praat. It is a simple text file that you can read "
 	"(but should not edit) with any text editor.")
 ENTRY (U"Where is the preferences file?")
-NORMAL (U"The preferences file is in your Praat @@preferences directory@.")
+NORMAL (U"The preferences file is in your Praat @@preferences folder@.")
 NORMAL (U"On Windows it is called ##Preferences5.ini#, "
 	"for instance ##C:\\bsUsers\\bsMiep\\bsPraat\\bsPreferences5.ini#.")
 NORMAL (U"On Macintosh it is called #Prefs5, "
@@ -1483,7 +1518,7 @@ NORMAL (U"On Linux the file is called #prefs5, "
 	"for instance ##/home/miep/.praat-dir/prefs5#.")
 MAN_END
 
-MAN_BEGIN (U"Scripting", U"ppgb", 20170718)
+MAN_BEGIN (U"Scripting", U"ppgb", 20201229)
 INTRO (U"This is one of the tutorials of the Praat program. It assumes you are familiar with the @Intro.")
 NORMAL (U"A %script is a text that consists of menu commands and action commands. "
 	"If you %run the script (perhaps from a @ScriptEditor), "
@@ -1517,7 +1552,7 @@ LIST_ITEM (U"@@Scripting 6. Communication outside the script")
 LIST_ITEM1 (U"@@Scripting 6.1. Arguments to the script@ (form/endform, runScript)")
 LIST_ITEM1 (U"@@Scripting 6.2. Writing to the Info window@ (writeInfoLine, appendInfoLine, appendInfo, tab\\$ )")
 LIST_ITEM1 (U"@@Scripting 6.3. Query commands@ (Get, Count)")
-LIST_ITEM1 (U"@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createDirectory)")
+LIST_ITEM1 (U"@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createFolder)")
 LIST_ITEM1 (U"@@Scripting 6.5. Calling system commands@ (runSystem, environment\\$ , stopwatch)")
 LIST_ITEM1 (U"@@Scripting 6.6. Controlling the user@ (pause, beginPause/endPause, chooseReadFile\\$ )")
 LIST_ITEM1 (U"@@Scripting 6.7. Sending a message to another program@ (sendsocket)")
@@ -1538,7 +1573,7 @@ LIST_ITEM (U"@@Scripting 9.2. Old functions")
 NORMAL (U"Also see the @@scripting examples@.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 1. Your first scripts", U"ppgb", 20140106)
+MAN_BEGIN (U"Scripting 1. Your first scripts", U"ppgb", 20201229)
 INTRO (U"This page tells you how to create, run and save a script. "
 	"To get a feel for how it works, you are advised to try out all the steps.")
 ENTRY (U"1. A minimal script")
@@ -1571,7 +1606,7 @@ CODE (U"Play")
 CODE (U"Erase all")
 NORMAL (U"When you run this script, you'll see a rectangle appear in the ##Praat Picture# window "
 	"(that's what the command ##Draw inner box# in the #Margins menu does), "
-	"then you'll hear the Sound play tiwce, then you'll see the rectangle disappear from the Picture window "
+	"then you'll hear the Sound play twice, then you'll see the rectangle disappear from the Picture window "
 	"(that's what the command ##Erase all# from the #Edit menu does).")
 NORMAL (U"Here we see that the Praat scripting language is an example of a %%procedural programming language%, "
 	"which means that the five %statements are executed in the order in which they appear in the script, "
@@ -1616,7 +1651,7 @@ NORMAL (U"It advisable to use$$ .praat $as the extension for script file names. 
 	"On the Mac and on Windows, if you drag a$$ .praat $file on the Praat icon, Praat will also start up and show the script.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 2. How to script settings windows", U"ppgb", 20170926)
+MAN_BEGIN (U"Scripting 2. How to script settings windows", U"ppgb", 20201229)
 INTRO (U"Not all menu commands are as simple as those on the @@Scripting 1. Your first scripts|previous page@, "
 	"which act immediately once you choose them from a menu (e.g. ##Play#, ##Erase all#). "
 	"Most commands in Praat require the user to supply additional information; "
@@ -1718,10 +1753,10 @@ NORMAL (U"The commands from the Open and Save menus, and several other commands 
 	"start with #Read, #Open, or #Save, present a %%file selector window% instead of a typical Praat "
 	"settings window. File selector windows ask the user to supply a single argument: the file name.")
 NORMAL (U"In a script you can either supply the %%complete path% to the file, or supply a %%relative path%.")
-NORMAL (U"A complete path includes both the directory (folder) hierarchy and the name of the file. "
+NORMAL (U"A complete path includes both the folder (directory) hierarchy and the name of the file. "
 	"This goes slightly differently on the Windows platform on the one hand, "
 	"and on the Mac and Linux platforms on the other. If your user name is Miep, "
-	"and your home directory contains a folder #Sounds, "
+	"and your home folder contains a folder #Sounds, "
 	"and this folder contains a folder #Animals, and this contains the file ##miauw.wav#, "
 	"you can open that file as follows:")
 CODE (U"Read from file: \"C:/Users/Miep/Sounds/Animals/miauw.wav\"   ; Windows")
@@ -1730,19 +1765,19 @@ CODE (U"Read from file: \"/home/miep/Sounds/Animals/miauw.wav\"   ; Linux")
 NORMAL (U"(the part before your user name may be slightly different on your computer; "
 	"use your command or terminal window to find out)")
 NORMAL (U"In these examples, \"C\" is the Windows %%drive letter% and "
-	"##/Users/Miep# or ##/home/Miep# is your %%home directory%. Both the home directory and the drive letter "
+	"##/Users/Miep# or ##/home/Miep# is your %%home folder%. Both the home folder and the drive letter "
 	"can be abbreviated away by using the tilde (\"~\") in the path "
 	"(this tilde has nothing to do with the tilde used in formula arguments):")
 CODE (U"Read from file: \"~/Sounds/Animals/miauw.wav\"")
-NORMAL (U"If your #Sounds folder is not in your home directory but on your desktop, you do")
+NORMAL (U"If your #Sounds folder is not in your home folder but on your desktop, you do")
 CODE (U"Read from file: \"~/Desktop/Sounds/Animals/miauw.wav\"")
-NORMAL (U"(this works because on all three platforms, the desktop folder is a subfolder of your home directory)")
+NORMAL (U"(this works because on all three platforms, the desktop folder is a subfolder of your home folder)")
 NORMAL (U"If your Sounds folder is on a USB drive called PORCH, it would be something like:")
 CODE (U"Read from file: \"G:/Sounds/Animals/miauw.wav\"   ; Windows")
 CODE (U"Read from file: \"/Volumes/PORCH/Sounds/Animals/miauw.wav\"   ; Mac")
 CODE (U"Read from file: \"/media/PORCH/Sounds/Animals/miauw.wav\"   ; Linux")
 NORMAL (U"Instead of all these complete path names, you can use %relative path names. "
-	"These are taken as relative to the directory in which your script resides, "
+	"These are taken as relative to the folder in which your script resides, "
 	"and help to make your script portable if you move the script along with your data.")
 NORMAL (U"Thus, if your script (after you have saved it!) is in the #Animals folder mentioned above, "
 	"i.e. in the same folder as ##miauw.wav#, you would simply open the file with")
@@ -1756,7 +1791,25 @@ CODE (U"Read from file: \"../Animals/miauw.aifc\"")
 NORMAL (U"where \"..\" is the general way on all platforms to go one folder up in the hierarchy.")
 NORMAL (U"Note that on Windows you could use the backslash (\"\\bs\") instead of the forward slash (\"/\"), "
 	"but with the forward slash your script will work on all three platforms.")
-ENTRY (U"7. How to supply arguments automatically")
+ENTRY (U"7. Colour arguments")
+NORMAL (U"Several commands in the World and Pen menus of the Picture window, "
+	"as well as many object drawing commands, ask for a colour in the following way:")
+SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
+	Manual_DRAW_SETTINGS_WINDOW ("Praat picture: Paint rectangle", 5)
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("Colour (0-1, name, or {r,g,b})", "0.5")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("From x", "0.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("To x", "1.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("From y", "0.0")
+	Manual_DRAW_SETTINGS_WINDOW_FIELD ("To y", "1.0")
+)
+NORMAL (U"For the colour, you can supply, as text, one of the 16 explicit names that also appear in the Pen menu:")
+CODE (U"Paint rectangle: \"maroon\", 0.0, 1.0, 0.0, 1.0")
+NORMAL (U"Alternatively, you can supply a grey value, as a number between 0.0 (black) and 1.0 (white). The following produces a very light grey:")
+CODE (U"Paint rectangle: 0.9, 0.0, 1.0, 0.0, 1.0")
+NORMAL (U"Finally, you can supply an explicit RGB (red\\--green\\--blue) value, as a \"vector\" of three numbers between 0.0 and 1.0. "
+	"The following produces dark pink:")
+CODE (U"Paint rectangle: {0.8,0.2,0.4}, 0.0, 1.0, 0.0, 1.0")
+ENTRY (U"8. How to supply arguments automatically")
 NORMAL (U"Now you know all the ways to write the arguments of commands in a script line. "
 	"If you dislike manually copying arguments from settings windows into your script, "
 	"or if you are not sure whether something is a numeric or a string argument, "
@@ -2379,7 +2432,7 @@ LIST_ITEM (U"@@Scripting 5.8. Including other scripts@")
 LIST_ITEM (U"@@Scripting 5.9. Quitting@ (exit)")
 MAN_END
 
-MAN_BEGIN (U"Scripting 5.1. Variables", U"ppgb", 20140111)
+MAN_BEGIN (U"Scripting 5.1. Variables", U"ppgb", 20201229)
 INTRO (U"A %variable is a location in your computer's memory that has a name and where you can store something, "
 	"as explained in @@Scripting 3.2. Numeric variables|\\SS3.2@ and @@Scripting 3.4. String variables|\\SS3.4@. "
 	"In a Praat script, you can store numbers and texts, i.e. you can use %%numeric variables% and %%string variables%.")
@@ -2460,13 +2513,13 @@ NORMAL (U"Some predefined ##numeric variables# are $macintosh, $windows, and $un
 	"is running on a Macintosh, Windows, or Unix platform (respectively), and which are otherwise zero. "
 	"Another one is $praatVersion, which is e.g. " xstr(PRAAT_VERSION_NUM) " for the current version of Praat.")
 NORMAL (U"Some ##predefined string variables# are $$newline\\$ $,  $$tab\\$ $, and $$shellDirectory\\$ $. "
-	"The last one specifies the directory that was the default directory when Praat started up; "
+	"The last one specifies the folder that was the default folder when Praat started up; "
 	"you can use it in scripts that run from the Unix or Windows command line. "
 	"Likewise, there exist the predefined string variables $$homeDirectory\\$ $, "
-	"$$preferencesDirectory\\$ $, and $$temporaryDirectory\\$ $. These three refer to your home directory "
-	"(which is where you log in), the Praat @@preferences directory@, and a directory for saving temporary files; "
+	"$$preferencesDirectory\\$ $, and $$temporaryDirectory\\$ $. These three refer to your home folder "
+	"(which is where you log in), the Praat @@preferences folder@, and a folder for saving temporary files; "
 	"if you want to know what they are on your computer, try to write them into a script window. "
-	"The variable $$defaultDirectory\\$ $ is available for formulas in scripts; it is the directory that contains the script file. "
+	"The variable $$defaultDirectory\\$ $ is available for formulas in scripts; it is the folder that contains the script file. "
 	"Finally, we have $$praatVersion\\$ $, which is \"" xstr(PRAAT_VERSION_STR) "\" for the current version of Praat.")
 ENTRY (U"Functions that handle variables")
 NORMAL (U"To check whether a variable exists, you can use the function")
@@ -2804,7 +2857,8 @@ CODE (U"#endproc")
 CODE (U"\\@ texts: \\\" \\\" \\\" hello\\\" \\\"  at the top\\\" , \\\" \\\" \\\" goodbye\\\" \\\"  at the bottom\\\" ")
 ENTRY (U"Functions")
 NORMAL (U"The Praat scripting language does not have the concept of a \"function\" like some other scripting languages do. "
-	"A function is a procedure that returns a number or a string. For instance, you can imagine the function $$squareNumber$ "
+	"A function is a procedure that returns a number, a string, a vector, a matrix, or a string array. "
+	"For instance, you can imagine the function $$squareNumber$, "
 	"which takes a number (e.g. 5) as an argument and returns the square of that number (e.g. 25). "
 	"Here is an example of how you can do that, using the global availability of local variables:")
 CODE (U"\\@ squareNumber: 5")
@@ -2846,7 +2900,7 @@ NORMAL (U"You can use any number of array and dictionary variables in a script, 
 	"or to use Matrix or Sound objects.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 5.7. Vectors and matrices", U"ppgb", 20180426)
+MAN_BEGIN (U"Scripting 5.7. Vectors and matrices", U"ppgb", 20201229)
 ENTRY (U"1. What is a vector?")
 NORMAL (U"A ##numeric vector# is an array of numbers, regarded as a single object. "
 	"For instance, the squares of the first five integers can be collected in the vector { 1, 4, 9, 16, 25 }. "
@@ -2862,7 +2916,7 @@ NORMAL (U"Whereas in @@Scripting 3.2. Numeric variables@ we talked about a numer
 	"Their values (the numbers that currently live in these houses) are 1, 4, 9, 16 and 25, respectively.")
 NORMAL (U"To list the five values with a loop, you could do:")
 CODE (U"#writeInfoLine: \"Some squares:\"")
-CODE (U"#for i #from 1 #to 5")
+CODE (U"#for i #from 1 #to size (squares\\# )")
 	CODE1 (U"#appendInfoLine: \"The square of \", i, \" is \", squares\\#  [i]")
 CODE (U"#endfor")
 NORMAL (U"Instead of the above procedure to get the vector %%squares\\# %, with a pre-computed list of five squares, "
@@ -2873,7 +2927,7 @@ NORMAL (U"Instead of the above procedure to get the vector %%squares\\# %, with 
 CODE (U"squares\\#  = zero\\#  (5)")
 NORMAL (U"After this, %%squares\\# % is the vector { 0, 0, 0, 0, 0 }, i.e., the value of each element is zero. "
 	"Now that the vector (street) exists, we can put values into (populate) the five elements (houses):")
-CODE (U"#for i #from 1 #to 5")
+CODE (U"#for i #from 1 #to size (squares\\# )")
 	CODE1 (U"squares\\#  [i] = i * i")
 CODE (U"#endfor")
 NORMAL (U"After this, the variable $$squares\\# $ has the value { 1, 4, 9, 16, 25 }, as before, "
@@ -2894,11 +2948,29 @@ CODE (U"randomUniform\\#  (10000, 0.0, 1.0)")
 NORMAL (U"To create a vector consisting of 10,000 values drawn from a ##uniform distribution of integer numbers# "
 	"with true minimum 1 and true maximum 10, you use")
 CODE (U"randomInteger\\#  (10000, 1, 10)")
+NORMAL (U"To create a vector containing the integer numbers 1 through 64, you use")
+CODE (U"to\\#  (64)")
+NORMAL (U"To create a vector containing the integer numbers 10 through 20, you use")
+CODE (U"from_to\\#  (10, 20)")
+NORMAL (U"To create a vector containing linearly increasing (not necessarily integer) numbers from 10 through 20 in steps of 2, you use")
+CODE (U"from_to_by\\#  (10, 20, 2)")
+NORMAL (U"To create five linearly increasing numbers between 0 and 10 (i.e. { 0, 2.5, 5, 7.5, 10 }), you use")
+CODE (U"from_to_count\\#  (0, 10, 5)")
+NORMAL (U"To divide the range between 0 and 12 symmetrically with step 5 (i.e. { 1, 6, 11 }), you use")
+CODE (U"between_by\\#  (0, 12, 5)")
+NORMAL (U"To divide the range between 0 and 10 into five equal parts and list their centres (i.e. { 1, 3, 5, 7, 9 }), you use")
+CODE (U"between_count\\#  (0, 10, 5)")
+NORMAL (U"To sort the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use")
+CODE (U"sort\\#  ({ 7.4, 1.3, 3.6 })")
+NORMAL (U"which yields { 1.3, 3.6, 7.4 }.")
+NORMAL (U"To randomnly shuffle the numbers in a vector (e.g. { 7.4, 1.3, 3.6 }), you use")
+CODE (U"shuffle\\#  ({ 7.4, 1.3, 3.6 })")
+NORMAL (U"which can yield { 1.3, 7.4, 3.6 } or any of the five other orders of the elements.")
 NORMAL (U"Vectors can also be created by some menu commands. For instance, to get vectors representing "
 	"the times and pitch frequencies of the frames in a Pitch object, you can do")
 CODE (U"selectObject: myPitch")
-CODE (U"times\\#  = Get times of frames")
-CODE (U"pitches\\#  = Get values in frames")
+CODE (U"times\\#  = List all frame times")
+CODE (U"pitches\\#  = List values in all frames: \"Hertz\"")
 ENTRY (U"3. Turning a vector into a number")
 NORMAL (U"For the vector defined above, you can compute the #sum of the five values as")
 CODE (U"sum (squares\\# )")
@@ -2915,7 +2987,7 @@ NORMAL (U"which gives 4.090909090909091 (for a vector with five elements, the re
 CODE (U"other\\#  = { 2, 1.5, 1, 0.5, 0 }")
 CODE (U"result = inner (squares\\# , other\\# )")
 NORMAL (U"which gives 1*2 + 4*1.5 + 9*1 + 16*0.5 + 25*0 = 25. "
-	"The formula for this is \\su__%i=1_^5 squares[i] * other[i], so that an alternative piece of code could be")
+	"The formula for this is \\su__%i=1_^5 %squares[%i] * %other[%i], so that an alternative piece of code could be")
 CODE (U"result = sumOver (i to 5, squares\\#  [i] * other\\#  [i])")
 ENTRY (U"4. Converting vectors to vectors")
 CODE (U"a\\#  = squares\\#  + 5   ; adding a number to each element of a vector")
@@ -2932,8 +3004,81 @@ NORMAL (U"A vector can also be given to a ##menu command# that returns another v
 CODE (U"selectObject: myPitch")
 CODE (U"tmin = Get start time")
 CODE (U"tmax = Get end time")
-CODE (U"times\\#  = sequence_by_centre\\#  (tmin, tmax, 0.01)")
-CODE (U"pitches\\#  = Get values at times: times\\# , \"hertz\", \"linear\"")
+CODE (U"times\\#  = between_by\\#  (tmin, tmax, 0.01)")
+CODE (U"pitches\\#  = List values at times: times\\# , \"hertz\", \"linear\"")
+ENTRY (U"5. What is a matrix?")
+NORMAL (U"A ##numeric matrix# is a two-indexed array of numbers, regarded as a single object. "
+	"In a Praat script, you can put a matrix into a variable whose name ends in two number signs (\"\\# \\# \"):")
+CODE (U"confusion\\# \\#  = {{ 3, 6, 2 }, { 8, 2, 1 }}")
+NORMAL (U"After this, the variable %%confusion\\# \\# % contains the value {{ 3, 6, 2 }, { 8, 2, 1 }}. "
+	"We say that the matrix %%confusion\\# % has two %rows and three %columns, i.e. it contains six numbers.")
+NORMAL (U"Whereas a numeric vector with five dimensions could be seen (see above) as a street that contains five houses, "
+	"the matrix %%confusion\\# \\# % can be seen as a city district with two avenues crossed by three streets, "
+	"where everybody lives on an intersection (the analogies start to get less realistic).")
+ENTRY (U"6. Creating a matrix")
+NORMAL (U"You can create a matrix in many ways. The first way we saw was with a ##matrix literal#, "
+	"i.e. a series of series of numbers (or numeric formulas) between nested braces.")
+NORMAL (U"The second way is as a matrix of #zeroes. To create a matrix consisting of 100 rows of 10,000 zeroes, you do")
+CODE (U"a\\# \\#  = zero\\# \\#  (100, 10000)")
+NORMAL (U"After this,")
+CODE (U"numberOfRows (a\\# \\# )")
+NORMAL (U"is 100, and")
+CODE (U"numberOfColumns (a\\# \\# )")
+NORMAL (U"is 10000.")
+NORMAL (U"Another important type of matrix is one filled with random numbers. "
+	"To create a matrix consisting of 100 rows of 10,000 values drawn from a ##Gaussian distribution# "
+	"with true mean 0.0 and true standard deviation 1.0, you can do")
+CODE (U"noise\\# \\#  = randomGauss\\# \\#  (100, 10000, 0.0, 1.0)")
+NORMAL (U"You can create a matrix as the outer product of two vectors:")
+CODE (U"m\\# \\#  = outer\\# \\#  (u\\# , v\\# )")
+NORMAL (U"which is the same as")
+CODE (U"m\\# \\#  = zeros\\# \\#  (size (u\\# ), size (v\\# ))")
+CODE (U"#for irow #to size (u\\# )")
+	CODE1 (U"#for icol #to size (v\\# )")
+		CODE2 (U"m\\# \\#  [irow, icol] = u\\#  [irow] * v\\#  [icol]")
+	CODE1 (U"#endfor")
+CODE (U"#endfor")
+NORMAL (U"or in mathematical notation")
+EQUATION (U"%m__%ij_ = %u__%i_ %v__%j_   (%i = 1..%M, %j = 1..%N)")
+NORMAL (U"where %M is the number of rows and %N is the number of columns.")
+ENTRY (U"7. Computations with matrices")
+NORMAL (U"You can add matrices:")
+CODE (U"c\\# \\#  = a\\# \\#  + b\\# \\# ")
+NORMAL (U"Elementwise multiplication:")
+CODE (U"c\\# \\#  = a\\# \\#  * b\\# \\# ")
+NORMAL (U"which does")
+EQUATION (U"%c__%ij_ = %a__%ij_ %b__%ij_   (%i = 1..%M, %j = 1..%N)")
+NORMAL (U"Matrix multiplication:")
+CODE (U"c\\# \\#  = mul\\# \\#  (a\\# \\# , b\\# \\# )")
+NORMAL (U"which does")
+EQUATION (U"%m__%ij_ = \\su__%k=1_^K  %a__%ik_ %b__%kj_   (%i = 1..%M, %j = 1..%N)")
+NORMAL (U"where %M is the number of rows of %a, %N is the number of columns of %b, "
+	"and %K is the number of columns of %a, which has to be equal to the number if rows of %b.")
+NORMAL (U"Matrix-by-vector multiplication:")
+CODE (U"v\\#  = mul\\#  (m\\# \\# , u\\# )")
+NORMAL (U"which does")
+EQUATION (U"%v__%i_ = \\su__%j=1_^N  %m__%ij_ %u__%j_   (%i = 1..%M)")
+NORMAL (U"where %M is the number of rows of %m, and %N is the number of columns of %m, "
+	"which has to be equal to the dimension of %u. Also")
+CODE (U"v\\#  = mul\\#  (u\\# , m\\# \\# )")
+NORMAL (U"which does")
+EQUATION (U"%v__%j_ = \\su__%i=1_^M  %u__%i_ %m__%ij_   (%j = 1..%N)")
+NORMAL (U"where %M is the number of rows of %m, which has to be equal to the dimension of %u, "
+	"and %N is the number of columns of %m.")
+ENTRY (U"8. String vectors")
+NORMAL (U"You can create string vactors in the following ways:")
+CODE (U"a\\$ \\#  = { \"hello\", \"goodbye\" }")
+NORMAL (U"creates a vector with two strings, which you can access as $$a\\$ \\#  [1]$, which is \"hello\", and $$a\\$ \\#  [2]$, which is \"goodbye\".")
+CODE (U"a\\$ \\#  = empty\\$ \\#  (10)")
+NORMAL (U"creates a vector with 10 empty strings, which you can access as $$a\\$ \\#  [1]$ through $$a\\$ \\#  [10]$.")
+CODE (U"text\\$ \\#  = readLinesFromFile\\$ \\#  (\"hello.txt\")")
+NORMAL (U"creates a vector with 100 strings if the file $$hello.text$ contains 100 lines of text.")
+CODE (U"fileNames\\$ \\#  = fileNames\\$ \\#  (\"sound/*.wav\")")
+NORMAL (U"creates a vector containing the names of all WAV files in the folder $sound.")
+CODE (U"folderNames\\$ \\#  = folderNames\\$ \\#  (\".\")")
+NORMAL (U"creates a vector containing the names of all folders in the folder where the script resides.")
+CODE (U"inks\\$ \\#  = splitByWhitespace\\$ \\#  (\"Hello, how are you?\")")
+NORMAL (U"creates a vector containing the strings \"Hello,\", \"how\", \"are\", and \"you?\".")
 MAN_END
 
 MAN_BEGIN (U"Scripting 5.8. Including other scripts", U"ppgb", 20170718)
@@ -2950,32 +3095,32 @@ NORMAL (U"The inclusion is done before any other part of the script is considere
 NORMAL (U"Note that you do not put quotes around the name of the include file. "
         "This is because the name of the include file has to be given explicitly; you cannot put it into a variable, for instance.")
 NORMAL (U"You can use full or relative file names. For instance, the file square.praat is expected to be in the same "
-	"directory as the script that says %%include square.praat%. If you use the ScriptEditor, you will first have to save "
+	"folder as the script that says %%include square.praat%. If you use the ScriptEditor, you will first have to save "
 	"the script that you are editing before any relative file names become meaningful (this is the same as with other "
 	"uses of relative file names in scripts).")
 NORMAL (U"You can \"nest\" include files, i.e., included scripts can include other scripts. However, relative file names "
-	"are always evaluated relative to the directory of the outermost script.")
+	"are always evaluated relative to the folder of the outermost script.")
 NORMAL (U"The #include statement can only be at the start of a line: you cannot put any spaces in front of it.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 5.9. Quitting", U"ppgb", 20170718)
+MAN_BEGIN (U"Scripting 5.9. Quitting", U"ppgb", 20190713)
 NORMAL (U"Usually, the execution of your script ends when the interpreter has executed the last line "
 	"that is not within a procedure definition. However, you can also explicitly stop the script:")
 TAG (U"#exitScript ( )")
 DEFINITION (U"stops the execution of the script in the normal way, i.e. without any messages to the user. "
-	"Any settings window is removed from the screen.")
+	"Any settings (form) window is removed from the screen (unless Apply was clicked instead of OK).")
 TAG (U"#exitScript: %%error-message%")
 DEFINITION (U"stops the execution of the script while sending an error message to the user. "
 	"You can use the same argument list as with #writeInfoLine. "
-	"Any settings window will stay on the screen.")
+	"Any settings (form) window will stay on the screen.")
 NORMAL (U"For an example, see @@Scripting 6.8. Messages to the user@.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6. Communication outside the script", U"ppgb", 20141012)
+MAN_BEGIN (U"Scripting 6. Communication outside the script", U"ppgb", 20201229)
 LIST_ITEM (U"@@Scripting 6.1. Arguments to the script@ (form/endform, runScript)")
 LIST_ITEM (U"@@Scripting 6.2. Writing to the Info window@ (writeInfoLine, appendInfoLine, appendInfo, tab\\$ )")
 LIST_ITEM (U"@@Scripting 6.3. Query commands@ (Get, Count)")
-LIST_ITEM (U"@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createDirectory)")
+LIST_ITEM (U"@@Scripting 6.4. Files@ (fileReadable, readFile, writeFile, deleteFile, createFolder)")
 LIST_ITEM (U"@@Scripting 6.5. Calling system commands@ (runSystem, environment\\$ , stopwatch)")
 LIST_ITEM (U"@@Scripting 6.6. Controlling the user@ (pause, beginPause/endPause, chooseReadFile\\$ )")
 LIST_ITEM (U"@@Scripting 6.7. Sending a message to another program@ (sendsocket)")
@@ -3144,17 +3289,17 @@ NORMAL (U"The string variable \"mean\\$ \" now contains the entire string \"150 
 NORMAL (U"This works for every command that would otherwise write into the Info window.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.4. Files", U"ppgb", 20150601)
+MAN_BEGIN (U"Scripting 6.4. Files", U"ppgb", 20201229)
 INTRO (U"You can read from and write to text files from a Praat script.")
 ENTRY (U"Reading a file")
 NORMAL (U"You can check the availability of a file for reading with the function")
 CODE (U"#fileReadable (%%fileName\\$ %)")
 NORMAL (U"which returns 1 (true) if the file exists and can be read, and 0 (false) otherwise. "
-	"Note that %%fileName\\$ % is taken relatively to the directory where the script is saved; "
-	"for instance, if your script is in the directory ##Paolo/project1#, then the file name "
+	"Note that %%fileName\\$ % is taken relatively to the folder where the script is saved; "
+	"for instance, if your script is in the folder ##Paolo/project1#, then the file name "
 	"\"hello.wav\" refers to ##Paolo/project1/hello.wav#, the file name \"yesterday/hello.wav\" "
 	"refers to ##Paolo/project1/yesterday/hello.wav#, and the file name \"../project2/hello.wav\" "
-	"refers to ##Paolo/project2/hello.wav# (\"..\" goes one directory up). "
+	"refers to ##Paolo/project2/hello.wav# (\"..\" goes one folder up). "
 	"You can also use full path names such as \"C:/Users/Paolo/project1/hello.wav\" "
 	"on Windows and \"/Users/Paolo/project1/hello.wav\" on the Mac.")
 NORMAL (U"To read the contents of an existing text file into a string variable or into a numeric variable, you use")
@@ -3184,13 +3329,13 @@ NORMAL (U"To append text at the end of an existing file, you use")
 CODE (U"appendFileLine: \"myFile.txt\", \"Next year it will be \", 2000 + 14, \".\"")
 NORMAL (U"With %appendFileLine (and %appendFile, which does not add the newline), "
 	"we follow the rule that if the file does not yet exist, it is created first.")
-NORMAL (U"You can create a directory with")
-CODE (U"#createDirectory: %%directoryName\\$ %")
-NORMAL (U"where, as with file names, %%directoryName\\$ % can be relative to the directory of the script "
+NORMAL (U"You can create a folder (directory) with")
+CODE (U"#createFolder: %%folderPath\\$ %")
+NORMAL (U"where, as with file names, %%folderPath\\$ % can be relative to the folder of the script "
 	"(e.g. \"data\", or \"yesterday/data\", or \"../project2/yesterday/data\") "
 	"or an absolute path (e.g. \"C:/Users/Paolo/project1/yesterday/data\" on Windows "
 	"or \"/Users/Paolo/project1/yesterday/data\" on the Mac). "
-	"If the directory already exists, this command does nothing.")
+	"If the folder already exists, this command does nothing.")
 NORMAL (U"You can delete an existing file with the function")
 CODE (U"#deleteFile: %%fileName\\$ %")
 NORMAL (U"If the file does not exist, this command does nothing.")
@@ -3210,9 +3355,16 @@ NORMAL (U"Note that we delete the file before appending to it, "
 	"in order that we do not append to an already existing file.")
 NORMAL (U"You can append the contents of the Info window to a file with")
 CODE (U"appendFile: \"out.txt\", info\\$  ( )")
-ENTRY (U"Directory listings")
-NORMAL (U"To get the names of the files if a certain type in a certain directory, "
-	"use @@Create Strings as file list...@.")
+ENTRY (U"Folder listings")
+NORMAL (U"To get the names of the files if a certain type in a certain folder, use")
+CODE (U"fileNames\\$ \\#  = ##fileNames\\$ \\# #: %%path\\$ %")
+NORMAL (U"For instance, to read in all the sound files in a specified folder, "
+	"you could use the following script:")
+CODE (U"folder\\$  = \"/usr/people/miep/sounds\"")
+CODE (U"fileNames\\$ \\#  = fileNames\\$ \\#  (folder\\$  + \"/*.wav\")")
+CODE (U"for ifile to size (fileNames\\$ \\# )")
+	CODE1 (U"Read from file: folder\\$  + \"/\" + fileNames\\$ \\#  [ifile]")
+CODE (U"endfor")
 ENTRY (U"Alternative syntax")
 NORMAL (U"If, on the basis of the syntax of commands and functions in earlier sections you expected that")
 CODE (U"text\\$  = readFile\\$  (\"myFile.txt\")")
@@ -3226,27 +3378,27 @@ NORMAL (U"you can also write")
 CODE (U"#deleteFile (%%fileName\\$ %)")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.5. Calling system commands", U"ppgb", 20141012)
+MAN_BEGIN (U"Scripting 6.5. Calling system commands", U"ppgb", 20201229)
 INTRO (U"From a Praat script you can call system commands. "
 	"These are the same commands that you would normally type into a terminal window or into the Window command line prompt. "
 	"The syntax is the same as that of the #writeInfo command.")
 NORMAL (U"Most system commands are different on different platforms. "
-	"For instance, to throw away all WAV files in the directory whose name (relative to the script's directory) is "
-	"in the variable directory\\$ , you would write")
-CODE (U"#runSystem: \"del \", directory\\$ , \"\\bs*.wav\"")
+	"For instance, to throw away all WAV files in the folder whose path (relative to the script's folder) is "
+	"in the variable folder\\$ , you would write")
+CODE (U"#runSystem: \"del \", folder\\$ , \"\\bs*.wav\"")
 NORMAL (U"on Windows, but")
-CODE (U"#runSystem: \"rm \", directory\\$ , \"/*.wav\"")
+CODE (U"#runSystem: \"rm \", folder\\$ , \"/*.wav\"")
 NORMAL (U"on Macintosh and Linux.")
 NORMAL (U"The script will stop running if a system command returns an error. For instance,")
-CODE (U"#runSystem: \"rm \", directory\\$ , \"/*.wav\"")
-NORMAL (U"will stop the script if there are no WAV files in the directory. "
+CODE (U"#runSystem: \"rm \", folder\\$ , \"/*.wav\"")
+NORMAL (U"will stop the script if there are no WAV files in the folder. "
 	"In order to prevent this, you can tell Praat to ignore the return value of the runSystem command.")
-NORMAL (U"Thus, to make sure that the directory contains no WAV files, you would write")
-CODE (U"#runSystem_nocheck: \"rm \", directory\\$ , \"/*.wav\"")
+NORMAL (U"Thus, to make sure that the folder contains no WAV files, you would write")
+CODE (U"#runSystem_nocheck: \"rm \", folder\\$ , \"/*.wav\"")
 ENTRY (U"Getting the values of system variables")
 TAG (U"##environment\\$  (#%%symbol-string%#)")
 DEFINITION (U"returns the value of an environment variable, e.g.")
-CODE1 (U"homeDirectory\\$  = ##environment\\$ # (\"HOME\")")
+CODE1 (U"homeFolder\\$  = ##environment\\$ # (\"HOME\")")
 ENTRY (U"Getting system duration")
 TAG (U"##stopwatch")
 DEFINITION (U"returns the time that has elapsed since the previous #stopwatch.")
@@ -3259,7 +3411,7 @@ CODE (U"time = stopwatch")
 CODE (U"writeInfoLine: a, \" \", fixed\\$  (time, 3)")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.6. Controlling the user", U"ppgb", 20170317)
+MAN_BEGIN (U"Scripting 6.6. Controlling the user", U"ppgb", 20201020)
 INTRO (U"You can temporarily halt a Praat script:")
 TAG (U"#pauseScript: %message")
 DEFINITION (U"suspends execution of the script, and allows the user to interrupt it. "
@@ -3282,7 +3434,8 @@ CODE (U"for i to 5")
 		CODE2 (U"#positive: \"Sampling frequency (Hz)\", \"44100.0 (= CD quality)\"")
 		CODE2 (U"#word: \"hi\", \"hhh\"")
 		CODE2 (U"#sentence: \"lo\", \"two words\"")
-		CODE2 (U"#text: \"ko\", \"jkgkjhkj g gdfg dfg\"")
+		CODE2 (U"#text: \"shortText\", \"some one-line text here\"")
+		CODE2 (U"#text: \"longText\", \"some scrollable text here, within a height of 7 lines\", 7")
 		CODE2 (U"#boolean: \"You like it?\", 1")
 		CODE2 (U"if worth < 6")
 			CODE3 (U"#choice: \"Compression\", compression")
@@ -3297,14 +3450,16 @@ CODE (U"for i to 5")
 		CODE2 (U"#comment: \"Then click Stop or one of the continuation buttons.\"")
 	CODE1 (U"clicked = #endPause: \"Continue\", \"Next\", \"Proceed\", 2")
 	CODE1 (U"appendInfoLine: number_of_people, \" \", worth, \" \", sampling_frequency, \" \", clicked")
-	CODE1 (U"appendInfoLine: \"Compression: \", compression, \" (\", compression\\$ ")
+	CODE1 (U"appendInfoLine: \"Compression: \", compression, \" (\", compression\\$ , \")\"")
 	CODE1 (U"appendInfoLine: \"Number of channels: \", number_of_channels\\$ ")
+	CODE1 (U"appendInfoLine: \"Short text: \", shortText\\$ ")
+	CODE1 (U"appendInfoLine: \"Long text: \", longText\\$ ")
 CODE (U"endfor")
 NORMAL (U"This example uses several tricks. A useful one is seen with %number_of_channels: "
 	"this is at the same time the value that is passed to #optionMenu (and therefore determines the setting of "
 	"the \"Number of channels\" menu when the window appears) and the name of the variable in which the user's "
 	"chosen value of \"Number of channels\" is stored (because \"number_of_channels\" is what you get "
-	"by replacing the spaces in \"Number of channels\" with underscores and turning its first letter to lower case.")
+	"by replacing the spaces in \"Number of channels\" with underscores and turning its first letter to lower case).")
 NORMAL (U"Your own pause windows are not likely to be as rich as the above example. "
 	"For instance, the example has three continuation buttons (the second of these is the default button, "
 	"i.e. the button that you can \"click\" by pressing the Enter or Return key). "
@@ -3371,17 +3526,17 @@ NORMAL (U"A file selector window will appear, with (in this example) \"Save as a
 	"If the user clicks #OK with a new file name, or clicks #OK in the confirmation window, "
 	"the variable $$fileName\\$ $ will contain the file name that the user typed; "
 	"if the user clicks #Cancel at any point, the variable $$fileName\\$ $ will contain the empty string (\"\").")
-NORMAL (U"If you want the user to choose a directory (folder) name, do")
-CODE (U"directoryName\\$  = ##chooseDirectory\\$ #: \"Choose a directory to save all the new files in\"")
-CODE (U"if directoryName\\$  <> \"\"")
+NORMAL (U"If you want the user to choose a folder (directory) name, do")
+CODE (U"folderName\\$  = ##chooseFolder\\$ #: \"Choose a folder to save all the new files in\"")
+CODE (U"if folderName\\$  <> \"\"")
 	CODE1 (U"for i to numberOfSelectedSounds")
 		CODE2 (U"selectObject: sound [i]")
-		CODE2 (U"Save as WAV file: directoryName\\$  + \"/sound\" + string\\$  (i) + \".wav\"")
+		CODE2 (U"Save as WAV file: folderName\\$  + \"/sound\" + string\\$  (i) + \".wav\"")
 	CODE1 (U"endfor")
 CODE (U"endif")
-NORMAL (U"A directory selector window will appear, with (in this example) \"Choose a directory to save all the new files in\" as the title. "
-	"If the user clicks #OK, the variable $$directoryName\\$ $ will contain the name of the directory that the user selected; "
-	"if the user clicks #Cancel, the variable $$directoryName\\$ $ will contain the empty string (\"\").")
+NORMAL (U"A folder selector window will appear, with (in this example) \"Choose a folder to save all the new files in\" as the title. "
+	"If the user clicks #OK, the variable $$folderName\\$ $ will contain the name of the folder that the user selected; "
+	"if the user clicks #Cancel, the variable $$folderName\\$ $ will contain the empty string (\"\").")
 ENTRY (U"A non-pausing pause window without a Stop button")
 NORMAL (U"Especially if you use the pause window within the @@Demo window@, you may not want to give the user the capability of "
 	"ending the script by hitting #Stop or closing the pause window. In that case, you can add an extra argument to #endPause "
@@ -3395,8 +3550,8 @@ CODE (U"#beginPause: \"Learning settings\"")
 CODE (U"clicked = #endPause: \"Cancel\", \"OK\", 2, 1")
 CODE (U"if clicked = 2")
 CODE1 (U"learningRate = learning_rate")
-CODE1 (U"includeForward = directions = 1 or directions = 3")
-CODE1 (U"includeBackward = directions = 2 or directions = 3")
+CODE1 (U"includeForward = ( directions = 1 or directions = 3 )")
+CODE1 (U"includeBackward = ( directions = 2 or directions = 3 )")
 CODE (U"endif")
 NORMAL (U"In this example, the default button is 2 (i.e. #OK), and the cancel button is 1 (i.e. #Cancel). "
 	"The form will now contain no #Stop button, and if the user closes the window, "
@@ -3426,7 +3581,7 @@ NORMAL (U"In this example, $$fonsg19.hum.uva.nl$ is the computer on which MovieE
 NORMAL (U"The number 6667 is the port number on which MovieEdit is listening. Other programs will use different port numbers.")
 MAN_END
 
-MAN_BEGIN (U"Scripting 6.8. Messages to the user", U"ppgb", 20170718)
+MAN_BEGIN (U"Scripting 6.8. Messages to the user", U"ppgb", 20210711)
 NORMAL (U"If the user makes a mistake (e.g. types conflicting settings into your form window), "
 	"you can use the #exitScript function (@@Scripting 5.9. Quitting|\\SS5.8@) "
 	"to stop the execution of the script with an error message:")
@@ -3451,7 +3606,7 @@ NORMAL (U"You can prevent Praat from issuing warning messages:")
 CODE (U"nowarn Save as WAV file: \"hello.wav\"")
 NORMAL (U"This prevents warning messages about clipped samples, for instance.")
 NORMAL (U"You can also prevent Praat from showing a progress window:")
-CODE (U"noprogress To Pitch: 0, 75, 500")
+CODE (U"pitch = noprogress To Pitch: 0, 75, 500")
 NORMAL (U"This prevents the progress window from popping up during lengthy operations. "
 	"Use this only if you want to prevent the user from stopping the execution of the script.")
 NORMAL (U"Finally, you can make Praat ignore error messages:")
@@ -3487,7 +3642,7 @@ NORMAL (U"On Windows, you can open Praat with a sound file and a TextGrid file b
 CODE (U"\"C:\\bsProgram Files\\bsPraat.exe\" --open data\\bshello.wav data\\bshello.TextGrid")
 NORMAL (U"or")
 CODE (U"\"C:\\bsProgram Files\\bsPraat.exe\" --open data/hello.wav data/hello.TextGrid")
-NORMAL (U"at least if your current directory (see the Console's $$cd$ and $$dir$ commands) "
+NORMAL (U"at least if your current folder (see the Console's $$cd$ and $$dir$ commands) "
 	"contains the folder $$data$ and that folder contains those two files. "
 	"Praat will start up, and shows the two files as a Sound and a TextGrid object in the list. "
 	"If Praat was already running when you typed the command, "
@@ -3617,8 +3772,8 @@ DEFINITION (U"Ignore the preferences file and the buttons file at start-up, and 
 TAG (U"##--no-plugins#")
 DEFINITION (U"Don't activate the plugins at start-up.")
 TAG (U"##--pref-dir=#/var/www/praat_plugins")
-DEFINITION (U"Set the preferences directory to /var/www/praat_plugins (for instance). "
-	"This can come in handy if you require access to preference files and/or plugins that are not in your home directory.")
+DEFINITION (U"Set the preferences folder to /var/www/praat_plugins (for instance). "
+	"This can come in handy if you require access to preference files and/or plugins that are not in your home folder.")
 TAG (U"##--version")
 DEFINITION (U"Print the Praat version.")
 TAG (U"##--help")
@@ -3891,7 +4046,7 @@ NORMAL (U"You can run scripts from the @ScriptEditor. If you will have to use th
 NORMAL (U"(You can also run scripts from the command line. See @@Scripting 6.9. Calling from the command line|\\SS6.9@)")
 */
 
-MAN_BEGIN (U"Scripting 9.1. Turning a script into a stand-alone program", U"ppgb", 20150713)
+MAN_BEGIN (U"Scripting 9.1. Turning a script into a stand-alone program", U"ppgb", 20201229)
 INTRO (U"You can turn your script into a double-clickable stand-alone program by including it into Praat's #main procedure. "
 	"If you want to try this, you should already know how to compile and link the Praat program on your computer.")
 NORMAL (U"These stand-alone programs do not show the Objects window and the Picture window; "
@@ -3916,12 +4071,12 @@ NORMAL (U"Note that Praat is distributed under the General Public License (GPL).
 	"a Praat-based stand-alone program, you have to make it open source under the GPL as well.")
 NORMAL (U"See also @@Programming with Praat@.")
 ENTRY (U"Details")
-NORMAL (U"Your program can save its preferences in a directory of its choice, "
+NORMAL (U"Your program can save its preferences in a folder of its choice, "
 	"e.g. in ##'preferencesDirectory\\$ '/../GuineaPigAnalyzer# if your program is called GuineaPigAnalyzer. "
-	"If you want to be less conspicuous and like to use the Praat preferences directory instead, "
-	"please use the ##apps# subdirectory, in this way:")
-CODE (U"createDirectory: preferencesDirectory\\$  + \"/apps\"")
-CODE (U"createDirectory: preferencesDirectory\\$  + \"/apps/GuineaPigAnalyzer\"")
+	"If you want to be less conspicuous and like to use the Praat preferences folder instead, "
+	"please use the ##apps# subfolder, in this way:")
+CODE (U"createFolder: preferencesDirectory\\$  + \"/apps\"")
+CODE (U"createFolder: preferencesDirectory\\$  + \"/apps/GuineaPigAnalyzer\"")
 MAN_END
 
 MAN_BEGIN (U"Scripting 9.2. Old functions", U"ppgb", 20140112)
@@ -3958,12 +4113,12 @@ NORMAL (U"First, we create a ScriptEditor by choosing @@New Praat script@ from t
 LIST_ITEM (U"1. Choose ##Create Sound as pure tone...# from the @@New menu@ and click OK.")
 LIST_ITEM (U"2. Click #Play in the dynamic menu.")
 LIST_ITEM (U"3. Click the fixed #Remove button.")
-NORMAL (U"We then choose @@Paste history@ from the #Edit menu in the ScriptEditor (or type Command-H). "
+NORMAL (U"We then choose @@Paste history@ from the #Edit menu in the ScriptEditor (or type @@Keyboard shortcuts|Command-H@). "
 	"The text will now contain at least the following lines (delete any other lines):")
 CODE (U"Create Sound as pure tone: \"tone\", 1, 0, 0.4, 44100, 440, 0.2, 0.01, 0.01")
 CODE (U"Play")
 CODE (U"Remove")
-NORMAL (U"We can run this script again by choosing #Run from the #Run menu (or typing Command-R). "
+NORMAL (U"We can run this script again by choosing #Run from the #Run menu (or typing @@Keyboard shortcuts|Command-R@). "
 	"However, this always plays a sine with a frequency of 440 Hz, so we will add the variable \"Frequency\" "
 	"to the script, which then looks like:")
 CODE (U"#form Play a sine wave")
@@ -4075,7 +4230,7 @@ NORMAL (U"If you want to see this in a text file, you can copy and paste from th
 CODE (U"appendFile: \"out.txt\", info\\$ ( )")
 MAN_END
 
-MAN_BEGIN (U"Script for listing time\\--F0\\--intensity", U"ppgb", 20140112)
+MAN_BEGIN (U"Script for listing time\\--F0\\--intensity", U"ppgb", 20200912)
 INTRO (U"\"I want a list of pitch and intensity values at the same times.\"")
 NORMAL (U"Since @@Sound: To Pitch...@ and @@Sound: To Intensity...@ do not give values at the same times, "
 	"you create separate pitch and intensity contours with high time resolution, then interpolate. "
@@ -4093,9 +4248,9 @@ CODE (U"writeInfoLine: \"Here are the results:\"")
 CODE (U"for i to (tmax-tmin)/0.01")
 	CODE1 (U"time = tmin + i * 0.01")
 	CODE1 (U"selectObject: \"Pitch pitch\"")
-	CODE1 (U"pitch = Get value at time: time, \"Hertz\", \"Linear\"")
+	CODE1 (U"pitch = Get value at time: time, \"Hertz\", \"linear\"")
 	CODE1 (U"selectObject: \"Intensity intensity\"")
-	CODE1 (U"intensity = Get value at time: time, \"Cubic\"")
+	CODE1 (U"intensity = Get value at time: time, \"cubic\"")
 	CODE1 (U"appendInfoLine: fixed\\$  (time, 2), \" \", fixed\\$  (pitch, 3), \" \", fixed\\$  (intensity, 3)")
 CODE (U"endfor")
 MAN_END
@@ -4142,9 +4297,9 @@ NORMAL (U"The absolute amplitude in volts cannot be handled, of course, but line
 CODE (U"Create Sound from formula: \"sweep\", 1, 0, 60, 44100,")
 CODE (U"... ~ 0.05 * (1 + 11 * x/60) * sin (2*pi * (1000 + 11000/2 * x/60) * x)")
 NORMAL (U"Note the \"/2\" in this formula. Here is the derivation of the formula:")
-FORMULA (U"%frequency (%t) = 1000 + 11000 %t / 60")
-FORMULA (U"%phase (%t) = \\in %frequency (%t) %dt = 1000 %t + 11000 (%t^2/2) / 60")
-FORMULA (U"%signal (%t) = sin (%phase (%t))")
+EQUATION (U"%frequency (%t) = 1000 + 11000 %t / 60")
+EQUATION (U"%phase (%t) = \\in %frequency (%t) %dt = 1000 %t + 11000 (%t^2/2) / 60")
+EQUATION (U"%signal (%t) = sin (%phase (%t))")
 MAN_END
 
 MAN_BEGIN (U"Script for onset detection", U"ppgb", 20140112)
@@ -4174,7 +4329,7 @@ CODE (U"for i to n-1")
 CODE (U"endfor")
 MAN_END
 
-MAN_BEGIN (U"Script for analysing pitch with a TextGrid", U"ppgb", 20141001)
+MAN_BEGIN (U"Script for analysing pitch with a TextGrid", U"ppgb", 20201229)
 INTRO (U"\"I want the mean pitch of every interval that has a non-empty label on tier 5.\"")
 CODE (U"if numberOfSelected (\"Sound\") <> 1 or numberOfSelected (\"TextGrid\") <> 1")
 	CODE1 (U"exitScript: \"Please select a Sound and a TextGrid first.\"")
@@ -4183,8 +4338,7 @@ CODE (U"sound = selected (\"Sound\")")
 CODE (U"textgrid = selected (\"TextGrid\")")
 CODE (U"writeInfoLine: \"Result:\"")
 CODE (U"selectObject: sound")
-CODE (U"To Pitch: 0.0, 75, 600")
-CODE (U"pitch = selected (\"Pitch\")")
+CODE (U"pitch = To Pitch: 0.0, 75, 600")
 CODE (U"selectObject: textgrid")
 CODE (U"n = Get number of intervals: 5")
 CODE (U"for i to n")
@@ -4201,7 +4355,7 @@ CODE (U"endfor")
 CODE (U"selectObject: sound, textgrid")
 MAN_END
 
-MAN_BEGIN (U"Demo window", U"ppgb", 20170327)
+MAN_BEGIN (U"Demo window", U"ppgb", 20201229)
 INTRO (U"The Demo window is a window in which you can draw and ask for user input. "
 	"You can use it for demonstrations, presentations, simulations, adaptive listening experiments, "
 	"and stand-alone programs (see @@Scripting 9.1. Turning a script into a stand-alone program@).")
@@ -4378,8 +4532,7 @@ NORMAL (U"which returns immediately without waiting and will tell you (via e.g. 
 	"whether a mouse or key event happened during drawing or sleeping.")
 ENTRY (U"Miscellaneous")
 NORMAL (U"To see whether any function keys are pressed (during a mouse click or key press), "
-	"you can use ##demoShiftKeyPressed ( )#, ##demoCommandKeyPressed ( )#, ##demoOptionKeyPressed ( )#, and "
-	"##demoExtraControlKeyPressed ( )#.")
+	"you can use ##demoShiftKeyPressed ( )#, ##demoCommandKeyPressed ( )#, and ##demoOptionKeyPressed ( )#.")
 NORMAL (U"To put some text in the title bar of the Demo window, try")
 CODE (U"#demoWindowTitle: \"This is the title of my presentation\"")
 ENTRY (U"Tips and Tricks")
@@ -4394,12 +4547,12 @@ NORMAL (U"If you resize the Demo window with the handle in the bottom left, or i
 NORMAL (U"If you click away the Demo window while it is waiting for input, you get a message saying \"You interrupted the script...\". "
 	"If you do not want to see this message, you should make sure that the user can reach the end of the script, for instance by "
 	"pressing the \\-> key on the last page. To make sure the user sees that the script has ended, you could end it with ##demo Erase all#.")
-NORMAL (U"Your demo can save its preferences in a directory of its choice, "
+NORMAL (U"Your demo can save its preferences in a folder of its choice, "
 	"e.g. in ##'preferencesDirectory\\$ '/../GuineaPigAnalyzer# if your demo is called GuineaPigAnalyzer. "
-	"If you want to be less conspicuous and like to use the Praat preferences directory instead, "
-	"please use the ##apps# subdirectory, in this way:")
-CODE (U"createDirectory: preferencesDirectory\\$  + \"/apps\"")
-CODE (U"createDirectory: preferencesDirectory\\$  + \"/apps/GuineaPigAnalyzer\"")
+	"If you want to be less conspicuous and like to use the Praat preferences folder instead, "
+	"please use the ##apps# subfolder, in this way:")
+CODE (U"createFolder: preferencesDirectory\\$  + \"/apps\"")
+CODE (U"createFolder: preferencesDirectory\\$  + \"/apps/GuineaPigAnalyzer\"")
 MAN_END
 
 }

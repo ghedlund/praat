@@ -1,6 +1,6 @@
 /* Gui_messages.cpp
  *
- * Copyright (C) 1992-2018 Paul Boersma,
+ * Copyright (C) 1992-2018,2020 Paul Boersma,
  *               2008 Stefan de Konink, 2010 Franz Brausse, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
@@ -18,7 +18,6 @@
  */
 
 #include <time.h>
-//#include <ctype.h>
 
 #include <assert.h>
 #ifdef _WIN32
@@ -96,7 +95,7 @@ static bool waitWhileProgress (double progress, conststring32 message, GuiDialog
 		GuiThing_show (dia);   // TODO: prevent raising to the front
 		const char32 *newline = str32chr (message, U'\n');
 		if (newline) {
-			static MelderString buffer { };
+			static MelderString buffer;
 			MelderString_copy (& buffer, message);
 			buffer.string [newline - message] = U'\0';
 			GuiLabel_setText (label1, buffer.string);
@@ -202,7 +201,8 @@ static void gui_progress (double progress, conststring32 message) {
 static autoGraphics graphics;
 
 static void gui_drawingarea_cb_expose (Thing /* boss */, GuiDrawingArea_ExposeEvent /* event */) {
-	if (! graphics) return;
+	if (! graphics)
+		return;
 	Graphics_play (graphics.get(), graphics.get());
 }
 
@@ -219,12 +219,16 @@ static void * gui_monitor (double progress, conststring32 message) {
 	{
 		if (! dia) {
 			_Melder_dia_init (& dia, & scale, & label1, & label2, & cancelButton, true);
-			drawingArea = GuiDrawingArea_createShown (dia, 0, 400, 230, 430, gui_drawingarea_cb_expose, nullptr, nullptr, nullptr, nullptr, 0);
+			drawingArea = GuiDrawingArea_createShown (dia, 0, 400, 230, 430,
+					gui_drawingarea_cb_expose, nullptr, nullptr, nullptr, nullptr, 0);
 			GuiThing_show (dia);
 			graphics = Graphics_create_xmdrawingarea (drawingArea);
 		}
-		if (graphics)
-			Graphics_flushWs (graphics.get());
+		if (progress <= 0.0 && graphics) {
+			Graphics_clearRecording (graphics.get());
+			Graphics_startRecording (graphics.get());
+			Graphics_clearWs (graphics.get());
+		}
 		if (! waitWhileProgress (progress, message, dia, scale, label1, label2, cancelButton))
 			Melder_throw (U"Interrupted!");
 		lastTime = now;
@@ -237,7 +241,7 @@ static void * gui_monitor (double progress, conststring32 message) {
 #if cocoa
 	static void mac_message (NSAlertStyle macAlertType, conststring32 message32) {
 		static char16 message16 [4000];
-		int messageLength = str32len (message32);
+		integer messageLength = str32len (message32);
 		uinteger j = 0;
 		for (int i = 0; i < messageLength && j <= 4000 - 3; i ++) {
 			char32 kar = message32 [i];
@@ -252,10 +256,10 @@ static void * gui_monitor (double progress, conststring32 message) {
 		message16 [j] = u'\0';   // append null byte because we are going to search this string
 
 		/*
-		 * Split up the message between header (will appear in bold) and rest.
-		 * The split is done at the first line break, except if the first line ends in a colon,
-		 * in which case the split is done at the second line break.
-		 */
+			Split up the message between header (will appear in bold) and rest.
+			The split is done at the first line break, except if the first line ends in a colon,
+			in which case the split is done at the second line break.
+		*/
 		const char16 *lineBreak = & message16 [0];
 		for (; *lineBreak != u'\0'; lineBreak ++) {
 			if (*lineBreak == u'\n') {
@@ -271,21 +275,21 @@ static void * gui_monitor (double progress, conststring32 message) {
 		}
 		uinteger lengthOfFirstSentence = (uinteger) (lineBreak - message16);
 		/*
-		 * Create an alert dialog with an icon that is appropriate for the level.
-		 */
+			Create an alert dialog with an icon that is appropriate for the level.
+		*/
 		NSAlert *alert = [[NSAlert alloc] init];
 		[alert setAlertStyle: macAlertType];
 		/*
-		 * Add the header in bold.
-		 */
+			Add the header in bold.
+		*/
 		NSString *header = [[NSString alloc] initWithCharacters: (const unichar *) & message16 [0]   length: lengthOfFirstSentence];   // note: init can change the object pointer!
 		if (header) {   // make this very safe, because we can be at error time or at fatal time
 			[alert setMessageText: header];
 			[header release];
 		}
 		/*
-		 * Add the rest of the message in small type.
-		 */
+			Add the rest of the message in small type.
+		*/
 		if (lengthOfFirstSentence < j) {
 			NSString *rest = [[NSString alloc] initWithCharacters: (const unichar *) & lineBreak [1]   length: j - 1 - lengthOfFirstSentence];
 			if (rest) {   // make this very safe, because we can be at error time or at fatal time
@@ -294,8 +298,12 @@ static void * gui_monitor (double progress, conststring32 message) {
 			}
 		}
 		/*
-		 * Display the alert dialog and synchronously wait for the user to click OK.
-		 */
+			Display the alert dialog and synchronously wait for the user to click OK.
+			But: it is not impossible that the program crashes during `runModal`,
+			especially if `runModal` is called at expose time.
+			Write the message to stdout just in case.
+		*/
+		Melder_casual (message32);
 		[alert runModal];
 		[alert release];
 	}
@@ -321,9 +329,8 @@ static void gui_fatal (conststring32 message) {
 
 static void gui_error (conststring32 message) {
 	bool memoryIsLow = str32str (message, U"Out of memory");
-	if (memoryIsLow) {
+	if (memoryIsLow)
 		free (theMessageFund);
-	}
 	#if gtk
 		trace (U"create dialog");
 		GuiObject dialog = gtk_message_dialog_new (GTK_WINDOW (Melder_topShell -> d_gtkWindow), GTK_DIALOG_DESTROY_WITH_PARENT,

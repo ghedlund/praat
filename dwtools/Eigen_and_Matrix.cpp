@@ -35,9 +35,8 @@ autoMatrix Eigen_extractEigenvector (Eigen me, integer index, integer numberOfRo
 		Melder_require (numberOfRows * numberOfColumns == my dimension,
 			U"The number of rows times the number of columns should be equal to the dimension of the eigenvectors.");
 		autoMatrix thee = Matrix_createSimple (numberOfRows, numberOfColumns);
-		integer i = 1;
 		for (integer irow = 1; irow <= numberOfRows; irow ++)
-			thy z.row (irow) <<= my eigenvectors [index].part ((irow - 1) * numberOfColumns + 1, irow * numberOfColumns);
+			thy z.row (irow)  <<=  my eigenvectors [index].part ((irow - 1) * numberOfColumns + 1, irow * numberOfColumns);
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U"No eigenvector extracted.");
@@ -49,11 +48,11 @@ autoMatrix Eigen_Matrix_to_Matrix_projectRows (Eigen me, Matrix thee, integer nu
 		if (numberOfDimensionsToKeep <= 0 || numberOfDimensionsToKeep > my numberOfEigenvalues) {
 			numberOfDimensionsToKeep = my numberOfEigenvalues;
 		}
-		Melder_require (thy nx == my dimension, 
+		Melder_require (thy nx == my dimension,
 			U"The number of columns (", thy nx, U") should equal the size of the eigenvectors (", my dimension, U").");
 		
 		autoMatrix him = Matrix_create (0.5, 0.5 + numberOfDimensionsToKeep, numberOfDimensionsToKeep, 1.0, 1.0, thy ymin, thy ymax, thy ny, thy dy, thy y1);
-		MATmul (his z.get(), thy z.get(), my eigenvectors.horizontalBand (1, numberOfDimensionsToKeep).transpose());
+		mul_MAT_out (his z.get(), thy z.get(), my eigenvectors.horizontalBand (1, numberOfDimensionsToKeep).transpose());
 		return him;
 	} catch (MelderError) {
 		Melder_throw (U"Projection Matrix from ", me, U" and ", thee, U" not created.");
@@ -62,10 +61,10 @@ autoMatrix Eigen_Matrix_to_Matrix_projectRows (Eigen me, Matrix thee, integer nu
 
 autoMatrix Eigen_Matrix_to_Matrix_projectColumns (Eigen me, Matrix thee, integer numberOfDimensionsToKeep) {
 	try {
-		if (numberOfDimensionsToKeep <= 0 || numberOfDimensionsToKeep > my numberOfEigenvalues) {
+		if (numberOfDimensionsToKeep <= 0 || numberOfDimensionsToKeep > my numberOfEigenvalues)
 			numberOfDimensionsToKeep = my numberOfEigenvalues;
-		}
-		Melder_require (thy nx == my dimension, 
+
+		Melder_require (thy nx == my dimension,
 			U"The number of rows (", thy ny, U") should equal the size of the eigenvectors (", my dimension, U").");
 		
 		autoMatrix him = Matrix_create (thy xmin, thy xmax, thy nx, thy dx, thy x1, 0.5, 0.5 + numberOfDimensionsToKeep, numberOfDimensionsToKeep, 1.0, 1.0);

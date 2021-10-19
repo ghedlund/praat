@@ -1,7 +1,7 @@
 #pragma once
 /* STRVEC.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +17,47 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-inline STRVEC STRVECfromTo (STRVEC strvec, integer fromIndex, integer toIndex) {
-	integer offsetIndex = fromIndex - 1;
-	Melder_assert (offsetIndex >= 0);
-	Melder_assert (toIndex <= strvec.size);
-	integer rangeSize = toIndex - offsetIndex;
-	if (rangeSize <= 0) return STRVEC();
-	return STRVEC (& strvec [offsetIndex], toIndex - offsetIndex);
-}
+autoSTRVEC fileNames_STRVEC (conststring32 path /* cattable */);
 
-inline constSTRVEC STRVECfromTo (constSTRVEC strvec, integer fromIndex, integer toIndex) {
-	integer offsetIndex = fromIndex - 1;
-	Melder_assert (offsetIndex >= 0);
-	Melder_assert (toIndex <= strvec.size);
-	integer rangeSize = toIndex - offsetIndex;
-	if (rangeSize <= 0) return constSTRVEC();
-	return constSTRVEC (& strvec [offsetIndex], rangeSize);
-}
+autoSTRVEC folderNames_STRVEC (conststring32 path /* cattable */);
+
+autoSTRVEC readLinesFromFile_STRVEC (MelderFile file);
+
+autoSTRVEC shuffle_STRVEC (STRVEC const& x);
+void shuffle_STRVEC_inout (STRVEC const& x) noexcept;
+
+autoSTRVEC sort_STRVEC (STRVEC const& a);
+void sort_STRVEC_inout (STRVEC const& a) noexcept;
 
 /*
 	Regard a string as a sequence of tokens,
 	separated (and perhaps preceded and followed) by white space.
 	The tokens cannot contain spaces themselves (there are no escapes).
 */
-autostring32vector newSTRVECtokenize (conststring32 string);
+autoSTRVEC splitByWhitespace_STRVEC (conststring32 string);
+
+/*
+	Regard a string as a sequence of tokens,
+	separated by commas (or another separator) according to RFC 1480.
+	Each token is optionally surrounded by double quotes,
+	in which case the token can contain a comma itself,
+	or even a double quote (which should be doubled to escape it),
+	or even a line separator.
+	Well-formed:
+		abc,"def" -> first token is abc, second token is def
+		abc,"""def""" -> first token is abc, second token is "def"
+		abc,"def""ghi" -> first token is abc, second token is def"ghi
+	Ill-formed:
+		abc,"def"ghi -> non-terminated quoted string
+		abc,def"ghi -> a quote in an unquoted string
+		abc,"def"ghi" -> second token def not followed by comma or end
+	Note that in a quoted string in PraatScript,
+		abc,"""def"""
+	would have to be written as
+		"abc,""""""def"""""""
+	in which case it would be much easier (if possible) to use a string vector:
+		{ "abc", """def""" }
+*/
+autoSTRVEC splitBy_STRVEC (conststring32 string, conststring32 separator);
 
 /* End of file STRVEC.h */

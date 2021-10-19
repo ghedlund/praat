@@ -1,6 +1,6 @@
 /* PatternList.cpp
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,16 +36,10 @@ bool _PatternList_checkElements (PatternList me) {
 	return true;
 }
 
-void PatternList_init (PatternList me, integer ny, integer nx) {
-	my ny = ny;
-	my nx = nx;
-	Matrix_init (me, 1, nx, nx, 1, 1, 1, ny, ny, 1, 1);
-}
-
 autoPatternList PatternList_create (integer ny, integer nx) {
 	try {
 		autoPatternList me = Thing_new (PatternList);
-		PatternList_init (me.get(), ny, nx);
+		Matrix_init (me.get(), 1, nx, nx, 1, 1, 1, ny, ny, 1, 1);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"PatternList not created.");
@@ -59,10 +53,9 @@ void PatternList_normalize (PatternList me, int choice, double pmin, double pmax
 		return;
 
 	if (choice == 1) {
-		for (integer i = 1; i <= my ny; i ++) {
+		for (integer i = 1; i <= my ny; i ++)
 			for (integer j = 1; j <= my nx; j ++)
 				my z [i] [j] = (my z [i] [j] - pmin) / (pmax - pmin);
-		}
 	} else { /* default choice */
 		for (integer i = 1; i <= my ny; i ++) {
 			double sum = 0;
@@ -74,7 +67,7 @@ void PatternList_normalize (PatternList me, int choice, double pmin, double pmax
 	}
 }
 
-void PatternList_draw (PatternList me, Graphics g, integer pattern, double xmin, double xmax, double ymin, double ymax, int garnish) {
+void PatternList_draw (PatternList me, Graphics g, integer pattern, double xmin, double xmax, double ymin, double ymax, bool garnish) {
 	Matrix_drawRows (me, g, xmin, xmax, pattern - 0.5, pattern + 0.5, ymin, ymax);
 	if (garnish) {
 		Graphics_drawInnerBox (g);
@@ -86,8 +79,8 @@ void PatternList_draw (PatternList me, Graphics g, integer pattern, double xmin,
 autoPatternList Matrix_to_PatternList (Matrix me, integer join) {
 	try {
 		if (join < 1) join = 1;
-		Melder_require (my ny % join == 0, U"Number of rows should be a multiple of join factor.");
-
+		Melder_require (my ny % join == 0,
+			U"Number of rows should be a multiple of join factor.");
 		autoPatternList thee = PatternList_create (my ny / join, join * my nx);
 
 		integer r = 0, c = 1;

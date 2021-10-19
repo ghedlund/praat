@@ -2,7 +2,7 @@
 #define _Interpreter_h_
 /* Interpreter.h
  *
- * Copyright (C) 1993-2018 Paul Boersma
+ * Copyright (C) 1993-2018,2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,11 @@
 #include "praatlib.h"
 
 Thing_define (InterpreterVariable, SimpleString) {
-	autostring32 stringValue;
-	double numericValue;
-	autoVEC numericVectorValue;
-	autoMAT numericMatrixValue;
+	double numericValue;   // a variable whose name has no suffix: a real, an integer, or a boolean
+	autostring32 stringValue;   // a variable whose name has the suffix "$"
+	autoVEC numericVectorValue;   // a variable whose name has the suffix "#"
+	autoMAT numericMatrixValue;   // a variable whose name has the suffix "##"
+	autoSTRVEC stringArrayValue;   // a variable whose name has the suffix "$#"
 };
 
 #define Interpreter_MAXNUM_PARAMETERS  400
@@ -44,12 +45,40 @@ Thing_define (InterpreterVariable, SimpleString) {
 Thing_declare (UiForm);
 Thing_declare (Editor);
 
+enum class kInterpreter_ReturnType {
+	VOID_ = 0,   // don't change; this is how it is automatically zero-initialized in structInterpreter
+	OBJECT_,
+
+	/*
+		The following three are not distinguished in PraatScript,
+		but they may need to be distinguished in PraatLib (for C, Python, R).
+	*/
+	REAL_,
+	INTEGER_,
+	BOOLEAN_,
+
+	STRING_,
+
+	/*
+		The following two are not distinguished in PraatScript,
+		but they may need to be distinguished in PraatLib (for C, Python, R).
+	*/
+	REALVECTOR_,
+	INTEGERVECTOR_,
+
+	REALMATRIX_,
+	STRINGARRAY_
+};
+
+conststring32 kInterpreter_ReturnType_errorMessage (kInterpreter_ReturnType returnType, conststring32 command);
+
 Thing_define (Interpreter, Thing) {
 	autostring32 environmentName;
 	ClassInfo editorClass;
 	int numberOfParameters, numberOfLabels, callDepth;
-	char32 parameters [1+Interpreter_MAXNUM_PARAMETERS] [100];
 	int types [1+Interpreter_MAXNUM_PARAMETERS];
+	char32 parameters [1+Interpreter_MAXNUM_PARAMETERS] [100];
+	char32 formats [1+Interpreter_MAXNUM_PARAMETERS] [40];
 	autostring32 arguments [1+Interpreter_MAXNUM_PARAMETERS];
 	char32 choiceArguments [1+Interpreter_MAXNUM_PARAMETERS] [100];
 	char32 labelNames [1+Interpreter_MAXNUM_LABELS] [1+Interpreter_MAX_LABEL_LENGTH];
@@ -57,6 +86,14 @@ Thing_define (Interpreter, Thing) {
 	char32 dialogTitle [1+Interpreter_MAX_DIALOG_TITLE_LENGTH], procedureNames [1+Interpreter_MAX_CALL_DEPTH] [100];
 	std::unordered_map <std::u32string, autoInterpreterVariable> variablesMap;
 	bool running, stopped;
+
+	kInterpreter_ReturnType returnType;   // automatically initialized as kInterpreter_ReturnType::VOID_
+	bool returnedBoolean;
+	autostring32 returnedString;
+	autoVEC returnedRealVector;
+	autoINTVEC returnedIntegerVector;
+	autoMAT returnedRealMatrix;
+	autoSTRVEC returnedStringArray;
 };
 
 PRAAT_LIB_EXPORT autoInterpreter Interpreter_create (conststring32 environmentName, ClassInfo editorClass);
@@ -79,13 +116,11 @@ void Interpreter_numericExpression (Interpreter me, conststring32 expression, do
 void Interpreter_numericVectorExpression (Interpreter me, conststring32 expression, VEC *p_value, bool *p_owned);
 void Interpreter_numericMatrixExpression (Interpreter me, conststring32 expression, MAT *p_value, bool *p_owned);
 autostring32 Interpreter_stringExpression (Interpreter me, conststring32 expression);
+void Interpreter_stringArrayExpression (Interpreter me, conststring32 expression, STRVEC *out_value, bool *out_owned);
 void Interpreter_anyExpression (Interpreter me, conststring32 expression, Formula_Result *p_result);
 
 InterpreterVariable Interpreter_hasVariable (Interpreter me, conststring32 key);
 InterpreterVariable Interpreter_lookUpVariable (Interpreter me, conststring32 key);
-
-extern autoVEC theInterpreterNumvec;
-extern autoMAT theInterpreterNummat;
 
 /* End of file Interpreter.h */
 #endif

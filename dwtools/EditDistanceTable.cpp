@@ -1,6 +1,6 @@
 /* EditDistanceTable.c
  *
- * Copyright (C) 2012-2019 David Weenink
+ * Copyright (C) 2012-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ Thing_implement (WarpingPath, Daata, 0);
 autoWarpingPath WarpingPath_create (integer length) {
 	try {
 		autoWarpingPath me = Thing_new (WarpingPath);
-		my path = NUMvector<structPairOfInteger> (1, length);
+		my path = newvectorzero <structPairOfInteger> (length);
 		my _capacity = my pathLength = length;
 		return me;
 	} catch (MelderError) {
@@ -114,9 +114,8 @@ integer WarpingPath_getColumnsFromRowIndex (WarpingPath me, integer iy, integer 
 			if (my path [i]. y < iy) {
 				continue;
 			} else if (my path [i]. y == iy) {
-				if (ix1 == 0) {
+				if (ix1 == 0)
 					ix1 = my path [i]. x;
-				}
 				ix2 = my path [i]. x;
 			} else {
 				break;
@@ -221,7 +220,7 @@ integer EditCostsTable_getSourceIndex (EditCostsTable me, conststring32 symbol) 
 }
 
 void EditCostsTable_setInsertionCosts (EditCostsTable me, conststring32 targets_string, double cost) {
-	autostring32vector targets = newSTRVECtokenize (targets_string);
+	autoSTRVEC targets = splitByWhitespace_STRVEC (targets_string);
 	for (integer itarget = 1; itarget <= targets.size; itarget ++) {
 		integer irow = EditCostsTable_getTargetIndex (me, targets [itarget].get());
 		irow = ( irow > 0 ? irow : my numberOfRows - 1 );   // nomatch condition to penultimate row
@@ -230,7 +229,7 @@ void EditCostsTable_setInsertionCosts (EditCostsTable me, conststring32 targets_
 }
 
 void EditCostsTable_setDeletionCosts (EditCostsTable me, conststring32 sources_string, double cost) {
-	autostring32vector sources = newSTRVECtokenize (sources_string);
+	autoSTRVEC sources = splitByWhitespace_STRVEC (sources_string);
 	for (integer isource = 1; isource <= sources.size; isource ++) {
 		integer icol = EditCostsTable_getSourceIndex (me, sources [isource].get());
 		icol = ( icol > 0 ? icol : my numberOfColumns - 1 );   // nomatch condition to penultimate column
@@ -254,13 +253,13 @@ double EditCostsTable_getOthersCost (EditCostsTable me, int costType) {
 
 void EditCostsTable_setSubstitutionCosts (EditCostsTable me, conststring32 targets_string, conststring32 sources_string, double cost) {
 	try {
-		autostring32vector targets = newSTRVECtokenize (targets_string);
-		autostring32vector sources = newSTRVECtokenize (sources_string);
-		autoNUMvector<integer> targetIndex (1, my numberOfRows);
-		autoNUMvector<integer> sourceIndex (1, my numberOfRows);
+		autoSTRVEC targets = splitByWhitespace_STRVEC (targets_string);
+		autoSTRVEC sources = splitByWhitespace_STRVEC (sources_string);
+		autoINTVEC targetIndex = zero_INTVEC (my numberOfRows);   // note: this includes zero padding
+		autoINTVEC sourceIndex = zero_INTVEC (my numberOfRows);   // note: this includes zero padding
 		integer numberOfTargetSymbols = 0;
 		for (integer itarget = 1; itarget <= targets.size; itarget ++) {
-			integer index = EditCostsTable_getTargetIndex (me, targets [itarget].get());
+			const integer index = EditCostsTable_getTargetIndex (me, targets [itarget].get());
 			if (index > 0)
 				targetIndex [++ numberOfTargetSymbols] = index;
 		}
@@ -268,14 +267,14 @@ void EditCostsTable_setSubstitutionCosts (EditCostsTable me, conststring32 targe
 			targetIndex [++ numberOfTargetSymbols] = my numberOfRows - 1;
 		integer numberOfSourceSymbols = 0;
 		for (integer isource = 1; isource <= sources.size; isource ++) {
-			integer index = EditCostsTable_getSourceIndex (me, sources [isource].get());
+			const integer index = EditCostsTable_getSourceIndex (me, sources [isource].get());
 			if (index > 0)
 				sourceIndex [++ numberOfSourceSymbols] = index;
 		}
 		if (numberOfSourceSymbols == 0)
 			sourceIndex [++ numberOfSourceSymbols] = my numberOfColumns - 1;
 		for (integer i = 1; i <= numberOfTargetSymbols; i ++) {
-			integer irow = targetIndex [i];
+			const integer irow = targetIndex [i];
 			for (integer j = 1; j <= numberOfSourceSymbols; j ++)
 				my data [irow] [sourceIndex [j]] = cost;
 		}
@@ -316,9 +315,9 @@ double EditCostsTable_getSubstitutionCost (EditCostsTable me, conststring32 symb
 autoTableOfReal EditCostsTable_to_TableOfReal (EditCostsTable me) {
 	try {
 		autoTableOfReal thee = TableOfReal_create (my numberOfRows, my numberOfColumns);
-		thy columnLabels.all() <<= my columnLabels.all();
-		thy rowLabels.all() <<= my rowLabels.all();
-		thy data.all() <<= my data.all();
+		thy columnLabels.all()  <<=  my columnLabels.all();
+		thy rowLabels.all()  <<=  my rowLabels.all();
+		thy data.all()  <<=  my data.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to TableOfReal.");
@@ -336,7 +335,7 @@ void structEditDistanceTable :: v_info () {
 autoEditDistanceTable EditDistanceTable_create (Strings target, Strings source) {
 	try {
 		autoEditDistanceTable me = Thing_new (EditDistanceTable);
-		integer numberOfSourceSymbols = source -> numberOfStrings, numberOfTargetSymbols = target -> numberOfStrings;
+		const integer numberOfSourceSymbols = source -> numberOfStrings, numberOfTargetSymbols = target -> numberOfStrings;
 		TableOfReal_init (me.get(), numberOfTargetSymbols + 1, numberOfSourceSymbols + 1);
 		TableOfReal_setColumnLabel (me.get(), 1, U"");
 		for (integer j = 1; j <= numberOfSourceSymbols; j ++)
@@ -373,7 +372,7 @@ autoEditDistanceTable EditDistanceTable_createFromCharacterStrings (const char32
 }
 
 static void NUMrationalize (double x, integer *numerator, integer *denominator) {
-	double epsilon = 1e-6;
+	constexpr double epsilon = 1e-6;
 	*numerator = 1;
 	for (*denominator = 1; *denominator <= 100000; (*denominator) ++) {
 		double numerator_d = x * *denominator, rounded = round (numerator_d);
@@ -415,11 +414,12 @@ static void print4 (char *buffer, double value, int iformat, int width, int prec
 
 static double getMaxRowLabelWidth (TableOfReal me, Graphics graphics, integer rowmin, integer rowmax) {
 	double maxWidth = 0.0;
-	if (! my rowLabels) return 0.0;
+	if (! my rowLabels)
+		return 0.0;
 	fixRows (me, & rowmin, & rowmax);
 	for (integer irow = rowmin; irow <= rowmax; irow ++) {
 		if (my rowLabels [irow] && my rowLabels [irow] [0]) {
-			double textWidth = Graphics_textWidth_ps (graphics, my rowLabels [irow].get(), true);   /* SILIPA is bigger than XIPA */
+			const double textWidth = Graphics_textWidth_ps (graphics, my rowLabels [irow].get(), true);   /* SILIPA is bigger than XIPA */
 			if (textWidth > maxWidth) {
 				maxWidth = textWidth;
 			}
@@ -437,23 +437,23 @@ static double getLineSpacing (Graphics graphics) {
 }
 
 void EditDistanceTable_draw (EditDistanceTable me, Graphics graphics, int iformat, int precision, double angle) {
-	integer rowmin = 1, rowmax = my numberOfRows;
+	const integer rowmin = 1, rowmax = my numberOfRows;
 	Graphics_setInner (graphics);
 	Graphics_setWindow (graphics, 0.5, my numberOfColumns + 0.5, 0.0, 1.0);
-	double leftMargin = getLeftMargin (graphics);   // not earlier!
-	double lineSpacing = getLineSpacing (graphics);   // not earlier!
-	double maxTextWidth = getMaxRowLabelWidth (me, graphics, rowmin, rowmax);
+	const double leftMargin = getLeftMargin (graphics);   // not earlier!
+	const double lineSpacing = getLineSpacing (graphics);   // not earlier!
+	const double maxTextWidth = getMaxRowLabelWidth (me, graphics, rowmin, rowmax);
 	double y = 1.0 + 0.1 * lineSpacing;
-	autoBOOLMAT onPath = newBOOLMATzero (my numberOfRows, my numberOfColumns);
+	autoBOOLMAT onPath = zero_BOOLMAT (my numberOfRows, my numberOfColumns);
 	for (integer i = 1; i <= my warpingPath -> pathLength; i ++) {
-		structPairOfInteger poi = my warpingPath -> path [i];
+		const structPairOfInteger poi = my warpingPath -> path [i];
 		onPath [poi.y] [poi.x] = true;
 	}
 	for (integer irow = my numberOfRows; irow > 0; irow --) {
 		Graphics_setTextAlignment (graphics, Graphics_RIGHT, Graphics_HALF);
 		if (my rowLabels && my rowLabels [irow] && my rowLabels [irow] [0])
 			Graphics_text (graphics, 0.5 - leftMargin, y, my rowLabels [irow].get());
-		Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_HALF);
+		Graphics_setTextAlignment (graphics, kGraphics_horizontalAlignment::CENTRE, Graphics_HALF);
 		for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
 			char text [40];
 			print4 (text, my data [irow] [icol], iformat, 0, precision);
@@ -479,7 +479,7 @@ void EditDistanceTable_draw (EditDistanceTable me, Graphics graphics, int iforma
 		Graphics_setTextAlignment (graphics, Graphics_RIGHT, Graphics_HALF);
 		y -= 0.3 * lineSpacing;
 	} else {
-		Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_TOP);
+		Graphics_setTextAlignment (graphics, kGraphics_horizontalAlignment::CENTRE, Graphics_TOP);
 	}
 	for (integer icol = 1; icol <= my numberOfColumns; icol ++) {
 		if (my columnLabels && my columnLabels [icol] && my columnLabels [icol] [0])
@@ -492,14 +492,14 @@ void EditDistanceTable_draw (EditDistanceTable me, Graphics graphics, int iforma
 }
 
 void EditDistanceTable_drawEditOperations (EditDistanceTable me, Graphics graphics) {
-	conststring32 oinsertion = U"i", insertion = U"*", odeletion = U"d", deletion = U"*", osubstitution = U"s", oequal = U"";
-	Graphics_setWindow (graphics, 0.5, my warpingPath -> pathLength - 0.5, 0, 1); // pathLength-1 symbols
-	double lineSpacing = getLineSpacing (graphics);
-	double ytarget = 1 - lineSpacing, ysource = ytarget - 2 * lineSpacing, yoper = ysource - lineSpacing;
-	Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_BOTTOM);
+	const conststring32 oinsertion = U"i", insertion = U"*", odeletion = U"d", deletion = U"*", osubstitution = U"s", oequal = U"";
+	Graphics_setWindow (graphics, 0.5, my warpingPath -> pathLength - 0.5, 0.0, 1.0); // pathLength-1 symbols
+	const double lineSpacing = getLineSpacing (graphics);
+	const double ytarget = 1 - lineSpacing, ysource = ytarget - 2 * lineSpacing, yoper = ysource - lineSpacing;
+	Graphics_setTextAlignment (graphics, kGraphics_horizontalAlignment::CENTRE, Graphics_BOTTOM);
 	for (integer i = 2; i <= my warpingPath -> pathLength; i ++) {
-		structPairOfInteger p = my warpingPath -> path [i], p1 = my warpingPath -> path [i - 1];
-		double x = i - 1;
+		const structPairOfInteger p = my warpingPath -> path [i], p1 = my warpingPath -> path [i - 1];
+		const double x = i - 1;
 		if (p.x == p1.x) { // insertion
 			Graphics_text (graphics, x, ytarget, my rowLabels [p.y].get());
 			Graphics_text (graphics, x, ysource, deletion);
@@ -535,9 +535,9 @@ void EditDistanceTable_findPath (EditDistanceTable me, autoTableOfReal *out_dire
 		 * Target vertical, source horizontal
 		 * Going in the vertical direction is a deletion, horizontal is insertion, diagonal is substitution
 		 */
-		integer numberOfSources = my numberOfColumns - 1, numberOfTargets = my numberOfRows - 1;
-		autoINTMAT psi = newINTMATzero (my numberOfRows, my numberOfColumns);
-		autoMAT delta = newMATzero (my numberOfRows, my numberOfColumns);
+		const integer numberOfSources = my numberOfColumns - 1, numberOfTargets = my numberOfRows - 1;
+		autoINTMAT psi = zero_INTMAT (my numberOfRows, my numberOfColumns);
+		autoMAT delta = zero_MAT (my numberOfRows, my numberOfColumns);
 
 		for (integer icol = 2; icol <= my numberOfColumns; icol ++) {
 			delta [1] [icol] = delta [1] [icol - 1] + EditCostsTable_getDeletionCost (my editCostsTable.get(), my columnLabels [icol].get());
@@ -550,9 +550,9 @@ void EditDistanceTable_findPath (EditDistanceTable me, autoTableOfReal *out_dire
 		for (integer icol = 2; icol <= my numberOfColumns; icol ++) {
 			for (integer irow = 2; irow <= my numberOfRows; irow ++) {
 				// the substitution, deletion and insertion costs.
-				double left = delta [irow] [icol - 1] +
+				const double left = delta [irow] [icol - 1] +
 						EditCostsTable_getInsertionCost (my editCostsTable.get(), my rowLabels [irow].get());
-				double bottom = delta [irow - 1] [icol] +
+				const double bottom = delta [irow - 1] [icol] +
 						EditCostsTable_getDeletionCost (my editCostsTable.get(), my columnLabels [icol].get());
 				double mindist = delta [irow - 1] [icol - 1] +
 						EditCostsTable_getSubstitutionCost (my editCostsTable.get(), my rowLabels [irow].get(), my columnLabels [icol].get()); // diag
@@ -569,12 +569,12 @@ void EditDistanceTable_findPath (EditDistanceTable me, autoTableOfReal *out_dire
 			}
 		}
 		// find minimum distance in last column
-		integer iy = numberOfTargets, ix = numberOfSources;
+		const integer iy = numberOfTargets, ix = numberOfSources;
 		WarpingPath_reset (my warpingPath.get());
 		WarpingPath_getPath (my warpingPath.get(), psi.get(), iy, ix);
 		WarpingPath_shiftPathByOne (my warpingPath.get());
 
-		my data.all() <<= delta.all();
+		my data.all()  <<=  delta.all();
 
 		if (out_directions) {
 			autoTableOfReal him = EditDistanceTable_to_TableOfReal (me);
@@ -591,9 +591,9 @@ void EditDistanceTable_findPath (EditDistanceTable me, autoTableOfReal *out_dire
 autoTableOfReal EditDistanceTable_to_TableOfReal (EditDistanceTable me) {
 	try {
 		autoTableOfReal thee = TableOfReal_create (my numberOfRows, my numberOfColumns);
-		thy columnLabels.all() <<= my columnLabels.all();
-		thy rowLabels.all() <<= my rowLabels.all();
-		thy data.all() <<= my data.all();
+		thy columnLabels.all()  <<=  my columnLabels.all();
+		thy rowLabels.all()  <<=  my rowLabels.all();
+		thy data.all()  <<=  my data.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no TableOfReal created.");

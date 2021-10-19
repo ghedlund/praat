@@ -2,7 +2,7 @@
 #define _TextGrid_h_
 /* TextGrid.h
  *
- * Copyright (C) 1992-2012,2014,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2018,2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,6 +86,7 @@ PRAAT_LIB_EXPORT TextTier TextGrid_checkSpecifiedTierIsPointTier (TextGrid me, i
 #ifdef PRAAT_LIB
 PRAAT_LIB_EXPORT void TextGrid_removeTier (TextGrid me, integer tierNumber);
 #endif
+void AnyTextGridTier_identifyClass (Function anyTextGridTier, IntervalTier *intervalTier, TextTier *textTier);
 
 PRAAT_LIB_EXPORT void TextGrid_addTier_copy (TextGrid me, Function tier);
 autoTextGrid TextGrids_merge (OrderedOf<structTextGrid>* textGrids);

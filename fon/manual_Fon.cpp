@@ -1,6 +1,6 @@
 /* manual_Fon.cpp
  *
- * Copyright (C) 1992-2008,2010,2011,2014-2017 Paul Boersma
+ * Copyright (C) 1992-2008,2010,2011,2014-2017,2019-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@ static void draw_CreateDurationTier (Graphics g) {
 	Graphics_marksLeftEvery (g, 1.0, 1.0, true, true, false);
 	Graphics_marksBottomEvery (g, 1.0, 0.1, true, true, false);
 	Graphics_setInner (g);
-	Graphics_setColour (g, Graphics_RED);
+	Graphics_setColour (g, Melder_RED);
 	Graphics_polyline (g, 5, x, y);
-	Graphics_setColour (g, Graphics_BLACK);
+	Graphics_setColour (g, Melder_BLACK);
 	Graphics_unsetInner (g);
 	Graphics_textBottom (g, true, U"Time (s)");
 	Graphics_textLeft (g, true, U"Relative duration");
@@ -183,12 +183,12 @@ TAG (U"##Density (Hz)")
 DEFINITION (U"the average number of points per second.")
 ENTRY (U"Algorithm")
 NORMAL (U"First, the number of points %N in the time domain is determined. Its expectation value is")
-FORMULA (U"%λ = (%t__%max_ – %t__%min_) · %density")
+EQUATION (U"%λ = (%t__%max_ – %t__%min_) · %density")
 NORMAL (U"but its actual value is taken from the Poisson distribution:")
-FORMULA (U"%p(%n) = (%%λ^n% / %n!) %e^^–%λ")
+EQUATION (U"%p(%n) = (%%λ^n% / %n!) %e^^–%λ")
 NORMAL (U"Then, %N points are computed throughout the time domain, according to a uniform distribution:")
-FORMULA (U"%p(%t) = 1 / (%t__%max_ – %t__%min_)   for %t ∈ [%t__%min_, %t__%max_]")
-FORMULA (U"%p(%t) = 0   outside [%t__%min_, %t__%max_]")
+EQUATION (U"%p(%t) = 1 / (%t__%max_ – %t__%min_)   for %t ∈ [%t__%min_, %t__%max_]")
+EQUATION (U"%p(%t) = 0   outside [%t__%min_, %t__%max_]")
 MAN_END
 
 MAN_BEGIN (U"Create simple Matrix...", U"ppgb", 20021204)
@@ -196,13 +196,13 @@ INTRO (U"A command in the @@New menu@ to create a @Matrix with the specified num
 	"filled with values from a formula (see @@Matrix: Formula...@).")
 MAN_END
 
-MAN_BEGIN (U"Create Strings as directory list...", U"ppgb", 20060919)
+MAN_BEGIN (U"Create Strings as folder list...", U"ppgb", 20201226)
 INTRO (U"A command in the @@New menu@ to create a @Strings object containing a list of directories in a given parent directory. "
 	"It works completely analogously to @@Create Strings as file list...@.")
 MAN_END
 
-MAN_BEGIN (U"Create Strings as file list...", U"ppgb", 20150713)
-INTRO (U"A command in the @@New menu@ to create a @Strings object containing a list of files in a given directory.")
+MAN_BEGIN (U"Create Strings as file list...", U"ppgb", 20201229)
+INTRO (U"A command in the @@New menu@ to create a @Strings object containing a list of files in a given folder.")
 ENTRY (U"Settings")
 SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (2.6), U""
 	Manual_DRAW_SETTINGS_WINDOW ("Create Strings as file list", 2.6)
@@ -212,45 +212,45 @@ SCRIPT (5.4, Manual_SETTINGS_WINDOW_HEIGHT (2.6), U""
 TAG (U"##Name")
 DEFINITION (U"the name of the resulting Strings object.")
 TAG (U"##File path")
-DEFINITION (U"the directory name, with an optional %wildcard (see below) for selecting files.")
+DEFINITION (U"the folder name, with an optional %wildcard (see below) for selecting files.")
 ENTRY (U"Behaviour")
 NORMAL (U"The resulting Strings object will contain an alphabetical list of file names, "
-	"without the preceding path through the directory structures. If there are no files that match the file path, "
+	"without the preceding path through the folder structures. If there are no files that match the file path, "
 	"the Strings object will contain no strings.")
 ENTRY (U"Usage")
 NORMAL (U"There are two ways to specify the file path.")
-NORMAL (U"One way is to specify a directory name only. On Unix, the file path could be "
+NORMAL (U"One way is to specify a folder name only. On Unix, the file path could be "
 	"##/usr/people/miep/sounds# or ##/usr/people/miep/sounds/#, for instance. On Windows, "
 	"##C:\\bsUsers\\bsMiep\\bsSounds# or ##C:\\bsUsers\\bsMiep\\bsSounds\\bs#. "
 	"On Macintosh, ##/Users/miep/Sounds# or ##/Users/miep/Sounds/#. Any of these produce "
-	"a list of all the files in the specified directory.")
+	"a list of all the files in the specified folder.")
 NORMAL (U"The other way is to specify a wildcard (a single asterisk) for the file names. "
 	"To get a list of all the files whose names start with \"hal\" and end in \".wav\", "
 	"type ##/usr/people/miep/sounds/hal*.wav#, ##C:\\bsUsers\\bsMiep\\bsSounds\\bshal*.wav#, "
 	"or ##/Users/miep/Sounds/hal*.wav#.")
 ENTRY (U"Script usage")
-NORMAL (U"In a script, you can use this command to cycle through the files in a directory. "
-	"For instance, to read in all the sound files in a specified directory, "
+NORMAL (U"In a script, you can use this command to cycle through the files in a folder. "
+	"For instance, to read in all the sound files in a specified folder, "
 	"you could use the following script:")
-CODE (U"directory\\$  = \"/usr/people/miep/sounds\"")
-CODE (U"strings = Create Strings as file list: \"list\", directory\\$  + \"/*.wav\"")
+CODE (U"folder\\$  = \"/usr/people/miep/sounds\"")
+CODE (U"strings = Create Strings as file list: \"list\", folder\\$  + \"/*.wav\"")
 CODE (U"numberOfFiles = Get number of strings")
 CODE (U"for ifile to numberOfFiles")
 	CODE1 (U"selectObject: strings")
 	CODE1 (U"fileName\\$  = Get string: ifile")
-	CODE1 (U"Read from file: directory\\$  + \"/\" + fileName\\$ ")
+	CODE1 (U"Read from file: folder\\$  + \"/\" + fileName\\$ ")
 CODE (U"endfor")
-NORMAL (U"If the script has been saved to a script file, you can use file paths that are relative to the directory "
+NORMAL (U"If the script has been saved to a script file, you can use file paths that are relative to the folder "
 	"where you saved the script. Thus, with")
 CODE (U"Create Strings as file list: \"list\", \"*.wav\"")
-NORMAL (U"you get a list of all the .wav files that are in the same directory as the script that contains this line. "
-	"And to get a list of all the .wav files in the directory Sounds that resides in the same directory as your script, "
+NORMAL (U"you get a list of all the .wav files that are in the same folder as the script that contains this line. "
+	"And to get a list of all the .wav files in the folder Sounds that resides in the same folder as your script, "
 	"you can do")
 CODE (U"Create Strings as file list: \"list\", \"Sounds/*.wav\"")
 NORMAL (U"As is usual in Praat scripting, the forward slash (\"/\") in this example can be used on all platforms, including Windows. "
 	"This makes your script portable across platforms.")
 ENTRY (U"See also")
-NORMAL (U"To get a list of directories instead of files, use @@Create Strings as directory list...@.")
+NORMAL (U"To get a list of folders instead of files, use @@Create Strings as folder list...@.")
 MAN_END
 
 MAN_BEGIN (U"Distributions", U"ppgb", 20030316)
@@ -406,10 +406,10 @@ ENTRY (U"Return value")
 NORMAL (U"the loudness in sone units.")
 ENTRY (U"Algorithm")
 NORMAL (U"The loudness is defined as")
-FORMULA (U"∫%df 2^^(%e(%f) - 40 phon) / 10^")
+EQUATION (U"∫%df 2^^(%e(%f) - 40 phon) / 10^")
 NORMAL (U"where %f is the frequency in Bark, and %e(%f) the excitation in phon. "
 	"For our discrete Excitation object, the loudness is computed as")
-FORMULA (U"Δ%f ∑ 2^^(%e__%i_ - 40) / 10")
+EQUATION (U"Δ%f ∑ 2^^(%e__%i_ - 40) / 10")
 NORMAL (U"where Δ%f is the distance between the excitation channels (in Bark).")
 MAN_END
 
@@ -450,7 +450,7 @@ Excitation Excitation_create (double df, integer nf);
 		result -> z [1] [1..nt] == 0.0;
 double Excitation_getDistance (Excitation me, Excitation thee);
 
-void Excitation_draw (Excitation me, Graphics g, double fmin, double fmax, double minimum, double maximum, int garnish);
+void Excitation_draw (Excitation me, Graphics g, double fmin, double fmax, double minimum, double maximum, bool garnish);
 
 Matrix Excitation_to_Matrix (Excitation me);
 	Function:
@@ -498,7 +498,7 @@ DEFINITION (U"the selected time domain. Values outside this domain are ignored. 
 ENTRY (U"Algorithm")
 NORMAL (U"The curve consists of a sequence of line segments. The contribution of the line segment from "
 	"(%t__1_, %f__1_) to (%t__2_, %f__2_) to the area is")
-FORMULA (U"1/2 (%f__1_ + %f__2_) (%t__2_ – %t__1_)")
+EQUATION (U"1/2 (%f__1_ + %f__2_) (%t__2_ – %t__1_)")
 MAN_END
 
 MAN_BEGIN (U"Intensity", U"ppgb", 20030316)
@@ -508,7 +508,7 @@ NORMAL (U"An Intensity object represents an intensity contour at linearly spaced
 	"which is the normative auditory threshold for a 1000-Hz sine wave.")
 MAN_END
 
-MAN_BEGIN (U"Intensity: Get maximum...", U"ppgb", 20041107)
+MAN_BEGIN (U"Intensity: Get maximum...", U"ppgb", 20200912)
 INTRO (U"A @query to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the maximum value within the specified time domain, expressed in dB.")
@@ -517,7 +517,7 @@ TAG (U"##Time range (s)")
 DEFINITION (U"the time range (%t__1_, %t__2_). Values outside this range are ignored. "
 	"If %t__1_ is not less than %t__2_, the entire time domain of the Intensity is considered.")
 TAG (U"%%Interpolation")
-DEFINITION (U"the interpolation method (#None, #Parabolic, #Cubic, #Sinc) of the @@vector peak interpolation@. "
+DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sinc700) of the @@vector peak interpolation@. "
 	"The standard is Parabolic because of the usual nonlinearity (logarithm) in the computation of intensity; "
 	"sinc interpolation would be too stiff and may give unexpected results.")
 MAN_END
@@ -538,18 +538,18 @@ DEFINITION (U"the units in which the averaging is performed. If the method is #e
 	"and based on averaging properties of the human ear.")
 ENTRY (U"Algorithm")
 NORMAL (U"If the averaging method is #dB, the mean intensity between the times %t__1_ and %t__2_ is defined as")
-FORMULA (U"1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ %x(%t) %dt")
+EQUATION (U"1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ %x(%t) %dt")
 NORMAL (U"where %x(%t) is the intensity as a function of time, in dB. If the method is #energy, the result is")
-FORMULA (U"10 log__10_ { 1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ 10^^%x(%t)/10^ %dt }")
+EQUATION (U"10 log__10_ { 1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ 10^^%x(%t)/10^ %dt }")
 NORMAL (U"If the method is #sones, the result is")
-FORMULA (U"10 log__2_ { 1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ 2^^%x(%t)/10^ %dt }")
+EQUATION (U"10 log__2_ { 1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ 2^^%x(%t)/10^ %dt }")
 ENTRY (U"Behaviour")
 NORMAL (U"After you do @@Sound: To Intensity...@, the mean intensity of the resulting #Intensity, "
 	"if the averaging method is #energy, should be close to the mean SPL of the original #Sound, "
 	"which can be found with #Info.")
 MAN_END
 
-MAN_BEGIN (U"Intensity: Get minimum...", U"ppgb", 20041107)
+MAN_BEGIN (U"Intensity: Get minimum...", U"ppgb", 20200912)
 INTRO (U"A @query to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the minimum value within a specified time domain, expressed in dB.")
@@ -558,7 +558,7 @@ TAG (U"##Time range (s)")
 DEFINITION (U"the time range (%t__1_, %t__2_). Values outside this range are ignored. "
 	"If %t__1_ is not less than %t__2_, the entire time domain of the Intensity is considered.")
 TAG (U"##Interpolation")
-DEFINITION (U"the interpolation method (#None, #Parabolic, #Cubic, #Sinc) of the @@vector peak interpolation@. "
+DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sinc700) of the @@vector peak interpolation@. "
 	"The standard is Parabolic because of the usual nonlinearity (logarithm) in the computation of intensity; "
 	"sinc interpolation would be too stiff and may give unexpected results.")
 MAN_END
@@ -573,14 +573,14 @@ DEFINITION (U"the time range (%t__1_, %t__2_). Values outside this range are ign
 	"If %t__1_ is not less than %t__2_, the entire time domain of the Intensity is considered.")
 ENTRY (U"Algorithm")
 NORMAL (U"The standard deviation between the times %t__1_ and %t__2_ is defined as")
-FORMULA (U"√ {1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ %dt (%x(%t) - %μ)^2}")
+EQUATION (U"√ {1/(%t__2_ - %t__1_)  ∫__%%t%1_^^%%t%2^ %dt (%x(%t) - %μ)^2}")
 NORMAL (U"where %x(%t) is the intensity (in dB) as a function of time, and %μ its mean. "
 	"For our discrete Intensity object, the standard deviation is approximated by")
-FORMULA (U"√ {1/(%n-1) ∑__%i=%m..%m+%n-1_ (%x__%i_ - %μ)^2}")
+EQUATION (U"√ {1/(%n-1) ∑__%i=%m..%m+%n-1_ (%x__%i_ - %μ)^2}")
 NORMAL (U"where %n is the number of frames between %t__1_ and %t__2_. Note the \"minus 1\".")
 MAN_END
 
-MAN_BEGIN (U"Intensity: Get time of maximum...", U"ppgb", 20041107)
+MAN_BEGIN (U"Intensity: Get time of maximum...", U"ppgb", 20200912)
 INTRO (U"A @query to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the time (in seconds) associated with the maximum intensity within a specified time domain.")
@@ -589,12 +589,12 @@ TAG (U"%%Time range (s)")
 DEFINITION (U"the time range (%t__1_, %t__2_). Values outside this range are ignored, except for purposes of interpolation. "
 	"If %t__1_ is not less than %t__2_, the entire time domain of the Intensity is considered.")
 TAG (U"%%Interpolation")
-DEFINITION (U"the interpolation method (None, Parabolic, Cubic, Sinc) of the @@vector peak interpolation@. "
+DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sinc700) of the @@vector peak interpolation@. "
 	"The standard is Parabolic because of the usual nonlinearity (logarithm) in the computation of intensity; "
 	"sinc interpolation would be too stiff and may give unexpected results.")
 MAN_END
 
-MAN_BEGIN (U"Intensity: Get time of minimum...", U"ppgb", 20041107)
+MAN_BEGIN (U"Intensity: Get time of minimum...", U"ppgb", 20200912)
 INTRO (U"A @query to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the time (in seconds) associated with the minimum intensity within a specified time domain.")
@@ -603,7 +603,7 @@ TAG (U"##Time range (s)")
 DEFINITION (U"the time range (%t__1_, %t__2_). Values outside this range are ignored, except for purposes of interpolation. "
 	"If %t__1_ is not less than %t__2_, the entire time domain of the Intensity is considered.")
 TAG (U"##Interpolation")
-DEFINITION (U"the interpolation method (None, Parabolic, Cubic, Sinc) of the @@vector peak interpolation@. "
+DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sinc700) of the @@vector peak interpolation@. "
 	"The standard is Parabolic because of the usual nonlinearity (logarithm) in the computation of intensity; "
 	"sinc interpolation would be too stiff and may give unexpected results.")
 MAN_END
@@ -617,7 +617,7 @@ TAG (U"##Time (s)")
 DEFINITION (U"the time at which the value is to be evaluated.")
 TAG (U"##Interpolation")
 DEFINITION (U"the interpolation method, see @@vector value interpolation@. "
-	"The standard is Cubic because of the usual nonlinearity (logarithm) in the computation of intensity; "
+	"The standard is “cubic” because of the usual nonlinearity (logarithm) in the computation of intensity; "
 	"sinc interpolation would be too stiff and may give unexpected results.")
 MAN_END
 
@@ -711,15 +711,19 @@ INTRO (U"One of the @editors in the Praat program, for viewing and editing an @I
 	"To create a IntensityTierEditor window, select an IntensityTier and click ##View & Edit#.")
 MAN_END
 
-MAN_BEGIN (U"Keyboard shortcuts", U"ppgb", 20071016)
-INTRO (U"A way to accelerate the control of @Editors in Praat.")
-ENTRY (U"Purpose")
-NORMAL (U"to choose a menu command with the keyboard. All of these commands can also be chosen "
-	"from a menu.")
-ENTRY (U"Command key")
-NORMAL (U"When mentioning the %%Command key%, this manual refers to the key that is marked with an apple on Apple keyboards "
+MAN_BEGIN (U"Command-click", U"ppgb", 20210228)
+INTRO (U"To %%Command-click% means to click while the %%Command key% is pressed. "
+	"The Command key is the key that is marked with an apple or the word \"command\" on Apple keyboards, "
 	"or to the key that is marked \"Ctrl\" if you are on a Windows or Linux computer.")
-ENTRY (U"Option key")
+MAN_END
+
+MAN_BEGIN (U"Keyboard shortcuts", U"ppgb", 20210228)
+INTRO (U"To accelerate menu commands in Praat, you can sometimes choose them with the keyboard, "
+	"sometimes while also pressing the Command key, Option key, or Shift key. "
+	"All of these commands can also be chosen from a menu.")
+NORMAL (U"When mentioning the %%Command key%, this manual refers to the key that is marked with an apple "
+	"or the word \"command\" on Apple keyboards "
+	"or to the key that is marked \"Ctrl\" if you are on a Windows or Linux computer.")
 NORMAL (U"When mentioning the %%Option key%, this manual refers to the key marked \"alt\" or \"option\". "
 	"In Praat, this key is sometimes used together with the Command key "
 	"for destructive actions that are the reverse of the actions invoked by using the Command key only. "
@@ -731,6 +735,10 @@ LIST_ITEM (U"Command-C: Copy (the selected text, or the selected sound, or the s
 LIST_ITEM (U"Command-D (in Manipulation window): Insert duration point at cursor")
 LIST_ITEM (U"Option-Command-D (in Manipulation window): Remove selected duration points")
 LIST_ITEM (U"Command-E (in Picture window): Erase all")
+LIST_ITEM (U"Command-E (in OT windows): Edit ranking")
+LIST_ITEM (U"Command-F: Find")
+LIST_ITEM (U"Command-G: Find again")
+LIST_ITEM (U"Command-H (in script window): Paste history")
 LIST_ITEM (U"Shift-Command-H: Move cursor to maximum pitch")
 LIST_ITEM (U"Command-I: Zoom in")
 LIST_ITEM (U"Command-L (in Objects window): @@Open long sound file...@")
@@ -741,11 +749,14 @@ LIST_ITEM (U"Command-N: Zoom to selection")
 LIST_ITEM (U"Command-O (in Objects window): @@Read from file...@")
 LIST_ITEM (U"Command-O (in sound windows): Zoom out")
 LIST_ITEM (U"Command-P (in Picture window): Print")
+LIST_ITEM (U"Command-P (in tier windows): Add point at cursor")
 LIST_ITEM (U"Command-P (in Manipulation window): Add pulse at cursor")
 LIST_ITEM (U"Option-Command-P (in Manipulation window): Remove selected pulses")
 LIST_ITEM (U"Command-Q: Quit")
+LIST_ITEM (U"Command-R (in Script window): Run")
 LIST_ITEM (U"Command-R: Reverse selection")
 LIST_ITEM (U"Command-S: Save")
+LIST_ITEM (U"Command-T (in script window): Run selection")
 LIST_ITEM (U"Command-T (in Manipulation window): Add pitch point at cursor")
 LIST_ITEM (U"Option-Command-T (in Manipulation window): Remove selected pitch points")
 LIST_ITEM (U"Command-U: @@Calculator...@")
@@ -754,20 +765,21 @@ LIST_ITEM (U"Command-W: Close window")
 LIST_ITEM (U"Command-X: Cut (the selected text or the selected sound)")
 LIST_ITEM (U"Command-Y: Redo")
 LIST_ITEM (U"Command-Z: Undo")
-LIST_ITEM (U"Command-0: Move cursor to nearest zero crossing")
+LIST_ITEM (U"Command-0 (in sound windows): Move cursor to nearest zero crossing")
+LIST_ITEM (U"Command-0 (in OT windows): Evaluate with zero noise")
 LIST_ITEM (U"Command-2 (in Manipulation window): Stylize pitch (2 semitones)")
+LIST_ITEM (U"Command-2 (in OT windows): Evaluate with noise 2.0")
 LIST_ITEM (U"Command-4 (in Manipulation window): Interpolate quadratically (4 points)")
 LIST_ITEM (U"Shift-Command-?: Local help")
 LIST_ITEM (U"Command-,: Move start of selection to nearest zero crossing")
 LIST_ITEM (U"Command-.: Move end of selection to nearest zero crossing")
-LIST_ITEM (U"F5: Get pitch")
-LIST_ITEM (U"Command-F5: Get minimum pitch")
-LIST_ITEM (U"Shift-F5: Get maximum pitch")
 LIST_ITEM (U"F1: Get first formant")
 LIST_ITEM (U"F2: Get second formant")
 LIST_ITEM (U"F3: Get third formant")
 LIST_ITEM (U"F4: Get fourth formant")
 LIST_ITEM (U"F5: Get pitch")
+LIST_ITEM (U"Command-F5: Get minimum pitch")
+LIST_ITEM (U"Shift-F5: Get maximum pitch")
 LIST_ITEM (U"F6: Get cursor")
 LIST_ITEM (U"F7: Get spectral power at cursor cross")
 LIST_ITEM (U"F8: Get intensity")
@@ -788,14 +800,14 @@ LIST_ITEM (U"Page-down (in sound windows): Scroll page forward")
 LIST_ITEM (U"Escape: Interrupt playing")
 MAN_END
 
-MAN_BEGIN (U"Log files", U"ppgb", 20140421)
+MAN_BEGIN (U"Log files", U"ppgb", 20201230)
 INTRO (U"With some commands in the @Query menu of the @SoundEditor and @TextGridEditor, "
 	"you can write combined information about times, pitch values, formants, and intensities "
 	"to the @@Info window@ and to a log file.")
 NORMAL (U"A log file is a text file on disk. It consists of a number of similar lines, "
 	"whose format you determine with the log settings in the Query menu.")
-NORMAL (U"Every time you press F12 (or choose ##Log 1# from the Query menu, "
-	"Praat writes a line to log file 1. If you press Shift-F12, Praat writes a line to log file 2.")
+NORMAL (U"Every time you press @@Keyboard shortcuts|F12@ (or choose ##Log 1# from the Query menu, "
+	"Praat writes a line to log file 1. If you press @@Keyboard shortcuts|Shift-F12@, Praat writes a line to log file 2.")
 NORMAL (U"With the ##log settings# command window, you determine the following:")
 TAG (U"##Log 1 to Info window")
 DEFINITION (U"this determines whether your log line will be written to the Info window or not.")
@@ -804,7 +816,7 @@ DEFINITION (U"this determines whether your log line will be written to the log f
 TAG (U"##Log file 1")
 DEFINITION (U"the name of the log file. On Windows, this has to be a complete path name, such as "
 	"$$C:\\bsWINDOWS\\bsDESKTOP\\bsPitch Log.txt$. "
-	"On Unix and MacOS X, it can either be a complete path name, e.g. $$/home/mary/pitch_log$, "
+	"On Unix and macOS, it can either be a complete path name, e.g. $$/home/mary/pitch_log$, "
 	"or a home-relative name such as $$~/Desktop/Pitch log$.")
 TAG (U"##Log 1 format")
 DEFINITION (U"the format of the line that Praat will write. See below.")
@@ -817,7 +829,7 @@ NORMAL (U"The logging facility has been implemented in Praat especially for form
 NORMAL (U"If you do want to use the logging facility, you typically start by deleting any old "
 	"log file (by choosing ##Delete log file 1# or ##Delete log file 2#), if you want to re-use "
 	"the file name. Otherwise, you can change the log file name (with ##Log settings...#). "
-	"After this, you will move the cursor to various time locations and press F12 (or Shift-F12) "
+	"After this, you will move the cursor to various time locations and press @@Keyboard shortcuts|F12@ (or @@Keyboard shortcuts|Shift-F12@) "
 	"each time, so that information about the current time will be written to the log file.")
 ENTRY (U"Example 1: pitch logging")
 NORMAL (U"Suppose you want to log the time of the cursor and the pitch value at the cursor. "
@@ -869,11 +881,11 @@ CODE (U"appendInfoLine: fixed\\$  (f1, 0), \" \", fixed\\$  (f21, 0)")
 CODE (U"appendFileLine: \"D:\\bsPraat logs\\bsFormant log.txt\", fixed\\$  (f1, 0), tab\\$ , fixed\\$  (f21, 0)")
 NORMAL (U"With this script, the information would be appended both to the Info window and to the "
 	"file \"Formant log.txt\" on your desktop.")
-NORMAL (U"You can make this script accessible with Option-F12 (or Command-F12) "
+NORMAL (U"You can make this script accessible with @@Keyboard shortcuts|Option-F12@ (or @@Keyboard shortcuts|Command-F12@) "
 	"by saving the script and specifying the name of the script file in the ##Log script 3# (or #4) field "
 	"in the ##Log settings...# window.")
 NORMAL (U"These scripts may take arguments. Suppose, for instance, that you want to specify a vowel symbol "
-	"as you press Option-F12. The following script will take care of that:")
+	"as you press @@Keyboard shortcuts|Option-F12@. The following script will take care of that:")
 CODE (U"form Save vowel and formants")
 CODE1 (U"word Vowel a")
 CODE (U"endform")
@@ -987,18 +999,18 @@ ENTRY (U"Playing")
 	NORMAL (U"To play the %original sound instead, use ##Shift-click#.")
 ENTRY (U"Pulses")
 	TAG (U"To add:")
-	DEFINITION (U"#click at the desired time location, and choose ##Add pulse at cursor# or type ##Command-p#.")
+	DEFINITION (U"#click at the desired time location, and choose ##Add pulse at cursor# or type @@Keyboard shortcuts|Command-P@.")
 	TAG (U"To remove:")
-	DEFINITION (U"make a @@time selection@, and choose ##Remove pulse(s)# or type ##Option-Command-p#. "
+	DEFINITION (U"make a @@time selection@, and choose ##Remove pulse(s)# or type @@Keyboard shortcuts|Option-Command-P@. "
 		"If there is no selection, the pulse nearest to the cursor is removed.")
 ENTRY (U"Pitch points")
 	TAG (U"To add one at a specified %%time and frequency%:")
-	DEFINITION (U"#click at the desired time-frequency location, and choose ##Add pitch point at cursor# or type ##Command-t#.")
+	DEFINITION (U"#click at the desired time-frequency location, and choose ##Add pitch point at cursor# or type @@Keyboard shortcuts|Command-t@.")
 	TAG (U"To add one at a specified %time only:")
 	DEFINITION (U"#click at the desired time, and choose ##Add pitch point at time slice#. ManipulationEditor tries to compute the frequency from the "
 		"intervals between the pulses, basically by a median-of-three method.")
 	TAG (U"To remove:")
-	DEFINITION (U"make a @@time selection@, and choose ##Remove pitch point(s)# or type ##Option-Command-t#. "
+	DEFINITION (U"make a @@time selection@, and choose ##Remove pitch point(s)# or type @@Keyboard shortcuts|Option-Command-t@. "
 		"If there is no selection, the pitch point nearest to the cursor is removed.")
 	TAG (U"To move %some:")
 	DEFINITION (U"make a @@time selection@ (the points become red) and ##Shift-drag# the points across the window. "
@@ -1319,9 +1331,9 @@ CODE (U"\"at+ma\"  \"apma\"    0")
 CODE (U"\"an+pa\"  \"anpa\"   20")
 CODE (U"\"an+pa\"  \"ampa\"   80")
 NORMAL (U"The resulting Strings object \"input\" may then contain:")
-FORMULA (U"at+ma, an+pa, an+pa, at+ma, at+ma, an+pa, an+pa, an+pa, an+pa, at+ma, ...")
+EQUATION (U"at+ma, an+pa, an+pa, at+ma, at+ma, an+pa, an+pa, an+pa, an+pa, at+ma, ...")
 NORMAL (U"The Strings object \"output\" may then contain:")
-FORMULA (U"atma,  ampa,  ampa,  atma,  atma,  ampa,  anpa,  ampa,  ampa,  atma, ...")
+EQUATION (U"atma,  ampa,  ampa,  atma,  atma,  ampa,  anpa,  ampa,  ampa,  atma, ...")
 MAN_END
 
 MAN_BEGIN (U"ParamCurve", U"ppgb", 20030316)
@@ -1343,7 +1355,7 @@ NORMAL (U"To play (a part of) the %resynthesized sound (pulse train): "
 	"@click on any of the 8 buttons below and above the drawing area, or choose a Play command from the View menu.")
 NORMAL (U"To play the %original sound instead, use @@Shift-click@.")
 ENTRY (U"Adding a point")
-NORMAL (U"@Click at the desired time location, and choose \"Add point at cursor\" or type ##Command-P#.")
+NORMAL (U"@Click at the desired time location, and choose \"Add point at cursor\" or type @@Keyboard shortcuts|Command-P@.")
 ENTRY (U"Removing points")
 NORMAL (U"To remove one or more points, "
 	"make a @@time selection@ and choose ##Remove point(s)# from the ##Point# menu. "
@@ -1505,14 +1517,14 @@ NORMAL (U"The local jitter is defined as the relative mean absolute "
 	"second-order difference of the point process (= the first-order difference of the interval process), as follows.")
 NORMAL (U"First, we define the absolute (non-relative) local jitter (in seconds) as the mean absolute (non-negative) "
 	"difference of consecutive intervals:")
-FORMULA (U"%jitter(seconds) = ∑__%i=2_^^%N^ |%T__%i_ - %T__%i-1_| / (%N - 1)")
+EQUATION (U"%jitter(seconds) = ∑__%i=2_^^%N^ |%T__%i_ - %T__%i-1_| / (%N - 1)")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i-1_ or %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor#, "
 	"the term |%T__%i_ - %T__%i-1_| is not counted in the sum, and %N is lowered by 1 "
 	"(if %N ends up being less than 2, the result of the command is @undefined).")
 NORMAL (U"Second, we define the mean period as")
-FORMULA (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
+EQUATION (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor# "
@@ -1521,7 +1533,7 @@ NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the num
 	"this procedure ensures that in the computation of the mean period we use at least all the intervals "
 	"that had taken part in the computation of the absolute local jitter.")
 NORMAL (U"Finally, we compute the (relative) local jitter as")
-FORMULA (U"%jitter = %jitter(seconds) / %meanPeriod(seconds)")
+EQUATION (U"%jitter = %jitter(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 2, or between 0 and 200 percent.")
 MAN_END
 
@@ -1568,7 +1580,7 @@ NORMAL (U"The absolute local jitter is defined as the absolute (i.e. non-relativ
 	"second-order difference of the point process (= the first-order difference of the interval process), as follows.")
 NORMAL (U"The absolute local jitter (in seconds) is the mean absolute (non-negative) "
 	"difference of consecutive intervals:")
-FORMULA (U"%jitter(seconds) = ∑__%i=2_^^%N^ |%T__%i_ - %T__%i-1_| / (%N - 1)")
+EQUATION (U"%jitter(seconds) = ∑__%i=2_^^%N^ |%T__%i_ - %T__%i-1_| / (%N - 1)")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i-1_ or %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor#, "
@@ -1618,14 +1630,14 @@ NORMAL (U"The RAP can be used as a measure of voice quality; "
 ENTRY (U"3. Algorithm")
 NORMAL (U"Relative Average Perturbation is defined in terms of three consecutive intervals, as follows.")
 NORMAL (U"First, we define the absolute (i.e. non-relative) Average Perturbation (in seconds):")
-FORMULA (U"%absAP(seconds) = ∑__%i=2_^^%N-1^ |%T__%i_ - (%T__%i-1_ + %T__%i_ + %T__%i+1_) / 3| / (%N - 2)")
+EQUATION (U"%absAP(seconds) = ∑__%i=2_^^%N-1^ |%T__%i_ - (%T__%i-1_ + %T__%i_ + %T__%i+1_) / 3| / (%N - 2)")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i-1_ or %T__%i_ or %T__%i+1_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ or %T__%i+1_/%T__%i_ or %T__%i_/%T__%i+1_ is greater than ##Maximum period factor#, "
 	"the term |%T__%i_ - (%T__%i-1_ + %T__%i_ + %T__%i+1_) / 3| is not counted in the sum, and %N is lowered by 1 "
 	"(if %N ends up being less than 3, the result of the command is @undefined).")
 NORMAL (U"Second, we define the mean period as")
-FORMULA (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
+EQUATION (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor# "
@@ -1634,7 +1646,7 @@ NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the num
 	"this procedure ensures that in the computation of the mean period we use at least all the intervals "
 	"that had taken part in the computation of the absolute average perturbation.")
 NORMAL (U"Finally, we compute the Relative Average Perturbation as")
-FORMULA (U"%RAP = %absAP(seconds) / %meanPeriod(seconds)")
+EQUATION (U"%RAP = %absAP(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 2, or between 0 and 200 percent.")
 MAN_END
 
@@ -1679,14 +1691,14 @@ NORMAL (U"The jitter can be used as a measure of voice quality. See @@Voice 2. J
 ENTRY (U"3. Algorithm")
 NORMAL (U"The five-point Period Perturbation Quotient (PPQ5) is defined in terms of five consecutive intervals, as follows.")
 NORMAL (U"First, we define the absolute (i.e. non-relative) PPQ5 (in seconds):")
-FORMULA (U"%absPPQ5(seconds) = ∑__%i=3_^^%N-2^ |%T__%i_ - (%T__%i-2_ + %T__%i-1_ + %T__%i_ + %T__%i+1_ + %T__%i+2_) / 5| / (%N - 4)")
+EQUATION (U"%absPPQ5(seconds) = ∑__%i=3_^^%N-2^ |%T__%i_ - (%T__%i-2_ + %T__%i-1_ + %T__%i_ + %T__%i+1_ + %T__%i+2_) / 5| / (%N - 4)")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i-2_ or %T__%i-1_ or %T__%i_ or %T__%i+1_ or %T__%i+2_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-2_/%T__%i-1_ or %T__%i-1_/%T__%i-2_ or %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ or %T__%i+1_/%T__%i_ or %T__%i_/%T__%i+1_ or %T__%i+2_/%T__%i+1_ or %T__%i+1_/%T__%i+2_ is greater than ##Maximum period factor#, "
 	"the term |%T__%i_ - (%T__%i-2_ + %T__%i-1_ + %T__%i_ + %T__%i+1_ + %T__%i+2_) / 5| is not counted in the sum, and %N is lowered by 1 "
 	"(if %N ends up being less than 5, the result of the command is @undefined).")
 NORMAL (U"Second, we define the mean period as")
-FORMULA (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
+EQUATION (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor# "
@@ -1695,7 +1707,7 @@ NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the num
 	"this procedure ensures that in the computation of the mean period we use at least all the intervals "
 	"that had taken part in the computation of the absolute PPQ5.")
 NORMAL (U"Finally, we compute the five-point Period Perturbation Quotient as")
-FORMULA (U"%PPQ5 = %PPQ5(seconds) / %meanPeriod(seconds)")
+EQUATION (U"%PPQ5 = %PPQ5(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 4, or between 0 and 400 percent.")
 MAN_END
 
@@ -1744,14 +1756,14 @@ NORMAL (U"DDP is defined as the relative mean absolute (i.e. non-negative) "
 	"third-order difference of the point process (= the second-order difference of the interval process), as follows.")
 NORMAL (U"First, we define the absolute (i.e. non-relative) Average Perturbation (in seconds) as one third of the mean absolute (non-negative) "
 	"difference of difference of consecutive intervals:")
-FORMULA (U"%absDDP(seconds) = ∑__%i=2_^^%N-1^ |(%T__%i+1_ - %T__%i_) - (%T__%i_ - %T__%i-1_)| / (%N - 2)")
+EQUATION (U"%absDDP(seconds) = ∑__%i=2_^^%N-1^ |(%T__%i+1_ - %T__%i_) - (%T__%i_ - %T__%i-1_)| / (%N - 2)")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i-1_ or %T__%i_ or %T__%i+1_ is not between ###Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ or %T__%i+1_/%T__%i_ or %T__%i_/%T__%i+1_ is greater than ##Maximum period factor#, "
 	"the term |2%T__%i_ - %T__%i-1_ - %T__%i+1_| is not counted in the sum, and %N is lowered by 1 "
 	"(if %N ends up being less than 3, the result of the command is @undefined).")
 NORMAL (U"Second, we define the mean period as")
-FORMULA (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
+EQUATION (U"%meanPeriod(seconds) = ∑__%i=1_^^%N^ %T__%i_ / %N")
 NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the number of intervals. "
 	"If an interval %T__%i_ is not between ##Period floor# and ##Period ceiling#, "
 	"or if %T__%i-1_/%T__%i_ or %T__%i_/%T__%i-1_ is greater than ##Maximum period factor# "
@@ -1760,7 +1772,7 @@ NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the num
 	"this procedure ensures that in the computation of the mean period we use at least all the intervals "
 	"that had taken part in the computation of DDP.")
 NORMAL (U"Finally, we compute DDP as")
-FORMULA (U"%DDP = %absDDP(seconds) / %meanPeriod(seconds)")
+EQUATION (U"%DDP = %absDDP(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is exactly 3 times the @@PointProcess: Get jitter (rap)...|RAP@ jitter measurement: "
 	"a value between 0 and 6, or between 0 and 600 percent.")
 MAN_END
@@ -1875,7 +1887,7 @@ INTRO (U"A command to convert every selected @PointProcess into a @Sound.")
 ENTRY (U"Algorithm")
 NORMAL (U"A glottal waveform is generated at every point in the point process. "
 	"Its shape depends on the settings %power1 and %power2 according to the formula")
-FORMULA (U"%U(%x) = %x^^%power1^ - %x^^%power2^")
+EQUATION (U"%U(%x) = %x^^%power1^ - %x^^%power2^")
 NORMAL (U"where %x is a normalized time that runs from 0 to 1 and %U(%x) is the normalized glottal flow in arbitrary units (the real unit is m^3/s). "
 	"If %power1 = 2.0 and %power2 = 3.0, the glottal flow shape is that proposed by @@Rosenberg (1971)@, "
 	"upon which for instance the Klatt synthesizer is based (@@Klatt & Klatt (1990)@):")
@@ -1905,7 +1917,7 @@ SCRIPT (4.5, 3,
 NORMAL (U"For the generation of speech sounds, we do not take the glottal flow itself, "
 	"but rather its derivative (this takes into account the influence of radiation at the lips). "
 	"The glottal flow derivative is given by")
-FORMULA (U"%dU(%x)/%dx = %power1 %x^^(%power1-1)^ - %power2 %x^^(%power2-1)^")
+EQUATION (U"%dU(%x)/%dx = %power1 %x^^(%power1-1)^ - %power2 %x^^(%power2-1)^")
 NORMAL (U"The flow derivative clearly shows the influence of the smoothing mentioned above. "
 	"The unsmoothed curve, with %power1 = 2.0 and %power2 = 3.0, looks like:")
 SCRIPT (4.5, 4,
@@ -2092,6 +2104,37 @@ INTRO (U"A command to read a @Strings object from a simple text file. "
 	"Each line is read as a separate string. See @Strings for an example.")
 MAN_END
 
+MAN_BEGIN (U"RealTier", U"ppgb", 20210612)
+INTRO (U"One of the @@types of objects@ in Praat. "
+	"An RealTier object represents a time-stamped curve, i.e., it contains a series of (%time, %value) points. "
+	"The values have no physical units, so a RealTier is a generic, \"mathematical\", type, "
+	"just as a @Matrix is. Special, physically interpretable, kinds of RealTiers "
+	"are @PitchTier, @IntensityTier, @DurationTier and @AmplitudeTier. "
+	"You can convert a RealTier to and from these other tier types.")
+NORMAL (U"A RealTier can come in handy if you have time-stamped real-valued data "
+	"that cannot be interpreted as any of the physical tier types. "
+	"You can \"View & Edit\" a RealTier in its own window.")
+ENTRY (U"How to import a RealTier from raw data")
+NORMAL (U"While you create a RealTier from the New menu, you will often have data in a text file produced by "
+	"a different app than Praat. For instance, your text file may look like this, with a header:")
+CODE (U"Time Value")
+CODE (U"0.134 67.9")
+CODE (U"0.178 -138.6")
+CODE (U"0.211 78.9")
+CODE (U"0.213 100.0")
+CODE (U"0.456 -97.0")
+NORMAL (U"You can import this text file as a Table object with ##Read Table from whitespace-separated file...# "
+	"or perhaps with ##Read Table from tab-separated file...#). You can then choose ##To RealTier...# from the Convert menu. "
+	"Alternatively, your text file may simply look like this, without header:")
+CODE (U"0.134 67.9")
+CODE (U"0.178 -138.6")
+CODE (U"0.211 78.9")
+CODE (U"0.213 100.0")
+CODE (U"0.456 -97.0")
+NORMAL (U"You can import this text file as a Matrix object with @@Read Matrix from raw text file...@. "
+	"You can then choose ##To RealTier...# from the Cast menu.")
+MAN_END
+
 MAN_BEGIN (U"Sound: To Intensity...", U"ppgb", 20100605)
 INTRO (U"A command to create an @Intensity object from every selected @Sound.")
 ENTRY (U"Settings")
@@ -2117,7 +2160,7 @@ NORMAL (U"The resulting Sound equals the original sound, multiplied by a linear 
 	"Afterwards, the resulting Sound is scaled so that its maximum absolute amplitude is 0.9.")
 MAN_END
 
-MAN_BEGIN (U"Strings", U"ppgb", 20141001)
+MAN_BEGIN (U"Strings", U"ppgb", 20201226)
 INTRO (U"One of the @@types of objects@ in Praat. Represents an ordered list of strings.")
 ENTRY (U"Creation")
 NORMAL (U"The difficult way is to create a #Strings object from a generic Praat text file "
@@ -2140,7 +2183,7 @@ CODE (U"Goodbye")
 CODE (U"Auf wiedersehen")
 CODE (U"Tschüss")
 CODE (U"Arrivederci")
-NORMAL (U"You can also create a #Strings object from a directory listing or from some other objects:")
+NORMAL (U"You can also create a #Strings object from a folder listing or from some other objects:")
 LIST_ITEM (U"• @@Create Strings as file list...")
 LIST_ITEM (U"• @@Distributions: To Strings...@")
 LIST_ITEM (U"• @@OTGrammar: Generate inputs...@")

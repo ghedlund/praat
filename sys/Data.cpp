@@ -1,6 +1,6 @@
 /* Data.cpp
  *
- * Copyright (C) 1992-2006,2008-2018 Paul Boersma
+ * Copyright (C) 1992-2018,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,6 @@
 #include "Collection.h"
 
 Thing_implement (Daata, Thing, 0);
-
-structMelderDir Data_directoryBeingRead { };
 
 void structDaata :: v_copy (Daata /* thee */) {
 }
@@ -308,7 +306,9 @@ autoDaata Data_readFromFile (MelderFile file) {
 	f.close (file);
 	header [nread] = 0;
 
-	/***** 1. Is this file a text file as defined in Data.cpp? *****/
+	/*
+		Possibility 1: is this file a text file as defined in Data.cpp?
+	*/
 
 	if (nread > 11) {
 		int numberOfBytesInFileType = 0;
@@ -327,13 +327,16 @@ autoDaata Data_readFromFile (MelderFile file) {
 		memcpy (headerCopy, header, 100);
 		headerCopy [100] = '\0';
 		for (int i = 0; i < 100; i ++)
-			if (headerCopy [i] == '\0') headerCopy [i] = '\001';
+			if (headerCopy [i] == '\0')
+				headerCopy [i] = '\001';
 		char *p = strstr (headerCopy, "T\001e\001x\001t\001F\001i\001l\001e");
 		if (p && p - headerCopy < nread - 15 && p - headerCopy < 80)
 			return Data_readFromTextFile (file);
 	}
 
-	/***** 2. Is this file a binary file as defined in Data.cpp? *****/
+	/*
+		Possibility 2: is this file a binary file as defined in Data.cpp?
+	*/
 
 	if (nread > 13) {
 		int numberOfBytesInFileType = 0;
@@ -348,25 +351,30 @@ autoDaata Data_readFromFile (MelderFile file) {
 			return Data_readFromBinaryFile (file);
 	}
 
-	/***** 3. Is this file of a type for which a recognizer has been installed? *****/
+	/*
+		Possibility 3: is this file of a type for which a recognizer has been installed?
+	*/
 
 	MelderFile_getParentDir (file, & Data_directoryBeingRead);
 	for (int i = 1; i <= numFileTypeRecognizers; i ++) {
 		autoDaata object = fileTypeRecognizers [i] (nread, header, file);
 		if (object) {
 			if (object -> classInfo == classDaata)   // dummy object? the recognizer could have had a side effect, such as drawing a picture
-				return autoDaata ();
+				return autoDaata ();   // a null return on recognized non-data!
 			return object;
 		}
 	}
 
-	/***** 4. Is this a common text file? *****/
+	/*
+		Possibility 4: is this a common text file?
+	*/
 
 	int i = 0;
 	for (; i < nread; i ++)
 		if (header [i] < 32 || header [i] > 126)   // not ASCII? (note: this expression happens to work correctly for both signed and unsigned char)
 			break;
-	if (i >= nread) return Data_readFromTextFile (file);
+	if (i >= nread)
+		return Data_readFromTextFile (file);
 
 	Melder_throw (U"File ", file, U" not recognized.");
 }

@@ -276,7 +276,7 @@ void praat_addActionScript (conststring32 className1, integer n1, conststring32 
 		action -> n3 = n3;
 		action -> title = title [0] != U'\0' ? Melder_dup_f (title) : autostring32();   // allow old-fashioned untitled separators
 		action -> depth = depth;
-		action -> callback = script [0] != U'\0' ? DO_RunTheScriptFromAnyAddedMenuCommand : nullptr;   // null for a separator
+		action -> callback = ( script [0] != U'\0' ? DO_RunTheScriptFromAnyAddedMenuCommand : nullptr );   // null for a separator
 		action -> button = nullptr;
 		if (script [0] == U'\0') {
 			action -> script = autostring32();
@@ -285,7 +285,7 @@ void praat_addActionScript (conststring32 className1, integer n1, conststring32 
 			Melder_relativePathToFile (script, & file);
 			action -> script = Melder_dup_f (Melder_fileToPath (& file));
 		}
-		action -> after = after [0] != U'\0' ? Melder_dup_f (after) : autostring32();
+		action -> after = ( after [0] != U'\0' ? Melder_dup_f (after) : autostring32() );
 		action -> phase = praatP.phase;
 		if (praatP.phase >= praat_READING_BUTTONS) {
 			static integer uniqueID = 0;
@@ -418,40 +418,44 @@ void praat_showAction_classNames (conststring32 className1, conststring32 classN
 	}
 }
 
-static int compareActions (const void *void_me, const void *void_thee) {
-	Praat_Command me = * (Praat_Command *) void_me, thee = * (Praat_Command *) void_thee;
-	int compare;
-	compare = str32cmp (my class1 -> className, thy class1 -> className);
-	if (compare) return my class1 == classDaata ? -1 : thy class1 == classDaata ? 1 : compare;
-	if (my class2) {
-		if (! thy class2) return 1;
-		compare = str32cmp (my class2 -> className, thy class2 -> className);
-		if (compare) return compare;
-	} else if (thy class2) return -1;
-	if (my class3) {
-		if (! thy class3) return 1;
-		compare = str32cmp (my class3 -> className, thy class3 -> className);
-		if (compare) return compare;
-	} else if (thy class3) return -1;
-	if (my sortingTail < thy sortingTail) return -1;
-	return 1;
-}
-
 void praat_sortActions () {
 	for (integer i = 1; i <= theActions.size; i ++) {
 		Praat_Command action = theActions.at [i];
 		action -> sortingTail = i;
 	}
-	qsort (& theActions.at [1], theActions.size, sizeof (Praat_Command), compareActions);
+	std::sort (theActions.begin(), theActions.end(),
+		[] (Praat_Command me, Praat_Command thee) {
+			int compare = str32cmp (my class1 -> className, thy class1 -> className);
+			if (compare != 0)
+				return my class1 == classDaata ? true : thy class1 == classDaata ? false : ( compare < 0 );
+			if (my class2) {
+				if (! thy class2)
+					return false;
+				compare = str32cmp (my class2 -> className, thy class2 -> className);
+				if (compare != 0)
+					return compare < 0;
+			} else if (thy class2)
+				return true;
+			if (my class3) {
+				if (! thy class3)
+					return false;
+				compare = str32cmp (my class3 -> className, thy class3 -> className);
+				if (compare != 0)
+					return compare < 0;
+			} else if (thy class3)
+				return true;
+			return my sortingTail < thy sortingTail;
+		}
+	);
 }
 
-static conststring32 numberString (int number) {
+static conststring32 numberString (integer number) {
 	return number == 1 ? U"one" : number == 2 ? U"two" : number == 3 ? U"three" : U"any number of";
 }
 static conststring32 classString (ClassInfo klas) {
 	return klas == classDaata ? U"" : klas -> className;
 }
-static conststring32 objectString (int number) {
+static conststring32 objectString (integer number) {
 	return number == 1 ? U"object" : U"objects";
 }
 static bool allowExecutionHook (void *closure) {
@@ -478,10 +482,14 @@ static bool allowExecutionHook (void *closure) {
 	if (numberOfMatchingCallbacks == 1) {
 		Praat_Command me = theActions.at [firstMatchingCallback];
 		Melder_appendError (U"Selection changed! It should be:");
-		if (my class1) Melder_appendError (U"   ", numberString (my n1), U" ", classString (my class1), U" ", objectString (my n1));
-		if (my class2) Melder_appendError (U"   ", numberString (my n2), U" ", classString (my class2), U" ", objectString (my n2));
-		if (my class3) Melder_appendError (U"   ", numberString (my n3), U" ", classString (my class3), U" ", objectString (my n3));
-		if (my class4) Melder_appendError (U"   ", numberString (my n4), U" ", classString (my class4), U" ", objectString (my n4));
+		if (my class1)
+			Melder_appendError (U"   ", numberString (my n1), U" ", classString (my class1), U" ", objectString (my n1));
+		if (my class2)
+			Melder_appendError (U"   ", numberString (my n2), U" ", classString (my class2), U" ", objectString (my n2));
+		if (my class3)
+			Melder_appendError (U"   ", numberString (my n3), U" ", classString (my class3), U" ", objectString (my n3));
+		if (my class4)
+			Melder_appendError (U"   ", numberString (my n4), U" ", classString (my class4), U" ", objectString (my n4));
 		throw MelderError ();
 	} else {
 		Melder_throw (U"Selection changed!");
@@ -489,7 +497,7 @@ static bool allowExecutionHook (void *closure) {
 	return false;
 }
 
-static void do_menu (Praat_Command me, bool modified) {
+static void do_menu (Praat_Command me, bool isModified) {
 	if (my callback == DO_RunTheScriptFromAnyAddedMenuCommand) {
 		UiHistory_write (U"\nrunScript: ");
 		try {
@@ -505,7 +513,7 @@ static void do_menu (Praat_Command me, bool modified) {
 		}
 		Ui_setAllowExecutionHook (allowExecutionHook, (void *) my callback);   // BUG: one shouldn't assign a function pointer to a void pointer
 		try {
-			my callback (nullptr, 0, nullptr, nullptr, nullptr, my title.get(), modified, nullptr);
+			my callback (nullptr, 0, nullptr, nullptr, nullptr, my title.get(), isModified, nullptr);
 		} catch (MelderError) {
 			Melder_flushError (U"Command \"", my title.get(), U"\" not executed.");
 		}
@@ -515,12 +523,13 @@ static void do_menu (Praat_Command me, bool modified) {
 }
 
 static void cb_menu (Praat_Command me, GuiMenuItemEvent event) {
-	bool modified = event -> shiftKeyPressed || event -> commandKeyPressed || event -> optionKeyPressed || event -> extraControlKeyPressed;
-	do_menu (me, modified);
+	bool isModified = event -> shiftKeyPressed || event -> commandKeyPressed || event -> optionKeyPressed;
+	do_menu (me, isModified);
 }
 
 static void gui_button_cb_menu (Praat_Command me, GuiButtonEvent event) {
-	do_menu (me, event -> shiftKeyPressed | event -> commandKeyPressed | event -> optionKeyPressed | event -> extraControlKeyPressed);
+	bool isModified = event -> shiftKeyPressed || event -> commandKeyPressed || event -> optionKeyPressed;
+	do_menu (me, isModified);
 }
 
 void praat_actions_show () {
@@ -611,10 +620,6 @@ void praat_actions_show () {
 						me,
 							( my executable ? 0 : GuiButton_INSENSITIVE ) | ( my attractive ? GuiButton_ATTRACTIVE : 0 ));
 					y += Gui_PUSHBUTTON_HEIGHT + BUTTON_VSPACING;
-					#if gtk
-						/* Dit soort onzin zou eigenlijk in GuiButton moeten */
-						gtk_button_set_alignment (GTK_BUTTON (my button -> d_widget), 0.0f, 0.5f);
-					#endif
 				}
 			} else if (i == theActions.size || theActions.at [i + 1] -> depth == 0) {
 				/*
@@ -701,19 +706,64 @@ void praat_saveToggledActions (MelderString *buffer) {
 	}
 }
 
-int praat_doAction (conststring32 command, conststring32 arguments, Interpreter interpreter) {
-	integer i = 1;
-	while (i <= theActions.size && (! theActions.at [i] -> executable || str32cmp (theActions.at [i] -> title.get(), command))) i ++;
-	if (i > theActions.size) return 0;   // not found
-	theActions.at [i] -> callback (nullptr, 0, nullptr, arguments, interpreter, command, false, nullptr);
+int praat_doAction (conststring32 title, conststring32 arguments, Interpreter interpreter) {
+	Praat_Command actionFound = nullptr;
+	for (integer i = 1; i <= theActions.size; i ++) {
+		Praat_Command action = theActions.at [i];
+		if (action -> executable && str32equ (action -> title.get(), title)) {
+			actionFound = action;
+			break;
+		}
+	}
+	if (! actionFound)
+		return 0;
+	if (actionFound -> callback == DO_RunTheScriptFromAnyAddedMenuCommand) {
+		const conststring32 scriptPath = actionFound -> script.get();
+		const conststring32 preferencesFolderPath = Melder_dirToPath (& Melder_preferencesFolder);
+		const bool scriptIsInPlugin =
+				Melder_stringMatchesCriterion (scriptPath, kMelder_string::STARTS_WITH, preferencesFolderPath, true);
+		Melder_throw (
+			U"From a script you cannot directly call a menu command that calls another script. Use instead: \nrunScript: ",
+			scriptIsInPlugin ? U"preferencesDirectory$ + " : U"",
+			U"\"",
+			scriptIsInPlugin ? scriptPath + str32len (preferencesFolderPath) : scriptPath,
+			U"\"",
+			arguments && arguments [0] ? U", " : U"",
+			arguments && arguments [0] ? arguments : U"",
+			U"\n"
+		);
+	}
+	actionFound -> callback (nullptr, 0, nullptr, arguments, interpreter, title, false, nullptr);
 	return 1;
 }
 
-int praat_doAction (conststring32 command, integer narg, Stackel args, Interpreter interpreter) {
-	integer i = 1;
-	while (i <= theActions.size && (! theActions.at [i] -> executable || str32cmp (theActions.at [i] -> title.get(), command))) i ++;
-	if (i > theActions.size) return 0;   // not found
-	theActions.at [i] -> callback (nullptr, narg, args, nullptr, interpreter, command, false, nullptr);
+int praat_doAction (conststring32 title, integer narg, Stackel args, Interpreter interpreter) {
+	Praat_Command actionFound = nullptr;
+	for (integer i = 1; i <= theActions.size; i ++) {
+		Praat_Command action = theActions.at [i];
+		if (action -> executable && str32equ (action -> title.get(), title)) {
+			actionFound = action;
+			break;
+		}
+	}
+	if (! actionFound)
+		return 0;
+	if (actionFound -> callback == DO_RunTheScriptFromAnyAddedMenuCommand) {
+		const conststring32 scriptPath = actionFound -> script.get();
+		const conststring32 preferencesFolderPath = Melder_dirToPath (& Melder_preferencesFolder);
+		const bool scriptIsInPlugin =
+				Melder_stringMatchesCriterion (scriptPath, kMelder_string::STARTS_WITH, preferencesFolderPath, true);
+		Melder_throw (
+			U"From a script you cannot directly call a menu command that calls another script. Use instead: \nrunScript: ",
+			scriptIsInPlugin ? U"preferencesDirectory$ + " : U"",
+			U"\"",
+			scriptIsInPlugin ? scriptPath + str32len (preferencesFolderPath) : scriptPath,
+			U"\"",
+			narg > 0 ? U", ..." : U"",
+			U"\n"
+		);
+	}
+	actionFound -> callback (nullptr, narg, args, nullptr, interpreter, title, false, nullptr);
 	return 1;
 }
 
@@ -723,21 +773,23 @@ Praat_Command praat_getAction (integer i)
 	{ return i < 0 || i > theActions.size ? nullptr : theActions.at [i]; }
 
 void praat_background () {
-	if (Melder_batch) return;
-	if (Melder_backgrounding) return;
+	if (Melder_batch)
+		return;
+	if (Melder_backgrounding)
+		return;
 	deleteDynamicMenu ();
 	praat_list_background ();
 	Melder_backgrounding = true;
-	if (! praatP.dontUsePictureWindow) praat_picture_background ();
 }
 
 void praat_foreground () {
-	if (Melder_batch) return;
-	if (! Melder_backgrounding) return;
+	if (Melder_batch)
+		return;
+	if (! Melder_backgrounding)
+		return;
 	Melder_backgrounding = false;
 	praat_list_foreground ();
 	praat_show ();
-	if (! praatP.dontUsePictureWindow) praat_picture_foreground ();
 }
 
 static bool actionIsToBeIncluded (Praat_Command command, bool deprecated, bool includeSaveAPI,

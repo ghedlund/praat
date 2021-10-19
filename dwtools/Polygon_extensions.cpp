@@ -1,6 +1,6 @@
 /* Polygon_extensions.c
  *
- * Copyright (C) 1993-2019 David Weenink
+ * Copyright (C) 1993-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,10 +42,10 @@ static double Polygon_area (Polygon me) {
 }
 
 void Polygon_getExtrema (Polygon me, double *out_xmin, double *out_xmax, double *out_ymin, double *out_ymax) {
-    double xmin = NUMmin (my x.get());
-	double xmax = NUMmax (my x.get());;
-    double ymin = NUMmin (my y.get());
-	double ymax = NUMmax (my y.get());;
+    const double xmin = NUMmin (my x.get());
+	const double xmax = NUMmax (my x.get());
+    const double ymin = NUMmin (my y.get());
+	const double ymax = NUMmax (my y.get());
     if (out_xmin)
 		*out_xmin = xmin;
     if (out_xmax)
@@ -56,21 +56,20 @@ void Polygon_getExtrema (Polygon me, double *out_xmin, double *out_xmax, double 
 		*out_ymax = ymax;
 }
 
-autoPolygon Polygon_createSimple (conststring32 xystring) {
+autoPolygon Polygon_createSimple (constVECVU const& vertices_asXYPairs) {
 	try {
-		autoVEC xys = VEC_createFromString (xystring);
-		Melder_require (xys.size >= 6,
+		Melder_require (vertices_asXYPairs.size >= 6,
 			U"There should be at least 3 points (= x,y pairs) in the Polygon");
-		Melder_require (xys.size % 2 == 0,
+		Melder_require (vertices_asXYPairs.size % 2 == 0,
 			U"One value is missing.");
 		
-		integer numberOfPoints = xys.size / 2;
+		const integer numberOfPoints = vertices_asXYPairs.size / 2;
 		autoPolygon me = Polygon_create (numberOfPoints);
 		for (integer i = 1; i <= numberOfPoints; i ++) {
-			my x [i] = xys [2 * i - 1];
-			my y [i] = xys [2 * i];
+			my x [i] = vertices_asXYPairs [2 * i - 1];
+			my y [i] = vertices_asXYPairs [2 * i];
 			if (i > 1 && my x [i] == my x [i - 1] && my y [i] == my y [i - 1])
-				Melder_warning (U"Two successives vertices are equal.");
+				Melder_warning (U"Two successive vertices are equal.");
 		}
 		return me;
 	} catch (MelderError) {
@@ -98,11 +97,11 @@ void Polygon_translate (Polygon me, double xt, double yt) {
 
 /* rotate counterclockwise w.r.t. (xc,yc) */
 void Polygon_rotate (Polygon me, double alpha, double xc, double yc) {
-	double f = alpha * NUMpi / 180, cosa = cos (f), sina = sin (f);
+	const double f = alpha * NUMpi / 180, cosa = cos (f), sina = sin (f);
 
 	Polygon_translate (me, -xc, -yc);
 	for (integer i = 1; i <= my numberOfPoints; i ++) {
-		double x = my x [i];
+		const double x = my x [i];
 		my x [i] = cosa * my x [i] - sina * my y [i];
 		my y [i] = sina * x + cosa * my y [i];
 	}
@@ -122,29 +121,25 @@ void Polygon_reverseY (Polygon me) {
 	my y.get()  *=  -1.0;
 }
 
-void Polygon_Categories_draw (Polygon me, Categories thee, Graphics graphics, double xmin, double xmax, double ymin, double ymax, int garnish) {
-	double min, max, tmp;
-
+void Polygon_Categories_draw (Polygon me, Categories thee, Graphics graphics, double xmin, double xmax, double ymin, double ymax, bool garnish) {
 	if (my numberOfPoints != thy size)
 		return;
-
 	if (xmax == xmin) {
-		NUMextrema (my x.get(), & min, & max);
-		tmp = ( max - min == 0 ? 0.5 : 0.0 );
-		xmin = min - tmp;
-		xmax = max + tmp;
+		const MelderRealRange xrange = NUMextrema (my x.get());
+		const double tmp = 0.5 * xrange.isEmpty();
+		xmin = xrange.min - tmp;
+		xmax = xrange.max + tmp;
 	}
-
 	if (ymax == ymin) {
-		NUMextrema (my y.get(), & min, & max);
-		tmp = ( max - min == 0 ? 0.5 : 0.0 );
-		ymin = min - tmp;
-		ymax = max + tmp;
+		const MelderRealRange yrange = NUMextrema (my y.get());
+		const double tmp = 0.5 * yrange.isEmpty();
+		ymin = yrange.min - tmp;
+		ymax = yrange.max + tmp;
 	}
 
 	Graphics_setInner (graphics);
 	Graphics_setWindow (graphics, xmin, xmax, ymin, ymax);
-	Graphics_setTextAlignment (graphics, Graphics_CENTRE, Graphics_HALF);
+	Graphics_setTextAlignment (graphics, kGraphics_horizontalAlignment::CENTRE, Graphics_HALF);
 
 	for (integer i = 1; i <= my numberOfPoints; i ++) {
 		SimpleString category = thy at [i];
@@ -187,34 +182,29 @@ static void setWindow (Polygon me, Graphics graphics, double xmin, double xmax, 
 void Polygon_drawMarks (Polygon me, Graphics g, double xmin, double xmax, double ymin, double ymax, double size_mm, conststring32 mark) {
 	Graphics_setInner (g);
 	setWindow (me, g, xmin, xmax, ymin, ymax);
-	for (integer i = 1; i <= my numberOfPoints; i ++) {
+	for (integer i = 1; i <= my numberOfPoints; i ++)
 		Graphics_mark (g, my x [i], my y [i], size_mm, mark);
-	}
 	Graphics_unsetInner (g);
 }
 
 #define CLIP_Y(y,ymin,ymax) (clip ? ((y) > (ymax) ? (ymax) : (y) < (ymin) ? (ymin) : (y)) : y)
 
-autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, double ymin, double ymax, double level) {
+autoPolygon Sound_to_Polygon (Sound me, integer channel, double tmin, double tmax, double ymin, double ymax, double level) {
 	try {
-		bool clip = ymin < ymax;
-		Melder_require (channel > 0 && channel <= my ny, U"Channel does not exist.");
-		if (tmin >= tmax) {
+		const bool clip = ymin < ymax;
+		Melder_require (channel > 0 && channel <= my ny,
+			U"Channel does not exist.");
+		Function_unidirectionalAutowindow (me, & tmin, & tmax);
+		if (tmin < my xmin)
 			tmin = my xmin;
+		if (tmax > my xmax)
 			tmax = my xmax;
-		}
-		if (tmin < my xmin) {
-			tmin = my xmin;
-		}
-		if (tmax > my xmax) {
-			tmax = my xmax;
-		}
 		Melder_require (tmin < my xmax && tmax > my xmin,
 			U"Invalid domain.");
 		
-		integer k = 1, i1 = Sampled_xToHighIndex (me, tmin);
-		integer i2 = Sampled_xToLowIndex (me, tmax);
-		integer numberOfPoints = i2 - i1 + 1 + 2 + 2; // begin + endpoint + level
+		const integer i1 = Sampled_xToHighIndex (me, tmin);
+		const integer i2 = Sampled_xToLowIndex (me, tmax);
+		const integer numberOfPoints = i2 - i1 + 1 + 2 + 2; // begin + endpoint + level
 		autoPolygon him = Polygon_create (numberOfPoints);
 
 		/*
@@ -227,15 +217,16 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 			Querying for the value at xmin which is outside the interpolation domain then produces an 'undefined'.
 			We try to avoid this with the following workaround.
 		*/
-		double xmin = my x1 - 0.5 * my dx;
-		double xmax = xmin + my nx * my dx;
-		tmin = std::max (tmin, xmin); // yes, looks strange
-		tmax = std::min (tmax, xmax);
+		const volatile double xmin = my x1 - 0.5 * my dx;
+		const volatile double xmax = xmin + my nx * my dx;   // don't change this to e.g. my x1 + (my nx - 0.5) * my dx; see Vector_getValueAtX()
+		Melder_clipLeft (xmin, & tmin);
+		Melder_clipRight (& tmax, xmax);
 		// End of workaround
+		integer k = 1;
 		his x [k] = tmin;
 		his y [k ++] = CLIP_Y (level, ymin, ymax);
 		his x [k] = tmin;
-		double y = Vector_getValueAtX (me, tmin, channel, Vector_VALUE_INTERPOLATION_LINEAR);
+		double y = Vector_getValueAtX (me, tmin, channel, kVector_valueInterpolation :: LINEAR);
 		his y [k ++] = CLIP_Y (y, ymin, ymax);
 		for (integer i = i1; i <= i2; i ++) {
 			y = my z [channel] [i];
@@ -243,7 +234,7 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 			his y [k ++] = CLIP_Y (y, ymin, ymax);
 		}
 		his x [k] = tmax;
-		y = Vector_getValueAtX (me, tmax, channel, Vector_VALUE_INTERPOLATION_LINEAR);
+		y = Vector_getValueAtX (me, tmax, channel, kVector_valueInterpolation :: LINEAR);
 		his y [k ++] = CLIP_Y (y, ymin, ymax);
 		his x [k] = tmax;
 		his y [k ++] = CLIP_Y (level, ymin, ymax);
@@ -255,46 +246,45 @@ autoPolygon Sound_to_Polygon (Sound me, int channel, double tmin, double tmax, d
 
 /* Area inbetween */
 
-autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, double tmin, double tmax, double ymin, double ymax) {
+autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, integer channel, double tmin, double tmax, double ymin, double ymax) {
 	try {
-		bool clip = ymin < ymax;
-		Melder_require (channel > 0 && channel <= my ny && channel <= thy ny, U"Invalid channel."); 
+		const bool clip = ymin < ymax;
+		Melder_require (channel > 0 && channel <= my ny && channel <= thy ny,
+			U"Invalid channel."); 
 		
 		// find overlap in the domains  with xmin workaround as in Sound_to_Polygon
-		double xmin1 = my x1 - 0.5 * my dx, xmin2 = thy x1 - 0.5 * thy dx ;
-		double xmin = ( my xmin > thy xmin ? xmin1 : xmin2 );
-		double xmax = ( my xmax < thy xmax ? xmin1 + my nx * my dx : xmin2 + thy nx * thy dx );
+		const double xmin1 = my x1 - 0.5 * my dx, xmin2 = thy x1 - 0.5 * thy dx;
+		const double xmin = ( my xmin > thy xmin ? xmin1 : xmin2 );
+		const double xmax = ( my xmax < thy xmax ? xmin1 + my nx * my dx : xmin2 + thy nx * thy dx );
 		Melder_require (xmax > xmin,
-			U"Domains must overlap.");
-		if (xmax <= xmin) {
-			Melder_throw (U"Domains must overlap.");
-		}
+			U"Domains should overlap.");
+		Melder_require (xmin < xmax,
+			U"Domains should overlap.");
 		if (tmin >= tmax) {
 			tmin = xmin;
 			tmax = xmax;
 		}
-		if (tmin < xmin) {
+		if (tmin < xmin)
 			tmin = xmin;
-		}
-		if (tmax > xmax) {
+		if (tmax > xmax)
 			tmax = xmax;
-		}
-		Melder_require (tmin < xmax && tmax > xmin, U"Invalid domain.");
+		Melder_require (tmin < xmax && tmax > xmin,
+			U"Invalid domain.");
 		
-		integer k = 1;
-		integer ib1 = Sampled_xToHighIndex (me, tmin);
-		integer ie1 = Sampled_xToLowIndex (me, tmax);
-		integer n1 = ie1 - ib1 + 1;
-		integer ib2 = Sampled_xToHighIndex (thee, tmin);
-		integer ie2 = Sampled_xToLowIndex (thee, tmax);
-		integer n2 = ie2 - ib2 + 1;
-		integer numberOfPoints = n1 + n2 + 4; // me + thee + begin + endpoint + closing
+		const integer ib1 = Sampled_xToHighIndex (me, tmin);
+		const integer ie1 = Sampled_xToLowIndex (me, tmax);
+		const integer n1 = ie1 - ib1 + 1;
+		const integer ib2 = Sampled_xToHighIndex (thee, tmin);
+		const integer ie2 = Sampled_xToLowIndex (thee, tmax);
+		const integer n2 = ie2 - ib2 + 1;
+		const integer numberOfPoints = n1 + n2 + 4; // me + thee + begin + endpoint + closing
 
 		autoPolygon him = Polygon_create (numberOfPoints);
-
-		// my starting point at tmin
-
-		double y = Vector_getValueAtX (me, tmin, ( my ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		/*
+			my starting point at tmin
+		*/
+		double y = Vector_getValueAtX (me, tmin, ( my ny == 1 ? 1 : channel ), kVector_valueInterpolation :: LINEAR);
+		integer k = 1;
 		his x [k] = tmin;
 		his y [k ++] = CLIP_Y (y, ymin, ymax);
 
@@ -309,13 +299,13 @@ autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, doubl
 
 		// my end point at tmax
 
-		y = Vector_getValueAtX (me, tmax, ( my ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		y = Vector_getValueAtX (me, tmax, ( my ny == 1 ? 1 : channel ), kVector_valueInterpolation :: LINEAR);
 		his x [k] = tmax;
 		his y [k ++] = y;
 
 		// thy starting point at tmax
 
-		y = Vector_getValueAtX (thee, tmax, (thy ny == 1 ? 1 : channel), Vector_VALUE_INTERPOLATION_LINEAR);
+		y = Vector_getValueAtX (thee, tmax, ( thy ny == 1 ? 1 : channel ), kVector_valueInterpolation :: LINEAR);
 		his x [k] = tmax;
 		his y [k ++] = y;
 
@@ -330,7 +320,7 @@ autoPolygon Sounds_to_Polygon_enclosed (Sound me, Sound thee, int channel, doubl
 
 		// thy end point at tmin
 
-		y = Vector_getValueAtX (thee, tmin, ( thy ny == 1 ? 1 : channel ), Vector_VALUE_INTERPOLATION_LINEAR);
+		y = Vector_getValueAtX (thee, tmin, ( thy ny == 1 ? 1 : channel ), kVector_valueInterpolation :: LINEAR);
 		his x [k] = tmin;
 		his y [k] = y;
 
@@ -604,8 +594,10 @@ static void _Polygons_copyNonCollinearities (Polygon me, Polygon thee, integer c
 	// Determine if all collinear point are within the interval [colstart,colend]
 	integer jstart, jend;
 	bool allPointsInside = ( my x [collstart] != my x [collend] ?
-	                         pointsInsideInterval (my x.at, my numberOfPoints, collstart, collend, &jstart, &jend) :
-	                         pointsInsideInterval (my y.at, my numberOfPoints, collstart, collend, &jstart, &jend) );
+			pointsInsideInterval (my x.asArgumentToFunctionThatExpectsOneBasedArray(),
+					my numberOfPoints, collstart, collend, &jstart, &jend) :
+			pointsInsideInterval (my y.asArgumentToFunctionThatExpectsOneBasedArray(),
+					my numberOfPoints, collstart, collend, &jstart, &jend) );
 	if (not allPointsInside) {
 		if (collstart != jstart) { // also include the extreme point at start
 			thy numberOfPoints ++;
@@ -1173,8 +1165,8 @@ autoPolygon Polygon_convexHull (Polygon me) {
 	try {
 		if (my numberOfPoints <= 3) return Data_copy (me);
 		
-		autoVEC x = newVECraw (my numberOfPoints), y = newVECraw (my numberOfPoints);
-		autoINTVEC hull = newINTVECraw (my numberOfPoints + 2);
+		autoVEC x = raw_VEC (my numberOfPoints), y = raw_VEC (my numberOfPoints);
+		autoINTVEC hull = raw_INTVEC (my numberOfPoints + 2);
 		for (integer i = 1; i <= my numberOfPoints; i ++) {
 			x [i] = my x [i];
 			y [i] = my y [i];

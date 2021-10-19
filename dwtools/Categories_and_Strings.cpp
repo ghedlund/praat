@@ -29,11 +29,11 @@ autoStrings Categories_to_Strings (Categories me) {
 			U"There should be at least one category present.");
 		
 		autoStrings thee = Thing_new (Strings);
-		thy strings = autostring32vector (my size);
+		thy strings = autoSTRVEC (my size);
 		thy numberOfStrings = my size;
 
 		for (integer i = 1; i <= my size; i ++) {
-			SimpleString s = my at [i];
+			const SimpleString s = my at [i];
 			thy strings [i] = Melder_dup (s -> string.get());
 		}
 		return thee;

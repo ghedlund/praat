@@ -160,7 +160,7 @@ DEFINITION (U"determines the lag time.")
 ENTRY (U"Algorithm")
 NORMAL (U"The cross-correlation between channel %i and channel %j for lag time \\ta is defined as the "
 	"discretized #integral")
-FORMULA (U"cross-corr (%c__%i_, %c__%j_) [%\\ta] \\=3 \\su__%t_ %c__%i_[%t] %c__%j_[%t+%\\ta] %%\\Det%,")
+EQUATION (U"cross-corr (%c__%i_, %c__%j_) [%\\ta] \\=3 \\su__%t_ %c__%i_[%t] %c__%j_[%t+%\\ta] %%\\Det%,")
 NORMAL (U"where %t and %t+%\\ta are discrete times and %%\\Det% is the @@sampling period@. ")
 MAN_END
 
@@ -169,7 +169,7 @@ INTRO (U"Detemines the @@Covariance|covariances@ between the channels of a selec
 NORMAL (U"The covariance of a sound is determined by calculating the @@CrossCorrelationTable@ of a multichannel sound for a lag time equal to zero.")
 MAN_END
 
-MAN_BEGIN (U"Sound: To Sound (blind source separation)...", U"djmw", 20151030)
+MAN_BEGIN (U"Sound: To Sound (blind source separation)...", U"djmw", 20190811)
 INTRO (U"Analyze the selected multi-channel sound into its independent components by an iterative method.")
 NORMAL (U"The @@blind source separation@ method to find the independent components tries to simultaneously diagonalize a number of "
 	"@@CrossCorrelationTable@s that are calculated from the multi-channel sound at different lag times.")
@@ -198,7 +198,7 @@ TAG (U"##Diagonalization method")
 DEFINITION (U"defines the method to determine the independent components.")
 ENTRY (U"Algorithm")
 NORMAL (U"This method tries to decompose the sound according to the %%instantaneous% mixing model")
-FORMULA (U"#Y=#A\\.c#X.")
+EQUATION (U"#Y=#A\\.c#X.")
 NORMAL (U"In this model #Y is a matrix with the selected multi-channel sound, #A is a so-called "
 	"%%mixing matrix% and #X is a matrix with the independent components. "
 	"Essentially the model says that each channel in the multi-channel sound is a linear combination of the "
@@ -218,7 +218,7 @@ NORMAL (U"The theory says that statistically independent signals are not correla
 	"for the multi-channel sound #Y this will result in a cross-correlation matrix #C. For the right side we "
 	"obtain #A\\.c#D\\.c#A\\'p, where #D is a diagonal matrix because all the cross-correlations between "
 	"different independent components are zero by definition. This results in the following identity: ")
-FORMULA (U"#C(\\ta)=#A\\.c#D(\\ta)\\.c#A\\'p, for all values of the lag time \\ta.")
+EQUATION (U"#C(\\ta)=#A\\.c#D(\\ta)\\.c#A\\'p, for all values of the lag time \\ta.")
 NORMAL (U"This equation says that, given the model, the cross-correlation matrix can be diagonalized for "
 	"all values of the lag time %%by the same transformation matrix% #A.")
 NORMAL (U"If we calculate the cross-correlation matrices for a number of different lag times, say 20, we "
@@ -234,20 +234,21 @@ NORMAL (U"Unfortunately the convergence criteria of these two algorithms cannot 
 	"change in the eigenvectors norm during an iteration.")
 ENTRY (U"Example")
 NORMAL (U"We start by creating a speech synthesizer that need to create two sounds. We will mix the two sounds and finally our blind source separation software will try to undo our mixing by extracting the two original sounds as well as possible from the two mixtures.")
-CODE(U"synth = Create SpeechSynthesizer: \"English (Great Britain)\", \"Female1\"")
-CODE(U"s1 = To Sound: \"This is some text\", \"no\"")
+CODE (U"synth = Create SpeechSynthesizer: \"English (Great Britain)\", \"Female1\"")
+CODE (U"s1 = To Sound: \"This is some text\", \"no\"")
 NORMAL (U"The first speech sound was created from the text \"This is some text\" at a speed of 175 words per minute.")
-CODE(U"selectObject: synth")
-CODE(U"Set speech output settings: 44100, 0.01, 80, 50, 145, \"no\", \"IPA\"")
-CODE(U"s2 = To Sound.: \"Abracadabra, abra\", \"no\"")
+CODE (U"selectObject: synth")
+CODE (U"Speech output settings: 44100, 0.01, 1.2, 1.0, 145, \"IPA\"")
+CODE (U"Estimate speech rate from speech: \"no\"")
+CODE (U"s2 = To Sound.: \"Abracadabra, abra\", \"no\"")
 NORMAL (U"The second sound \"Abracadabra, abra\" was synthesized at 145 words per minute with a somewhat larger pitch excursion (80) than the previous sound (50).")
-CODE(U"plusObject: s1")
-CODE(U"stereo = Combine to stereo")
+CODE (U"plusObject: s1")
+CODE (U"stereo = Combine to stereo")
 NORMAL (U"We combine the two separate sounds into one stereo sound because our blind source separation works on multichannel sounds only.")
-CODE(U"mm = Create simple MixingMatrix: \"mm\", 2, 2, \"1.0 2.0 2.0 1.0\"")
+CODE (U"mm = Create simple MixingMatrix: \"mm\", 2, 2, \"1.0 2.0 2.0 1.0\"")
 NORMAL (U"A two by two MixingMatrix is created.")
-CODE(U"plusObject: stereo")
-CODE(U"Mix")
+CODE (U"plusObject: stereo")
+CODE (U"Mix")
 NORMAL (U"The last command, Mix, creates a new two-channel sound where each channel is a linear mixture of the two "
     "channels in the stereo sound, i.e. channel 1 is the sum of s1 and s2 with mixture strengths of 1 and 2, respectively. "
     "The second channel is also the sum of s1 and s2 but now with mixture strengths 2 and 1, respectively.")
@@ -260,7 +261,8 @@ SCRIPT (6, 6, U" "
 	"syn = Create SpeechSynthesizer: \"English (Great Britain)\", \"Female1\"\n"
 	"s1 = To Sound: \"This is some text\", \"no\"\n"
     "selectObject: syn\n"
-	"Set speech output settings: 44100, 0.01, 80, 50, 145, \"no\", \"IPA\"\n"
+	"Speech output settings: 44100, 0.01, 1.2, 1.0, 145, \"IPA\"\n"
+	"Estimate speech rate from speech: \"no\"\n"
 	"s2 = To Sound: \"abracadabra, abra\", \"no\"\n"
     "plusObject: s1\n"
 	"stereo = Combine to stereo\n"
@@ -287,7 +289,8 @@ NORMAL (U"The complete script:")
 CODE (U"syn = Create SpeechSynthesizer: \"English (Great Britain)\", \"Female1\"")
 CODE (U"s1 = To Sound: \"This is some text\", \"no\"")
 CODE (U"selectObject: syn")
-CODE (U"Set speech output settings: 44100, 0.01, 80, 50, 145, \"no\", \"IPA\"")
+CODE (U"Speech output settings: 44100, 0.01, 1.2, 1.0, 145, \"IPA\"")
+CODE (U"Estimate speech rate from speech: \"no\"")
 CODE (U"s2 = To Sound: \"abracadabra, abra\", \"no\"")
 CODE (U"plusObject: s1")
 CODE (U"stereo = Combine to stereo")
@@ -342,7 +345,7 @@ DEFINITION (U"where the mixing is instantaneous, corresponds to the model #Y=#A\
 	"However, in general we don't know #A and #X and there are an infinite number of possible decompositions for #Y. The problem is however solvable by making some (mild) assumptions about #A and #X. ")
 TAG (U"%%Convolutive mixtures%")
 DEFINITION (U"are mixtures where the mixing is of convolutive nature, i.e. the model is ")
-FORMULA (U"%%y__i_ (n)% = \\Si__%j_^^%d^\\Si__%\\ta_^^M__%ij_-1^ %%h__ij_(\\ta)x__j_(n-\\ta) + N__i_(n)%, for %i=1..m.")
+EQUATION (U"%%y__i_ (n)% = \\Si__%j_^^%d^\\Si__%\\ta_^^M__%ij_-1^ %%h__ij_(\\ta)x__j_(n-\\ta) + N__i_(n)%, for %i=1..m.")
 DEFINITION (U"Here %%y__i_ (n) is the %n-th sample of the %i-th microphone signal, %m is the number of microphones, %%h__ij_(\\ta)% is the multi-input multi-output linear filter with the source-microphone impulse responses that characterize the propagation of the sound in the room and %%N__i_% is a noise source. This model is typically much harder to solve than the previous one because of the %%h__ij_(\\ta)% filter term that can have thousands of coefficients. For example, the typical @@reverberation time@ of a room is approximately 0.3 s which corresponds to 2400 samples, i.e. filter coefficients, for an 8 kHz sampled sound.")
 ENTRY (U"Solving the blind source separation for instantaneous mixtures")
 NORMAL (U"Various techniques exist for solving the blind source separation problem for %instantaneous mixtures. Very popular ones make make use of second order statistics (SOS) by trying to "

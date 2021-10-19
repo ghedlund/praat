@@ -2,7 +2,7 @@
 #define _OptimalCeilingTierEditor_h_
 /* OptimalCeilingTierEditor.h
  *
- * Copyright (C) 2015 David Weenink, 2017 Paul Boersma
+ * Copyright (C) 2015 David Weenink, 2017,2020,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,31 +19,21 @@
  */
 
 #include "RealTierEditor.h"
-#include "OptimalCeilingTier.h"
+#include "OptimalCeilingTierArea.h"
 #include "Sound.h"
 
 Thing_define (OptimalCeilingTierEditor, RealTierEditor) {
 	void v_createHelpMenuItems (EditorMenu menu)
 		override;
-	void v_play (double fromTime, double toTime)
+	void v_play (double startTime, double endTime)
 		override;
 	conststring32 v_quantityText ()
 		override { return U"Frequency (Hz)"; }
-	conststring32 v_rightTickUnits ()
-		override { return U" Hz"; }
-	double v_defaultYmin ()
-		override { return 4000.0; }
-	double v_defaultYmax ()
-		override { return +6000.0; }
 	conststring32 v_setRangeTitle ()
 		override { return U"Set frequency range..."; }
-	conststring32 v_defaultYminText ()
-		override { return U"4000.0"; }
-	conststring32 v_defaultYmaxText ()
-		override { return U"6000.0"; }
-	conststring32 v_yminText ()
+	conststring32 v_minimumLabelText ()
 		override { return U"Minimum frequency (Hz)"; }
-	conststring32 v_ymaxText ()
+	conststring32 v_maximumLabelText ()
 		override { return U"Maximum frequency (Hz)"; }
 };
 

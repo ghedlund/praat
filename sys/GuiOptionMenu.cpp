@@ -1,6 +1,6 @@
 /* GuiOptionMenu.cpp
  *
- * Copyright (C) 1993-2018 Paul Boersma, 2007 Stefan de Konink, 2013 Tom Naughton
+ * Copyright (C) 1993-2018,2020,2021 Paul Boersma, 2007 Stefan de Konink, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,11 +67,11 @@ void GuiOptionMenu_init (GuiOptionMenu me, GuiForm parent, int left, int right, 
 	my d_shell = parent -> d_shell;
 	my d_parent = parent;
 	#if gtk
-		my d_widget = gtk_combo_box_new_text ();
+		my d_widget = gtk_combo_box_text_new ();
 		gtk_widget_set_size_request (GTK_WIDGET (my d_widget), right - left, bottom - top + 8);
 		gtk_fixed_put (GTK_FIXED (parent -> d_widget), GTK_WIDGET (my d_widget), left, top - 6);
-		gtk_combo_box_set_focus_on_click (GTK_COMBO_BOX (my d_widget), false);
-		GTK_WIDGET_UNSET_FLAGS (my d_widget, GTK_CAN_DEFAULT);
+		gtk_widget_set_focus_on_click (GTK_WIDGET (my d_widget), false);
+		gtk_widget_set_can_default (GTK_WIDGET (my d_widget), false);
 	#elif motif
 		my d_xmMenuBar = XmCreateMenuBar (parent -> d_widget, "UiOptionMenu", nullptr, 0);
 		XtVaSetValues (my d_xmMenuBar, XmNx, left - 4, XmNy, top - 4,
@@ -114,17 +114,15 @@ GuiOptionMenu GuiOptionMenu_createShown (GuiForm parent, int left, int right, in
 }
 
 #if motif
-	static void cb_optionChanged (GuiObject w, XtPointer void_me, XtPointer call) {
+	static void cb_optionChanged (GuiObject w, XtPointer void_me, XtPointer /* call */) {
 		iam (GuiOptionMenu);
-		(void) call;
 		for (int i = 1; i <= my d_options.size; i ++) {
 			GuiMenuItem item = my d_options.at [i];
 			if (item -> d_widget == w) {
 				XtVaSetValues (my d_xmCascadeButton, XmNlabelString, Melder_peek32to8 (item -> d_widget -> name.get()), nullptr);
 				XmToggleButtonSetState (item -> d_widget, true, false);
-				if (Melder_debug == 11) {
+				if (Melder_debug == 11)
 					Melder_warning (i, U" \"", item -> d_widget -> name.get(), U"\"");
-				}
 			} else {
 				XmToggleButtonSetState (item -> d_widget, false, false);
 			}
@@ -134,7 +132,7 @@ GuiOptionMenu GuiOptionMenu_createShown (GuiForm parent, int left, int right, in
 
 void GuiOptionMenu_addOption (GuiOptionMenu me, conststring32 text) {
 	#if gtk
-		gtk_combo_box_append_text (GTK_COMBO_BOX (my d_widget), Melder_peek32to8 (text));
+		gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (my d_widget), Melder_peek32to8 (text));
 	#elif motif
 		autoGuiMenuItem menuItem = Thing_new (GuiMenuItem);
 		menuItem -> d_widget = XtVaCreateManagedWidget (Melder_peek32to8 (text), xmToggleButtonWidgetClass, my d_widget, nullptr);
@@ -171,9 +169,8 @@ void GuiOptionMenu_setValue (GuiOptionMenu me, int value) {
 		for (int i = 1; i <= my d_options.size; i ++) {
 			GuiMenuItem menuItem = my d_options.at [i];
 			XmToggleButtonSetState (menuItem -> d_widget, i == value, False);
-			if (i == value) {
+			if (i == value)
 				XtVaSetValues (my d_xmCascadeButton, XmNlabelString, Melder_peek32to8 (menuItem -> d_widget -> name.get()), nullptr);
-			}
 		}
 	#elif cocoa
         GuiCocoaOptionMenu *menu = (GuiCocoaOptionMenu *) my d_widget;

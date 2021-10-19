@@ -2,7 +2,7 @@
 #define _Gui_h_
 /* Gui.h
  *
- * Copyright (C) 1993-2018 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1993-2021 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,13 @@
 	#define cocoa 0
 #endif
 
+constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
+	#if defined (macintosh)
+		false;
+	#else
+		true;
+	#endif
+
 #include "Collection.h"
 
 #if defined (UNIX)
@@ -73,6 +80,8 @@
 	#include "winport_off.h"
 #endif
 
+#include "machine.h"
+
 #define Gui_LEFT_DIALOG_SPACING  20
 #define Gui_RIGHT_DIALOG_SPACING  20
 #define Gui_TOP_DIALOG_SPACING  14
@@ -87,11 +96,7 @@
 #define Gui_CHECKBUTTON_HEIGHT  20
 #define Gui_LABEL_SPACING  8
 #define Gui_OPTIONMENU_HEIGHT  20
-#if gtk
-	#define Gui_PUSHBUTTON_HEIGHT  25
-#else
-	#define Gui_PUSHBUTTON_HEIGHT  20
-#endif
+#define Gui_PUSHBUTTON_HEIGHT  Machine_getButtonHeight ()
 #define Gui_OK_BUTTON_WIDTH  69
 #define Gui_CANCEL_BUTTON_WIDTH  69
 #define Gui_APPLY_BUTTON_WIDTH  69
@@ -99,11 +104,6 @@
 #define Gui_HOMOGENEOUS  1
 
 #if gtk
-	typedef GMainContext *AppContext;
-	typedef gint Dimension;
-	typedef gboolean Boolean;
-	#define True 1
-	#define False 0
 	typedef void *GuiObject;
 #elif cocoa
 	Thing_declare (GuiThing);
@@ -291,7 +291,6 @@
 	void XmToggleButtonGadgetSetState (GuiObject widget, Boolean value, Boolean notify);
 	#define XmToggleButtonSetState XmToggleButtonGadgetSetState
 
-	bool motif_win_mouseStillDown ();
 	void motif_win_setUserMessageCallback (int (*userMessageCallback) (void));
 #else
 	typedef void *GuiObject;
@@ -300,6 +299,7 @@
 int Gui_getResolution (GuiObject widget);
 void Gui_getWindowPositioningBounds (double *x, double *y, double *width, double *height);
 
+Thing_declare (GuiDrawingArea);
 Thing_declare (GuiForm);
 Thing_declare (GuiMenu);
 Thing_declare (GuiScrolledWindow);
@@ -341,7 +341,7 @@ void GuiControl_setSize (GuiControl me, int width, int height);
 Thing_define (GuiForm, GuiControl) {
 };
 
-typedef MelderCallback <void, structThing /* boss */> GuiShell_GoAwayCallback;
+using GuiShell_GoAwayCallback = MelderCallback <void, structThing /* boss */>;
 
 Thing_define (GuiShell, GuiForm) {
 	int d_width, d_height;
@@ -354,6 +354,7 @@ Thing_define (GuiShell, GuiForm) {
 	#endif
 	GuiShell_GoAwayCallback d_goAwayCallback;
 	Thing d_goAwayBoss;
+	GuiDrawingArea drawingArea;
 
 	void v_destroy () noexcept
 		override;
@@ -362,7 +363,7 @@ Thing_define (GuiShell, GuiForm) {
 int GuiShell_getShellWidth  (GuiShell me);   // needed because GuiControl_getWidth yields the width of the inner form
 int GuiShell_getShellHeight (GuiShell me);
 void GuiShell_setTitle (GuiShell me, conststring32 title /* cattable */);
-void GuiShell_drain (GuiShell me);   // drain the double graphics buffer
+void GuiShell_drain (GuiShell me);   // force display of update regions (forces the handling of an expose event)
 
 /********** GuiButton **********/
 
@@ -370,10 +371,10 @@ Thing_declare (GuiButton);
 
 typedef struct structGuiButtonEvent {
 	GuiButton button;
-	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed, extraControlKeyPressed;
+	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed;
 } *GuiButtonEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiButtonEvent> GuiButton_ActivateCallback;
+using GuiButton_ActivateCallback = MelderCallback <void, structThing /* boss */, GuiButtonEvent>;
 
 Thing_define (GuiButton, GuiControl) {
 	GuiButton_ActivateCallback d_activateCallback;
@@ -386,7 +387,7 @@ Thing_define (GuiButton, GuiControl) {
 #define GuiButton_CANCEL  2
 #define GuiButton_INSENSITIVE  4
 #define GuiButton_ATTRACTIVE  8
-GuiButton GuiButton_create      (GuiForm parent,
+GuiButton GuiButton_create (GuiForm parent,
 	int left, int right, int top, int bottom,
 	conststring32 text,
 	GuiButton_ActivateCallback activateCallback, Thing boss,
@@ -409,7 +410,7 @@ typedef struct structGuiCheckButtonEvent {
 	GuiCheckButton toggle;
 } *GuiCheckButtonEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiCheckButtonEvent> GuiCheckButton_ValueChangedCallback;
+using GuiCheckButton_ValueChangedCallback = MelderCallback <void, structThing /* boss */, GuiCheckButtonEvent>;
 
 Thing_define (GuiCheckButton, GuiControl) {
 	GuiCheckButton_ValueChangedCallback d_valueChangedCallback;
@@ -419,7 +420,7 @@ Thing_define (GuiCheckButton, GuiControl) {
 /* GuiCheckButton creation flags: */
 #define GuiCheckButton_SET  1
 #define GuiCheckButton_INSENSITIVE  2
-GuiCheckButton GuiCheckButton_create      (GuiForm parent,
+GuiCheckButton GuiCheckButton_create (GuiForm parent,
 	int left, int right, int top, int bottom,
 	conststring32 text,
 	GuiCheckButton_ValueChangedCallback valueChangedCallback, Thing boss,
@@ -437,7 +438,11 @@ void GuiCheckButton_setValue (GuiCheckButton me, bool value);
 
 /********** GuiDialog **********/
 
+using GuiDialog_DefaultCallback = MelderCallback <void, structThing /* boss */>;
+
 Thing_define (GuiDialog, GuiShell) {
+	GuiDialog_DefaultCallback d_defaultCallback;
+	Thing d_defaultBoss;
 };
 
 /* GuiDialog creation flags: */
@@ -449,6 +454,8 @@ GuiDialog GuiDialog_create (GuiWindow parent,
 	uint32 flags
 );
 
+void GuiDialog_setDefaultCallback (GuiDialog me, GuiDialog_DefaultCallback callback, Thing boss);
+
 /********** GuiDrawingArea **********/
 
 Thing_declare (GuiDrawingArea);
@@ -458,76 +465,94 @@ typedef struct structGuiDrawingArea_ExposeEvent {
 	GuiDrawingArea widget;
 	int x, y, width, height;
 } *GuiDrawingArea_ExposeEvent;
-typedef struct structGuiDrawingArea_ClickEvent {
+
+typedef struct structGuiDrawingArea_MouseEvent {
 	GuiDrawingArea widget;
 	int x, y;
-	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed, extraControlKeyPressed;
-	int button;
-} *GuiDrawingArea_ClickEvent;
+	enum class Phase { CLICK, DRAG, DROP } phase;
+	bool isClick() const { return our phase == Phase::CLICK; }
+	bool isDrag()  const { return our phase == Phase::DRAG; }
+	bool isDrop()  const { return our phase == Phase::DROP; }
+	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed;
+	bool isLeftBottomFunctionKeyPressed () const {
+		return theCommandKeyIsToTheLeftOfTheOptionKey ? our commandKeyPressed : our optionKeyPressed;
+	}
+	bool isRightBottomFunctionKeyPressed () const {
+		return theCommandKeyIsToTheLeftOfTheOptionKey ? our optionKeyPressed : our commandKeyPressed;
+	}
+} *GuiDrawingArea_MouseEvent;
+
 typedef struct structGuiDrawingArea_KeyEvent {
 	GuiDrawingArea widget;
 	char32 key;
-	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed, extraControlKeyPressed;
+	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed;
 } *GuiDrawingArea_KeyEvent;
+
 typedef struct structGuiDrawingArea_ResizeEvent {
 	GuiDrawingArea widget;
 	int width, height;
 } *GuiDrawingArea_ResizeEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiDrawingArea_ExposeEvent> GuiDrawingArea_ExposeCallback;
-typedef MelderCallback <void, structThing /* boss */, GuiDrawingArea_ClickEvent > GuiDrawingArea_ClickCallback;
-typedef MelderCallback <void, structThing /* boss */, GuiDrawingArea_KeyEvent   > GuiDrawingArea_KeyCallback;
-typedef MelderCallback <void, structThing /* boss */, GuiDrawingArea_ResizeEvent> GuiDrawingArea_ResizeCallback;
+using GuiDrawingArea_ExposeCallback = MelderCallback <void, structThing /* boss */, GuiDrawingArea_ExposeEvent>;
+using GuiDrawingArea_MouseCallback  = MelderCallback <void, structThing /* boss */, GuiDrawingArea_MouseEvent >;
+using GuiDrawingArea_KeyCallback    = MelderCallback <void, structThing /* boss */, GuiDrawingArea_KeyEvent   >;
+using GuiDrawingArea_ResizeCallback = MelderCallback <void, structThing /* boss */, GuiDrawingArea_ResizeEvent>;
 
 Thing_define (GuiDrawingArea, GuiControl) {
 	GuiScrollBar d_horizontalScrollBar, d_verticalScrollBar;   // for swiping
 	GuiDrawingArea_ExposeCallback d_exposeCallback;
 	Thing d_exposeBoss;
-	GuiDrawingArea_ClickCallback d_clickCallback;
-	Thing d_clickBoss;
+	GuiDrawingArea_MouseCallback mouseCallback;
+	Thing mouseBoss;
 	GuiDrawingArea_KeyCallback d_keyCallback;
 	Thing d_keyBoss;
 	GuiDrawingArea_ResizeCallback d_resizeCallback;
 	Thing d_resizeBoss;
+	integer numberOfGraphicses;
+	constexpr static integer MAXIMUM_NUMBER_OF_GRAPHICSES = 10;
+	Graphics graphicses [1+MAXIMUM_NUMBER_OF_GRAPHICSES];
+
+	void v_destroy () noexcept
+		override;
 };
 
 /* GuiDrawingArea creation flags: */
 #define GuiDrawingArea_BORDER  1
 GuiDrawingArea GuiDrawingArea_create (GuiForm parent, int left, int right, int top, int bottom,
 	GuiDrawingArea_ExposeCallback exposeCallback,
-	GuiDrawingArea_ClickCallback clickCallback,
+	GuiDrawingArea_MouseCallback mouseCallback,
 	GuiDrawingArea_KeyCallback keyCallback,
 	GuiDrawingArea_ResizeCallback resizeCallback, Thing boss,
 	uint32 flags);
 GuiDrawingArea GuiDrawingArea_createShown (GuiForm parent, int left, int right, int top, int bottom,
 	GuiDrawingArea_ExposeCallback exposeCallback,
-	GuiDrawingArea_ClickCallback clickCallback,
+	GuiDrawingArea_MouseCallback mouseCallback,
 	GuiDrawingArea_KeyCallback keyCallback,
 	GuiDrawingArea_ResizeCallback resizeCallback, Thing boss,
 	uint32 flags);
 GuiDrawingArea GuiDrawingArea_create (GuiScrolledWindow parent, int width, int height,
 	GuiDrawingArea_ExposeCallback exposeCallback,
-	GuiDrawingArea_ClickCallback clickCallback,
+	GuiDrawingArea_MouseCallback mouseCallback,
 	GuiDrawingArea_KeyCallback keyCallback,
 	GuiDrawingArea_ResizeCallback resizeCallback, Thing boss,
 	uint32 flags);
 GuiDrawingArea GuiDrawingArea_createShown (GuiScrolledWindow parent, int width, int height,
 	GuiDrawingArea_ExposeCallback exposeCallback,
-	GuiDrawingArea_ClickCallback clickCallback,
+	GuiDrawingArea_MouseCallback mouseCallback,
 	GuiDrawingArea_KeyCallback keyCallback,
 	GuiDrawingArea_ResizeCallback resizeCallback, Thing boss,
 	uint32 flags);
 
 void GuiDrawingArea_setSwipable (GuiDrawingArea me, GuiScrollBar horizontalScrollBar, GuiScrollBar verticalScrollBar);
 void GuiDrawingArea_setExposeCallback (GuiDrawingArea me, GuiDrawingArea_ExposeCallback callback, Thing boss);
-void GuiDrawingArea_setClickCallback  (GuiDrawingArea me, GuiDrawingArea_ClickCallback  callback, Thing boss);
+void GuiDrawingArea_setMouseCallback (GuiDrawingArea me, GuiDrawingArea_MouseCallback callback, Thing boss);
 void GuiDrawingArea_setResizeCallback (GuiDrawingArea me, GuiDrawingArea_ResizeCallback callback, Thing boss);
 
 /********** GuiFileSelect **********/
 
 autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 title, bool allowMultipleFiles);
 autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title, conststring32 defaultName);
-autostring32 GuiFileSelect_getDirectoryName (GuiWindow parent, conststring32 title);
+autostring32 GuiFileSelect_getFolderName (GuiWindow parent, conststring32 title);
 
 /********** GuiForm **********/
 
@@ -558,17 +583,17 @@ Thing_declare (GuiScrolledWindow);
 typedef struct structGuiList_SelectionChangedEvent {
 	GuiList list;
 } *GuiList_SelectionChangedEvent;
-typedef MelderCallback <void, structThing /* boss */, GuiList_SelectionChangedEvent> GuiList_SelectionChangedCallback;
+using GuiList_SelectionChangedCallback = MelderCallback <void, structThing /* boss */, GuiList_SelectionChangedEvent>;
 
 typedef struct structGuiList_DoubleClickEvent {
 	GuiList list;
 } *GuiList_DoubleClickEvent;
-typedef MelderCallback <void, structThing /* boss */, GuiList_DoubleClickEvent> GuiList_DoubleClickCallback;
+using GuiList_DoubleClickCallback = MelderCallback <void, structThing /* boss */, GuiList_DoubleClickEvent>;
 
 typedef struct structGuiList_ScrollEvent {
 	GuiList list;
 } *GuiList_ScrollEvent;
-typedef MelderCallback <void, structThing /* boss */, GuiList_ScrollEvent> GuiList_ScrollCallback;
+using GuiList_ScrollCallback = MelderCallback <void, structThing /* boss */, GuiList_ScrollEvent>;
 
 Thing_define (GuiList, GuiControl) {
 	bool d_allowMultipleSelection;
@@ -592,7 +617,7 @@ void GuiList_deselectAllItems (GuiList me);
 void GuiList_deselectItem (GuiList me, integer position);
 integer GuiList_getBottomPosition (GuiList me);
 integer GuiList_getNumberOfItems (GuiList me);
-integer * GuiList_getSelectedPositions (GuiList me, integer *numberOfSelected);
+autoINTVEC GuiList_getSelectedPositions (GuiList me);
 integer GuiList_getTopPosition (GuiList me);
 
 /**
@@ -655,10 +680,15 @@ Thing_declare (GuiMenuItem);
 
 typedef struct structGuiMenuItemEvent {
 	GuiMenuItem menuItem;
-	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed, extraControlKeyPressed;
+	bool shiftKeyPressed, commandKeyPressed, optionKeyPressed;
 } *GuiMenuItemEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiMenuItemEvent> GuiMenuItemCallback;
+using GuiMenuItemCallback = MelderCallback <void, structThing /* boss */, GuiMenuItemEvent>;
+
+#if cocoa
+	extern GuiMenuItemCallback theGuiEscapeMenuItemCallback;
+	extern Thing theGuiEscapeMenuItemBoss;
+#endif
 
 Thing_define (GuiMenuItem, GuiThing) {
 	GuiMenu d_menu;
@@ -767,7 +797,7 @@ typedef struct structGuiRadioButtonEvent {
 	int position;
 } *GuiRadioButtonEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiRadioButtonEvent> GuiRadioButtonCallback;
+using GuiRadioButtonCallback = MelderCallback <void, structThing /* boss */, GuiRadioButtonEvent>;
 
 Thing_define (GuiRadioButton, GuiControl) {
 	GuiRadioButton d_previous, d_next;   // there's a linked list of grouped radio buttons
@@ -818,7 +848,7 @@ typedef struct structGuiScrollBarEvent {
 	GuiScrollBar scrollBar;
 } *GuiScrollBarEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiScrollBarEvent> GuiScrollBarCallback;
+using GuiScrollBarCallback = MelderCallback <void, structThing /* boss */, GuiScrollBarEvent>;
 
 Thing_define (GuiScrollBar, GuiControl) {
 	GuiScrollBarCallback d_valueChangedCallback;
@@ -859,7 +889,7 @@ typedef struct structGuiTextEvent {
 	GuiText text;
 } *GuiTextEvent;
 
-typedef MelderCallback <void, structThing /* boss */, GuiTextEvent> GuiText_ChangedCallback;
+using GuiText_ChangedCallback = MelderCallback <void, structThing /* boss */, GuiTextEvent>;
 
 #if gtk
 	typedef gchar * history_data;
@@ -881,6 +911,7 @@ Thing_define (GuiText, GuiControl) {
 	#if cocoa
 		GuiCocoaScrolledWindow *d_cocoaScrollView;
 		GuiCocoaTextView *d_cocoaTextView;
+		double d_macFontSize;
 	#elif defined (macintosh)
 		TXNObject d_macMlteObject;
 		TXNFrameID d_macMlteFrameId;
@@ -896,8 +927,9 @@ Thing_define (GuiText, GuiControl) {
 
 /* GuiText creation flags: */
 #define GuiText_SCROLLED  1
-#define GuiText_MULTILINE  2
-#define GuiText_WORDWRAP  4
+#define GuiText_CHARWRAP  2
+#define GuiText_INKWRAP  4
+#define GuiText_ANYWRAP  (GuiText_CHARWRAP | GuiText_INKWRAP)
 #define GuiText_NONEDITABLE  8
 GuiText GuiText_create      (GuiForm parent, int left, int right, int top, int bottom, uint32 flags);
 GuiText GuiText_createShown (GuiForm parent, int left, int right, int top, int bottom, uint32 flags);
@@ -916,7 +948,7 @@ void GuiText_setChangedCallback (GuiText me, GuiText_ChangedCallback changedCall
 void GuiText_setFontSize (GuiText me, double size);
 void GuiText_setRedoItem (GuiText me, GuiMenuItem item);
 void GuiText_setSelection (GuiText me, integer first, integer last);
-void GuiText_setString (GuiText me, conststring32 text);
+void GuiText_setString (GuiText me, conststring32 text, bool undoable = true);
 void GuiText_setUndoItem (GuiText me, GuiMenuItem item);
 void GuiText_undo (GuiText me);
 
@@ -931,8 +963,12 @@ Thing_define (GuiWindow, GuiShell) {
 		Thing d_tabBoss;
 		GuiMenuItemCallback d_shiftTabCallback;
 		Thing d_shiftTabBoss;
+		GuiMenuItemCallback d_enterCallback;
+		Thing d_enterBoss;
 		GuiMenuItemCallback d_optionBackspaceCallback;
 		Thing d_optionBackspaceBoss;
+		GuiMenuItemCallback d_escapeCallback;
+		Thing d_escapeBoss;
 	#elif motif
 		GuiObject d_xmMenuBar;
 	#endif
@@ -963,8 +999,13 @@ void GuiObject_destroy (GuiObject me);
 
 /********** EVENTS **********/
 
-void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file));
+#if defined (macintosh) || defined (_WIN32)
+void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file), void (*finishedOpeningDocumentsCallback) ());
+#endif
+
+#if defined (macintosh)
 void Gui_setQuitApplicationCallback (int (*quitApplicationCallback) (void));
+#endif
 
 extern uinteger theGuiTopLowAccelerators [8];
 

@@ -2,7 +2,7 @@
 #define _IntensityTierEditor_h_
 /* IntensityTierEditor.h
  *
- * Copyright (C) 1992-2011,2012,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2009-2012,2015-2018,2020,2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  */
 
 #include "RealTierEditor.h"
-#include "IntensityTier.h"
+#include "IntensityTierArea.h"
 #include "Sound.h"
 
 Thing_define (IntensityTierEditor, RealTierEditor) {
@@ -29,21 +29,11 @@ Thing_define (IntensityTierEditor, RealTierEditor) {
 		override;
 	conststring32 v_quantityText ()
 		override { return U"Intensity (dB)"; }
-	conststring32 v_rightTickUnits ()
-		override { return U" dB"; }
-	double v_defaultYmin ()
-		override { return 50.0; }
-	double v_defaultYmax ()
-		override { return 100.0; }
 	conststring32 v_setRangeTitle ()
 		override { return U"Set intensity range..."; }
-	conststring32 v_defaultYminText ()
-		override { return U"50.0"; }
-	conststring32 v_defaultYmaxText ()
-		override { return U"100.0"; }
-	conststring32 v_yminText ()
+	conststring32 v_minimumLabelText ()
 		override { return U"Minimum intensity (dB)"; }
-	conststring32 v_ymaxText ()
+	conststring32 v_maximumLabelText ()
 		override { return U"Maximum intensity (dB)"; }
 };
 

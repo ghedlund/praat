@@ -1,6 +1,6 @@
 /* oo_READ_TEXT.h
  *
- * Copyright (C) 1994-2009,2011-2018 Paul Boersma
+ * Copyright (C) 1994-2009,2011-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,14 +34,6 @@
 		} \
 	}
 
-#define oo_VECTOR(type, storage, x, min, max)  \
-	{ \
-		integer _min = (min), _max = (max); \
-		if (_max >= _min) { \
-			our x = NUMvector_readText_##storage (_min, _max, _textSource_, #x); \
-		} \
-	}
-
 #define oo_ANYVEC(type, storage, x, sizeExpression)  \
 	{ \
 		integer _size = (sizeExpression); \
@@ -63,22 +55,6 @@
 #define oo_ENUMx(kType, storage, x)  \
 	our x = (kType) texget##storage (_textSource_, (enum_generic_getValue) kType##_getValue);
 
-//#define oo_ENUMx_SET(kType, storage, x, setType)  \
-//	for (int _i = 0; _i <= (int) setType::MAX; _i ++) { \
-//		our x [_i] = (kType) texget##storage (_textSource_, (enum_generic_getValue) kType##_getValue); \
-//	}
-
-//#define oo_ENUMx_VECTOR(kType, storage, x, min, max)  \
-//	{ \
-//		integer _min = (min), _max = (max); \
-//		if (_max >= _min) { \
-//			our x = NUMvector <kType> (_min, _max); \
-//			for (integer _i = _min; _i <= _max; _i ++) { \
-//				our x [_i] = (kType) texget##storage (_textSource_, (enum_generic_getValue) kType##_getValue); \
-//			} \
-//		} \
-//	}
-
 #define oo_STRINGx(storage, x)  \
 	try { \
 		our x = texget##storage (_textSource_); \
@@ -95,7 +71,7 @@
 	{ \
 		integer _size = (n); \
 		if (_size >= 1) { \
-			our x = autostring32vector (_size); \
+			our x = autoSTRVEC (_size); \
 			for (integer _i = 1; _i <= _size; _i ++) { \
 				try { \
 					our x [_i] = texget##storage (_textSource_); \
@@ -114,16 +90,16 @@
 		our x [_i]. readText (_textSource_, _formatVersion_); \
 	}
 
-#define oo_STRUCT_VECTOR_FROM(Type, x, min, max)  \
-	{ \
-		integer _min = (min), _max = (max); \
-		if (_max >= _min) { \
-			our x = NUMvector <struct##Type> (_min, _max); \
-			for (integer _i = _min; _i <= _max; _i ++) { \
-				our x [_i]. readText (_textSource_, _formatVersion_); \
-			} \
+#define oo_STRUCTVEC(Type, x, n)  \
+{ \
+	integer _size = (n); \
+	if (_size >= 1) { \
+		our x = newvectorzero <struct##Type> (_size); \
+		for (integer _i = 1; _i <= _size; _i ++) { \
+			our x [_i]. readText (_textSource_, _formatVersion_); \
 		} \
-	}
+	} \
+}
 
 #define oo_OBJECT(Class, formatVersion, x)  \
 	{ \

@@ -1,6 +1,6 @@
 /* manual_LPC.cpp
  *
- * Copyright (C) 1994-2016 David Weenink
+ * Copyright (C) 1994-2021 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,36 @@
  djmw 20101009 Latest modification
 */
 
+#include "KlattGrid.h"
 #include "ManPagesM.h"
 #include "MFCC.h"
 
 void manual_LPC (ManPages me);
 void manual_LPC (ManPages me)
 {
+MAN_BEGIN (U"Candidate modelling settings...", U"djmw", 20210813)
+INTRO (U"A command in the #Candidates menu of the @FormantPathEditor window.")
+TAG (U"##Coefficients by track#")
+DEFINITION (U"determines how many coefficients will be used in the modelling of a formant track. "
+	"The first number determines the number of coefficients that will be used for modeling formant 1 with a polynomial function."
+	"The second number determines the number of coefficients for the modelling of formant 2, and so on. " 
+	"For example, if you specify \"4 3 3\", the first three formants will be modelled. Formant 1 will be modelled with 4 "
+	"coefficients which means that a third order polynomial is used for modelling. Formant 2 and formant 3 are modelled with "
+	"3 coefficients which means that their tracks will be modelled as parabolas.")
+TAG (U"##Variance exponent#")
+DEFINITION (U"determines the power of the first term in the overall stress criterion #S. "
+	"The best model is the one with the lowest value for the stress %S.")
+NORMAL (U"The stress criterion #S is defined in @@Weenink (2015)@ as")
+EQUATION (U"%S = (%s^2 / %k)^^%varianceExponent^ (%\\ci^^2^ / %d),")
+NORMAL (U"where %s^^2^ is the sum of the squares of the standard errors of all the coefficients of the modelled formant "
+	"tracks within one Formant object, %k is the total number of coefficients of these tracks, in the example given above "
+	"%k is 10 (= 4 + 3 + 3), \\ci^^2^ is the sum of the chi squares of each track, %d is the sum of the "
+	"degrees of freedom of each track. "
+	"Because the standard error %s is proportional to bandwidth and \\ci^^2^ is inversely proportional to bandwidth, "
+	"the expression for %S grows approximately as 2\\.c%varianceExponent-2 with bandwidth. Setting the %varianceExponent "
+	"somewhat larger than one guarantees that for two tracks whose formants only differ in their bandwidths, the track with the "
+	"larger bandwidths obtains a larger value for the stress value %S.")
+MAN_END
 
 MAN_BEGIN (U"CC: Paint...", U"djmw", 20040407)
 INTRO (U"A command to paint the cepstral coefficients in shades of grey.")
@@ -50,7 +74,7 @@ LIST_ITEM (U"      %d3 = \\su (%k=1..%nCoefficients; (%r__%ik_ - %r__%jk_)^2), w
 LIST_ITEM (U"      %r__%ik_ the regression coefficient of the cepstral coefficients "
 	"from the frames within a time span of %dtr seconds. "
 	"c__%ij_ is %j-th cepstral coefficient in frame %i. ")
-NORMAL (U"Next we find the optimum path through the distance matrix with a "
+NORMAL (U"Next we find the optimal path through the distance matrix with a "
 	"Viterbi-algorithm.")
 MAN_END
 
@@ -58,14 +82,176 @@ MAN_BEGIN (U"CC: To Matrix", U"djmw", 20011123)
 INTRO (U"Copies the cepstral coefficients of the selected @CC "
 	"object to a newly created @Matrix object.")
 ENTRY (U"Behaviour")
-FORMULA (U"%z__%ji_ = %c__%ij_, with 1 \\<_ %i \\<_ %nx and "
+EQUATION (U"%z__%ji_ = %c__%ij_, with 1 \\<_ %i \\<_ %nx and "
 	"1 \\<_ j \\<_ %numberOfCoefficients__%i_,")
 NORMAL (U"where %z__%ji_ is the matrix element in row %j and column %i and "
 	"%c__%ij_ is the %j-th cepstral coefficient in frame %i.")
 MAN_END
 
+MAN_BEGIN (U"Formant: List formant slope...", U"djmw", 20210813)
+INTRO (U"A command available in the ##Query# menu if you select a @@Formant@ object. The Info window will show the characteristics of the slope of the chosen interval as a vector with a number of values.")
+ENTRY (U"Settings")
+TAG (U"##Formant number#,")
+DEFINITION (U"defines the formant whose slope characteristics you want.")
+TAG (U"##Time range (s)#,")
+DEFINITION (U"defines the start time and the end time of the segment on which the slope should be determined.")
+TAG (U"##Slope curve#")
+DEFINITION (U"defines the kind of curve you want to fit on the formant points to determine the slope characteristics. "
+	"The options available are ##Exponential plus constant#, ##Parabolic# and ##Sigmoid plus constant#.")
+ENTRY (U"The vector result")
+NORMAL (U"The vector values are determined from the fit of the formant track with a an ##exponential plus constant# function "
+	"%F(%t) = %a+%b\\.cexp(%c\\.c%t), or a ##parabolic# function %F(%t) = %a+%b\\.ct+%c\\.ct^2, or a ##sigmoid plus constant# function "
+	"%F(%t) = %a+%b / (1 + exp(- (%t -c) / d)) "
+	"on the chosen interval [%t__min_, %t__max_].")
+TAG (U"##1. Average slope (Hz / s)#")
+DEFINITION (U"defined as (%F__start_ - %F__end_) / (%t__max_ - %t__min_), where %F__start_ and %F__end_ are the start and "
+	"end values of the fitted function %F(%t) and %t__max_ and %t__min_ are the start and end times of the interval.")
+TAG (U"##2. %R^2#")
+DEFINITION (U"The %R^2 value of the fit defined as %R^2 = 1 - %varianceAfter / %varianceBefore.")
+TAG (U"##3. %F__start_#")
+DEFINITION (U"the frequency in hertz of the function %F(%t__min_).")
+TAG (U"##4. %F__end_#")
+DEFINITION (U"the frequency in hertz of the function %F(%t__max_).")
+TAG (U"##5. %a#")
+DEFINITION (U"the parameter %a (hertz) of the function %F(%t).")
+TAG (U"##6. %b#")
+DEFINITION (U"the parameter %b of the function %F(%t).")
+TAG (U"##7. %c#")
+DEFINITION (U"the parameter %c ( / s) of the function %F(%t).")
+TAG (U"##8. %d#")
+DEFINITION (U"the parameter %d of the function %F(%t), if the sigmoid plus constant function was chosen.")
+ENTRY (U"Remarks about the interpretation of the fit parameters.")
+NORMAL (U"The returned average slope parameter is reliable only if the formant trajectory is clearly not constant and there is a large difference between the %F__start_ and the %F__end_ values. In cases where the formant trajectory shows a noisy pattern all return values have a large error margin and the determined average slope can also be unreliable.")
+ENTRY (U"Algorithm")
+NORMAL (U"The algorithm to fit the %%non-linear% exponential plus constant and the sigmoid plus constant functions to a series of (time, frequency) values by a non-iterative algorithm is described in @@Jacquelin (2009)@.")
+MAN_END
+
+MAN_BEGIN (U"HTK parameter file format", U"djmw", 20210311)
+INTRO (U"HTK parameter format files consist of a contiguous sequence of frames preceded by a header. "
+	"Each frame is a vector of either 2-byte integers or 4-byte floats. 2-byte integers are used for "
+	"compressed forms and for vector quantised data. All multi-byte numbers are written as Big-endian numbers.")
+NORMAL (U"The HTK file format header is 12 bytes long and contains the following data:")
+TAG (U"numberOfFrames (4-byte integer)")
+DEFINITION (U"The number of analysis frames in a file")
+TAG (U"samplePeriod (4-byte integer)")
+DEFINITION (U"The sample period in units of 100 ns. A sampling frequency of 10 kHz would correspond to a sample period of 0.0001 s and to a value of 1000 in this field.")
+TAG (U"frameSize (2-byte integer)")
+DEFINITION (U"The number of bytes per frame.")
+TAG (U"parameterKind (2-byte integer)")
+DEFINITION (U"A code indication what kind of frames the file contains.")
+ENTRY (U"Remarks")
+NORMAL (U"The HTK parameter files do not contain specific information that identifies them as "
+	"HTK parameter files. However, the file type can be deduced as follows. If we have any file and interpret "
+	"the first 12 bytes as the above format specifies then we know that the first three numbers read have to "
+	"be positive integers, that frameSize has to an even number and that %numberOfFrames * %frameSize + 12 must be equal to the number "
+	"of bytes in the file. The chance that a random data file fulfils these conditions is very small.")
+ENTRY (U"VTRFormants data in HTK parameter format")
+NORMAL (U"The VTRFormants data of @@Deng et al. (2006)@ can serve as reference formant frequency values for "
+	"(part of) the TIMIT acoustic phonetic corpus. These data are stored in HTK parameter files with extension \".fb\". "
+	"They can be download from %%http://www.seas.ucla.edu/spapl/VTRFormants.html%.")
+NORMAL (U"HTK parameter files do not contain timing information and therefore we can only calculate the domain of "
+	"the Formant from external information. From the ##Deng et al. (2006)# paper we assume that the data were taken "
+	"every 10 ms and therefore the best guess for the duration of the Formant equals %numberOfFrames * 0.01."
+	"The value in these files for the samplePeriod is 10000 which is a factor 10 off from the correct value of 1000 in units of 100 ns.")
+MAN_END
+
+MAN_BEGIN (U"FormantPath", U"djmw", 20210813)
+INTRO (U"One of the @@types of objects@ in Praat. A ##FormantPath# object maintains a path through a collection of "
+	"Formant objects, each the result of a formant frequency analysis of the same sound but with a different setting "
+	"of the analysis parameters.")
+NORMAL (U"A FormantPath combines a collection of @@Formant@s with an index that indicates which of these formants is preferred "
+	"in each time frame of its time domain. ")
+NORMAL (U"As an example we consider a FormantPath that has nine Formant objects in its collection. "
+	"Suppose these formant objects were the result of nine @@Sound: To Formant (burg)...@ analyses of the ##same# sound, "
+	"however, with a difference only in the \"Formant ceiling (Hz)\" parameter setting which was 4093.7, 4303.5, 4524.2, 4756.1, "
+	"5000.0, 5256.4, 5525.9, 5809.2, and 6107.0 Hz, respectively. "
+	"In this way, this collection of Formants functions as a set of alternative analyses where the \"Time step\", "
+	"the \"Max. number of formants\", the \"Window length\" and the \"Pre-emphasis from\" are constant for each analysis and only "
+	"the frequency interval in which the number of formants should fit varies. ")
+NORMAL (U"You create a FormantPath from a Sound with the @@Sound: To FormantPath (burg)...@ command. The FormantPath example above could have been created from a Sound by:")
+CODE (U"To FormantPath (burg): 0.005, 5.0, 5000.0, 0.025, 50.0, 0.05, 4")
+NORMAL (U"The Formant object which has a ceiling of 5000 Hz, the object at the middle in the set, here corresponds to the "
+	"result of the \"standard\" analysis for a male voice where the interval from 0 to 5000 Hz is chosen and we expect, "
+	"on average, five formant to exist in this interval. ")
+NORMAL (U"To choose your own path through the alternatives you can use Praat's @@FormantPathEditor@.")
+MAN_END
+
+MAN_BEGIN (U"FormantPath: Down to Table (optimal interval)...", U"djmw", 20210817)
+INTRO (U"A command that creates a @Table with formant frequency values for the chosen interval of the selected @@FormantPath@. The values in the table are from the segment that has the lowest stress value for the fit of its formant tracks.")
+MAN_END
+
+MAN_BEGIN (U"FormantPath: Down to Table (stresses)...", U"djmw", 20210817)
+INTRO (U"A command that creates a @Table with stress of fit values for the selected @@FormantPath@.")
+NORMAL (U"The resulting Table has one row for each of the ceilings. The number of columns will depend on the number of "
+	"formant tracks  that are modelled. ")
+MAN_END
+
+MAN_BEGIN (U"Sound: To FormantPath (burg)...", U"djmw", 20210813)
+INTRO (U"A command that creates a @@FormantPath@ object from each selected @@Sound@ . ")
+ENTRY (U"##Settings")
+NORMAL (U"The settings for ##Time step (s)#, ##Maximum number of formants#, ##Window length (s)# and ##Pre-emphasis from (Hz)# "
+	"are as you would set them with the @@Sound: To Formant (burg)...@ method. "
+	"The defaults are 0.005 seconds, 5.0 formants, 0.025 seconds, and 50.0 Hz, respectively.")
+TAG (U"##Middle formant ceiling (Hz)")
+DEFINITION (U"determines the middle formant ceiling frequency in Hz. You normaly would use 5500.0 Hz for an average female voice "
+	"and 5000.0 Hz for an average male voice as you would do for the ##Formant ceiling (Hz)# setting in ##To Formant (burg)...#. "
+	"However, instead of performing only one analysis with a fixed ceiling, we perform "
+	"multiple analyses, each with a different ceiling frequency. The number of analyses with a %%lower% formant ceiling than the "
+	"%%middle formant ceiling% is equal to the number of analyses with a %%higher% formant ceiling than the %%middle formant ceiling%. ")
+TAG (U"##Ceiling step size#")
+DEFINITION (U"defines the increase or decrease in the formant ceiling between two successive analyses as exp(%ceilingStepSize) "
+	"when we step up, or as exp(-%ceilingStepSize) when we step down.")
+TAG (U"##Number of steps up / down")
+DEFINITION (U"determines the number steps we go up as well as the number of steps we go down with respect to the %middle formant ceiling%. "
+	"The ceiling frequency for the %i^^th^ step down is %middleFormantCeiling\\.cexp (-%i\\.c%ceilingStepSize) and for the %i^^th^ step up "
+	"is %middleFormantCeiling\\.cexp (+%i\\.c%ceilingStepSize). The total number of analyses is always 2\\.c%numberOfStepsUpOrDown+1.")
+ENTRY (U"Algorithm")
+NORMAL (U"The following algorithm describes what is going on. ")
+CODE (U"ceiling [numberOfStepsUpOrDown + 1] = middleCeiling")
+CODE (U"for istep from 1 to 2 * numberOfStepsUpOrDown + 1")
+CODE (U"    if istep <= numberOfStepsUpOrDown")
+CODE (U"        ceiling [istep] = middleFormantCeiling * exp (-(numberOfStepsUpOrDown - istep + 1) * ceilingStepSize)")
+CODE (U"    elsif istep > numberOfStepsUpOrDown + 1")
+CODE (U"        ceiling [istep] = middleFormantCeiling * exp ((istep - numberOfStepsUpOrDown - 1) * ceilingStepSize)")
+CODE (U"    selectObject: sound")
+CODE (U"    formant [istep] = To Formant (burg): timeStep, maxNumberOfFormants, ceiling [istep], windowLength, preEmphasis")
+CODE (U"endfor")
+NORMAL (U"This description is approximate because in the \"To Formant\" step we have to guarantee that all the Formant objects get the same time sampling.")
+MAN_END
+
+MAN_BEGIN (U"FormantPathEditor", U"djmw", 20210730)
+INTRO (U"One of the @@Editors@ in Praat, for editing a @@FormantPath@ object.")
+NORMAL (U"You can optionally include a @Sound and a @TextGrid in this editor, by selecting both the Sound and the FormantPath together, or the Sound and the TextGrid and the FormantPath together before clicking ##View & Edit#.")
+NORMAL (U"With the FormantPathEditor you can, for each interval that you select, "
+	"replace its formant frequencies and bandwidths by the corresponding values "
+	"from one of the alternative Formant objects in the FormantPath's collection.")
+ENTRY (U"Editor layout")
+NORMAL (U"The left part of the editor is similar to the layout of the @@SoundEditor@.")
+NORMAL (U"The right part is called the %%selection viewer%. "
+	"Here you see alternative formant frequency analyses of the selected part of the sound laid out in a grid "
+	"(or of the whole visible sound window if there is no selection).")
+NORMAL (U"The selection viewer shows not only a formant's frequency but also its bandwidth as a vertical line. "
+	"This will give you a better impression of the analysis results because well defined formants have small bandwidths "
+	"and, therefore, show short vertical lines.")
+ENTRY (U"How to operate")
+NORMAL (U"When you start to edit a new FormantPath object, the formants in the path are set equal to the formants of the default "
+	"analysis. This guarantees that there always is a path at the start. The ceiling of this path is indicated by the fat red "
+	"line in the upper part of the spectrogram. "
+	"If you click in one of the rectangles in the selection viewer the values of the formant frequencies (and bandwidths) "
+	"in the selected part on the left are replaced by the values present in the rectangle and the fat red line will indicate "
+	"the new ceiling. The colour of the clicked rectangle on the right will also change.")
+ENTRY (U"Details")
+NORMAL (U"The meaning of the numbers in the upper right corner of the rectangles in the selection viewer "
+	"are explained in @@Weenink (2015)@. Basically this number is a combined stress score of the individual formant tracks "
+	"within the rectangle. Each track's stress score quantifies how well a track has been modelled. "
+	"The lower this number is, the better the track is modelled by a smooth curve, a polynomial of a certain order. "
+	"The higher the order, the more flexible the curve is and the better it can adapt to the data. "
+	"The higher the order of the polynomial, the more parameters are needed in the model. "
+	"You can change the number of paramaters that model the tracks.")
+MAN_END
+
 MAN_BEGIN (U"Formants: Extract smoothest part...", U"djmw", 20140313)
-INTRO (U"Extracts the part from one of the selected formants which shows the smoothest formant tracks in a given interval.")
+INTRO (U"Extracts the part from one of the selected formants which shows the smoothest formant tracks in a given interval. ")
 ENTRY (U"Settings")
 SCRIPT (5, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
 	Manual_DRAW_SETTINGS_WINDOW (U"Formants: Extract smoothest part", 5)
@@ -73,38 +259,110 @@ SCRIPT (5, Manual_SETTINGS_WINDOW_HEIGHT (5), U""
 	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Fitter formant range", U"1", U"3")
 	Manual_DRAW_SETTINGS_WINDOW_FIELD (U"Order of polynomials", U"3")
 	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN (U"Use bandwidths to model formant tracks", 1)
-	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN (U"Bandwidths for smoothing test", 0)
+	Manual_DRAW_SETTINGS_WINDOW_BOOLEAN (U"Bandwidths for stress test", 0)
 )
 TAG (U"##Time range (s)#")
 DEFINITION (U"determines the position of the intervals that have to be compared.")
 TAG (U"##Fitter formant range")
-DEFINITION (U"determines which formant tracks will be modelled with a polynomial function. The goodness of fit of these models will be used in the comparison.")
+DEFINITION (U"determines which formant tracks will be modelled with a polynomial function. The goodness of fit of these models "
+	"will be used in the comparison.")
 TAG (U"##Order of polynomials")
-DEFINITION (U"determines the maximum order of the polynomials that are used in modeling each formant track. Order 0 means a model which is a constant function; this model needs only one parameter. Order 1 means a model that is a straight line function; this order needs two parameters. Order 2 means that an additional parabolic function is used in the modeling; order 2 needs therefore 3 parameters. In general an order %p model needs %p+1 parameters.")
+DEFINITION (U"determines the maximum order of the polynomials that are used in modelling each formant track. Order 0 means a "
+	"model which is a constant function; this model needs only one parameter. Order 1 means a model that is a straight line "
+	"function; this order needs two parameters. Order 2 means that an additional parabolic function is used in the modelling; "
+	"order 2 needs therefore 3 parameters. In general an order %p model needs %p+1 parameters.")
 TAG (U"##Use bandwidths to model formant tracks")
-DEFINITION (U"Bandwidths give an indication about the sharpness of a spectral peak. Sharp peaks have small bandwidths and, vice versa, broad peaks have large bandwidths. The width of a peak can also be interpreted as a measure of certainty for its formant frequency value. Setting this option %%on%, the default setting, means that you force the modeling function to be closer to frequencies that are well defined, i.e. that have sharp peaks, than to the frequencies of broad peaks, if choices have to be made. The consequence is that in the model sharp peaks will be better represented than broad peaks.")
-TAG (U"##Bandwidths for smoothing test")
-DEFINITION (U"determines whether for the smoothnes determination the formant frequencies are still needed. Not using them anymore probably gives a better indication of the smoothness of a track.")
+DEFINITION (U"Bandwidths give an indication about the sharpness of a spectral peak. Sharp peaks have small bandwidths and, "
+	"vice versa, broad peaks have large bandwidths. The width of a peak can also be interpreted as a measure of certainty "
+	"for its formant frequency value. Setting this option %%on%, the default setting, means that you force the modelling "
+	"function to be closer to frequencies that are well defined, i.e. that have sharp peaks, than to the frequencies of "
+	"broad peaks, if choices have to be made. The consequence is that in the model sharp peaks will be better represented than broad peaks.")
+TAG (U"##Bandwidths for stress test")
+DEFINITION (U"determines whether for the stress determination the formant frequencies are still needed. Not using them anymore "
+	"probably gives a better indication of the stress of a track.")
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrogram", U"djmw", 20130616)
-INTRO (U"One of the @@types of objects@ in P\\s{RAAT}.")
-ENTRY (U"Description")
-NORMAL (U"The PowerCepstrogram shows @@PowerCepstrum|cepstral slices@ as a function of time.")
+#define PowerCepstrum_manual_pitchRange \
+	U"determine the limits of the quefrency range where a peak is searched for. The lower quefrency is determined as " \
+	"1 / %%pitchCeiling% and this value is in general more critical than " \
+	"the value of the upper quefrency which equals 1 / %%pitchFloor%. A %%pitchCeiling% of 300 Hz will correspond to a " \
+	"lower quefrency of 1/300\\~~0.0033 seconds."
+	
+#define PowerCepstrum_manual_trendRange \
+	U"the quefrency range for which the amplitudes (in dB) will be modelled by a straight line. " \
+	"The lower value for this range in the @@Hillenbrand et al. (1994)@ article was chosen as 0.001 s " \
+	"in order to reduce the effect of very low quefrency data on the straight line fit. In our analysis this value " \
+	"is not so critical if we use the robust fitting procedure. If you choose the \"Least squares\" fit method " \
+	"then it matters more."
+
+#define PowerCepstrum_manual_trendType \
+	U"defines how to model the cepstrum background. We can model it with a straight line as was " \
+	"done in @@Hillenbrand et al. (1994)@. The slope of this line will generally be negative " \
+	"because the background amplitudes get weaker for higher quefrencies. Or, we could use an exponential " \
+	"model in which the background cepstral amplitudes decay in a non-linear fashion.  "
+
+#define PowerCepstrum_manual_fitMethod \
+	U"defines how the line that models the cepstrum background is calculated. The default method, " \
+	"\"Robust slow\", corresponds to @@theil regression|Theil's robust line fit@. The \"Robust\" method corresponds to the incomplete theil regression and is computationally faster but somewhat less precise. To be compatible with the past, a standard least squares " \
+	"line fit can also be chosen but it is much less precise than the other two because a least squares fit is much more influenced by the peak cepstral values than the other two."
+
+#define PowerCepstrum_manual_quefrencyAveragingWindow \
+	U"determines the width of the averaging window in the quefrency domain. " \
+	"By chosing a value smaller than the quefrency distance, you can prevent any smoothing in the quefrency dimension."
+
+#define PowerCepstrogram_manual_timeAveraging \
+	U"determines the width of the averaging window in the time domain. The result " \
+	"of the smoothing will be that in the new smoothed PowerCepstrogram each cepstral value is the average of the cepstral values " \
+	"within the averaging window that was positioned symmetrically around the center of this frame in the selected PowerCepstrogram. " \
+	"By chosing a value smaller than the time between two frames, you can prevent any smoothing in the time dimension. "
+		
+MAN_BEGIN (U"PowerCepstrogram", U"djmw", 20190909)
+INTRO (U"One of the @@types of objects@ in P\\s{RAAT}. A cepstrogram represents a time-quefrency representation of a sound. "
+	"Horizontally it shows time, vertically it shows quefrency while the quefrency power density is shown as shades of grey.")
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrogram: To Table (peak prominence)...", U"djmw", 20130616)
+MAN_BEGIN (U"PowerCepstrogram: Get CPPS...", U"djmw", 20201216)
+INTRO (U"A command to get the cepstral peak prominence (CPP) of the selected @@PowerCepstrogram@. ")
+NORMAL (U"The returned value is the average of the cepstral peak prominences of the individual frames.")
+ENTRY (U"Settings")
+TAG (U"##Subtract trend before smoothing#")
+DEFINITION (U"determines whether the smoothing should be performed on the Cepstrogram after the trend of each PowerCepstrum frame has been removed. ")
+TAG (U"##Time averaging window (s)#")
+DEFINITION (PowerCepstrogram_manual_timeAveraging)
+TAG (U"##Quefrency averaging window (s)#")
+DEFINITION (PowerCepstrum_manual_quefrencyAveragingWindow)
+TAG (U"##Peak search pitch range (Hz)#")
+DEFINITION (PowerCepstrum_manual_pitchRange)
+TAG (U"##Tolerance#")
+DEFINITION (U"")
+TAG (U"##Interpolation#")
+DEFINITION (U"determines how the @@vector peak interpolation|amplitude and position of a peak are determined@.")
+TAG (U"##Trend line quefrency range (s)#")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
+TAG (U"##Fit method#")
+DEFINITION (PowerCepstrum_manual_fitMethod)
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrogram: To Table (cepstral peak prominences)...", U"djmw", 20210916)
 INTRO (U"A command to create a table with @@PowerCepstrum: Get peak prominence...|cepstral peak prominence@ values.")
 ENTRY (U"Settings")
-SCRIPT (5, Manual_SETTINGS_WINDOW_HEIGHT (7), U""
-	Manual_DRAW_SETTINGS_WINDOW ("PowerCepstrogram: To Table (peak prominence)", 7)
+SCRIPT (5, Manual_SETTINGS_WINDOW_HEIGHT (7.8), U""
+	Manual_DRAW_SETTINGS_WINDOW ("PowerCepstrogram: To Table (cepstral peak prominences)", 7.8)   // 9 - 4 * 0.3 (four is the number of additional radio buttons)
 	Manual_DRAW_SETTINGS_WINDOW_RANGE("Peak search pitch range (Hz)", U"60.0", U"300.0")
 	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"Interpolation", U"None", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Parabolic", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Cubic", 1)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Sinc70", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RANGE("Tilt line quefrency range (s)", U"0.001", U"0.0 (= end)")
-	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU(U"Fit method", U"Robust")
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"parabolic", 1)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"cubic", 0)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"sinc70", 0)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"sinc700", 0)
+	Manual_DRAW_SETTINGS_WINDOW_RANGE ("Trend line quefrency range (s)", U"0.001", U"0.05")
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"Trend type", U"Exponential decay")
+	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"Fit method", U"Robust")
 )
 NORMAL (U"The meaning of these settings is explained @@PowerCepstrum: Get peak prominence...|here@.")
 MAN_END
@@ -145,27 +403,20 @@ TAG (U"##Garnish")
 DEFINITION (U"Draws a box around the cepstrogram and labels the axes.")
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrogram: Smooth...", U"djmw", 20140117)
-INTRO (U"Smoothes the selected @PowerCepstrogram by averaging cepstra. The smoothed PowerCepstrogram is the result of two separate steps. "
-	"In the first step, cepsta are averaged across time. In the second step, cepstra are averaged across quefrency.")
+MAN_BEGIN (U"PowerCepstrogram: Smooth...", U"djmw", 20201216)
+INTRO (U"Smoothes the selected @PowerCepstrogram by averaging with a rectangular window. The smoothed PowerCepstrogram is the "
+	"result of two separate steps. "
+	"In the first step, cepstra are averaged across time. In the second step, cepstra are averaged across quefrency.")
 ENTRY (U"Settings")
 TAG (U"##Time averaging window (s)")
-DEFINITION (U"determines how many frames will used in the first step, averaging across time. The user-supplied value will be divided "
-	"by the Cepstrograms's time step value (its %dx). If %%numberOfFramesToAverage%, the result of the division, turns out to be one or less, no averaging across time is performed. "
-	"If %%numberOfFramesToAverage% is larger than one and is even, one will be added. "
-	"Each new cepstral frame will be the average of %numberOfFramesToAverage frames of the input Cepstrogram. "
-	"For example, if %numberOfFramesToAverage turns out to be 5, then the %j-th new cepstral frame is the result of averaging the 5 frames with indices %j\\--2 , %j\\--1, %j, %j+1 and %j+2 for all frames %j=3..%%numberOfFrames%\\--2, i.e. besides frame %j, the 2 frames on either side are used in the averaging. The %numberOfFramesToAverage has to be uneven to allow for this symmetric behaviour. ")
+DEFINITION (PowerCepstrogram_manual_timeAveraging)
 TAG (U"##Quefrency averaging window (s)")
-DEFINITION (U"determines how many quefrency bins will be used for the averaging across quefrency step. The number of bins used in this step "
-	"is the result of the division of the user-supplied value by the quefrency step value (the Cepstrogram's %dy). "
-	"If the result turns out to be one or less, no averaging across quefrencies is performed. If the resulting value is even, one will be added. "
-	"If, for example, the result happens to be 3 then the value in quefrency bin %k will be the average value of the values in quefrency bins "
-	"%k\\--1, %k and %k+1. ")
+DEFINITION (PowerCepstrum_manual_quefrencyAveragingWindow)
 ENTRY (U"Note")
-NORMAL (U"The following commands should reproduce the smoothing described in the @@Hillenbrand & Houde (1996)@ article, where they use a 20 ms "
-	"(10 frame) time smoothing and a 1 ms (10 bin) quefrency smoothing. ")
+NORMAL (U"The following commands should reproduce the smoothing described in the @@Hillenbrand & Houde (1996)@ article, "
+	"where they use a 20 ms (10 frame) time smoothing and a 1 ms (10 bin) quefrency smoothing. ")
 CODE (U"selectObject (\"Sound xxx\")")
-CODE (U"To PowerCepstrogram: 0.041, 0.002, 5000.0")
+CODE (U"To PowerCepstrogram: 60.0, 0.002, 5000.0, 50.0")
 CODE (U"Smooth: 0.02, 0.001")
 MAN_END
 
@@ -175,47 +426,243 @@ ENTRY (U"Description")
 NORMAL (U"A Cepstrum is the log spectrum of the log power spectrum.")
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrum", U"djmw", 20130616)
-INTRO (U"One of the @@types of objects@ in P\\s{RAAT}.")
+MAN_BEGIN (U"PowerCepstrum", U"djmw", 20200403)
+INTRO (U"One of the @@types of objects@ in Praat.")
 ENTRY (U"Description")
-NORMAL (U"A PowerCepstrum is the log power spectrum of the log power spectrum. The vertical scale will show the amplitude expressed in dB. The horizontal scale shows %%quefrency% in units of seconds.")
+NORMAL (U"A PowerCepstrum is the power spectrum of the log power spectrum. When drawn the vertical scale "
+	"will show the amplitude expressed in dB. The horizontal scale shows %%quefrency% in units of seconds. "
+	"It is calculated from the ##Spectrum# by a method described at @@Spectrum: To PowerCepstrum@.")
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrum: Get peak prominence...", U"djmw", 20130616)
+MAN_BEGIN (U"PowerCepstrum: Get peak prominence...", U"djmw", 20190912)
 INTRO (U"Calculates the cepstral peak prominence measure (CPP) as defined by @@Hillenbrand et al. (1994)@")
-NORMAL (U"The CPP measure is the difference in amplitude between the cepstral peak and the corresponding value on the regression "
+NORMAL (U"The CPP measure is the difference in amplitude between the cepstral peak and the corresponding value on the trend "
 	"line that is directly below the peak (i.e., the predicted magnitude for the quefrency at the cepstral peak). "
 	"The CPP measure represents how far the cepstral peak emerges from the cepstrum background. ")
 ENTRY (U"Settings")
-SCRIPT (7, Manual_SETTINGS_WINDOW_HEIGHT (7), U""
-	Manual_DRAW_SETTINGS_WINDOW (U"PowerCepstrum: Get peak prominence", 7)
+SCRIPT (7, Manual_SETTINGS_WINDOW_HEIGHT (6.8), U""
+	Manual_DRAW_SETTINGS_WINDOW (U"PowerCepstrum: Get peak prominence", 6.8)   // 8 - 4 * 0.3 (four is the number of additional radio buttons)
 	Manual_DRAW_SETTINGS_WINDOW_RANGE("Search peak in pitch range (s)", U"60.0", U"333.3")
 	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"Interpolation", U"None", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Parabolic", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Cubic", 1)
-	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"Sinc70", 0)
-	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Tilt line quefrency range (s)", U"0.001", U"0.0 (= end)")
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"parabolic", 0)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"cubic", 1)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"sinc70", 0)
+	"y -= 12\n"
+	Manual_DRAW_SETTINGS_WINDOW_RADIO (U"", U"sinc700", 0)
+	Manual_DRAW_SETTINGS_WINDOW_RANGE (U"Trend line quefrency range (s)", U"0.001", U"0.0 (= end)")
 	Manual_DRAW_SETTINGS_WINDOW_OPTIONMENU (U"Fit method", U"Robust")
 )
 TAG (U"##Search peak in pitch range")
-DEFINITION (U"determine the limits of the quefrency range where a peak is searched for. The lower quefrency is determined as "
-	"1 / %%pitchCeiling% and this value is in general more critical than "
-	"the value of the upper quefrency which equals 1 / %%pitchFloor%. A %%pitchCeiling% of 300 Hz will correspond to a lower quefrency of 1/300\\~~0.0033 seconds.")
+DEFINITION (PowerCepstrum_manual_pitchRange)
 TAG (U"##Interpolation")
-DEFINITION (U"determines how the @@vector peak interpolation|amplitude of a peak is determined@.")
-TAG (U"##Tilt line quefrency range")
-DEFINITION (U"the quefrency range for which the amplitudes (in dB) will be modelled by a straight line. "
-	"The lower value for this range in the Hillenbrand article was chosen as 0.001 s "
-	"in order to reduce the effect of the low quefrency data on the straight line fit. In our analysis this value is not so critical "
-	"as we use a more robust straight line fit.")
+DEFINITION (U"determines how the @@vector peak interpolation|amplitude and position of a peak are determined@.")
+TAG (U"##Trend line quefrency range")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
 TAG (U"##Fit method")
-DEFINITION (U"the default method is @@theil regression|Theil's robust line fit@. However, to be compatible with the past, a standard least squares line fit has also  been implemented.")
-ENTRY (U"Note")
-NORMAL (U"The CPP value does not depend on the reference value used in the dB calculation of the power cepstrum.")
+DEFINITION (PowerCepstrum_manual_fitMethod)
+ENTRY (U"Examples")
+NORMAL (U"Next picture of a PowerCepstrum with its straight blue trend line and its corresponding "
+	"peak prominence value was generated with the following script. Note that the first four lines in the "
+	"script are only necessary to generate a PowerCepstrum of a part of a vowel. ")
+CODE (U"Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000")
+CODE (U"To Sound")
+CODE (U"To PowerCepstrogram: 60, 0.002, 5000, 50")
+CODE (U"To PowerCepstrum (slice): 0.1")
+CODE (U"prominence = Get peak prominence: 60, 333.3, \"parabolic\", 0.001, 0.05, \"straight\", \"robust slow\"")
+CODE (U"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"")
+CODE (U"Draw: 0, 0, 0, 110, \"yes\"")
+CODE (U"Colour: \"blue\"")
+CODE (U"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"straight\", \"robust slow\"")
+CODE (U"Colour: \"black\"")
+CODE (U"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.1\n"
+	"prominence = Get peak prominence: 60, 333.3, \"parabolic\", 0.001, 0.05, \"straight\", \"robust slow\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"Colour: \"Blue\"\n"
+	"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"straight\", \"robust slow\"\n"
+	"Colour: \"Black\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum\n")
+NORMAL (U"In the next picture the trend line is of exponential decay type and consequently the "
+	"peak prominence value has changed a little bit.")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.1\n"
+	"prominence = Get peak prominence: 60, 333.3, \"parabolic\", 0.001, 0.05, \"exponential decay\", \"robust slow\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"Colour: \"Blue\"\n"
+	"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"exponential decay\", \"robust slow\"\n"
+	"Colour: \"Black\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum\n")
+
 MAN_END
 
-MAN_BEGIN (U"PowerCepstrum: Draw tilt line...", U"djmw", 20130616)
-INTRO (U"Draws the line that models the backgound of the power cepstrum.")
+MAN_BEGIN (U"PowerCepstrum: Draw...", U"djmw", 20190914)
+INTRO (U"A command to draw the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Quefrency range (s)#")
+DEFINITION (U"define the extrema on the horizontal scale of the picture.")
+TAG (U"##Amplitude range (dB)#")
+DEFINITION (U"define the extrema on the vertical scale of the picture")
+ENTRY (U"Remark")
+NORMAL (U"Cepstrum values are drawn as 20\\.clog10 (value +\\ep), "
+	"where \\ep is a small number that avoids taking the logarithm of zero if the cepstrum value happens to be zero.")
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Draw trend line...", U"djmw", 20191008)
+INTRO (U"Draws the line that models the background of the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Quefrency range (s)#")
+DEFINITION (U"define the extrema on the horizontal scale of the picture.")
+TAG (U"##Amplitude range (dB)#")
+DEFINITION (U"define the extrema on the vertical scale of the picture")
+TAG (U"##Trend line quefrency range (s)")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
+TAG (U"##Fit method")
+DEFINITION (PowerCepstrum_manual_fitMethod)
+ENTRY (U"Examples")
+NORMAL (U"The next picture shows a PowerCepstrum with %%two% drawn trend lines, a straight line in blue "
+	"and an exponential decay line in green.  The picture was generated by the following script. "
+	"Note that the first four lines in the script are only necessary to generate a PowerCepstrum of a part of a vowel.")
+CODE (U"Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000")
+CODE (U"To Sound")
+CODE (U"To PowerCepstrogram: 60, 0.002, 5000, 50")
+CODE (U"To PowerCepstrum (slice): 0.1")
+CODE (U"Draw: 0, 0, 0, 110, \"yes\"")
+CODE (U"Colour: \"Blue\"")
+CODE (U"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"Straight\", \"Robust slow\"")
+CODE (U"Colour: \"Green\"")
+CODE (U"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"Exponential decay\", \"Robust slow\"")
+CODE (U"Colour: \"Black\"")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.1\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"Colour: \"Blue\"\n"
+	"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"Straight\", \"Robust slow\"\n"
+	"Colour: \"Green\"\n"
+	"Draw trend line: 0, 0, 0, 110, 0.001, 0.05, \"Exponential decay\", \"Robust slow\"\n"
+	"Colour: \"Black\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum\n")
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Get peak...", U"djmw", 20190910)
+INTRO (U"Get the amplitude of the peak in the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Search peak in pitch range (Hz)#")
+DEFINITION (PowerCepstrum_manual_pitchRange)
+TAG (U"##Interpolation#")
+DEFINITION (U"determines how the @@vector peak interpolation|amplitude and position of a peak are determined@.")
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Get quefrency of peak...", U"djmw", 20190910)
+INTRO (U"A command to get the quefrency of the peak in the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Search peak in pitch range (Hz)#")
+DEFINITION (PowerCepstrum_manual_pitchRange)
+TAG (U"##Interpolation#")
+DEFINITION (U"determines how the @@vector peak interpolation|amplitude and position of a peak are determined@.")
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Get trend line slope...", U"djmw", 20190910)
+INTRO (U"A command to calculate the slope of the line that models the cepstrum background of the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Trend line quefrency range (s)#")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
+TAG (U"##Fit method")
+DEFINITION (PowerCepstrum_manual_fitMethod)
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Get trend line intercept...", U"djmw", 20190910)
+INTRO (U"A command to calculate the intercept of the line that models the cepstrum background of the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Trend line quefrency range (s)#")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
+TAG (U"##Fit method")
+DEFINITION (PowerCepstrum_manual_fitMethod)
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Smooth...", U"djmw", 20191005)
+INTRO (U"A command to smooth the selected @@PowerCepstrum@ by averaging values at successive quefrencies.")
+ENTRY (U"Settings")
+TAG (U"##Quefrency averaging window (s)#")
+DEFINITION (PowerCepstrum_manual_quefrencyAveragingWindow)
+TAG (U"##Number of iterations#")
+DEFINITION (U"determines how often the averaging will take place. If chosen 2, for example, the output PowerCepstrum "
+	"after the first averaging will be averaged once again.")
+ENTRY (U"Examples")
+NORMAL (U"The figure below is the PowerCepstrum taken from an artificial /a/ vowel synthesized as follows:")
+CODE (U"Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000")
+CODE (U"To Sound")
+CODE (U"To PowerCepstrogram: 60, 0.002, 5000, 50")
+CODE (U"To PowerCepstrum (slice): 0.1")
+CODE (U"prominence = Get peak prominence: 60, 333.3, \"Parabolic\", 0.001, 0.05, \"Straight\", \"Robust slow\"")
+CODE (U"Draw: 0, 0, 0, 110, \"yes\"")
+CODE (U"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.3\n"
+	"prominence = Get peak prominence: 60, 333.3, \"Parabolic\", 0.001, 0.05, \"Straight\", \"Robust slow\"\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum\n")
+NORMAL (U"After 1 iteration with an averaging window of 0.0005 s the PowerCepstrum is:")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.3\n"
+	"smooth = Smooth: 0.0005, 1\n"
+	"prominence = Get peak prominence: 60, 333.3, \"Parabolic\", 0.001, 0.05, \"Straight\", \"Robust slow\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum, smooth\n")
+NORMAL (U"After 2 iterations with an averaging window of 0.0005 s the PowerCepstrum is:")
+SCRIPT (5, 3, U""
+	"kg = Create KlattGrid from vowel: \"a\", 0.3, 125, 800, 80, 1200, 80, 2300, 100, 2800, 0.1, 1000\n"
+	"vowel = To Sound\n"
+	"cepstrogram = To PowerCepstrogram: 60, 0.002, 5000, 50\n"
+	"cepstrum = To PowerCepstrum (slice): 0.3\n"
+	"smooth = Smooth: 0.0005, 2\n"
+	"prominence = Get peak prominence: 60, 333.3, \"Parabolic\", 0.001, 0.05, \"Straight\", \"Robust slow\"\n"
+	"Draw: 0, 0, 0, 110, \"yes\"\n"
+	"Text top: \"no\", \"Peak prominence = \" + fixed$ (prominence, 2) + \" dB\"\n"
+	"removeObject: kg, vowel, cepstrogram, cepstrum, smooth\n")
+MAN_END
+
+MAN_BEGIN (U"PowerCepstrum: Subtract trend...", U"djmw", 20190914)
+INTRO (U"Subtract the cepstrum trend from the selected @@PowerCepstrum@.")
+ENTRY (U"Settings")
+TAG (U"##Trend line quefrency range (s)#")
+DEFINITION (PowerCepstrum_manual_trendRange)
+TAG (U"##Trend type#")
+DEFINITION (PowerCepstrum_manual_trendType)
+TAG (U"##Fit method#")
+DEFINITION (PowerCepstrum_manual_fitMethod)
 MAN_END
 
 MAN_BEGIN (U"Formant & Spectrogram: To IntensityTier...", U"djmw", 20130109)
@@ -226,7 +673,7 @@ NORMAL (U"The intensities at the frequencies of the selected formant are copied 
 MAN_END
 
 MAN_BEGIN (U"LFCC", U"djmw", 20040421)
-INTRO (U"One of the @@types of objects@ in P\\s{RAAT}.")
+INTRO (U"One of the @@types of objects@ in Praat.")
 NORMAL (U"An object of type LFCC represents cepstral "
 	"coefficients on a linear frequency scale as a function of time. "
 	"The coefficients are represented in frames with constant sampling "
@@ -302,7 +749,7 @@ MAN_BEGIN (U"LPC: To Matrix", U"djmw", 20011123)
 INTRO (U"Copies the linear prediction coefficients of the selected @LPC "
 	"object to a newly created @Matrix object.")
 ENTRY (U"Behaviour")
-FORMULA (U"%z__%ji_ = %a__%ij_, with 1 \\<_ %i \\<_ %nx and "
+EQUATION (U"%z__%ji_ = %a__%ij_, with 1 \\<_ %i \\<_ %nx and "
 	"1 \\<_ j \\<_ %nCoefficients__%i_,")
 NORMAL (U"where %z__%ji_ is the matrix element in row %j and column %i and "
 	"%a__%ij_ is the %j-th linear prediction coefficient in frame %i.")
@@ -337,8 +784,8 @@ DEFINITION (U"defines the LPC frame whose coefficents will be selected.")
 ENTRY (U"Behaviour")
 NORMAL (U"The linear prediction coefficients %a__1..%n_ of the selected LPC "
 	"frame will be copied to polynomial coefficients %c__1..%n+1_ as follows:")
-FORMULA (U"%c__%i_ = %a__%n\\--%i+1_, ")
-FORMULA (U"%c__%n+1_ = 1")
+EQUATION (U"%c__%i_ = %a__%n\\--%i+1_, ")
+EQUATION (U"%c__%n+1_ = 1")
 MAN_END
 
 MAN_BEGIN (U"LPC: To Spectrum (slice)...", U"djmw", 20071120)
@@ -361,10 +808,10 @@ TAG (U"##De-emphasis frequency (Hz)")
 DEFINITION (U"Performs de-emphasis when frequency is in the interval (0, @@Nyquist frequency@)")
 ENTRY (U"Algorithm")
 NORMAL (U"The Spectrum at time %t will be calculated from the %nearest LPC_Frame according to:")
-FORMULA (U"Spectrum (%f) = \\Vr(%gain\\.c%T/%df) / (1 + \\su__%k=1..%numberOfCoefficients_ %a__%k_%z^^\\--%k^),")
+EQUATION (U"Spectrum (%f) = \\Vr(%gain\\.c%T/%df) / (1 + \\su__%k=1..%numberOfCoefficients_ %a__%k_%z^^\\--%k^),")
 NORMAL (U"where %T is the sampling period and %z = exp (\\--2 %\\pi %i %f %T) and %df is the distance in Hz "
 	"between two successive components in the Spectrum.")
-LIST_ITEM (U"1. Allocate a large enough buffer[1..%nfft] to perform an FFT analysis.")
+LIST_ITEM (U"1. Allocate a large enough buffer [1..%nfft] to perform an FFT analysis.")
 LIST_ITEM (U"2. Make the first value of the buffer 1 and copy the prediction coefficients #a into "
 	"the buffer. This results in buffer values: (1, %a__1_, ..., %a__%numberOfCoefficients_, 0, ..., 0).")
 LIST_ITEM (U"3. If ##De-emphasis frequency# is in the interval (0, %nyquistFrequency) then \"multiply\" "
@@ -493,7 +940,7 @@ DEFINITION (U"the range of coefficients that will be used in the reconstruction.
 ENTRY (U"Details")
 NORMAL (U"The output of the triangular filters in a mel filter bank will be "
 	"reconstructed by applying the inverse cosine transform:")
-FORMULA (U"%P__%j_ = 2/N (%c__0_/2 + \\Si__%k=1_^^%N-1^ %c__%k_ cos (\\pi%k(%j-0.5)/%N))),")
+EQUATION (U"%P__%j_ = 2/N (%c__0_/2 + \\Si__%k=1_^^%N-1^ %c__%k_ cos (\\pi%k(%j-0.5)/%N))),")
 NORMAL (U"where %N represents the number of filters, %j runs from 1 to %N, and coefficients %c__%k_ with %k less than "
 	"%%fromCoefficient% and %k larger than %%toCoefficient% take zero values in the evaluation.")
 MAN_END
@@ -504,28 +951,42 @@ ENTRY (U"Settings")
 TAG (U"##From coefficient#, ##To coefficient#")
 DEFINITION (U"the range of coefficients that will be used in the reconstruction.")
 TAG (U"##Include constant term")
-DEFINITION (U"selects whether or not to include the %c__0_ coefficient in the reconstruction. As can be seen from the formula below, the contribution of the %c__0_ term is equal for each filter.")
+DEFINITION (U"selects whether or not to include the %c__0_ coefficient in the reconstruction. "
+	"As can be seen from the formula below, the contribution of the %c__0_ term is equal for each filter.")
 ENTRY (U"Details")
-NORMAL (U"The values %P__%j_ in each frame of the MelSpectrogram will be constructed by applying the inverse Discrete Cosine Transform to the corresponding frame of the MFCC object:")
-FORMULA (U"%P__%j_ = 2/N (%c__0_/2 + \\Si__%k=1_^^%N-1^ %c__%k_ cos (\\pi%k(%j-0.5)/%N))),")
-NORMAL (U"where %N represents the number of filters that were used to get the MFCC object, %j runs from 1 to %N, and coefficients %c__%k_ with %k less than "
+NORMAL (U"The values %P__%j_ in each frame of the MelSpectrogram will be constructed by "
+	"applying the inverse Discrete Cosine Transform to the corresponding frame of the MFCC object:")
+EQUATION (U"%P__%j_ = 2/N (%c__0_/2 + \\Si__%k=1_^^%N-1^ %c__%k_ cos (\\pi%k(%j-0.5)/%N))),")
+NORMAL (U"where %N represents the number of filters that were used to get the MFCC object, %j runs from 1 to %N, "
+	"and coefficients %c__%k_ with %k less than "
 	"%%fromCoefficient% and %k larger than %%toCoefficient% take zero values in the evaluation.")
 MAN_END
 
-MAN_BEGIN (U"Sound: To PowerCepstrogram...", U"djmw", 20130616)
+MAN_BEGIN (U"Sound: To PowerCepstrogram...", U"djmw", 20200403)
 INTRO (U"A command that creates a @@PowerCepstrogram@ from every selected @@Sound@.")
 ENTRY (U"Settings")
 TAG (U"##Pitch floor (Hz)")
-DEFINITION (U"determines the effective length of the analysis window: it will be 3 longest periods long, i.e. if the pitch floor is 60 Hz, the window will be 3/60 = 0.05 seconds long.")
+DEFINITION (U"determines the effective length of the analysis window as three periods of this pitch, "
+	"e.g. if the pitch floor is 60 Hz, the analysis window will be 3/60 = 0.05 seconds long.")
 TAG (U"##Time step (s)")
+DEFINITION (U"defines the distance between the centres of subsequent frames. This determines the number of frames "
+	"in the resulting PowerCepstrogram.")
 TAG (U"##Maximum frequency (Hz)")
+DEFINITION (U"the maximum frequency subject to analysis.")
 TAG (U"##Pre-emphasis from (Hz)")
+ENTRY (U"Algorithm")
+NORMAL (U"The sound will first be resampled to twice the value of the %%Maximum frequency%, with "
+	"the algorithm described at @@Sound: Resample...@. After this, pre-emphasis is applied with the "
+	"algorithm described at @@Sound: Pre-emphasize (in-place)...@. For each analysis window a Gaussian "
+	"window is applied and the ##Spectrum# is calculated. "
+	"The Spectrum is then transformed to a ##PowerCepstrum# with the procedure described at @@Spectrum: To PowerCepstrum@. "
+	"Finally, the values from the PowerCepstrum are stored in the vertical slice of the PowerCepstrogram.")
 MAN_END
 
 MAN_BEGIN (U"Sound: To Formant (robust)...", U"djmw", 20111027)
 INTRO (U"A command that creates a @@Formant@ object from every selected @@Sound@. ")
 ENTRY (U"Settings")
-NORMAL (U"The settings for ##Time step (s)#, ##Maximum number of formants#, ##Maximum formant (Hz), "
+NORMAL (U"The settings for ##Time step (s)#, ##Maximum number of formants#, ##Formant ceiling (Hz), "
 	"##Window length (s)# and ##Pre emphasis from (Hz)# are as in @@Sound: To Formant (burg)...@. "
 	" The following settings determine aspects of the iterative formant frequency refinement.")
 TAG (U"%%Number of std. dev.%,")
@@ -537,7 +998,10 @@ DEFINITION (U"detemines another stop ctriterion for the refinement step. If the 
 	"between successive iterations is less then this value, iteration stops. Iteration stops whenever "
 	"one of the two defined stop criteria is reached.")
 ENTRY (U"Algorithm")
-NORMAL (U"First the sound is downsampled to twice the maximum formant frequency. Next the LPC coefficients are determined by the autocorrelation method. Finally, in an iterative procedure as described by @@Lee (1988)@ the formant frequencies and bandwidths are refined by selectively weighting of samples values.")
+NORMAL (U"First the sound is downsampled to twice the maximum formant frequency. "
+	"Next, the LPC coefficients are determined by the autocorrelation method. "
+	"Finally, in an iterative procedure as described by @@Lee (1988)@, "
+	"the formant frequencies and bandwidths are refined by selective weighting of samples values.")
 MAN_END
 
 MAN_BEGIN (U"Sound: LPC analysis", U"djmw", 19970126)
@@ -545,9 +1009,9 @@ INTRO (U"You can perform this analysis by selecting one or more @Sound objects a
 	"choosing the appropriate command to generate an @LPC.")
 NORMAL (U"The acronym LPC stands for Linear Predictive Coding.")
 NORMAL (U"In the LPC analysis one tries to predict %x__%n_ on the basis of the %p previous samples,")
-FORMULA (U"%x\\'p__%n_ = \\su %a__%k_ %x__%%n-k%_")
+EQUATION (U"%x\\'p__%n_ = \\su %a__%k_ %x__%%n-k%_")
 NORMAL (U"then {%a__1_, %a__2_, ..., %a__%p_} can be chosen to minimize the prediction power %%Q__p_% where")
-FORMULA (U"%%Q__p_% = E[ |%x__%n_ - %x\\'p__%n_|^2].")
+EQUATION (U"%%Q__p_% = E [ |%x__%n_ - %x\\'p__%n_|^2].")
 NORMAL (U"Several different algorithms exist for minimizing %%Q__p_%:")
 LIST_ITEM (U"\\bu @@Sound: To LPC (autocorrelation)...|To LPC (autocorrelation)...@")
 LIST_ITEM (U"\\bu @@Sound: To LPC (covariance)...|To LPC (covariance)...@")
@@ -625,24 +1089,37 @@ LIST_ITEM (U"2.  We convert the melspectrogram values to mel frequency cepstral 
 	"coefficients (see @@MelSpectrogram: To MFCC...@ for details).")
 MAN_END
 
-MAN_BEGIN (U"Spectrum: To PowerCepstrum", U"djmw", 20160909)
+MAN_BEGIN (U"Spectrum: To PowerCepstrum", U"djmw", 20190908)
 INTRO (U"A command to create a @PowerCepstrum from every selected @Spectrum.")
 ENTRY (U"Mathematical procedure")
+NORMAL (U"The spectrum %X(%f) is transformed to a new spectrum %%X%\\'p(%f), where "
+	"Re(%X\\'p(%f)) = ln (Re(%X(%f))^^2^ + Im(%X(%f))^^2^) and Im(%X\\'p(%f)) = 0.")
+NORMAL (U"The new spectrum %X\\'p(%f) is then transformed to a Sound %x(%t) by means of an inverse Fourier "
+	"transform as is described in @@Spectrum: To Sound@. The %%squares% of the transformed "
+	"values, %x(%t)^^2^, are stored in the ##PowerCepstrum#.")
 MAN_END
 
 MAN_BEGIN (U"VocalTractTier", U"djmw", 20120423)
-INTRO (U"One of the @@types of objects@ in Praat. A VocalTractTier objects contains a number of (%time, %VocalTract) points, where a @@VocalTract@ represents the area function of the vocal tract expressed as m^^2^, running from the glottis to the lips.")
+INTRO (U"One of the @@types of objects@ in Praat. A VocalTractTier objects contains a number of (%%time%, %%VocalTract%) "
+	"points, where a @@VocalTract@ represents the area function of the vocal tract expressed as m^^2^, running from the glottis to the lips.")
 MAN_END
 
-MAN_BEGIN (U"theil regression", U"djmw", 20130710)
+MAN_BEGIN (U"theil regression", U"djmw", 20190909)
 NORMAL (U"a robust linear regression method, first proposed by @@Theil (1950)@. The slope of the regression line is estimated as "
 	"the median of all pairwise slopes between each pair of points in the data set. Because this number of pairs increases quadratically "
-	"with the number of data points, we have implemented a somewhat less computationally intensive procedure, the %%incomplete% theil regression. In the incomplete method we first split the data set of %N data points (%x__%i_, %y__%i_), %i = 1..%N, in two equal sets "
-	"of size %N/2 and then calculate %N/2 slopes as ")
-FORMULA (U"%m__%i_ = (%y__%N/2+%i_ - %y__%i_) / (%x__%N/2+%i_ - %x__%i_), for %i = 1..%N/2.")
+	"with the number of data points, we have implemented a somewhat less computationally intensive procedure, the %%incomplete% "
+	"theil regression. In the incomplete method we first split the data set of %N data points (%x__%i_, %y__%i_), %i = 1..%N, "
+	"in two equal sets of size %N/2 and then calculate %N/2 slopes as ")
+EQUATION (U"%m__%i_ = (%y__%N/2+%i_ - %y__%i_) / (%x__%N/2+%i_ - %x__%i_), for %i = 1..%N/2.")
 NORMAL (U"The regression slope %m is calculated as the median of these %N/2 values %m__%i_.")
 NORMAL (U"Given the slope %m, the offset %b is calculated as the median of the %N values %b__%i_= %y__%i_ - %m\\.c%x__%i_.")
-NORMAL (U"The theil regression has a breakdown point of 29.3\\% , which means that it can tolerate arbitrary corruption of up to 29.3% of the input data-points without degradation of its accuracy")
+NORMAL (U"The theil regression has a breakdown point of 29.3\\% , which means that it can tolerate arbitrary corruption of up to "
+	"29.3\\%  of the input data-points without degradation of its accuracy")
+MAN_END
+
+MAN_BEGIN (U"Ammar et al. (2001)", U"djmw", 20200416)
+NORMAL (U"G.S. Ammar, D. Calvetti, W.B. Gragg, L. Reichel (2001): \"Polynomial zero finders based on Szegö polynomials\", "
+	"%%Journal of Computational and Applied Mathematics% #127: 1\\-–16.")
 MAN_END
 
 MAN_BEGIN (U"Anderson (1978)", U"djmw", 20030701)
@@ -651,13 +1128,33 @@ NORMAL (U"N. Anderson (1978): \"On the calculation of filter coefficients for "
 	"IEEE Press: 252\\--255.")
 MAN_END
 
+MAN_BEGIN (U"Deng et al. (2006)", U"djmw", 20210310)
+NORMAL (U"L. Deng, X. Cui, R. Pruvenok, J. Huang, S. Momen, Y. Chen & A. Alwan (2006): \"A database of "
+	"vocal tract resonance trajectories for research in speech processing\", %%Proceedings of the IEEE International Conference on Acoustics, Speech, and Signal Processing (ICASSP)%, Toulouse, France, May 2006.")
+MAN_END
+
+MAN_BEGIN (U"Fleisher et al. (2015)", U"djmw", 20191008)
+NORMAL (U"M. Fleisher, S. Pinkert, W. Mattheus, A. Mainka & D. Mürbe (2015): \"Formant frequencies and bandwidths of the vocal "
+	"transfer function are affected by the mechanical impedance of the vocal tract wall.\", %%Biomech Model Mechanobiol% #14: 719\\--733.")
+MAN_END
+
+MAN_BEGIN (U"Hawks & Miller (1995)", U"djmw", 20191008)
+NORMAL (U"J. Hawks &  J. Miller (1995): \"A formant bandwidth estimation procedure for vowel synthesis.\", "
+	"%%Journal of the Acoustical Society of America% #97: 1343\\--1344.")
+MAN_END
+
 MAN_BEGIN (U"Hillenbrand et al. (1994)", U"djmw", 20121017)
-NORMAL (U"J. Hillenbrand, R.A. Cleveland & R.L. Erickson (1994): \"Acoustic correlates of breathy vocal quality\", %%Journal of speech and hearing research% #37: 769\\--778.")
+NORMAL (U"J. Hillenbrand, R.A. Cleveland & R.L. Erickson (1994): \"Acoustic correlates of breathy vocal quality\", "
+	"%%Journal of speech and hearing research% #37: 769\\--778.")
 MAN_END
 
 MAN_BEGIN (U"Hillenbrand & Houde (1996)", U"djmw", 20121203)
-NORMAL (U"J. Hillenbrand & R.A. Houde (1996): \"Acoustic correlates of breathy vocal quality: Dysphonic voices and continuous speech\", %%Journal of speech and hearing research% #39: 311\\--321.")
+NORMAL (U"J. Hillenbrand & R.A. Houde (1996): \"Acoustic correlates of breathy vocal quality: Dysphonic voices and continuous "
+	"speech\", %%Journal of speech and hearing research% #39: 311\\--321.")
+MAN_END
 
+MAN_BEGIN (U"Jacquelin (2009)", U"djmw", 20210126)
+NORMAL (U"J. Jacquelin (2009): \"Régressions et équations intégrales\", https://fr.scribd.com/doc/14674814/Regressions-et-equations-integrales: 1\\--84.")
 MAN_END
 
 MAN_BEGIN (U"Lee (1988)", U"djmw", 20111027)
@@ -688,6 +1185,11 @@ MAN_BEGIN (U"Wakita (1977)", U"djmw", 19980114)
 NORMAL (U"H. Wakita (1977): \"Normalization of vowels by vocal-tract "
 	"length and its application to vowel identification.\" %%IEEE Trans. on ASSP% "
 	"#25: 183\\--192.")
+MAN_END
+
+MAN_BEGIN (U"Weenink (2015)", U"djmw", 20200514)
+NORMAL (U"D. Weenink (2015): \"Improved formant frequency measurements of short segments\", "
+	"%%Proceedings of the 18th International Congress of Phonetic Sciences%, Brighton. ")
 MAN_END
 
 }

@@ -32,7 +32,7 @@ Thing_define (Minimizer, Thing) {
 	Daata object;       /* reference to the object that uses this Minimizer */
 	integer numberOfFunctionCalls;  /* the number of times 'func' has been called */
 	bool success;       /* indicates whether I'm done */
-	integer start;      /* start iteration series */
+	//integer start;      /* start iteration series */
 	integer maximumNumberOfIterations;   /* the current maximum number of iterations */
 	integer iteration;       /* the current number of iterations */
 	void (*afterHook) (Minimizer me, Thing boss);   /* to be called after each iteration */
@@ -56,7 +56,7 @@ void Minimizer_reset (Minimizer me, constVEC const& guess);
 /* reset the start values for the minimizer
  * 
  * Post conditions:
- *    p[] = guess[];
+ *    p [] = guess [];
  *    my minimum = 1e308;
  *    success = maximumNumberOfIterations = iteration = numberOfFunctionCalls = 0;
  *    reset (me);
@@ -76,7 +76,7 @@ void Minimizer_minimize (Minimizer me, integer maximumNumberOfIterations, double
 
 void Minimizer_minimizeManyTimes (Minimizer me, integer maxIterationsPerTime, integer numberOfTimes, double tolerance);
 
-void Minimizer_drawHistory (Minimizer me, Graphics g, integer itmin, integer itmax, double minimum, double maximum, int garnish);
+void Minimizer_drawHistory (Minimizer me, Graphics g, integer itmin, integer itmax, double minimum, double maximum, bool garnish);
 
 double Minimizer_getMinimum (Minimizer me);
 
@@ -89,7 +89,7 @@ Thing_define (LineMinimizer, Minimizer) {
 	autoVEC direction;    // search direction vector
 	autoVEC ptry;         // point in search direction
 
-	//virtual void v_linmin (double p[], double fp, double direction[], double *fret);
+	//virtual void v_linmin (double p [], double fp, double direction [], double *fret);
 };
 
 void LineMinimizer_init (LineMinimizer me, integer numberOfParameters, Daata object, double (*func) (Daata object, VEC const& p));

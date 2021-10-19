@@ -1,6 +1,6 @@
 /* Net.cpp
  *
- * Copyright (C) 2017-2019 Paul Boersma
+ * Copyright (C) 2017-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,14 +48,14 @@ static autoRBMLayer RBMLayer_create (integer numberOfInputNodes, integer numberO
 	try {
 		autoRBMLayer me = Thing_new (RBMLayer);
 		my numberOfInputNodes = numberOfInputNodes;
-		my inputBiases = newVECzero (numberOfInputNodes);
-		my inputActivities = newVECzero (numberOfInputNodes);
-		my inputReconstruction = newVECzero (numberOfInputNodes);
+		my inputBiases = zero_VEC (numberOfInputNodes);
+		my inputActivities = zero_VEC (numberOfInputNodes);
+		my inputReconstruction = zero_VEC (numberOfInputNodes);
 		my numberOfOutputNodes = numberOfOutputNodes;
-		my outputBiases = newVECzero (numberOfOutputNodes);
-		my outputActivities = newVECzero (numberOfOutputNodes);
-		my outputReconstruction = newVECzero (numberOfOutputNodes);
-		my weights = newMATzero (numberOfInputNodes, numberOfOutputNodes);
+		my outputBiases = zero_VEC (numberOfOutputNodes);
+		my outputActivities = zero_VEC (numberOfOutputNodes);
+		my outputReconstruction = zero_VEC (numberOfOutputNodes);
+		my weights = zero_MAT (numberOfInputNodes, numberOfOutputNodes);
 		my inputsAreBinary = inputsAreBinary;
 		return me;
 	} catch (MelderError) {
@@ -68,7 +68,7 @@ void Net_initEmpty (Net me) {
 	my layers = LayerList_create ();
 }
 
-autoNet Net_createEmpty (integer numberOfInputNodes) {
+autoNet Net_createEmpty (integer /* numberOfInputNodes */) {
 	try {
 		autoNet me = Thing_new (Net);
 		
@@ -93,22 +93,22 @@ void Net_addRBMLayer (Net me, integer numberOfOutputNodes) {
 }
 */
 
-void Net_initAsDeepBeliefNet (Net me, constVECVU const& numbersOfNodes, bool inputsAreBinary) {
+void Net_initAsDeepBeliefNet (Net me, constINTVECVU const& numbersOfNodes, bool inputsAreBinary) {
 	if (numbersOfNodes.size < 2)
 		Melder_throw (U"A deep belief net should have at least two levels of nodes.");
 	integer numberOfLayers = numbersOfNodes.size - 1;
 	Net_initEmpty (me);
 	for (integer ilayer = 1; ilayer <= numberOfLayers; ilayer ++) {
 		autoRBMLayer layer = RBMLayer_create (
-			Melder_iround (numbersOfNodes [ilayer]),
-			Melder_iround (numbersOfNodes [ilayer + 1]),
+			numbersOfNodes [ilayer],
+			numbersOfNodes [ilayer + 1],
 			ilayer == 1 ? inputsAreBinary : true
 		);
 		my layers -> addItem_move (layer.move());
 	}
 }
 
-autoNet Net_createAsDeepBeliefNet (constVECVU const& numbersOfNodes, bool inputsAreBinary) {
+autoNet Net_createAsDeepBeliefNet (constINTVECVU const& numbersOfNodes, bool inputsAreBinary) {
 	try {
 		autoNet me = Thing_new (Net);
 		Net_initAsDeepBeliefNet (me.get(), numbersOfNodes, inputsAreBinary);
@@ -119,7 +119,7 @@ autoNet Net_createAsDeepBeliefNet (constVECVU const& numbersOfNodes, bool inputs
 }
 
 static void copyOutputsToInputs (Layer me, Layer you) {
-	your inputActivities.all() <<= my outputActivities.all();
+	your inputActivities.all()  <<=  my outputActivities.all();
 }
 
 inline static double logistic (double excitation) {
@@ -189,7 +189,7 @@ void Net_sampleOutput (Net me) {
 }
 
 static void copyInputsToOutputs (Layer me, Layer you) {
-	your outputActivities.all() <<= my inputActivities.all();
+	your outputActivities.all()  <<=  my inputActivities.all();
 }
 
 void structRBMLayer :: v_spreadDown (kLayer_activationType activationType) {
@@ -475,7 +475,7 @@ autoActivationList Net_PatternList_to_ActivationList (Net me, PatternList thee, 
 		for (integer ipattern = 1; ipattern <= thy ny; ipattern ++) {
 			Net_PatternList_applyToInput (me, thee, ipattern);
 			Net_spreadUp (me, activationType);
-			activations -> z.row (ipattern) <<= outputLayer -> outputActivities;
+			activations -> z.row (ipattern)  <<=  outputLayer -> outputActivities.all();
 		}
 		return activations;
 	} catch (MelderError) {
@@ -486,7 +486,7 @@ autoActivationList Net_PatternList_to_ActivationList (Net me, PatternList thee, 
 static autoMatrix Layer_extractInputActivities (Layer me) {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, my numberOfInputNodes);
-		thy z.row (1) <<= my inputActivities;
+		thy z.row (1)  <<=  my inputActivities.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": input activities not extracted.");
@@ -500,7 +500,7 @@ autoMatrix Net_extractInputActivities (Net me) {
 static autoMatrix Layer_extractOutputActivities (Layer me) {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, my numberOfOutputNodes);
-		thy z.row (1) <<= my outputActivities;
+		thy z.row (1)  <<=  my outputActivities.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": output activities not extracted.");
@@ -514,7 +514,7 @@ autoMatrix Net_extractOutputActivities (Net me) {
 autoMatrix structRBMLayer :: v_extractInputReconstruction () {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, our numberOfInputNodes);
-		thy z.row (1) <<= our inputReconstruction;
+		thy z.row (1)  <<=  our inputReconstruction.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (this, U": input reconstruction not extracted.");
@@ -528,7 +528,7 @@ autoMatrix Net_extractInputReconstruction (Net me) {
 autoMatrix structRBMLayer :: v_extractOutputReconstruction () {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, our numberOfOutputNodes);
-		thy z.row (1) <<= our outputReconstruction;
+		thy z.row (1)  <<=  our outputReconstruction.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (this, U": output reconstruction not extracted.");
@@ -542,7 +542,7 @@ autoMatrix Net_extractOutputReconstruction (Net me) {
 autoMatrix structRBMLayer :: v_extractInputBiases () {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, our numberOfInputNodes);
-		thy z.row (1) <<= our inputBiases;
+		thy z.row (1)  <<=  our inputBiases.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (this, U": input biases not extracted.");
@@ -568,7 +568,7 @@ autoMatrix Net_extractInputBiases (Net me, integer layerNumber) {
 autoMatrix structRBMLayer :: v_extractOutputBiases () {
 	try {
 		autoMatrix thee = Matrix_createSimple (1, our numberOfOutputNodes);
-		thy z.row (1) <<= our outputBiases;
+		thy z.row (1)  <<=  our outputBiases.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (this, U": input biases not extracted.");
@@ -587,7 +587,7 @@ autoMatrix Net_extractOutputBiases (Net me, integer layerNumber) {
 autoMatrix structRBMLayer :: v_extractWeights () {
 	try {
 		autoMatrix thee = Matrix_createSimple (our numberOfInputNodes, our numberOfOutputNodes);
-		thy z.all() <<= our weights.all();
+		thy z.all()  <<=  our weights.all();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (this, U": weights not extracted.");
@@ -604,7 +604,7 @@ autoMatrix Net_extractWeights (Net me, integer layerNumber) {
 }
 
 autoMAT structRBMLayer :: v_getWeights () {
-	return newMATcopy (our weights.get());
+	return copy_MAT (our weights.get());
 }
 
 autoMAT Net_getWeights (Net me, integer layerNumber) {

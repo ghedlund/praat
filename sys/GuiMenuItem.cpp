@@ -1,6 +1,6 @@
 /* GuiMenuItem.cpp
  *
- * Copyright (C) 1992-2018 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 1992-2018,2020,2021 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +35,15 @@ Thing_implement (GuiMenuItem, GuiThing, 0);
 	#define iam_menuitem  GuiMenuItem me = (GuiMenuItem) [(GuiCocoaMenuItem *) widget getUserData];
 #endif
 
+#if cocoa
+	GuiMenuItemCallback theGuiEscapeMenuItemCallback;
+	Thing theGuiEscapeMenuItemBoss;
+#endif
+
 #if motif
 	static void NativeMenuItem_setText (GuiObject me) {
 		int acc = my motiff.pushButton.acceleratorChar, modifiers = my motiff.pushButton.acceleratorModifiers;
-		static MelderString title { };
+		static MelderString title;
 		if (acc == 0) {
 			MelderString_copy (& title, _GuiWin_expandAmpersands (my name.get()));
 		} else {
@@ -80,12 +85,12 @@ Thing_implement (GuiMenuItem, GuiThing, 0);
 		iam (GuiMenuItem);
 		if (my d_callbackBlocked) return;
 		if (G_OBJECT_TYPE (widget) == GTK_TYPE_RADIO_MENU_ITEM && ! gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (widget))) return;
-		struct structGuiMenuItemEvent event { me, false, false, false, false };
+		structGuiMenuItemEvent event { me, false, false, false };
 		if (my d_callback) {
 			try {
 				my d_callback (my d_boss, & event);
 			} catch (MelderError) {
-				Melder_flushError (U"Your choice of menu item \"", Melder_peek8to32 (GTK_WIDGET (widget) -> name), U"\" was not completely handled.");
+				Melder_flushError (U"Your choice of menu item \"", Melder_peek8to32 (gtk_widget_get_name (GTK_WIDGET (widget))), U"\" was not completely handled.");
 			}
 		}
 	}
@@ -98,7 +103,7 @@ Thing_implement (GuiMenuItem, GuiThing, 0);
 	static void _guiMotifMenuItem_activateCallback (GuiObject widget, XtPointer void_me, XtPointer call) {
 		iam (GuiMenuItem);
 		if (my d_callback) {
-			struct structGuiMenuItemEvent event { me, false, false, false, false };
+			structGuiMenuItemEvent event { me, false, false, false };
 			try {
 				my d_callback (my d_boss, & event);
 			} catch (MelderError) {
@@ -127,7 +132,7 @@ Thing_implement (GuiMenuItem, GuiThing, 0);
 		Melder_assert (self == widget);   // sender (widget) and receiver (self) happen to be the same object
 		GuiMenuItem me = d_userData;
 		if (my d_callback) {
-			struct structGuiMenuItemEvent event { me, false, false, false, false };
+			structGuiMenuItemEvent event { me, false, false, false };
 			try {
 				my d_callback (my d_boss, & event);
 			} catch (MelderError) {
@@ -223,16 +228,16 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, conststring32 title, uint32 flags,
 		
 		#if gtk
 			static const guint acceleratorKeys [] = { 0,
-				GDK_Left, GDK_Right, GDK_Up, GDK_Down, GDK_Pause, GDK_Delete, GDK_Insert, GDK_BackSpace,
-				GDK_Tab, GDK_Return, GDK_Home, GDK_End, GDK_Return, GDK_Page_Up, GDK_Page_Down, GDK_Escape,
-				GDK_F1, GDK_F2, GDK_F3, GDK_F4, GDK_F5, GDK_F6, GDK_F7, GDK_F8, GDK_F9, GDK_F10, GDK_F11, GDK_F12,
+				GDK_KEY_Left, GDK_KEY_Right, GDK_KEY_Up, GDK_KEY_Down, GDK_KEY_Pause, GDK_KEY_Delete, GDK_KEY_Insert, GDK_KEY_BackSpace,
+				GDK_KEY_Tab, GDK_KEY_Return, GDK_KEY_Home, GDK_KEY_End, GDK_KEY_Return, GDK_KEY_Page_Up, GDK_KEY_Page_Down, GDK_KEY_Escape,
+				GDK_KEY_F1, GDK_KEY_F2, GDK_KEY_F3, GDK_KEY_F4, GDK_KEY_F5, GDK_KEY_F6, GDK_KEY_F7, GDK_KEY_F8, GDK_KEY_F9, GDK_KEY_F10, GDK_KEY_F11, GDK_KEY_F12,
 				0, 0, 0 };
 			GdkModifierType modifiers = (GdkModifierType) 0;
 			if (flags & GuiMenu_COMMAND) modifiers = (GdkModifierType) (modifiers | GDK_CONTROL_MASK);
 			if (flags & GuiMenu_SHIFT)   modifiers = (GdkModifierType) (modifiers | GDK_SHIFT_MASK);
 			if (flags & GuiMenu_OPTION)  modifiers = (GdkModifierType) (modifiers | GDK_MOD1_MASK);
 			GtkAccelGroup *ag = gtk_menu_get_accel_group (GTK_MENU (menu -> d_widget));
-			guint key = accelerator < 32 ? acceleratorKeys [accelerator] : accelerator;
+			guint key = ( accelerator < 32 ? acceleratorKeys [accelerator] : accelerator );
 			if (key != 0)
 				gtk_widget_add_accelerator (GTK_WIDGET (my d_widget), toggle ? "YouShouldNotGetHere" : "activate",
 					ag, key, modifiers, GTK_ACCEL_VISIBLE);
@@ -280,12 +285,31 @@ GuiMenuItem GuiMenu_addItem (GuiMenu menu, conststring32 title, uint32 flags,
 						window -> d_tabCallback = commandCallback;
 						window -> d_tabBoss = boss;
 					}
+				} else if (accelerator == GuiMenu_ENTER) {
+					GuiWindow window = (GuiWindow) my d_shell;
+					Melder_assert (window -> classInfo == classGuiWindow);   // fairly safe, because dialogs have no menus
+					if (! (flags & (GuiMenu_OPTION | GuiMenu_SHIFT | GuiMenu_COMMAND))) {
+						window -> d_enterCallback = commandCallback;
+						window -> d_enterBoss = boss;
+					}
 				} else if (accelerator == GuiMenu_BACKSPACE) {
 					GuiWindow window = (GuiWindow) my d_shell;
 					Melder_assert (window -> classInfo == classGuiWindow);   // fairly safe, because dialogs have no menus
 					if (flags & GuiMenu_OPTION) {
 						window -> d_optionBackspaceCallback = commandCallback;
 						window -> d_optionBackspaceBoss = boss;
+					}
+				} else if (accelerator == GuiMenu_ESCAPE) {
+					GuiWindow window = (GuiWindow) my d_shell;
+					if (window) {
+						trace (U"setting the escape callback in a window");
+						Melder_assert (window -> classInfo == classGuiWindow);   // fairly safe, because dialogs have no menus
+						window -> d_escapeCallback = commandCallback;
+						window -> d_escapeBoss = boss;
+					} else {
+						trace (U"setting the global escape callback");
+						theGuiEscapeMenuItemCallback = commandCallback;
+						theGuiEscapeMenuItemBoss = boss;
 					}
 				}
 			} else {

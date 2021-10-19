@@ -1,6 +1,6 @@
 /* manual_tutorials.cpp
  *
- * Copyright (C) 1992-2019 Paul Boersma
+ * Copyright (C) 1992-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,230 @@
 void manual_tutorials_init (ManPages me);
 void manual_tutorials_init (ManPages me) {
 
-MAN_BEGIN (U"What's new?", U"ppgb", 20190526)
+MAN_BEGIN (U"What's new?", U"ppgb", 20211009)
 INTRO (U"Latest changes in Praat.")
+NORMAL (U"##6.1.54# (9 October 2021)")
+LIST_ITEM (U"• PowerCepstrogram: can tabulate cepstral peak prominence values.")
+LIST_ITEM (U"• Mac: repaired global Escape key menu shortcut (stops sounds that play from the Objects window).")
+NORMAL (U"##6.1.53# (8 September 2021)")
+LIST_ITEM (U"• Linux: corrected a bug that caused PDF files to be misaligned "
+	"if the origin was not in the top left corner.")
+NORMAL (U"##6.1.52# (25 August 2021)")
+LIST_ITEM (U"• FormantPath window: more formant listings and stress listings.")
+LIST_ITEM (U"• Sound window: on Cut or Paste, all windows that contain that Sound now get ungrouped.")
+LIST_ITEM (U"• Corrected a crash when reading Vorbis files on some 32-bit platforms.")
+NORMAL (U"##6.1.51# (22 July 2021)")
+LIST_ITEM (U"• ##Spectrum: Tabulate (verbose)# with:  power spectral density, bin width within domain, bin energy, and much more.")
+LIST_ITEM (U"• Sound window: ##Get amplitude(s)#.")
+LIST_ITEM (U"• Scripting: ##date_utc\\$  ( )#, ##date\\#  ( )#, ##date_utc\\#  ( )#.")
+NORMAL (U"##6.1.50# (20 June 2021)")
+LIST_ITEM (U"• RealTier: editing, Formula, conversion from and to Matrix and Table and other tiers such as PitchTier, "
+	"DurationTier, IntensityTier and AmplitudeTier.")
+LIST_ITEM (U"• Scripting: can now assign multiple objects to a vector.")
+LIST_ITEM (U"• Fix crashes in ##Create letter R example# and ##Create KlattTable example# introduced in 6.1.49.")
+NORMAL (U"##6.1.49# (12 June 2021)")
+LIST_ITEM (U"• @PitchTier, @IntensityTier, @DurationTier and @AmplitudeTier windows: save preferences.")
+LIST_ITEM (U"• @Manipulation window: removed unused semitone options.")
+LIST_ITEM (U"• @RealTier object: editing; conversions from and to other tiers and from Table and Matrix.")
+NORMAL (U"##6.1.48# (2 June 2021)")
+LIST_ITEM (U"• TextGrid window: Shift-drag drags multiple boundaries again even if the Shift key is not released.")
+LIST_ITEM (U"• Scripting: publishing (\"Extract\") an object from an editor window returns its ID again.")
+LIST_ITEM (U"• Scripting: \"Select...\" in an editor window is now prevented from selecting outside the time domain.")
+NORMAL (U"##6.1.47# (21 May 2021)")
+LIST_ITEM (U"• The Escape key now means Cancel also in a non-pausing pause window.")
+NORMAL (U"##6.1.46# (20 May 2021)")
+LIST_ITEM (U"• Fixed a bug with line types in the Picture window.")
+LIST_ITEM (U"• TextGrid window: shift-click on a boundary again extends the selection.")
+NORMAL (U"##6.1.45# (20 May 2021)")
+LIST_ITEM (U"• Praat picture files can be drawn with ##Read from file# again.")
+NORMAL (U"##6.1.44# (17 May 2021)")
+LIST_ITEM (U"• Scripting: queries in editor windows are scriptable again.")
+NORMAL (U"##6.1.43# (13 May 2021)")
+LIST_ITEM (U"• TextGrid window: characters in the IPA chart grow with the window.")
+LIST_ITEM (U"• TextGrid window: seeing the maroon shadow now always means that the boundary will be moved when the mouse is released (problem since 6.1.20 or so).")
+LIST_ITEM (U"• Scripting: pause window on the Mac: the Enter key works as designed (bug in 6.1.42).")
+NORMAL (U"##6.1.42# (15 April 2021)")
+LIST_ITEM (U"• Settings windows: taller text fields for formulas and vectors.")
+LIST_ITEM (U"• Mac TextGrid window: cursor moves to end of text after selecting an interval (as on Windows and Linux).")
+NORMAL (U"##6.1.41# (25 March 2021)")
+LIST_ITEM (U"• TextGrid window: unselected boundaries can again be drawn to the cursor.")
+LIST_ITEM (U"• Windows: faster running cursor.")
+LIST_ITEM (U"• Multi-line formula fields.")
+LIST_ITEM (U"• Scripting: guard against too deep recursive calls to runScript (depth 20).")
+LIST_ITEM (U"• EEG: repaired a bug that could cause Praat to crash when computing an ERPTier.")
+NORMAL (U"##6.1.40# (27 February 2021)")
+LIST_ITEM (U"• Inspect window: corrected a bug that could cause Praat to crash when opening a string vector.")
+LIST_ITEM (U"• Sound window: made channel scrolling work again when there are more than 8 channels.")
+LIST_ITEM (U"• Sound window: made channel muting by clicking on the loudspeaker symbols work again.")
+NORMAL (U"##6.1.39# (8 February 2021)")
+LIST_ITEM (U"• Scripting: made string vectors visible in writeFile (), pauseScript () and exitScript ().")
+LIST_ITEM (U"• Mac: corrected a bug that could cause About Praat to crash on macOS 10.10.")
+NORMAL (U"##6.1.38# (2 January 2021)")
+LIST_ITEM (U"• Scripting: string vectors, empty\\$ \\#  (), readLinesFromFile\\$ \\#  (), fileNames\\$ \\#  (), folderNames\\$ \\#  (), splitByWhitespace\\$ \\#  ().")
+LIST_ITEM (U"• Sound files: open Ogg Vorbis files and Opus files.")
+NORMAL (U"##6.1.37# (16 December 2020)")
+LIST_ITEM (U"• TextGrid window: removed a bug that caused Praat to crash when option-clicking or command-clicking a boundary when another boundary was selected on a point tier.")
+LIST_ITEM (U"• Record Sound (fixed time): removed a bug that caused Praat to crash with certain combinations of duration and sampling frequency on Windows.")
+LIST_ITEM (U"• PowerCepstrogram: more precise integration, so that the cepstral peak prominence is now a continuous function of time.")
+LIST_ITEM (U"• TextGrid: Get points (preceded): removed a bug that caused Praat to crash under some edge conditions.")
+LIST_ITEM (U"• Scripting: tryToWriteFile () and tryToAppendFile () should not be available in manuals.")
+NORMAL (U"##6.1.36# (6 December 2020)")
+LIST_ITEM (U"• Scripting: tryToWriteFile (), tryToAppendFile (); formulas can have a size of 1 million.")
+LIST_ITEM (U"• Obscured scripts: error messages always disclosed.")
+LIST_ITEM (U"• IPA chart: sacrifice laminality symbol for breathiness symbol.")
+NORMAL (U"##6.1.35# (29 November 2020)")
+LIST_ITEM (U"• Scripting: sort\\#  (), shuffle\\#  (), to\\#  (), from_to\\#  (), from_to_by\\#  (), from_to_count\\#  (), between_by\\#  (), between_count\\#  ().")
+LIST_ITEM (U"• Mac: repaired a bug existing since 6.1.04 that caused incorrect line counts in text files with high Unicode characters.")
+NORMAL (U"##6.1.34# (25 November 2020)")
+LIST_ITEM (U"• Mac: got bold and italic to work on Praat versions compiled with the BigSur API.")
+LIST_ITEM (U"• SoundRecorder always a white background, instead of a different background on each platform.")
+NORMAL (U"##6.1.33# (19 November 2020)")
+LIST_ITEM (U"• Mac: got audio to work on Praat versions compiled with the BigSur API (6.1.32 did not have audio on BigSur).")
+NORMAL (U"##6.1.32# (16 November 2020)")
+LIST_ITEM (U"• First version for Macs with Apple Silicon chip.")
+LIST_ITEM (U"• Mac: corrected a bug that could cause Praat to crash when a Sound window was closed from a script.")
+LIST_ITEM (U"• Windows and Linux: made ##Text width...# work correctly from batch.")
+LIST_ITEM (U"• Linux: reinstalled Tab shortcut in Sound window.")
+NORMAL (U"##6.1.31# (10 November 2020)")
+LIST_ITEM (U"• Linux: first GTK-3 version.")
+NORMAL (U"##6.1.30# (3 November 2020)")
+LIST_ITEM (U"• Windows: prevented a crash that could occur in the Sound window when clicking with the touchpad while dragging with the mouse (or the reverse).")
+NORMAL (U"##6.1.29# (27 October 2020)")
+LIST_ITEM (U"• Mac: corrected a bug revealed by Xcode 12 since 6.1.22 that could cause Praat to crash when using empty vectors, "
+	"such as when querying a Harmonicity for its mean in regions without frames.")
+NORMAL (U"##6.1.28# (20 October 2020)")
+LIST_ITEM (U"• Pause forms: text fields can be multi-line.")
+LIST_ITEM (U"• Removed a bug that caused Praat to crash when editing a PitchTier.")
+LIST_ITEM (U"• Script window: got rid of too many history entries after dragging in the Picture window.")
+NORMAL (U"##6.1.27# (13 October 2020)")
+LIST_ITEM (U"• Demo window: make sure that the contents of the window become visible "
+	"more often without calling demoShow() or demoWaitForInput().")
+NORMAL (U"##6.1.26# (5 October 2020)")
+LIST_ITEM (U"• Windows: removed a bug that caused Praat to crash if you clicked in the Sound window, "
+	"then dragged the mouse out of that window, then released the mouse button, and then clicked in the Sound window again.")
+LIST_ITEM (U"• Linux: removed a bug that caused Praat to crash when clicking Change in the Inspect window.")
+NORMAL (U"##6.1.25# (4 October 2020)")
+LIST_ITEM (U"• @FormantPath and @FormantPathEditor.")
+LIST_ITEM (U"• Windows: implemented vertical scrolling with the mouse wheel in the manual and in the Picture window.")
+LIST_ITEM (U"• Linux: removed a bug that caused Praat to crash when double-clicking in the Sound window.")
+LIST_ITEM (U"• Linux: removed a bug that caused Praat to crash when raising the About window twice.")
+LIST_ITEM (U"• Removed a bug that caused Praat to crash when zooming in "
+	"to a region in the Sound window without samples, when a pitch curve was visible.")
+LIST_ITEM (U"• Removed a bug that caused Praat to crash when pasting in "
+	"a region in the Sound window without samples.")
+NORMAL (U"##6.1.24# (29 September 2020)")
+LIST_ITEM (U"• Linux: got rid of flashing during a running cursor or "
+	"when making a selection in the Sound window or the Picture window.")
+NORMAL (U"##6.1.23# (28 September 2020)")
+LIST_ITEM (U"• Windows: got rid of flashing during a running cursor or "
+	"when making a selection in the Sound window or the Picture window.")
+LIST_ITEM (U"• Linux: corrected a bug that caused the buttons at the top of a manual window "
+	"to be overwritten with text when scrolling.")
+NORMAL (U"##6.1.22# (24 September 2020)")
+LIST_ITEM (U"• Windows: made the running cursor visible again.")
+LIST_ITEM (U"• Corrected a bug introduced in 6.1.17alpha that could cause incorrect line spacing in the Picture window, "
+	"such as in ##TableOfReal: Draw as numbers#.")
+NORMAL (U"##6.1.21# (20 September 2020)")
+LIST_ITEM (U"• First fully functional version for BigSur.")
+LIST_ITEM (U"• Removed a decades-old bug by which an extremum allegedly computed by cubic interpolation "
+	"would actually have been computed by sinc700.")
+NORMAL (U"##6.1.20beta# (10 September 2020)")
+LIST_ITEM (U"• Second beta version for macOS Big Sur.")
+NORMAL (U"##6.1.19beta# (7 September 2020)")
+LIST_ITEM (U"• First beta version for macOS Big Sur.")
+NORMAL (U"##6.1.18alpha# (1 September 2020)")
+LIST_ITEM (U"• Second alpha version for macOS Big Sur.")
+NORMAL (U"##6.1.17alpha# (16 August 2020)")
+LIST_ITEM (U"• Alpha version for macOS Big Sur.")
+NORMAL (U"##6.1.16# (6 June 2020)")
+LIST_ITEM (U"• ##Record fixed time...#: more reliable choice of input device.")
+LIST_ITEM (U"• Mac: notice plugging and unplugging of headphones.")
+NORMAL (U"##6.1.15# (20 May 2020)")
+LIST_ITEM (U"• Repaired a bug introduced in 6.0.44 that could cause an incorrect (namely, totally constant) ClassificationTable.")
+NORMAL (U"##6.1.14# (2 May 2020)")
+LIST_ITEM (U"• Repaired a bug in drawing ranges introduced in 6.1.06.")
+NORMAL (U"##6.1.13# (19 April 2020)")
+LIST_ITEM (U"• Repaired discriminant analysis on i386 processors.")
+LIST_ITEM (U"• Scripting: enabled predictability by setting random seeds.")
+LIST_ITEM (U"• Automated batch testing on x86_64, i386 and ARMv7 processors.")
+NORMAL (U"##6.1.12# (13 April 2020)")
+LIST_ITEM (U"• All non-GUI tests can be automated from batch.")
+LIST_ITEM (U"• Repaired a bug introduced in 6.0 whereby a KlattGrid-generated Sound would always be peak-scaled.")
+NORMAL (U"##6.1.11# (6 April 2020)")
+LIST_ITEM (U"• Better messages.")
+LIST_ITEM (U"• Overhauled VowelEditor.")
+LIST_ITEM (U"• Repaired crashes after creating a Formant from a Spectrum or an Excitation.")
+NORMAL (U"##6.1.10# (23 March 2020)")
+LIST_ITEM (U"• Faster formant computation.")
+LIST_ITEM (U"• More LPC queries.")
+NORMAL (U"##6.1.09# (26 January 2020)")
+LIST_ITEM (U"• Accept some more kinds of broken WAV files.")
+LIST_ITEM (U"• Improved box plot drawing.")
+LIST_ITEM (U"• More Network commands.")
+NORMAL (U"##6.1.08# (5 December 2019)")
+LIST_ITEM (U"• Repaired a bug with automatic alignment for TextGrids (introduced in 6.1.07).")
+NORMAL (U"##6.1.07# (26 November 2019)")
+LIST_ITEM (U"• Raspberry Pi edition.")
+NORMAL (U"##6.1.06# (8 November 2019)")
+LIST_ITEM (U"• Chromebook edition.")
+LIST_ITEM (U"• Scripting: colour fields now take name, grey value or RGB vector.")
+NORMAL (U"##6.1.05# (16 October 2019)")
+LIST_ITEM (U"• Repaired a bug introduced in 6.0.44 that could cause rubbish LPC smoothing.")
+LIST_ITEM (U"• Repaired a rare crash when dragging a selection on the Mac.")
+NORMAL (U"##6.1.04# (28 September 2019)")
+LIST_ITEM (U"• @Electroglottography.")
+LIST_ITEM (U"• Sound and other windows: ##Widen or shrink selection...#.")
+LIST_ITEM (U"• ##KlattGrid: Create from vowel...#.")
+LIST_ITEM (U"• Fix rectangle playing bug when selection viewer is on.")
+LIST_ITEM (U"• Selection viewer separately visible for Sound window and TextGrid window.")
+LIST_ITEM (U"• Scripting: allow comments after parameter list.")
+LIST_ITEM (U"• Scripting: fix CR/LF pasting from Microsoft Word.")
+NORMAL (U"##6.1.03# (1 September 2019)")
+LIST_ITEM (U"• Sound window: ##Widen or shrink selection...#.")
+NORMAL (U"##6.1.02# (25 August 2019)")
+LIST_ITEM (U"• Repaired ##Sound: Concatenate with overlap...#.")
+LIST_ITEM (U"• Mac: Info and script windows: prevent line breaks caused by tab stops.")
+NORMAL (U"##6.1.01# (14 August 2019)")
+LIST_ITEM (U"• Repaired ##TextGrid: Replace interval texts...#.")
+ENTRY (U"What used to be new?")
+LIST_ITEM (U"• @@What was new in 6.1?")
+LIST_ITEM (U"• @@What was new in 6.0?")
+LIST_ITEM (U"• @@What was new in 5.4?")
+LIST_ITEM (U"• @@What was new in 5.3?")
+LIST_ITEM (U"• @@What was new in 5.2?")
+LIST_ITEM (U"• @@What was new in 5.1?")
+LIST_ITEM (U"• @@What was new in 5.0?")
+LIST_ITEM (U"• @@What was new in 4.6?")
+LIST_ITEM (U"• @@What was new in 4.5?")
+LIST_ITEM (U"• @@What was new in 4.4?")
+LIST_ITEM (U"• @@What was new in 4.3?")
+LIST_ITEM (U"• @@What was new in 4.2?")
+LIST_ITEM (U"• @@What was new in 4.1?")
+LIST_ITEM (U"• @@What was new in 4.0?")
+LIST_ITEM (U"• @@What was new in 3.9?")
+LIST_ITEM (U"• @@What was new in 3.8?")
+LIST_ITEM (U"• @@What was new in 3.7?")
+LIST_ITEM (U"• @@What was new in 3.6?")
+LIST_ITEM (U"• @@What was new in 3.5?")
+LIST_ITEM (U"• @@What was new in 3.3?")
+LIST_ITEM (U"• @@What was new in 3.2?")
+LIST_ITEM (U"• @@What was new in 3.1?")
+MAN_END
+
+MAN_BEGIN (U"What was new in 6.1?", U"ppgb", 20190713)
+NORMAL (U"##6.1# (13 July 2019)")
+NORMAL (U"##6.0.57# (1 July 2019)")
+LIST_ITEM (U"• Repaired a crash when an editor window zoomed in to a zero time range.")
+LIST_ITEM (U"• Repaired a crash when playing a matrix movie with one row or a constant value.")
+LIST_ITEM (U"• Repaired a crash when reconstructing a TableOfReal from a PCA.")
+LIST_ITEM (U"• Scripting: allow comments after `else`, `endif`, `endfor`...")
+NORMAL (U"##6.0.56# (20 June 2019)")
+LIST_ITEM (U"• Windows: file dropping on the Praat icon works for higher-Unicode file names.")
+LIST_ITEM (U"• SpellingChecker: Unicode support.")
+NORMAL (U"##6.0.55# (13 June 2019)")
+LIST_ITEM (U"• Unicode normalization in file names.")
+NORMAL (U"##6.0.54# (6 June 2019)")
+LIST_ITEM (U"• Removed a bug introduced in 6.0.51 that could cause incorrect axes in Demo window.")
 NORMAL (U"##6.0.53# (26 May 2019)")
 LIST_ITEM (U"• Much faster playing of short parts of long sounds that need resampling.")
 LIST_ITEM (U"• Better handling of broken CSV files.")
@@ -72,7 +294,7 @@ LIST_ITEM (U"• Scripting: @@Scripting 4.3. Querying objects|selected\\#  ()@."
 LIST_ITEM (U"• Table window: cell selection.")
 LIST_ITEM (U"• Unicode-savvy regular expressions.")
 NORMAL (U"##6.0.39# (3 April 2018)")
-LIST_ITEM (U"• More string matching (case-insensive, word-level).")
+LIST_ITEM (U"• More string matching (case-insensitive, word-level).")
 NORMAL (U"##6.0.38# (29 March 2018)")
 LIST_ITEM (U"• Concordance: ##TextGrid: Tabulate occurrences...#.")
 LIST_ITEM (U"• Some @@Independent Component Analysis on EEG@.")
@@ -196,6 +418,9 @@ NORMAL (U"##6.0.02# (30 October 2015)")
 LIST_ITEM (U"• Corrected the redrawing of analyses in the Sound window after a change in the sound.")
 NORMAL (U"##6.0.01# (29 October 2015)")
 LIST_ITEM (U"• Windows: fixed a bug that caused Praat to crash at start-up in some Windows versions.")
+MAN_END
+
+MAN_BEGIN (U"What was new in 6.0?", U"ppgb", 20151028)
 NORMAL (U"##6.0# (28 October 2015)")
 LIST_ITEM (U"• Linux: use PulseAudio as the server for playing sound.")
 LIST_ITEM (U"• Windows: removed Praatcon.exe, because Praat.exe can now be used from the command line.")
@@ -278,27 +503,6 @@ NORMAL (U"##5.4.01# (9 November 2014)")
 LIST_ITEM (U"• @MelSpectrogram, @BarkSpectrogram.")
 LIST_ITEM (U"• Linux: removed a bug that could cause too many flashes when scrolling a Sound window.")
 LIST_ITEM (U"• Mac: repaired a bug that could cause a crash in the VowelEditor window.")
-ENTRY (U"What used to be new?")
-LIST_ITEM (U"• @@What was new in 5.4?")
-LIST_ITEM (U"• @@What was new in 5.3?")
-LIST_ITEM (U"• @@What was new in 5.2?")
-LIST_ITEM (U"• @@What was new in 5.1?")
-LIST_ITEM (U"• @@What was new in 5.0?")
-LIST_ITEM (U"• @@What was new in 4.6?")
-LIST_ITEM (U"• @@What was new in 4.5?")
-LIST_ITEM (U"• @@What was new in 4.4?")
-LIST_ITEM (U"• @@What was new in 4.3?")
-LIST_ITEM (U"• @@What was new in 4.2?")
-LIST_ITEM (U"• @@What was new in 4.1?")
-LIST_ITEM (U"• @@What was new in 4.0?")
-LIST_ITEM (U"• @@What was new in 3.9?")
-LIST_ITEM (U"• @@What was new in 3.8?")
-LIST_ITEM (U"• @@What was new in 3.7?")
-LIST_ITEM (U"• @@What was new in 3.6?")
-LIST_ITEM (U"• @@What was new in 3.5?")
-LIST_ITEM (U"• @@What was new in 3.3?")
-LIST_ITEM (U"• @@What was new in 3.2?")
-LIST_ITEM (U"• @@What was new in 3.1?")
 MAN_END
 
 MAN_BEGIN (U"What was new in 5.4?", U"ppgb", 20141003)
@@ -782,7 +986,7 @@ NORMAL (U"##5.1.31# (4 April 2010)")
 LIST_ITEM (U"• @@Sounds: Convolve...@, @@Sounds: Cross-correlate...@, @@Sound: Autocorrelate...@, with full documentation.")
 LIST_ITEM (U"• More query commands for IntensityTier.")
 NORMAL (U"##5.1.30# (25 March 2010)")
-LIST_ITEM (U"• Scripting: $$createDirectory ()$ can now work with absolute paths.")
+LIST_ITEM (U"• Scripting: $$createFolder ()$ can now work with absolute paths.")
 LIST_ITEM (U"• PointProcess: made it impossible to add a point where there is already a point.")
 NORMAL (U"##5.1.29# (11 March 2010)")
 LIST_ITEM (U"• Full support for unicode values above 0xFFFF on Macintosh.")
@@ -916,7 +1120,7 @@ LIST_ITEM (U"• Sound: @@Combine to stereo@ works even if the two mono sounds h
 NORMAL (U"##5.0.33# (9 September 2008)")
 LIST_ITEM (U"• Windows: prevented warning messages about \"Widget type\".")
 NORMAL (U"##5.0.32# (12 August 2008)")
-LIST_ITEM (U"• Contributed by Ola Söder: @@kNN classifiers@ and @@k-means clustering@.")
+LIST_ITEM (U"• Contributed by Ola Söder: kNN classifiers and k-means clustering.")
 LIST_ITEM (U"• Made UTF-16-encoded chronological TextGrid files readable.")
 NORMAL (U"##5.0.31# (6 August 2008)")
 LIST_ITEM (U"• Macintosh: corrected a bug introduced in 5.0.30 that caused Praat to crash when you pressed the Tab key "
@@ -1241,7 +1445,7 @@ LIST_ITEM (U"• Scripting: more techniques for @@Scripting 4. Object selection|
 LIST_ITEM (U"• Scripting: more support for putting the results of the #Info command into a string variable.")
 NORMAL (U"##4.4.31# (23 September 2006)")
 LIST_ITEM (U"• Support for @@plug-ins@.")
-LIST_ITEM (U"• Split between @@Create Strings as file list...@ and @@Create Strings as directory list...@.")
+LIST_ITEM (U"• Split between @@Create Strings as file list...@ and @@Create Strings as folder list...@.")
 NORMAL (U"##4.4.30# (28 August 2006)")
 LIST_ITEM (U"• Table: Draw ellipse (standard deviation)...")
 NORMAL (U"##4.4.29# (21 August 2006)")
@@ -1305,7 +1509,7 @@ LIST_ITEM (U"• MacOS X: correct visibility of Praat icon.")
 LIST_ITEM (U"• MacOS X: correct dropping of Praat files on Praat icon.")
 NORMAL (U"##4.4.09# (19 February 2006)")
 LIST_ITEM (U"• Macintosh: first Intel Macintosh version.")
-LIST_ITEM (U"• Windows: Create Strings from directory list...")
+LIST_ITEM (U"• Windows: Create Strings from folder list...")
 NORMAL (U"##4.4.08# (6 February 2006)")
 LIST_ITEM (U"• Much improved cepstral smoothing.")
 NORMAL (U"##4.4.07# (2 February 2006)")
@@ -1923,8 +2127,158 @@ ENTRY (U"To do")
 ENTRY (U"Known bugs in the Windows version")
 	LIST_ITEM (U"• Cannot stand infinitesimal zooming in SpectrogramEditor.")
 */
- 
-MAN_BEGIN (U"Acknowledgments", U"ppgb", 20161227)
+
+MAN_BEGIN (U"FLAC BSD 3-clause license", U"ppgb", 20210823)
+NORMAL (U"The Praat source code contains a copy of the FLAC software (see @Acknowledgments). "
+	"Here is the FLAC license text:")
+CODE (U"libFLAC - Free Lossless Audio Codec library")
+CODE (U"Copyright (C) 2000-2009  Josh Coalson")
+CODE (U"Copyright (C) 2011-2018  Xiph.Org Foundation")
+CODE (U"")
+CODE (U"Redistribution and use in source and binary forms, with or without "
+	"modification, are permitted provided that the following conditions "
+	"are met:")
+CODE (U"")
+CODE (U"- Redistributions of source code must retain the above copyright "
+	"notice, this list of conditions and the following disclaimer.")
+CODE (U"")
+CODE (U"- Redistributions in binary form must reproduce the above copyright "
+	"notice, this list of conditions and the following disclaimer in the "
+	"documentation and/or other materials provided with the distribution.")
+CODE (U"")
+CODE (U"- Neither the name of the Xiph.org Foundation nor the names of its "
+	"contributors may be used to endorse or promote products derived from "
+	"this software without specific prior written permission.")
+CODE (U"")
+CODE (U"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "
+	"``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT "
+	"LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR "
+	"A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR "
+	"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+	"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+	"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+	"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+	"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+	"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+	"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
+MAN_END
+
+MAN_BEGIN (U"Ogg Vorbis BSD 3-clause license", U"ppgb", 20201227)
+NORMAL (U"The Praat source code contains a copy of the Ogg Vorbis software (see @Acknowledgments). "
+	"Here is the Ogg Vorbis license text:")
+CODE (U"Copyright (c) 2002-2020 Xiph.org Foundation")
+CODE (U"")
+CODE (U"Redistribution and use in source and binary forms, with or without "
+	"modification, are permitted provided that the following conditions "
+	"are met:")
+CODE (U"")
+CODE (U"- Redistributions of source code must retain the above copyright "
+	"notice, this list of conditions and the following disclaimer.")
+CODE (U"")
+CODE (U"- Redistributions in binary form must reproduce the above copyright "
+	"notice, this list of conditions and the following disclaimer in the "
+	"documentation and/or other materials provided with the distribution.")
+CODE (U"")
+CODE (U"- Neither the name of the Xiph.org Foundation nor the names of its "
+	"contributors may be used to endorse or promote products derived from "
+	"this software without specific prior written permission.")
+CODE (U"")
+CODE (U"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "
+	"``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT "
+	"LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR "
+	"A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR "
+	"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+	"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+	"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+	"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+	"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+	"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+	"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
+MAN_END
+
+MAN_BEGIN (U"Opus BSD 3-clause license", U"ppgb", 20210105)
+NORMAL (U"The Praat source code contains a copy of the Opus software (see @Acknowledgments). "
+	"Here is the Opus license text:")
+CODE (U"Copyright (c) 2001-2011 Xiph.Org, Skype Limited, Octasic,")
+CODE (U"                        Jean-Marc Valin, Timothy B. Terriberry,")
+CODE (U"                        CSIRO, Gregory Maxwell, Mark Borgerding,")
+CODE (U"                        Erik de Castro Lopo")
+CODE (U"")
+CODE (U"Redistribution and use in source and binary forms, with or without "
+	"modification, are permitted provided that the following conditions "
+	"are met:")
+CODE (U"")
+CODE (U"- Redistributions of source code must retain the above copyright "
+	"notice, this list of conditions and the following disclaimer.")
+CODE (U"")
+CODE (U"- Redistributions in binary form must reproduce the above copyright "
+	"notice, this list of conditions and the following disclaimer in the "
+	"documentation and/or other materials provided with the distribution.")
+CODE (U"")
+CODE (U"- Neither the name of Internet Society, IETF or IETF Trust, nor the "
+	"names of specific contributors may be used to endorse or promote "
+	"products derived from this software without specific prior written "
+	"permission.")
+CODE (U"")
+CODE (U"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "
+	"``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT "
+	"LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR "
+	"A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR "
+	"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+	"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+	"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+	"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+	"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+	"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+	"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
+CODE (U"")
+CODE (U"Opus is subject to the royalty-free patent licenses which are "
+	"specified at:")
+CODE (U"")
+CODE (U"Xiph.Org Foundation:")
+CODE (U"https://datatracker.ietf.org/ipr/1524/")
+CODE (U"")
+CODE (U"Microsoft Corporation:")
+CODE (U"https://datatracker.ietf.org/ipr/1914/")
+CODE (U"")
+CODE (U"Broadcom Corporation:")
+CODE (U"https://datatracker.ietf.org/ipr/1526/")
+MAN_END
+
+MAN_BEGIN (U"Skype Limited BSD 3-clause license", U"ppgb", 20220102)
+NORMAL (U"The Praat source code contains a copy of the SILK software (see @Acknowledgments). "
+	"Here is the Skype Limited license text:")
+CODE (U"Copyright (c) 2006-2011 Skype Limited. All rights reserved.")
+CODE (U"")
+CODE (U"Redistribution and use in source and binary forms, with or without "
+	"modification, are permitted provided that the following conditions "
+	"are met:")
+CODE (U"")
+CODE (U"- Redistributions of source code must retain the above copyright "
+	"notice, this list of conditions and the following disclaimer.")
+CODE (U"")
+CODE (U"- Redistributions in binary form must reproduce the above copyright "
+	"notice, this list of conditions and the following disclaimer in the "
+	"documentation and/or other materials provided with the distribution.")
+CODE (U"")
+CODE (U"- Neither the name of Internet Society, IETF or IETF Trust, nor the names of specific "
+	"contributors, may be used to endorse or promote products derived from "
+	"this software without specific prior written permission.")
+CODE (U"")
+CODE (U"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "
+	"``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT "
+	"LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR "
+	"A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR "
+	"CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, "
+	"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, "
+	"PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR "
+	"PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF "
+	"LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING "
+	"NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS "
+	"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
+MAN_END
+
+MAN_BEGIN (U"Acknowledgments", U"ppgb", 20211023)
 NORMAL (U"The following people contributed source code to Praat:")
 LIST_ITEM (U"Paul Boersma: user interface, graphics, @printing, @@Intro|sound@, "
 	"@@Intro 3. Spectral analysis|spectral analysis@, @@Intro 4. Pitch analysis|pitch analysis@, "
@@ -1932,15 +2286,15 @@ LIST_ITEM (U"Paul Boersma: user interface, graphics, @printing, @@Intro|sound@, 
 	"@@Intro 7. Annotation|annotation@, @@Intro 8. Manipulation|speech manipulation@, @@voice|voice report@, "
 	"@@ExperimentMFC|listening experiments@, "
 	"@@articulatory synthesis@, @@OT learning|optimality-theoretic learning@, "
-	"tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, and regular expressions.")
+	"tables, @formulas, @scripting, and adaptation of PortAudio, GLPK, regular expressions, and Opus.")
 LIST_ITEM (U"David Weenink: "
 	"@@feedforward neural networks@, @@principal component analysis@, @@multidimensional scaling@, @@discriminant analysis@, @LPC, "
 	"@VowelEditor, "
-	"and adaptation of GSL, LAPACK, fftpack, regular expressions, and Espeak.")
+	"and adaptation of GSL, LAPACK, fftpack, regular expressions, Espeak, Ogg Vorbis, and Opus.")
 LIST_ITEM (U"Stefan de Konink and Franz Brauße: major help in port to GTK.")
 LIST_ITEM (U"Tom Naughton: major help in port to Cocoa.")
 LIST_ITEM (U"Erez Volk: adaptation of FLAC and MAD.")
-LIST_ITEM (U"Ola Söder: @@kNN classifiers@, @@k-means clustering@.")
+LIST_ITEM (U"Ola Söder: kNN classifiers, k-means clustering.")
 LIST_ITEM (U"Rafael Laboissière: adaptation of XIPA, audio bug fixes for Linux.")
 LIST_ITEM (U"Darryl Purnell created the first version of audio for Praat for Linux.")
 NORMAL (U"We included the following freely available software libraries in Praat (sometimes with adaptations):")
@@ -1952,9 +2306,13 @@ LIST_ITEM (U"PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn
 	"(CC-BY-like license).")
 LIST_ITEM (U"Espeak: text-to-speech synthesizer by Jonathan Duddington and Reece Dunn (GPL 3 or later).")
 LIST_ITEM (U"MAD: MPEG Audio Decoder by Underbit Technologies (GPL 2 or later).")
-LIST_ITEM (U"FLAC: Free Lossless Audio Codec by Josh Coalson (BSD 3-clause license).")
-LIST_ITEM (U"fftpack: public domain Fourier transforms by Paul Swarztrauber and Christopher Montgomery.")
-LIST_ITEM (U"LAPACK: public domain numeric algorithms by Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd., "
+LIST_ITEM (U"FLAC: Free Lossless Audio Codec by Josh Coalson and Xiph.Org, version 1.3.3 (@@FLAC BSD 3-clause license@).")
+LIST_ITEM (U"Ogg Vorbis: audio compression by Christopher Montgomery (@@Ogg Vorbis BSD 3-clause license@).")
+LIST_ITEM (U"Opus: audio compression by Jean-Marc Valin, Gregory Maxwell, Christopher Montgomery, Timothy Terriberry, "
+	"Koen Vos, Andrew Allen and others (@@Opus BSD 3-clause license@).")
+LIST_ITEM (U"SILK: audio compression by Skype Limited (@@Skype Limited BSD 3-clause license@).")
+LIST_ITEM (U"fftpack: public domain Fourier transforms by Paul Swarztrauber, translated to C by Christopher Montgomery.")
+LIST_ITEM (U"@LAPACK: public domain numeric algorithms by Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd., "
 	"Courant Institute, Argonne National Lab, and Rice University.")
 LIST_ITEM (U"Regular expressions by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (GPL 2 or later).")
 NORMAL (U"For their financial support during the development of Praat:")
@@ -1978,9 +2336,9 @@ LIST_ITEM (U"Linguistics & Cognitive Science, Dartmouth College, Hanover NH.")
 LIST_ITEM (U"Cornell Phonetics Lab, Ithaca NY.")
 NORMAL (U"Finally we thank:")
 LIST_ITEM (U"Ton Wempe and Dirk Jan Vet, for technical support and advice.")
-LIST_ITEM (U"Daniel Hirst, for managing the Praat Discussion list.")
+LIST_ITEM (U"Daniel Hirst and Daniel McCloy, for managing the Praat Users List.")
 LIST_ITEM (U"Rafael Laboissière and Andreas Tille, for maintaining the Debian package.")
-LIST_ITEM (U"Jason Bacon, for maintaining the FreeBSD port.")
+LIST_ITEM (U"Jason Bacon and Adriaan de Groot, for maintaining the FreeBSD port.")
 LIST_ITEM (U"José Joaquín Atria and Ingmar Steiner, for setting up the source-code repository on GitHub.")
 LIST_ITEM (U"Hundreds of Praat users, for sending suggestions and notifying us of problems and thus helping us to improve Praat.")
 MAN_END
@@ -2375,36 +2733,14 @@ LIST_ITEM (U"@@Intro 1.2. Reading a sound from disk")
 LIST_ITEM (U"@@Intro 1.3. Creating a sound from a formula")
 MAN_END
 
-MAN_BEGIN (U"Intro 1.1. Recording a sound", U"ppgb", 20110128)
-#ifdef macintosh
-	INTRO (U"To record a speech sound into Praat, you need a computer with a microphone.")
-	NORMAL (U"To record from the microphone, perform the following steps:")
-#else
-	INTRO (U"To record a speech sound into Praat, you need a computer with a microphone. "
-		"If you do not have a microphone, try to record from an audio CD instead.")
-	NORMAL (U"To record from the microphone (or the CD), perform the following steps:")
-#endif
+MAN_BEGIN (U"Intro 1.1. Recording a sound", U"ppgb", 20201120)
+INTRO (U"To record a speech sound into Praat, you need a computer with a microphone.")
+NORMAL (U"To record from the microphone, perform the following steps:")
 LIST_ITEM (U"1. Choose @@Record mono Sound...@ from the @@New menu@ in the @@Object window@. "
 	"A @SoundRecorder window will appear on your screen.")
-#if defined (_WIN32)
-	LIST_ITEM (U"2. Choose the appropriate input device, namely the microphone, by the following steps. "
-		"If there is a small loudspeaker symbol in the Windows Start bar, double click it and you will see the %playing mixer. "
-		"If there is no loudspeaker symbol, go to ##Control Panels#, then ##Sounds and Audio Devices#, then #Volume, then #Advanced, "
-		"and you will finally see the playing mixer. "
-		"Once you see the Windows playing mixer, choose #Properties from the #Option menu, "
-		"then click #Recording, then #OK. You now see the %recording mixer, where you can select the microphone "
-		"(if you do not like this complicated operation, try Praat on Macintosh or Linux instead of Windows).")
-#elif defined (macintosh)
-	LIST_ITEM (U"2. In the SoundRecorder window, choose the appropriate input device, e.g. choose ##Internal microphone#.")
-#else
-	LIST_ITEM (U"2. In the SoundRecorder window, choose the appropriate input device, i.e. choose #Microphone (or #CD, or #Line).")
-#endif
-#ifdef macintosh
-	LIST_ITEM (U"3. Use the #Record and #Stop buttons to record a few seconds of your speech.")
-#else
-	LIST_ITEM (U"3. Use the #Record and #Stop buttons to record a few seconds of your speech "
-		"(or a few seconds of music from your playing CD).")
-#endif
+LIST_ITEM (U"2. On the left in the SoundRecorder window, choose the appropriate input device, e.g. choose ##Internal microphone#. "
+	"(On Windows, instead right-click the loudspeaker symbol in the Start bar; see @SoundRecorder for more details.)")
+LIST_ITEM (U"3. Use the #Record and #Stop buttons to record a few seconds of your speech.")
 LIST_ITEM (U"4. Use the #Play button to hear what you have recorded.")
 LIST_ITEM (U"5. Repeat steps 3 and 4 until you are satisfied with your recording.")
 LIST_ITEM (U"6. Click the ##Save to list# button. Your recording will now appear in the Object window, "
@@ -3056,15 +3392,15 @@ LIST_ITEM (U"@@Intro 8.2. Manipulation of duration")
 LIST_ITEM (U"@@Intro 8.3. Manipulation of intensity")
 MAN_END
 
-MAN_BEGIN (U"Intro 8.1. Manipulation of pitch", U"ppgb", 20110128)
+MAN_BEGIN (U"Intro 8.1. Manipulation of pitch", U"ppgb", 20200901)
 INTRO (U"To modify the pitch contour of an existing @Sound object, "
 	"you select this @Sound and click ##To Manipulation#. "
 	"A @Manipulation object will then appear in the list. "
 	"You can then click @@View & Edit@ to raise a @ManipulationEditor, "
-	"which will show the pitch contour (@PitchTier) as a series of thick dots. "
+	"which will show the pitch contour (@PitchTier) as a series of thick blue dots. "
 	"To reduce the number of dots, choose ##Stylize pitch (2 st)# "
 	"from the #Pitch menu; it will then be easy to drag the dots "
-	"about the time-pitch area.")
+	"around the time–pitch area.")
 NORMAL (U"If you click any of the rectangles "
 	"(or choose any of the #Play commands from the #View menu), "
 	"you will hear the modified sound. By shift-clicking, you will hear "
@@ -3077,7 +3413,7 @@ ENTRY (U"Cloning a pitch contour")
 NORMAL (U"To use the pitch contour of one Manipulation object as the pitch contour of another Manipulation object, "
 	"you first choose ##Extract pitch tier# for the first Manipulation object, "
 	"then select the resulting PitchTier object together with the other Manipulation object "
-	"(e.g. by a click on the PitchTier and a Command-click on the Manipulation), "
+	"(e.g. by a click on the PitchTier and a @@Command-click@ on the Manipulation), "
 	"and choose ##Replace pitch tier#.")
 ENTRY (U"Precise manipulation of pitch")
 NORMAL (U"If you know exactly what pitch contour you want, "
@@ -3089,15 +3425,15 @@ NORMAL (U"For instance, suppose you want to have a pitch that falls from 350 to 
 	"You can put this PitchTier into a Manipulation object in the way described above.")
 MAN_END
 
-MAN_BEGIN (U"Intro 8.2. Manipulation of duration", U"ppgb", 20140421)
+MAN_BEGIN (U"Intro 8.2. Manipulation of duration", U"ppgb", 20200901)
 INTRO (U"You can use Praat to modify the relative durations in an existing sound.")
 NORMAL (U"First, you select a @Sound object and click \"To Manipulation\". "
 	"A @Manipulation object will then appear in the list. "
 	"You can then click @@View & Edit@ to raise a @ManipulationEditor, "
 	"which will show an empty @DurationTier. "
 	"You can add targets to this tier by choosing \"Add duration point at cursor\" "
-	"from the \"Dur\" menu. The targets will show up as green dots, which you can easily drag "
-	"about the duration area.")
+	"from the \"Dur\" menu. The targets will show up as blue dots, which you can easily drag "
+	"around the duration area.")
 NORMAL (U"If you click any of the rectangles "
 	"(or choose any of the @Play commands from the @View menu), "
 	"you will hear the modified sound. By shift-clicking, you will hear "
@@ -3115,12 +3451,12 @@ NORMAL (U"In your first 85 ms, your relative duration should be 70/85, "
 	"The DurationTier does linear interpolation, so it can only be approximate these precise times, "
 	"but fortunately to any precision you like:")
 CODE (U"Create DurationTier: \"shorten\", 0, 0.085 + 0.270")
-CODE (U"Add point: 0.000 70/85")
+CODE (U"Add point: 0.000, 70/85")
 CODE (U"Add point: 0.084999, 70/85")
 CODE (U"Add point: 0.085001, 200/270")
 CODE (U"Add point: 0.355, 200/270")
 NORMAL (U"To put this DurationTier back into a Manipulation object, you select the two objects together "
-	"(e.g. a click on the DurationTier and a Command-click on the Manipulation), "
+	"(e.g. a click on the DurationTier and a @@Command-click@ on the Manipulation), "
 	"and choose ##Replace duration tier#.")
 MAN_END
 
@@ -3164,7 +3500,7 @@ MAN_BEGIN (U"Labelling", U"ppgb", 20010408)
 INTRO (U"See @@Intro 7. Annotation@.")
 MAN_END
 
-MAN_BEGIN (U"List of Objects", U"ppgb", 19981024)
+MAN_BEGIN (U"List of Objects", U"ppgb", 20210228)
 INTRO (U"A list in the left-hand part of the @@Object window@.")
 ENTRY (U"Purpose")
 NORMAL (U"If you select one or more @objects in this list, "
@@ -3172,9 +3508,8 @@ NORMAL (U"If you select one or more @objects in this list, "
 	"will appear in the @@Dynamic menu@.")
 ENTRY (U"How to select objects")
 NORMAL (U"To select one object (and deselect all the others), click on the object.")
-NORMAL (U"To extend the selection, drag the mouse (Unix, Windows) or use Shift-click (all platforms).")
-NORMAL (U"To change the selection of one object (without changing the others), "
-	"use Control-click (Unix, Windows) or Command-click (Macintosh).")
+NORMAL (U"To extend the selection, drag the mouse or use Shift-click.")
+NORMAL (U"To change the selection of one object (without changing the others), use @@Command-click@.")
 MAN_END
 
 MAN_BEGIN (U"New menu", U"ppgb", 20161013)
@@ -3787,7 +4122,7 @@ MAN_BEGIN (U"Technical", U"ppgb", 20120915)
 INTRO (U"The title of a submenu of the @@Praat menu@.")
 MAN_END
 
-MAN_BEGIN (U"Types of objects", U"ppgb", 20141109)
+MAN_BEGIN (U"Types of objects", U"ppgb", 20190928)
 INTRO (U"Praat contains the following types of objects and @Editors. "
 	"For an introduction and tutorials, see @Intro.")
 NORMAL (U"General purpose:")
@@ -3809,6 +4144,7 @@ LIST_ITEM1 (U"• @Voice (jitter, shimmer, noise)")
 LIST_ITEM (U"• @Pitch: articulatory fundamental frequency, acoustic periodicity, or perceptual pitch (@PitchEditor)")
 LIST_ITEM (U"• @Harmonicity: degree of periodicity")
 LIST_ITEM (U"• @Intensity, @IntensityTier: intensity contour")
+LIST_ITEM (U"• @Electroglottogram")
 NORMAL (U"Spectral analysis:")
 LIST_ITEM (U"• Tutorials:")
 LIST_ITEM1 (U"• @@Intro 3. Spectral analysis")

@@ -1,22 +1,21 @@
 /* praat_script.cpp
  *
- * Copyright (C) 1993-2019 Paul Boersma
- * 
+ * Copyright (C) 1993-2020 Paul Boersma
+ *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This code is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ctype.h>
 #include "praatP.h"
 #include "praat_script.h"
 #include "sendpraat.h"
@@ -30,9 +29,9 @@ static int praat_findObjectFromString (Interpreter interpreter, conststring32 st
 		while (*string == U' ') string ++;
 		if (*string >= U'A' && *string <= U'Z') {
 			/*
-			 * Find the object by its name.
-			 */
-			static MelderString buffer { };
+				Find the object by its name.
+			*/
+			static MelderString buffer;
 			MelderString_copy (& buffer, string);
 			char32 *space = str32chr (buffer.string, U' ');
 			if (! space)
@@ -45,8 +44,8 @@ static int praat_findObjectFromString (Interpreter interpreter, conststring32 st
 					return IOBJECT;
 			}
 			/*
-			 * No object with that name. Perhaps the class name was wrong?
-			 */
+				No object with that name. Perhaps the class name was wrong?
+			*/
 			ClassInfo klas = Thing_classFromClassName (className, nullptr);
 			WHERE_DOWN (1) {
 				Daata object = (Daata) OBJECT;
@@ -56,8 +55,8 @@ static int praat_findObjectFromString (Interpreter interpreter, conststring32 st
 			Melder_throw (U"No object with that name.");
 		} else {
 			/*
-			 * Find the object by its ID.
-			 */
+				Find the object by its ID.
+			*/
 			double value;
 			Interpreter_numericExpression (interpreter, string, & value);
 			integer id = (integer) value;
@@ -72,7 +71,8 @@ static int praat_findObjectFromString (Interpreter interpreter, conststring32 st
 
 Editor praat_findEditorFromString (conststring32 string) {
 	int IOBJECT;
-	while (*string == U' ') string ++;
+	while (*string == U' ')
+		string ++;
 	if (*string >= U'A' && *string <= U'Z') {
 		WHERE_DOWN (1) {
 			for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++) {
@@ -82,7 +82,8 @@ Editor praat_findEditorFromString (conststring32 string) {
 					const char32 *space = str32chr (editor -> name.get(), U' ');   // editors tend to be called like "3. Sound kanweg"
 					if (space) {   // but not all
 						conststring32 name = space + 1;
-						if (str32equ (name, string)) return editor;
+						if (str32equ (name, string))
+							return editor;
 					}
 				}
 			}
@@ -91,7 +92,8 @@ Editor praat_findEditorFromString (conststring32 string) {
 		WHERE_DOWN (1) {
 			for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++) {
 				Editor editor = theCurrentPraatObjects -> list [IOBJECT]. editors [ieditor];
-				if (editor && str32equ (editor -> name.get(), string)) return editor;
+				if (editor && str32equ (editor -> name.get(), string))
+					return editor;
 			}
 		}
 	}
@@ -104,7 +106,8 @@ Editor praat_findEditorById (integer id) {
 		if (ID == id) {
 			for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++) {
 				Editor editor = theCurrentPraatObjects -> list [IOBJECT]. editors [ieditor];
-				if (editor) return editor;
+				if (editor)
+					return editor;
 			}
 		}
 	}
@@ -136,19 +139,21 @@ static int parseCommaSeparatedArguments (Interpreter interpreter, char32 *argume
 				case kFormula_EXPRESSION_TYPE_NUMERIC: {
 					args [narg]. which = Stackel_NUMBER;
 					args [narg]. number = result. numericResult;
-				} break;
-				case kFormula_EXPRESSION_TYPE_STRING: {
+				} break; case kFormula_EXPRESSION_TYPE_STRING: {
 					args [narg]. setString (result. stringResult.move());
-				} break;
-				case kFormula_EXPRESSION_TYPE_NUMERIC_VECTOR: {
+				} break; case kFormula_EXPRESSION_TYPE_NUMERIC_VECTOR: {
 					args [narg]. which = Stackel_NUMERIC_VECTOR;
 					args [narg]. numericVector = result. numericVectorResult;
 					args [narg]. owned = result. owned;
 					result. owned = false;
-				} break;
-				case kFormula_EXPRESSION_TYPE_NUMERIC_MATRIX: {
+				} break; case kFormula_EXPRESSION_TYPE_NUMERIC_MATRIX: {
 					args [narg]. which = Stackel_NUMERIC_MATRIX;
 					args [narg]. numericMatrix = result. numericMatrixResult;
+					args [narg]. owned = result. owned;
+					result. owned = false;
+				} break; case kFormula_EXPRESSION_TYPE_STRING_ARRAY: {
+					args [narg]. which = Stackel_STRING_ARRAY;
+					args [narg]. stringArray = result. stringArrayResult;
 					args [narg]. owned = result. owned;
 					result. owned = false;
 				} break;
@@ -175,7 +180,10 @@ static int parseCommaSeparatedArguments (Interpreter interpreter, char32 *argume
 	return narg;
 }
 
-int praat_executeCommand (Interpreter interpreter, char32 *command) {
+bool praat_executeCommand (Interpreter interpreter, char32 *command) {
+	if (interpreter)
+		interpreter -> returnType = kInterpreter_ReturnType::VOID_;   // clear return type to its default
+
 	static struct structStackel args [1 + MAXIMUM_NUMBER_OF_FIELDS];
 	//trace (U"praat_executeCommand: ", Melder_pointer (interpreter), U": ", command);
 	if (command [0] == U'\0' || command [0] == U'#' || command [0] == U'!' || command [0] == U';')
@@ -266,26 +274,26 @@ int praat_executeCommand (Interpreter interpreter, char32 *command) {
 			}
 		} else if (str32nequ (command, U"nowarn ", 7)) {
 			autoMelderWarningOff nowarn;
-			praat_executeCommand (interpreter, command + 7);
+			return praat_executeCommand (interpreter, command + 7);
 		} else if (str32nequ (command, U"noprogress ", 11)) {
 			autoMelderProgressOff noprogress;
-			praat_executeCommand (interpreter, command + 11);
+			return praat_executeCommand (interpreter, command + 11);
 		} else if (str32nequ (command, U"nocheck ", 8)) {
 			try {
-				praat_executeCommand (interpreter, command + 8);
+				return praat_executeCommand (interpreter, command + 8);
 			} catch (MelderError) {
 				Melder_clearError ();
-				return 0;
+				return false;
 			}
 		} else if (str32nequ (command, U"demo ", 5)) {
 			autoDemoOpen demo;
-			praat_executeCommand (interpreter, command + 5);
+			return praat_executeCommand (interpreter, command + 5);
 		} else if (str32nequ (command, U"asynchronous ", 13)) {
 			autoMelderAsynchronous asynchronous;
-			praat_executeCommand (interpreter, command + 13);
+			return praat_executeCommand (interpreter, command + 13);
 		} else if (str32nequ (command, U"pause ", 6) || str32equ (command, U"pause")) {
 			if (theCurrentPraatApplication -> batch)
-				return 1;   // in batch we ignore pause statements
+				return true;   // in batch we ignore pause statements
 			UiPause_begin (theCurrentPraatApplication -> topShell, U"stop or continue", interpreter);
 			UiPause_comment (str32equ (command, U"pause") ? U"..." : command + 6);
 			UiPause_end (1, 1, 0, U"Continue", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, interpreter);
@@ -501,14 +509,18 @@ int praat_executeCommand (Interpreter interpreter, char32 *command) {
 					}
 				}
 				if (! theCommandIsAnExistingMenuCommand) {
+					const integer length = str32len (command);
 					if (str32nequ (command, U"ARGS ", 5)) {
 						Melder_throw (U"Command \"ARGS\" no longer supported. Instead use \"form\" and \"endform\".");
 					} else if (str32chr (command, U'=')) {
 						Melder_throw (U"Command \"", command, U"\" not recognized.\n"
 							U"Probable cause: you are trying to use a variable name that starts with a capital.");
-					} else if (command [0] != U'\0' && command [str32len (command) - 1] == U' ') {
+					} else if (length >= 1 && Melder_isHorizontalSpace (command [length - 1])) {
 						Melder_throw (U"Command \"", command, U"\" not available for current selection. "
 							U"It may be helpful to remove the trailing spaces.");
+					} else if (length >= 2 && Melder_isHorizontalSpace (command [length - 2]) && command [length - 1] == U':') {
+						Melder_throw (U"Command \"", command, U"\" not available for current selection. "
+							U"It may be helpful to remove the space before the colon.");
 					} else if (str32nequ (command, U"\"ooTextFile\"", 12)) {
 						Melder_throw (U"Command \"", command, U"\" not available for current selection. "
 							U"It is possible that this file is not a Praat script but a Praat data file that you can open with \"Read from file...\".");
@@ -520,25 +532,26 @@ int praat_executeCommand (Interpreter interpreter, char32 *command) {
 		}
 		praat_updateSelection ();
 	}
-	return 1;
+	return true;
 }
 
 void praat_executeCommandFromStandardInput (conststring32 programName) {
 	char command8 [1000];   // can be recursive
 	/*
-	 * FIXME: implement for Windows.
-	 */
+		FIXME: implement for Windows.
+	*/
 	for (;;) {
 		printf ("%s > ", Melder_peek32to8 (programName));
 		if (! fgets (command8, 999, stdin))
 			Melder_throw (U"Cannot read input.");
 		char *newLine = strchr (command8, '\n');
-		if (newLine) *newLine = '\0';
+		if (newLine)
+			*newLine = '\0';
 		autostring32 command32 = Melder_8to32 (command8);
 		try {
-			praat_executeCommand (nullptr, command32.get());
+			(void) praat_executeCommand (nullptr, command32.get());
 		} catch (MelderError) {
-			Melder_flushError (programName, U": command \"", Melder_peek8to32 (command8), U"\" not executed.");
+			Melder_flushError (programName, U": Command \"", Melder_peek8to32 (command8), U"\" not executed.");
 		}
 	}
 }
@@ -561,8 +574,8 @@ void praat_executeScriptFromFile (MelderFile file, conststring32 arguments) {
 
 void praat_executeScriptFromFileName (conststring32 fileName, integer narg, Stackel args) {
 	/*
-	 * The argument 'fileName' is unsafe. Duplicate its contents.
-	 */
+		The argument 'fileName' is unsafe. Duplicate its contents.
+	*/
 	structMelderFile file { };
 	Melder_relativePathToFile (fileName, & file);
 	try {
@@ -583,24 +596,30 @@ void praat_executeScriptFromFileNameWithArguments (conststring32 nameAndArgument
 	const char32 *p, *arguments;
 	structMelderFile file { };
 	/*
-	 * Split into file name and arguments.
-	 */
+		Split into file name and arguments.
+	*/
 	p = nameAndArguments;
-	while (*p == U' ' || *p == U'\t') p ++;
+	while (*p == U' ' || *p == U'\t')
+		p ++;
 	if (*p == U'\"') {
 		char32 *q = path;
 		p ++;   // skip quote
-		while (*p != U'\"' && *p != U'\0') * q ++ = * p ++;
+		while (*p != U'\"' && *p != U'\0')
+			* q ++ = * p ++;
 		*q = U'\0';
 		arguments = p;
-		if (*arguments == U'\"') arguments ++;
-		if (*arguments == U' ') arguments ++;
+		if (*arguments == U'\"')
+			arguments ++;
+		if (*arguments == U' ')
+			arguments ++;
 	} else {
 		char32 *q = path;
-		while (*p != U' ' && *p != U'\0') * q ++ = * p ++;
+		while (*p != U' ' && *p != U'\0')
+			* q ++ = * p ++;
 		*q = U'\0';
 		arguments = p;
-		if (*arguments == U' ') arguments ++;
+		if (*arguments == U' ')
+			arguments ++;
 	}
 	Melder_relativePathToFile (path, & file);
 	praat_executeScriptFromFile (& file, arguments);
@@ -627,9 +646,8 @@ void praat_executeScriptFromText (conststring32 text) {
 }
 
 void praat_executeScriptFromDialog (UiForm dia) {
-	char32 *path = UiForm_getString (dia, U"$file");
 	structMelderFile file { };
-	Melder_pathToFile (path, & file);
+	Melder_pathToFile (dia -> scriptFilePath.get(), & file);
 	autostring32 text = MelderFile_readText (& file);
 	autoMelderFileSetDefaultDir dir (& file);
 	Melder_includeIncludeFiles (& text);

@@ -1,6 +1,6 @@
 /* manual_programming.cpp
  *
- * Copyright (C) 1992-2010,2011,2013,2015-2018 Paul Boersma
+ * Copyright (C) 1992-2010,2011,2013,2015-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ MAN_END
 MAN_BEGIN (U"TextGrid file formats", U"ppgb", 20180821)
 INTRO (U"This page describes the syntax and semantics of TextGrid files that Praat can read and/or write.")
 ENTRY (U"1. The full text format of a minimal TextGrid")
-NORMAL (U"If you record a Sound with a druation of 2.3 seconds, and then do ##To TextGrid...#, "
+NORMAL (U"If you record a Sound with a duration of 2.3 seconds, and then do ##To TextGrid...#, "
 	"you are asked to provide tier names and to say which of these tiers are point tiers. "
 	"If you click OK without changing the settings from their standard values, "
 	"you obtain a TextGrid with two interval tiers, called %Mary and %John, and one point tier called %bell. "
@@ -387,7 +387,7 @@ NORMAL (U"Besides the TextGrid text file format described above, TextGrid object
 	"and save the resulting TextGrid object as a text file with @@Save as text file...@.")
 MAN_END
 
-MAN_BEGIN (U"Programming with Praat", U"ppgb", 20151028)
+MAN_BEGIN (U"Programming with Praat", U"ppgb", 20211015)
 INTRO (U"You can extend the functionality of the Praat program "
 	"by adding modules written in C or C++ to it. All of Praat's source code "
 	"is available under the General Public Licence.")
@@ -399,22 +399,22 @@ NORMAL (U"Before trying the task of learning how to write Praat extensions in C 
 	"If you have a set of scripts, you can distribute them as a @@plug-ins|plug-in@.")
 ENTRY (U"2. Getting the existing source code")
 NORMAL (U"You obtain the Praat source code from GitHub (https://github.com/praat), in a file with a name like "
-	"##praat5423_sources.zip# or ##praat5423_sources.tar.gz# (depending on the Praat version), and unpack this by double-clicking. "
+	"##praat6199_sources.zip# or ##praat6199_sources.tar.gz# (depending on the Praat version), and unpack this by double-clicking. "
 	"The result will be a set of directories "
-	"called #kar, #num, #external (with #GSL, #glpk, #FLAC, #mp3, #portaudio and #espeak in it), "
-	"#sys, #dwsys, #stat, #fon, #dwtools, #LPC, #FFNet, #gram, #artsynth, #EEG, #contrib, #main, #makefiles, #test, and #dwtest, "
-	"plus a makefile and an Xcode project for MacOS X.")
+	"called #kar, #melder, #external (with #clapack, #gsl, #glpk, #flac, #mp3, #portaudio, #espeak, #vorbis and #opusfile in it), "
+	"#sys, #dwsys, #stat, #fon, #dwtools, #LPC, #FFNet, #gram, #artsynth, #EEG, #main, #makefiles, #test, #dwtest, and #generate, "
+	"plus a makefile and Xcode project for macOS and a README.md file.")
 ENTRY (U"3. Building Praat")
 NORMAL (U"Consult the README file on GitHub for directions to compile and link Praat for your platform.")
 ENTRY (U"4. Extending Praat")
 NORMAL (U"To start extending Praat’s functionality, you can edit ##main/main_Praat.cpp#. "
 	"This example shows you how to create a very simple program with all the functionality "
 	"of the Praat program, and a single bit more (namely an additional command in the New menu):")
-CODE (U"\\# include \"praat.h\"")
+CODE (U"\\# include \"praatM.h\"")
 CODE (U"")
-CODE (U"DIRECT (HelloFromJane)")
+CODE (U"DIRECT (HelloFromJane) {")
 	CODE1 (U"Melder_information (U\"Hello, I am Jane.\");")
-CODE (U"END")
+CODE (U"}")
 CODE (U"")
 CODE (U"int main (int argc, char **argv) {")
 	CODE1 (U"praat_init (U\"Praat_Jane\", argc, argv);")
@@ -425,13 +425,13 @@ CODE (U"int main (int argc, char **argv) {")
 CODE (U"}")
 ENTRY (U"5. Learning how to program")
 NORMAL (U"To see how objects are defined, take a look at ##sys/Thing.h#, ##sys/Daata.h#, "
-	"##sys/oo.h#, the ##XXX_def.h# files in the #fon directory, and the corresponding "
-	"##XXX.cpp# files in the #fon directory. To see how commands show up on the buttons "
+	"##sys/oo.h#, the ##XXX_def.h# files in the #fon folder, and the corresponding "
+	"##XXX.cpp# files in the #fon folder. To see how commands show up on the buttons "
 	"in the fixed and dynamic menus, take a look at the large interface description file "
 	"##fon/praat_Fon.cpp#.")
 ENTRY (U"6. Using the Praat shell only")
-NORMAL (U"For building the Praat shell (the Objects and Picture windows) only, you need only the code in the eight directories "
-	"#kar, #GSL, #num, ##external/{FLAC,MP3,portaudio}#, #sys, and #dwsys. You delete the inclusion of praat_uvafon_init from #main. "
+NORMAL (U"For building the Praat shell (the Objects and Picture windows) only, you need only the code in the nine directories "
+	"#kar, #melder, ##external/{clapack,gsl,flac,mp3,portaudio}#, #sys, and #dwsys. You delete the inclusion of praat_uvafon_init from #main. "
 	"You will be able to build a Praat shell, i.e. an Objects and a Picture window, "
 	"which has no knowledge of the world, i.e., which does not know any objects "
 	"that can be included in the list of objects. You could use this Praat shell "

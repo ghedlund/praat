@@ -50,8 +50,8 @@
 void structAffineTransform :: v_transform (MATVU const& out, constMATVU const& in) {
 	Melder_assert (in.nrow == out.nrow);
 	Melder_assert (in.ncol == out.ncol);
-	MATmul (out, in, r.get());
-	out  +=  t;
+	mul_MAT_out (out, in, our r.get());
+	out  +=  our t.all();
 }
 
 autoAffineTransform structAffineTransform :: v_invert () {
@@ -59,7 +59,7 @@ autoAffineTransform structAffineTransform :: v_invert () {
 	constexpr double tolerance = 0.000001;
 
 	MATpseudoInverse (thy r.get(), our r.get(), tolerance);
-	VECmul (thy t.get(), thy r.get(), our t.get());
+	mul_VEC_out (thy t.get(), thy r.get(), our t.get());
 	thy t.get()  *=  -1.0;
 	return thee;
 }
@@ -70,8 +70,8 @@ void AffineTransform_init (AffineTransform me, integer dimension) {
 	Melder_require (dimension > 0, U"Dimensionality should be greater than zero.");
 	
 	my dimension = dimension;
-	my r = newMATzero (dimension, dimension);
-	my t = newVECzero (dimension);
+	my r = zero_MAT (dimension, dimension);
+	my t = zero_VEC (dimension);
 }
 
 autoAffineTransform AffineTransform_create (integer dimension) {
@@ -91,7 +91,7 @@ autoAffineTransform AffineTransform_invert (AffineTransform me) {
 autoTableOfReal AffineTransform_extractMatrix (AffineTransform me) {
 	try {
 		autoTableOfReal thee = TableOfReal_create (my dimension, my dimension);
-		thy data.all() <<= my r.all();
+		thy data.all()  <<=  my r.all();
 		for (integer i = 1; i <= my dimension; i ++) {
 			char32 label [40];
 			Melder_sprint (label,40, i);
@@ -107,7 +107,7 @@ autoTableOfReal AffineTransform_extractMatrix (AffineTransform me) {
 autoTableOfReal AffineTransform_extractTranslationVector (AffineTransform me) {
 	try {
 		autoTableOfReal thee = TableOfReal_create (1, my dimension);
-		thy data.row (1) <<= my t.get();
+		thy data.row (1)  <<=  my t.get();
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": translation vector not extracted.");

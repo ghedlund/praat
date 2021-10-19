@@ -4,7 +4,7 @@
  *
  * Multi Dimensional Scaling
  *
- * Copyright (C) 1993-2019 David Weenink, 2015,2017,2018 Paul Boersma
+ * Copyright (C) 1993-2020 David Weenink, 2015,2017,2018 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
  djmw 20110306 Latest modification.
 */
 
+#include "Covariance.h"
+#include "Correlation.h"
 #include "Graphics.h"
 #include "Minimizers.h"
 #include "Confusion.h"
@@ -34,7 +36,6 @@
 #include "Proximity.h"
 #include "Distance.h"
 #include "Configuration.h"
-#include "SSCP.h"
 #include "MDS_enums.h"
 
 /************************** class Weight **************************************/
@@ -55,9 +56,9 @@ void Salience_setDefaults (Salience me);
 
 integer Salience_correctNegatives (Salience me);
 
-void Salience_draw (Salience me, Graphics g, int xdimension, int ydimension, bool garnish);
+void Salience_draw (Salience me, Graphics g, integer xdimension, integer ydimension, bool garnish);
 
-autoConfiguration ContingencyTable_to_Configuration_ca (ContingencyTable me, integer numberOfDimensions, int scaling);
+autoConfiguration ContingencyTable_to_Configuration_ca (ContingencyTable me, integer numberOfDimensions, integer scaling);
 
 #pragma mark - class ConfusionList
 
@@ -93,7 +94,7 @@ Collection_define (ScalarProductList, OrderedOf, ScalarProduct) {
 
 Thing_define (Transformator, Thing) {
 	integer numberOfPoints;
-	int normalization;
+	integer normalization;
 
 	virtual autoDistance v_transform (MDSVec vec, Distance dist, Weight w);
 };
@@ -102,7 +103,7 @@ void Transformator_init (Transformator me, integer numberOfPoints);
 
 autoTransformator Transformator_create (integer numberOfPoints);
 
-void Transformator_setNormalization (Transformator me, int normalization);
+void Transformator_setNormalization (Transformator me, integer normalization);
 
 autoDistance Transformator_transform (Transformator me, MDSVec vec, Distance dist, Weight w);
 
@@ -180,12 +181,12 @@ double Distance_Weight_congruenceCoefficient (Distance x, Distance y, Weight w);
 void Distance_Weight_rawStressComponents (Distance fit, Distance conf, Weight weight, double *out_eta_fit, double *out_eta_conf, double *out_rho);
 /*
 	Computes
-		eta_fit = sum (i<j,i=1..n; w[i][j] * dfit[i][j]^2)
-		eta_conf = sum (i<j,i=1..n; w[i][j] * conf[i][j]^2)
-		rho   = sum (i<j,i=1..n; w[i][j] * dfit[i][j] * conf[i][j];
+		eta_fit = sum (i<j,i=1..n; w [i] [j] * dfit [i] [j]^2)
+		eta_conf = sum (i<j,i=1..n; w [i] [j] * conf [i] [j]^2)
+		rho = sum (i<j,i=1..n; w [i] [j] * dfit [i] [j] * conf [i] [j];
 	where,
-		dfit[i][j] = transformation (dissimilarity[i][j])
-		conf[i][j] = distance between x[i] and x[j] (in the configuration)
+		dfit [i] [j] = transformation (dissimilarity [i] [j])
+		conf [i] [j] = distance between x [i] and x [j] (in the configuration)
 */
 
 double Dissimilarity_Configuration_Transformator_Weight_stress (Dissimilarity d, Configuration c, Transformator t, Weight w, kMDS_stressMeasure stressMeasure);
@@ -332,7 +333,7 @@ autoSimilarity ConfigurationList_to_Similarity_cc (ConfigurationList me, Weight 
 
 /************** DISSIMILARITY & DISTANCE *************************************/
 
-autoDistance Dissimilarity_to_Distance (Dissimilarity me, int scale);
+autoDistance Dissimilarity_to_Distance (Dissimilarity me, integer scale);
 /* with optional scaling with "additive constant" */
 
 autoDistance Dissimilarity_Distance_monotoneRegression (Dissimilarity me, Distance thee, kMDS_TiesHandling tiesHandling);
@@ -355,7 +356,7 @@ autoWeight Dissimilarity_to_Weight (Dissimilarity me);
 
 /************** CONFUSION & SIMILARITY ***************************************/
 
-autoSimilarity Confusion_to_Similarity (Confusion me, bool normalize, int symmetrizeMethod);
+autoSimilarity Confusion_to_Similarity (Confusion me, bool normalize, integer symmetrizeMethod);
 
 
 /************** DissimilarityList & DistanceList **********************************/
@@ -367,7 +368,7 @@ autoDissimilarityList DistanceList_to_DissimilarityList (DistanceList me);
 /************** DistanceList & Configuration ************************************/
 
 void DistanceList_to_Configuration_ytl (DistanceList me,
-	int numberOfDimensions, int normalizeScalarProducts, autoConfiguration *out1, autoSalience *out2);
+	integer numberOfDimensions, integer normalizeScalarProducts, autoConfiguration *out1, autoSalience *out2);
 /*
 	F.W. Young, Y. Takane & R. Lewyckyj (1978), Three notes on ALSCAL,
 	Psychometrika 43, 433-435.
@@ -393,7 +394,7 @@ void ScalarProductList_Configuration_Salience_vaf (ScalarProductList me, Configu
 
 autoScalarProductList DistanceList_to_ScalarProductList (DistanceList me, bool normalize);
 
-void ScalarProductList_to_Configuration_ytl (ScalarProductList me, int numberOfDimensions, autoConfiguration *out1, autoSalience *out2);
+void ScalarProductList_to_Configuration_ytl (ScalarProductList me, integer numberOfDimensions, autoConfiguration *out1, autoSalience *out2);
 
 void ScalarProductList_Configuration_Salience_indscal (ScalarProductList sp, Configuration conf, Salience weights,
 	double tolerance, integer numberOfIterations, bool showProgress, autoConfiguration *out1, autoSalience *out2, double *out_varianceAccountedFor);

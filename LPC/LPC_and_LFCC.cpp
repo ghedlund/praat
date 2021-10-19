@@ -1,6 +1,6 @@
 /* LPC_and_LFCC.cpp
  *
- * Copyright (C) 1994-2018 David Weenink
+ * Copyright (C) 1994-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,13 @@
 #include "NUM2.h"
 
 void LPC_Frame_into_CC_Frame (LPC_Frame me, CC_Frame thee) {
-
+	Melder_assert (my nCoefficients == my a.size); // check invariant
+	thy c.resize (my nCoefficients);
+	thy numberOfCoefficients = thy c.size; // maintain invariant
 	thy c0 = 0.5 * log (my gain);
-	if (my nCoefficients < 1) return;
+	
+	if (my nCoefficients < 1)
+		return;
 
 	thy c [1] = - my a [1];
 	for (integer n = 2; n <= std::min ((integer) my nCoefficients, thy numberOfCoefficients); n ++) {
@@ -45,17 +49,18 @@ void LPC_Frame_into_CC_Frame (LPC_Frame me, CC_Frame thee) {
 }
 
 void CC_Frame_into_LPC_Frame (CC_Frame me, LPC_Frame thee) {
-	integer n = std::min (my numberOfCoefficients, (integer) thy nCoefficients);
+	Melder_assert (my numberOfCoefficients == my c.size); // check invariant
+	thy a.resize (my numberOfCoefficients);
+	thy nCoefficients = thy a.size; // maintain invariant
+	if (my numberOfCoefficients < 1)
+		return;
 	thy gain = exp (2.0 * my c0);
-
-	if (n < 1) return;
-
 	thy a [1] = - my c [1];
-	for (integer i = 2; i <= n; i ++) {
+	for (integer i = 2; i <= my numberOfCoefficients; i ++) {
 		longdouble ai = my c [i] * i;
 		for (integer j = 1; j < i; j ++)
 			ai += thy a [j] * my c [i - j] * (i - j);
-		thy a [i] = -ai / i;
+		thy a [i] = - double (ai / i);
 	}
 }
 
@@ -66,9 +71,9 @@ autoLFCC LPC_to_LFCC (LPC me, integer numberOfCoefficients) {
 
 		autoLFCC thee = LFCC_create (my xmin, my xmax, my nx, my dx, my x1, numberOfCoefficients, 0, 0.5 / my samplingPeriod);
 
-		for (integer i = 1; i <= my nx; i ++) {
-			CC_Frame_init (& thy frame [i], numberOfCoefficients);
-			LPC_Frame_into_CC_Frame (& my d_frames [i], & thy frame [i]);
+		for (integer iframe = 1; iframe <= my nx; iframe ++) {
+			CC_Frame_init (& thy frame [iframe], numberOfCoefficients);
+			LPC_Frame_into_CC_Frame (& my d_frames [iframe], & thy frame [iframe]);
 		}
 		return thee;
 	} catch (MelderError) {
@@ -84,9 +89,9 @@ autoLPC LFCC_to_LPC (LFCC me, integer numberOfCoefficients) {
 		numberOfCoefficients = std::min (numberOfCoefficients, my maximumNumberOfCoefficients);
 		autoLPC thee = LPC_create (my xmin, my xmax, my nx, my dx, my x1, numberOfCoefficients, 0.5 / my fmax);
 
-		for (integer i = 1; i <= my nx; i ++) {
-			LPC_Frame_init (& thy d_frames [i], numberOfCoefficients);
-			CC_Frame_into_LPC_Frame (& my frame [i], & thy d_frames [i]);
+		for (integer iframe = 1; iframe <= my nx; iframe ++) {
+			LPC_Frame_init (& thy d_frames [iframe], numberOfCoefficients);
+			CC_Frame_into_LPC_Frame (& my frame [iframe], & thy d_frames [iframe]);
 		}
 		return thee;
 	} catch (MelderError) {

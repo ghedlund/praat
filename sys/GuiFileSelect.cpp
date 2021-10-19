@@ -1,6 +1,6 @@
 /* GuiFileSelect.cpp
  *
- * Copyright (C) 2010-2012,2013,2014,2015,2016,2017 Paul Boersma, 2013 Tom Naughton
+ * Copyright (C) 2010-2021 Paul Boersma, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,7 @@
 #endif
 
 autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 title, bool allowMultipleFiles) {
-	structMelderDir saveDir { };
-	Melder_getDefaultDir (& saveDir);
+	autoMelderSaveDefaultDir saveDir;
 	autoStringSet me = StringSet_create ();
 	#if gtk
 		(void) parent;
@@ -68,7 +67,7 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 titl
 		openFileName. lpstrFileTitle = nullptr;
 		openFileName. nMaxFileTitle = 0;
 		openFileName. lpstrInitialDir = nullptr;
-		openFileName. lpstrTitle = Melder_peek32toW (title);
+		openFileName. lpstrTitle = Melder_peek32toW_fileSystem (title);
 		openFileName. Flags = OFN_EXPLORER | OFN_LONGNAMES | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY
 			| (allowMultipleFiles ? OFN_ALLOWMULTISELECT : 0);
 		openFileName. lpstrDefExt = nullptr;
@@ -85,14 +84,14 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 titl
 			int firstFileNameLength = wcslen (fullFileNameW);
 			if (fullFileNameW [firstFileNameLength + 1] == L'\0') {
 				/*
-				 * The user selected one file.
-				 */
+					The user selected one file.
+				*/
 				my addString_copy (Melder_peekWto32 (fullFileNameW));
 			} else {
 				/*
-				 * The user selected multiple files.
-				 * 'fullFileNameW' is a directory name; the file names follow.
-				 */
+					The user selected multiple files.
+					'fullFileNameW' is a folder name; the file names follow.
+				*/
 				structMelderDir dir { };
 				Melder_pathToDir (Melder_peekWto32 (fullFileNameW), & dir);
 				for (const WCHAR *p = & fullFileNameW [firstFileNameLength + 1]; *p != L'\0'; p += wcslen (p) + 1) {
@@ -118,13 +117,11 @@ autoStringSet GuiFileSelect_getInfileNames (GuiWindow parent, conststring32 titl
 		}
 		setlocale (LC_ALL, "en_US");
 	#endif
-	Melder_setDefaultDir (& saveDir);
 	return me;
 }
 
 autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title, conststring32 defaultName) {
-	structMelderDir saveDir { };
-	Melder_getDefaultDir (& saveDir);
+	autoMelderSaveDefaultDir saveDir;
 	autostring32 outfileName;
 	#if gtk
 		(void) parent;
@@ -132,9 +129,8 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title
 		GuiObject dialog = gtk_file_chooser_dialog_new (Melder_peek32to8 (title), nullptr, GTK_FILE_CHOOSER_ACTION_SAVE,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT, nullptr);
 		gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), true);
-		if (file. path [0] != U'\0') {
+		if (file. path [0] != U'\0')
 			gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), Melder_peek32to8 (file. path));
-		}
 		gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (dialog), Melder_peek32to8 (defaultName));
 		if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
 			char *outfileName_utf8 = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
@@ -148,7 +144,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title
 		OPENFILENAMEW openFileName;
 		static WCHAR customFilter [100+2];
 		static WCHAR fullFileNameW [300+2];
-		wcsncpy (fullFileNameW, Melder_peek32toW (defaultName), 300+2);
+		wcsncpy (fullFileNameW, Melder_peek32toW_fileSystem (defaultName), 300+2);
 		fullFileNameW [300+1] = L'\0';
 		openFileName. lStructSize = sizeof (OPENFILENAMEW);
 		openFileName. hwndOwner = parent && parent -> d_xmShell ? (HWND) XtWindow (parent -> d_xmShell) : nullptr;
@@ -159,7 +155,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title
 		openFileName. nMaxFile = 300;
 		openFileName. lpstrFileTitle = nullptr;
 		openFileName. lpstrInitialDir = nullptr;
-		openFileName. lpstrTitle = Melder_peek32toW (title);
+		openFileName. lpstrTitle = Melder_peek32toW_fileSystem (title);
 		openFileName. Flags = OFN_LONGNAMES | OFN_OVERWRITEPROMPT | OFN_EXPLORER | OFN_HIDEREADONLY;
 		openFileName. lpstrDefExt = nullptr;
 		if (GetSaveFileNameW (& openFileName))
@@ -167,7 +163,7 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title
 		setlocale (LC_ALL, "C");
 	#elif cocoa
 		(void) parent;
-		NSSavePanel	*savePanel = [NSSavePanel savePanel];
+		NSSavePanel	*savePanel = [NSSavePanel savePanel];   // will be autoreleased (release will crash; 2020-11-12)
 		[savePanel setTitle: [NSString stringWithUTF8String: Melder_peek32to8 (title)]];
 		[savePanel setNameFieldStringValue: [NSString stringWithUTF8String: Melder_peek32to8 (defaultName)]];
 		if ([savePanel runModal] == NSFileHandlingPanelOKButton) {
@@ -183,13 +179,11 @@ autostring32 GuiFileSelect_getOutfileName (GuiWindow parent, conststring32 title
 		}
 		setlocale (LC_ALL, "en_US");
 	#endif
-	Melder_setDefaultDir (& saveDir);
 	return outfileName;
 }
 
-autostring32 GuiFileSelect_getDirectoryName (GuiWindow parent, conststring32 title) {
-	structMelderDir saveDir { };
-	Melder_getDefaultDir (& saveDir);
+autostring32 GuiFileSelect_getFolderName (GuiWindow parent, conststring32 title) {
+	autoMelderSaveDefaultDir saveDir;
 	autostring32 directoryName;
 	#if gtk
 		(void) parent;
@@ -218,8 +212,8 @@ autostring32 GuiFileSelect_getDirectoryName (GuiWindow parent, conststring32 tit
 		info. hwndOwner = parent && parent -> d_xmShell ? (HWND) XtWindow (parent -> d_xmShell) : nullptr;
 		info. ulFlags = BIF_USENEWUI;
 		info. pidlRoot = nullptr;   // everything on the computer should be browsable
-		info. pszDisplayName = nullptr;   // this would only give the bare directory name, not the full path
-		info. lpszTitle = Melder_peek32toW (title);
+		info. pszDisplayName = nullptr;   // this would only give the bare folder name, not the full path
+		info. lpszTitle = Melder_peek32toW_fileSystem (title);
 		LPITEMIDLIST idList = SHBrowseForFolder (& info);
 		SHGetPathFromIDList (idList, fullFileNameW);
 		CoTaskMemFree (idList);
@@ -243,7 +237,6 @@ autostring32 GuiFileSelect_getDirectoryName (GuiWindow parent, conststring32 tit
 		}
 		setlocale (LC_ALL, "en_US");
 	#endif
-	Melder_setDefaultDir (& saveDir);
 	return directoryName;
 }
 

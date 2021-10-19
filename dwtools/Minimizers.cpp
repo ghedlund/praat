@@ -1,6 +1,6 @@
 /* Minimizers.cpp
  *
- * Copyright (C) 2001-2019 David Weenink
+ * Copyright (C) 2001-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,15 +26,10 @@ Thing_implement (Minimizer, Thing, 0);
 static void classMinimizer_afterHook (Minimizer me, Thing /* boss */) {
 	if (my success || ! my gmonitor)
 		return;
-
-	if (my start == 1) {
-		Minimizer_drawHistory (me, my gmonitor, 0, my maximumNumberOfIterations, 0.0, 1.1 * my history [1], 1);
-		Graphics_textTop (my gmonitor, false, Melder_cat (U"Dimension of search space: ", my numberOfParameters));
-	}
 	Graphics_beginMovieFrame (my gmonitor, nullptr);
-	Graphics_setInner (my gmonitor);
-	Graphics_line (my gmonitor, my iteration, my history [my iteration], my iteration, my history [my iteration]);
-	Graphics_unsetInner (my gmonitor);
+	Graphics_clearWs (my gmonitor);
+	Minimizer_drawHistory (me, my gmonitor, 0, my maximumNumberOfIterations, 0.0, 1.1 * my history [1], 1);
+	Graphics_textTop (my gmonitor, false, Melder_cat (U"Dimension of search space: ", my numberOfParameters));
 	Graphics_endMovieFrame (my gmonitor, 0.0);
 	Melder_monitor ((double) (my iteration) / my maximumNumberOfIterations, U"Iterations: ", my iteration, 
 		U", Function calls: ", my numberOfFunctionCalls, U", Cost: ", my minimum);
@@ -42,7 +37,7 @@ static void classMinimizer_afterHook (Minimizer me, Thing /* boss */) {
 
 void Minimizer_init (Minimizer me, integer numberOfParameters, Daata object) {
 	my numberOfParameters = numberOfParameters;
-	my p = newVECzero (numberOfParameters);
+	my p = zero_VEC (numberOfParameters);
 	my object = object;
 	my minimum = 1e308;
 	my afterHook = classMinimizer_afterHook;
@@ -51,31 +46,26 @@ void Minimizer_init (Minimizer me, integer numberOfParameters, Daata object) {
 }
 
 static void monitor_off (Minimizer me) {
-	Melder_monitor (1.1);
-	if (my gmonitor) {
-		Graphics_clearWs (my gmonitor);   // DON'T forget (my gmonitor)
-		my gmonitor = nullptr;
-	}
+	Melder_monitor (1.0);
+	my gmonitor = nullptr;
 }
 
 void Minimizer_minimize (Minimizer me, integer maximumNumberOfIterations, double tolerance, int monitor) {
 	try {
-
 		my tolerance = tolerance;
-		if (maximumNumberOfIterations <= 0) return;
-
+		if (maximumNumberOfIterations <= 0)
+			return;
 		if (my iteration + maximumNumberOfIterations > my maximumNumberOfIterations) {
 			my maximumNumberOfIterations += maximumNumberOfIterations;
-			my history.resize (my maximumNumberOfIterations);
+			my history. resize (my maximumNumberOfIterations);
 		}
-		if (monitor) 
+		if (monitor)
 			my gmonitor = (Graphics) Melder_monitor (0.0, U"Starting...");
-
-		my start = 1;   // for my after()
 		my v_minimize ();
 		if (monitor)
 			monitor_off (me);
-		if (my success) Melder_casual (U"Minimizer_minimize:", U" minimum ", my minimum, U" reached \nafter ", my iteration,
+		if (my success)
+			Melder_casual (U"Minimizer_minimize:", U" minimum ", my minimum, U" reached \nafter ", my iteration,
 			U" iterations and ", my numberOfFunctionCalls, U" function calls.");
 	} catch (MelderError) {
 		if (monitor)
@@ -88,9 +78,8 @@ void Minimizer_minimizeManyTimes (Minimizer me, integer maxIterationsPerTime, in
 	double fopt = my minimum;
 	int monitorSingle = numberOfTimes == 1;
 
-	autoVEC popt = newVECraw (my numberOfParameters);
-	autoVEC p; 
-	popt.get () <<= my p.get();
+	autoVEC popt = raw_VEC (my numberOfParameters);
+	popt.all()  <<=  my p.all();
 
 	if (! monitorSingle)
 		Melder_progress (0.0, U"Minimize many times");
@@ -100,10 +89,11 @@ void Minimizer_minimizeManyTimes (Minimizer me, integer maxIterationsPerTime, in
 		Minimizer_minimize (me, maxIterationsPerTime, tolerance, monitorSingle);
 		Melder_casual (U"Current ", iter, U": minimum = ", my minimum);
 		if (my minimum < fopt) {
-			my p.get () <<= popt.get();
+			my p.all()  <<=  popt.all();
 			fopt = my minimum;
 		}
-		Minimizer_reset (me, p.get()); // do initialization if p.size == 0
+		VEC p;
+		Minimizer_reset (me, p); // do initialization if p.size == 0
 		if (! monitorSingle) {
 			try {
 				Melder_progress ((double) iter / numberOfTimes, iter, U" from ", numberOfTimes);
@@ -121,39 +111,37 @@ void Minimizer_minimizeManyTimes (Minimizer me, integer maxIterationsPerTime, in
 void Minimizer_reset (Minimizer me, constVEC const& guess) {
 	Melder_assert (guess.size == 0 || guess.size >= my numberOfParameters);
 	if (guess.size > 0)
-		my p.get() <<= guess;
+		my p.all()  <<=  guess;
 	else
 		for (integer i = 1; i <= my numberOfParameters; i ++)
 			my p [i] = NUMrandomUniform (-1.0, 1.0);
 
-	my history.resize (0);
+	my history. resize (0);
 	my maximumNumberOfIterations = my numberOfFunctionCalls = my iteration = 0;
 	my success = false;
 	my minimum = 1.0e38;
 	my v_reset ();
 }
 
-void Minimizer_drawHistory (Minimizer me, Graphics g, integer iFrom, integer iTo, double hmin, double hmax, int garnish) {
+void Minimizer_drawHistory (Minimizer me, Graphics g, integer iFrom, integer iTo, double hmin, double hmax, bool garnish) {
 	if (my history.size == 0)
 		return;
-
 	if (iTo <= iFrom) {
 		iFrom = 1;
 		iTo = my iteration;
 	}
 	integer itmin = iFrom, itmax = iTo;
-	if (itmin < 1) itmin = 1;
-	if (itmax > my iteration) itmax = my iteration;
+	Melder_clipLeft (1_integer, & itmin);
+	Melder_clipRight (& itmax, my iteration);
 	if (hmax <= hmin)
 		NUMextrema (my history.part (itmin, itmax), & hmin, & hmax);
-
 	if (hmax <= hmin) {
 		hmin -= 0.5 * fabs (hmin);
 		hmax += 0.5 * fabs (hmax);
 	}
 	Graphics_setInner (g);
 	Graphics_setWindow (g, iFrom, iTo, hmin, hmax);
-	Graphics_function (g, my history.at, itmin, itmax, itmin, itmax);
+	Graphics_function (g, my history.asArgumentToFunctionThatExpectsOneBasedArray(), itmin, itmax, itmin, itmax);
 	Graphics_unsetInner (g);
 	if (garnish) {
 		Graphics_drawInnerBox (g);
@@ -172,8 +160,8 @@ double Minimizer_getMinimum (Minimizer me) {
 Thing_implement	(SteepestDescentMinimizer, Minimizer, 0);
 
 void structSteepestDescentMinimizer :: v_minimize () {
-	autoVEC dp = newVECraw (numberOfParameters);
-	autoVEC dpp = newVECraw (numberOfParameters);
+	autoVEC dp = raw_VEC (numberOfParameters);
+	autoVEC dpp = raw_VEC (numberOfParameters);
 	double fret = func (object, p.get());
 	while (iteration < maximumNumberOfIterations) {
 		dfunc (object, p.get(), dp.get());
@@ -217,14 +205,14 @@ void structVDSmagtMinimizer :: v_minimize () {
 	int decrease_direction_found = 1;
 	int l_iteration = 1;   // yes, we can iterate in steps, therefore local and global counter
 	longdouble rtemp, rtemp2;
-
-	// df is estimate of function reduction obtainable during line search
-	// restart = 2 => line search in direction of steepest descent
-	// restart = 1 => line search with Powell-restart.
-	// flag = 1 => no decrease in function value during previous line search;
-	// flag = 2 => line search did not decrease gradient
-	//    OK; must restart
-
+	/*
+		df is estimate of function reduction obtainable during line search
+		restart = 2 => line search in direction of steepest descent
+		restart = 1 => line search with Powell-restart.
+		flag = 1 => no decrease in function value during previous line search;
+		flag = 2 => line search did not decrease gradient
+			OK; must restart
+	*/
 	if (restart_flag) {
 		minimum = func (object, p.get());
 		dfunc (object, p.get(), dp.get());
@@ -276,10 +264,10 @@ void structVDSmagtMinimizer :: v_minimize () {
 			}
 			restart = 0;
 		}
-
-		// Begin line search
-		// lineSearch_iteration = #iterations during current line search
-
+		/*
+			Begin line search
+			lineSearch_iteration = #iterations during current line search
+		*/
 		flag = 0;
 		lineSearch_iteration = 0;
 		rtemp = 0.0;
@@ -296,11 +284,11 @@ void structVDSmagtMinimizer :: v_minimize () {
 			continue;
 		}
 		f0 = minimum;
-
-		// alpha = length of step along line;
-		// dalpha = change in alpha
-		// alphamin = position of min along line
-
+		/*
+			alpha = length of step along line;
+			dalpha = change in alpha
+			alphamin = position of min along line
+		*/
 		alplim = -1;
 		again = -1;
 		rtemp = fabs (df / gropt);
@@ -314,7 +302,7 @@ void structVDSmagtMinimizer :: v_minimize () {
 
 					if (alplim < -0.5)
 						dalpha = 9.0 * alphamin;
-					else 
+					else
 						dalpha = 0.5 * (alplim - alphamin);
 
 					grs = gropt + dalpha * gr2s;
@@ -339,9 +327,9 @@ void structVDSmagtMinimizer :: v_minimize () {
 				if ((fc < minimum) || ((fc == minimum) && (grc / gropt > -1))) {
 					gopt_sq = gsq;
 					history [this -> iteration] = minimum = fc;
-					std::swap (p.at, pc.at);
-					std::swap (dp.at, gc.at);
-					if (grc * gropt <= 0)
+					std::swap (p, pc);
+					std::swap (dp, gc);
+					if (grc * gropt <= 0.0)
 						alplim = alphamin;
 					alphamin = alpha;
 					gropt = grc;
@@ -356,8 +344,10 @@ void structVDSmagtMinimizer :: v_minimize () {
 							break;
 						}
 					}
-					if (success) return;
-					if (fabs (gropt / gr0) < lineSearchGradient) break;
+					if (success)
+						return;
+					if (fabs (gropt / gr0) < lineSearchGradient)
+						break;
 				} else {
 					alplim = alpha;
 				}
@@ -379,7 +369,8 @@ void structVDSmagtMinimizer :: v_minimize () {
 			if (again > 0) flag += 2;
 		} while (flag < 1);
 
-		if (f0 <= minimum) flag += 1;
+		if (f0 <= minimum)
+			flag += 1;
 		df = gr0 * alphamin;
 	}
 	if (this -> iteration > maximumNumberOfIterations)
@@ -396,13 +387,13 @@ autoVDSmagtMinimizer VDSmagtMinimizer_create (integer numberOfParameters, Daata 
 	try {
 		autoVDSmagtMinimizer me = Thing_new (VDSmagtMinimizer);
 		Minimizer_init (me.get(), numberOfParameters, object);
-		my dp = newVECzero (numberOfParameters);
-		my pc = newVECzero (numberOfParameters);
-		my gc = newVECzero (numberOfParameters);
-		my g0 = newVECzero (numberOfParameters);
-		my s = newVECzero (numberOfParameters);
-		my srst = newVECzero (numberOfParameters);
-		my grst = newVECzero (numberOfParameters);
+		my dp = zero_VEC (numberOfParameters);
+		my pc = zero_VEC (numberOfParameters);
+		my gc = zero_VEC (numberOfParameters);
+		my g0 = zero_VEC (numberOfParameters);
+		my s = zero_VEC (numberOfParameters);
+		my srst = zero_VEC (numberOfParameters);
+		my grst = zero_VEC (numberOfParameters);
 		my func = func;
 		my dfunc = dfunc;
 		my lineSearchGradient = 0.9;
@@ -419,8 +410,8 @@ Thing_implement (LineMinimizer, Minimizer, 0);
 
 void LineMinimizer_init (LineMinimizer me, integer numberOfParameters, Daata object, double (*func) (Daata, VEC const& p)) {
 	Minimizer_init (me, numberOfParameters, object);
-	my direction = newVECzero (numberOfParameters);
-	my ptry = newVECzero (numberOfParameters);
+	my direction = zero_VEC (numberOfParameters);
+	my ptry = zero_VEC (numberOfParameters);
 	my func = func;
 	my maxLineStep = 100;
 }

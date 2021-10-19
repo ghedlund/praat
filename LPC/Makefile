@@ -1,17 +1,21 @@
 # Makefile of the library "LPC"
-# David Weenink and Paul Boersma 2018-08-10
-
+# David Weenink and Paul Boersma
+# 20201112
+#  -save-temps=cwd
 include ../makefile.defs
 
-CPPFLAGS = -I ../kar -I ../melder -I ../dwtools -I ../fon -I ../sys -I ../dwsys -I ../stat
+CPPFLAGS = -I . -I ../kar -I ../melder -I ../fon -I ../dwtools -I ../sys -I ../dwsys -I ../stat
 
 OBJECTS = Cepstrum.o Cepstrumc.o Cepstrum_and_Spectrum.o \
 	Cepstrogram.o \
-	Formant_extensions.o LineSpectralFrequencies.o \
+	Formant_extensions.o \
+	FormantModeler.o FormantModelerList.o \
+	FormantPath.o FormantPath_to_IntervalTier.o FormantPathEditor.o \
+	LineSpectralFrequencies.o \
 	LPC.o LPC_and_Cepstrumc.o LPC_and_Formant.o LPC_and_LFCC.o \
 	LPC_and_LineSpectralFrequencies.o LPC_and_Polynomial.o \
 	LPC_to_Spectrum.o  LPC_to_Spectrogram.o \
-	LPC_and_Tube.o \
+	LPC_and_Tube.o PowerCepstrum.o PowerCepstrogram.o \
 	Sound_and_LPC.o  Sound_and_LPC_robust.o \
 	Sound_and_Cepstrum.o Tube.o \
 	VocalTractTier.o \

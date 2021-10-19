@@ -2,7 +2,7 @@
 #define _CCA_h_
 /* CCA.h
  *
- * Copyright (C) 1993-2018 David Weenink
+ * Copyright (C) 1993-2020 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 */
 
 #include "Eigen.h"
+#include "SSCP.h"
 #include "TableOfReal.h"
 
 #include "CCA_def.h"
@@ -36,22 +37,22 @@
 
 	Interpretation:
 
-	The eigenvectors v1[i] en v2[i] have the property that for the linear
+	The eigenvectors v1 [i] en v2 [i] have the property that for the linear
 	compounds
 
-	c1[1] = v1[1]' . Table1   c2[1]= v2[1]' . Table2
+	c1 [1] = v1 [1]' . Table1   c2 [1]= v2 [1]' . Table2
 	..............................................
-	c1[p] = v1[p]' . Table1   c2[p]= v2[p]' . Table2
+	c1 [p] = v1 [p]' . Table1   c2 [p]= v2 [p]' . Table2
 
-	the sample correlation of c1[1] and c2[1] is greatest, the sample
-	correlation of c1[2] and c2[2] is greatest amoung all linear compounds
-	uncorrelated with c1[1] and c2[1], and so on, for all p possible pairs.
+	the sample correlation of c1 [1] and c2 [1] is greatest, the sample
+	correlation of c1 [2] and c2 [2] is greatest amoung all linear compounds
+	uncorrelated with c1 [1] and c2 [1], and so on, for all p possible pairs.
 */
 
 autoCCA CCA_create (integer numberOfCoefficients, integer ny, integer nx);
 
 void CCA_drawEigenvector (CCA me, Graphics g, int x_or_y, integer ivec, integer first, integer last,
-	double ymin, double ymax, int weigh, double size_mm, conststring32 mark, int connect, int garnish);
+	double ymin, double ymax, int weigh, double size_mm, conststring32 mark, int connect, bool garnish);
 
 double CCA_getEigenvectorElement (CCA me, int x_or_y, integer ivec, integer element);
 
@@ -121,5 +122,7 @@ autoTableOfReal CCA_TableOfReal_predict (CCA me, TableOfReal thee, integer from)
 	Given independent table, predict the dependent one, on the basis of
 	the canonical correlations.
 */
+
+autoCCA SSCP_to_CCA (SSCP me, integer ny);
 
 #endif /* CCA.h */

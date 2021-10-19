@@ -2,7 +2,7 @@
 #define _TextGridEditor_h_
 /* TextGridEditor.h
  *
- * Copyright (C) 1992-2011,2012,2014,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@ Thing_define (TextGridEditor, TimeSoundAnalysisEditor) {
 	bool suppressRedraw;
 	autostring32 findString;
 	GuiMenuItem extractSelectedTextGridPreserveTimesButton, extractSelectedTextGridTimeFromZeroButton;
+	double draggingTime;
+	autoBOOLVEC draggingTiers;
+	bool hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = false;
 
 	void v_info ()
 		override;
@@ -56,11 +59,7 @@ Thing_define (TextGridEditor, TimeSoundAnalysisEditor) {
 		override;
 	bool v_hasText ()
 		override { return true; }
-	bool v_click (double xWC, double yWC, bool shiftKeyPressed)
-		override;
-	bool v_clickB (double xWC, double yWC)
-		override;
-	bool v_clickE (double xWC, double yWC)
+	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double xWC, double yWC)
 		override;
 	void v_clickSelectionViewer (double xWC, double yWC)
 		override;
@@ -74,11 +73,11 @@ Thing_define (TextGridEditor, TimeSoundAnalysisEditor) {
 		override;
 	void v_prefs_getValues (EditorCommand cmd)
 		override;
+	conststring32 v_selectionViewerName ()
+		override { return U"IPA chart"; }
 	void v_createMenuItems_view_timeDomain (EditorMenu menu)
 		override;
 	void v_highlightSelection (double left, double right, double bottom, double top)
-		override;
-	void v_unhighlightSelection (double left, double right, double bottom, double top)
 		override;
 	double v_getBottomOfSoundArea ()
 		override;
@@ -92,13 +91,13 @@ Thing_define (TextGridEditor, TimeSoundAnalysisEditor) {
 	#include "TextGridEditor_prefs.h"
 };
 
-void TextGridEditor_init (TextGridEditor me, conststring32 title, TextGrid grid, Sampled sound, bool ownSound, SpellingChecker spellingChecker, const char *callbackSocket);
+void TextGridEditor_init (TextGridEditor me, conststring32 title, TextGrid grid, Sampled sound, bool ownSound, SpellingChecker spellingChecker, conststring32 callbackSocket);
 
 autoTextGridEditor TextGridEditor_create (conststring32 title, TextGrid grid,
 	Sampled sound,   // either a Sound or a LongSound, or null
 	bool ownSound,
 	SpellingChecker spellingChecker,
-	const char *callbackSocket);
+	conststring32 callbackSocket);
 
 /* End of file TextGridEditor.h */
 #endif

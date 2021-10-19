@@ -148,10 +148,10 @@ void PairDistribution_to_Stringses (PairDistribution me, integer nout, autoStrin
 		const double total = PairDistributions_getTotalWeight_checkPositive (me);
 		autoStrings strings1 = Thing_new (Strings);
 		strings1 -> numberOfStrings = nout;
-		strings1 -> strings = autostring32vector (nout);
+		strings1 -> strings = autoSTRVEC (nout);
 		autoStrings strings2 = Thing_new (Strings);
 		strings2 -> numberOfStrings = nout;
-		strings2 -> strings = autostring32vector (nout);
+		strings2 -> strings = autoSTRVEC (nout);
 		for (integer iout = 1; iout <= nout; iout ++) {
 			integer iin;
 			do {
@@ -308,7 +308,8 @@ double PairDistribution_Distributions_getFractionCorrect (PairDistribution me, D
 
 autoTable PairDistribution_to_Table (PairDistribution me) {
 	try {
-		autoTable thee = Table_createWithColumnNames (my pairs.size, U"string1 string2 weight");
+		autoTable thee = Table_createWithColumnNames (my pairs.size,
+				autoSTRVEC ({ U"string1", U"string2", U"weight" }).get());
 		for (integer ipair = 1; ipair <= my pairs.size; ipair ++) {
 			PairProbability prob = my pairs.at [ipair];
 			Table_setStringValue (thee.get(), ipair, 1, prob -> string1.get());

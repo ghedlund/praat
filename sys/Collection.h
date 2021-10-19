@@ -2,7 +2,7 @@
 #define _Collection_h_
 /* Collection.h
  *
- * Copyright (C) 1992-2011,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2008,2011,2012,2014-2019 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ extern void _CollectionOfDaata_v_writeText (_CollectionOfDaata* me, MelderFile o
 extern void _CollectionOfDaata_v_readText (_CollectionOfDaata* me, MelderReadText text, int formatVersion);
 extern void _CollectionOfDaata_v_writeBinary (_CollectionOfDaata* me, FILE *f);
 extern void _CollectionOfDaata_v_readBinary (_CollectionOfDaata* me, FILE *f, int formatVersion);
-extern struct structData_Description theCollectionOfDaata_v_description [3];
 
 template <typename T   /*Melder_ENABLE_IF_ISA (T, structThing)*/>
 struct ArrayOf {
@@ -55,6 +54,14 @@ struct ArrayOf {
 		return our _elements [i];
 	}
 };
+
+/*
+	The following has to be global, not a static field,
+	because not all static fields in the same template have the same address,
+	and equality of address is needed by the recursive showMembers function in DataEditor.
+	We cannot even declare this inline, because of ordering problems.
+*/
+extern structData_Description theCollectionOfDaata_v_description [];
 
 template <typename T   /*Melder_ENABLE_IF_ISA (T, structThing)*/>
 struct CollectionOf : structDaata {
@@ -80,16 +87,14 @@ struct CollectionOf : structDaata {
 			but which is not how destruction should be organized.
 		*/
 		if (our at._elements) {
-			if (our _ownItems) {
-				for (integer i = 1; i <= our size; i ++) {
+			if (our _ownItems)
+				for (integer i = 1; i <= our size; i ++)
 					_Thing_forget (our at [i]);
-				}
-			}
 			our at._elements ++;   // convert from base-1 to base-0
 			Melder_free (our at._elements);
 		}
 	}
-	//explicit operator bool () const {
+	//explicit operator bool () const noexcept {
 	//	return !! our item;
 	//}
 	CollectionOf<T>& operator= (const CollectionOf<T>&) = delete;   // disable copy assignment from an l-value of class T*
@@ -123,11 +128,9 @@ struct CollectionOf : structDaata {
 	CollectionOf<T>& operator= (CollectionOf<T>&& other) noexcept {
 		if (other. at._elements != our at._elements) {
 			if (our at._elements) {
-				if (our _ownItems) {
-					for (integer i = 1; i <= our size; i ++) {
+				if (our _ownItems)
+					for (integer i = 1; i <= our size; i ++)
 						_Thing_forget (our at [i]);
-					}
-				}
 				our at._elements ++;   // convert from base-1 to base-0
 				Melder_free (our at._elements);
 			}
@@ -145,13 +148,11 @@ struct CollectionOf : structDaata {
 		return *this;
 	}
 	template <class Y> CollectionOf<T>& operator= (CollectionOf<Y>&& other) noexcept {
-		if (other. at_elements != our at_elements) {
+		if (other. at._elements != our at._elements) {
 			if (our at._elements) {
-				if (our _ownItems) {
-					for (integer i = 1; i <= our size; i ++) {
+				if (our _ownItems)
+					for (integer i = 1; i <= our size; i ++)
 						_Thing_forget (our at [i]);
-					}
-				}
 				our at._elements ++;   // convert from base-1 to base-0
 				Melder_free (our at._elements);
 			}
@@ -179,7 +180,8 @@ struct CollectionOf : structDaata {
 		}
 	}
 	void _grow (integer newCapacity) {
-		if (newCapacity <= our _capacity) return;
+		if (newCapacity <= our _capacity)
+			return;
 		T** oldItem_base0 = ( our at._elements ? our at._elements + 1 : nullptr );   // convert from base-1 to base-0
 		T** newItem_base0 = (T**) Melder_realloc (oldItem_base0, newCapacity * (int64) sizeof (T*));
 		our at._elements = newItem_base0 - 1;   // convert from base-0 to base-1
@@ -472,6 +474,8 @@ struct CollectionOf : structDaata {
 	virtual integer _v_position (T* /* data */) {
 		return our size + 1;   // at end
 	};
+	T **begin () const { return & our at [1]; }
+	T **end () const { return & our at [our size + 1]; }
 };
 
 
@@ -489,7 +493,6 @@ struct CollectionOf : structDaata {
 	}
 
 _Collection_declare (Collection, CollectionOf, Thing);
-
 
 #pragma mark - class Ordered
 /*

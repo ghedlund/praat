@@ -41,14 +41,17 @@ oo_END_STRUCT (LPC_Frame)
 #define ooSTRUCT LPC
 oo_DEFINE_CLASS (LPC, Sampled)
 
-	/* samplingPeriod */
-	oo_DOUBLE (samplingPeriod) /* from Sound */
+	oo_DOUBLE (samplingPeriod)   // from Sound
 	oo_INT (maxnCoefficients)
-	oo_STRUCT_VECTOR (LPC_Frame, d_frames, nx)
+	oo_STRUCTVEC (LPC_Frame, d_frames, nx)
 
 	#if oo_DECLARING
 		void v_info ()
 			override;
+		conststring32 v_getIndexText () const
+			override { return U"frame number"; }
+		conststring32 v_getNxText () const
+			override { return U"the number of frames"; }
 	#endif
 
 oo_END_CLASS (LPC)

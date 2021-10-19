@@ -1,6 +1,6 @@
 /* melder_alloc.cpp
  *
- * Copyright (C) 1992-2007,2009,2011,2012,2014-2018 Paul Boersma
+ * Copyright (C) 1992-2007,2009,2011,2012,2014-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,13 +76,15 @@ void * _Melder_malloc_f (int64 size) {
 		Melder_fatal (U"(Melder_malloc_f:) Can never allocate ", Melder_bigInteger (size), U" bytes.");
 	void *result = malloc ((size_t) size);
 	if (! result) {
-		if (theRainyDayFund) { free (theRainyDayFund); theRainyDayFund = nullptr; }
-		result = malloc ((size_t) size);
-		if (result) {
-			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
-		} else {
-			Melder_fatal (U"Out of memory: there is not enough room for another ", Melder_bigInteger (size), U" bytes.");
+		if (theRainyDayFund) {
+			free (theRainyDayFund);
+			theRainyDayFund = nullptr;
 		}
+		result = malloc ((size_t) size);
+		if (result)
+			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
+		else
+			Melder_fatal (U"Out of memory: there is not enough room for another ", Melder_bigInteger (size), U" bytes.");
 	}
 	totalNumberOfAllocations += 1;
 	totalAllocationSize += size;
@@ -90,7 +92,8 @@ void * _Melder_malloc_f (int64 size) {
 }
 
 void _Melder_free (void **ptr) noexcept {
-	if (! *ptr) return;
+	if (! *ptr)
+		return;
 	if (Melder_debug == 34)
 		Melder_casual (U"Melder_free\t", Melder_pointer (*ptr), U"\t?\t?");
 	free (*ptr);
@@ -129,13 +132,15 @@ void * Melder_realloc_f (void *ptr, int64 size) {
 		Melder_fatal (U"(Melder_realloc_f:) Can never allocate ", Melder_bigInteger (size), U" bytes.");
 	void *result = realloc (ptr, (size_t) size);   // will not show in the statistics...
 	if (! result) {
-		if (theRainyDayFund) { free (theRainyDayFund); theRainyDayFund = nullptr; }
-		result = realloc (ptr, (size_t) size);
-		if (result) {
-			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
-		} else {
-			Melder_fatal (U"Out of memory. Could not extend room to ", Melder_bigInteger (size), U" bytes.");
+		if (theRainyDayFund) {
+			free (theRainyDayFund);
+			theRainyDayFund = nullptr;
 		}
+		result = realloc (ptr, (size_t) size);
+		if (result)
+			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
+		else
+			Melder_fatal (U"Out of memory. Could not extend room to ", Melder_bigInteger (size), U" bytes.");
 	}
 	if (! ptr) {   // is it like malloc?
 		totalNumberOfAllocations += 1;
@@ -178,54 +183,19 @@ void * _Melder_calloc_f (int64 nelem, int64 elsize) {
 		Melder_fatal (U"(Melder_calloc_f:) Can never allocate ", Melder_bigInteger (nelem), U" elements whose sizes are ", Melder_bigInteger (elsize), U" bytes each.");
 	void *result = calloc ((size_t) nelem, (size_t) elsize);
 	if (! result) {
-		if (theRainyDayFund) { free (theRainyDayFund); theRainyDayFund = nullptr; }
+		if (theRainyDayFund) {
+			free (theRainyDayFund);
+			theRainyDayFund = nullptr;
+		}
 		result = calloc ((size_t) nelem, (size_t) elsize);
-		if (result) {
+		if (result)
 			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
-		} else {
+		else
 			Melder_fatal (U"Out of memory: there is not enough room for ", Melder_bigInteger (nelem),
 				U" more elements whose sizes are ", Melder_bigInteger (elsize), U" bytes each.");
-		}
 	}
 	totalNumberOfAllocations += 1;
 	totalAllocationSize += nelem * elsize;
-	return result;
-}
-
-char * Melder_strdup (const char *string) {
-	if (! string) return nullptr;
-	int64 size = (int64) strlen (string) + 1;
-	if (sizeof (size_t) < 8 && size > SIZE_MAX)
-		Melder_throw (U"Can never allocate ", Melder_bigInteger (size), U" bytes. Use a 64-bit edition of Praat instead?");
-	char *result = (char *) malloc ((size_t) size);
-	if (! result)
-		Melder_throw (U"Out of memory: there is not enough room to duplicate a text of ", Melder_bigInteger (size - 1), U" characters.");
-	strcpy (result, string);
-	if (Melder_debug == 34)
-		Melder_casual (U"Melder_strdup\t", Melder_pointer (result), U"\t", Melder_bigInteger (size), U"\t", sizeof (char));
-	totalNumberOfAllocations += 1;
-	totalAllocationSize += size;
-	return result;
-}
-
-char * Melder_strdup_f (const char *string) {
-	if (! string) return nullptr;
-	int64 size = (int64) strlen (string) + 1;
-	if (sizeof (size_t) < 8 && size > SIZE_MAX)
-		Melder_fatal (U"(Melder_strdup_f:) Can never allocate ", Melder_bigInteger (size), U" bytes.");
-	char *result = (char *) malloc ((size_t) size);
-	if (! result) {
-		if (theRainyDayFund) { free (theRainyDayFund); theRainyDayFund = nullptr; }
-		result = (char *) malloc ((size_t) size * sizeof (char));
-		if (result) {
-			Melder_flushError (U"Praat is very low on memory.\nSave your work and quit Praat.\nIf you don't do that, Praat may crash.");
-		} else {
-			Melder_fatal (U"Out of memory: there is not enough room to duplicate a text of ", Melder_bigInteger (size - 1), U" characters.");
-		}
-	}
-	strcpy (result, string);
-	totalNumberOfAllocations += 1;
-	totalAllocationSize += size;
 	return result;
 }
 
@@ -305,6 +275,41 @@ bool Melder_equ_firstCharacterCaseInsensitive (conststring32 string1, conststrin
 	if (Melder_toLowerCase (string1 [0]) != Melder_toLowerCase (string2 [0]))
 		return false;
 	return str32equ (string1 + 1, string2 + 1);
+}
+
+#pragma mark - Generic memory functions for vectors and matrices
+
+namespace MelderArray { // reopen
+	int64 allocationCount = 0, deallocationCount = 0;
+	int64 cellAllocationCount = 0, cellDeallocationCount = 0;
+}
+
+int64 MelderArray_allocationCount () { return MelderArray :: allocationCount; }
+int64 MelderArray_deallocationCount () { return MelderArray :: deallocationCount; }
+int64 MelderArray_cellAllocationCount () { return MelderArray :: cellAllocationCount; }
+int64 MelderArray_cellDeallocationCount () { return MelderArray :: cellDeallocationCount; }
+
+byte * MelderArray:: _alloc_generic (integer cellSize, integer numberOfCells, kInitializationType initializationType) {
+	try {
+		if (numberOfCells <= 0)
+			return nullptr;   // not an error
+		byte *result = ( initializationType == kInitializationType :: ZERO ?
+				reinterpret_cast <byte *> (_Melder_calloc (numberOfCells, cellSize)) :
+				reinterpret_cast <byte *> (_Melder_malloc (numberOfCells * cellSize)) );
+		MelderArray::allocationCount += 1;
+		MelderArray::cellAllocationCount += numberOfCells;
+		return result;
+	} catch (MelderError) {
+		Melder_throw (U"Tensor of ", numberOfCells, U" cells not created.");
+	}
+}
+
+void MelderArray:: _free_generic (byte *cells, integer numberOfCells) noexcept {
+	if (! cells)
+		return;   // not an error
+	Melder_free (cells);
+	MelderArray::deallocationCount += 1;
+	MelderArray::cellDeallocationCount += numberOfCells;
 }
 
 /* End of file melder_alloc.cpp */

@@ -1,6 +1,6 @@
 /* TextGrid_and_PitchTier.cpp
  *
- * Copyright (C) 2017-2018 David Weenink
+ * Copyright (C) 2017-2019 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,10 +52,9 @@ static double RealTier_getMinimumValue_interval (RealTier me, double tmin, doubl
 	(void) AnyTier_getWindowPoints ((AnyTier) me, tmin, tmax, & imin, & imax);
 	double result = undefined;
 	for (integer i = imin; i <= imax; i ++) {
-		RealPoint point = my points.at [i];
-		if (isundef (result) || point -> value < result) {
+		const RealPoint point = my points.at [i];
+		if (isundef (result) || point -> value < result)
 			result = point -> value;
-		}
 	}
 	return result;
 }
@@ -65,10 +64,9 @@ static double RealTier_getMaximumValue_interval (RealTier me, double tmin, doubl
 	(void) AnyTier_getWindowPoints ((AnyTier) me, tmin, tmax, & imin, & imax);
 	double result = undefined;
 	for (integer i = imin; i <= imax; i ++) {
-		RealPoint point = my points.at [i];
-		if (isundef (result) || point -> value > result) {
+		const RealPoint point = my points.at [i];
+		if (isundef (result) || point -> value > result)
 			result = point -> value;
-		}
 	}
 	return result;
 }
@@ -77,58 +75,53 @@ static autoPitchTier PitchTier_createFromPoints (double xmin, double xmax, const
 	try {
 		Melder_assert (times.size == pitches.size);
 		autoPitchTier me = PitchTier_create (xmin, xmax);
-		for (integer i = 1; i <= times.size; i ++) {
-			RealTier_addPoint (me.get(), times[i], pitches [i]);
-		}
+		for (integer i = 1; i <= times.size; i ++)
+			RealTier_addPoint (me.get(), times [i], pitches [i]);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"No PitchTier created from points.");
 	} 
 }
 
-static autoVEC getTimesFromRelativeTimesString (double tmin, double tmax, conststring32 times_string, int time_offset) {
-	autoVEC times = VEC_createFromString (times_string);
-	/*
-		translate the "times" to real time
-	*/
-	for (integer i = 1; i <= times.size; i ++) {
-		if (time_offset == TIME_OFFSET_AS_FRACTION_FROM_START) {
-			times [i] = tmin + times [i] * (tmax - tmin);
-		} else if (time_offset == TIME_OFFSET_AS_PERCENTAGE_FROM_START) {
-			times [i] = tmin + times [i] * (tmax - tmin) * 0.01;
-		} else if (time_offset == TIME_OFFSET_AS_SECONDS_FROM_START) {
-			times [i] = tmin + times [i];
-		} else {
+static autoVEC getAbsoluteFromRelativeTimes (double tmin, double tmax, constVECVU const& relativeTimes, int time_offset) {
+	autoVEC absoluteTimes = raw_VEC (relativeTimes.size);
+	for (integer i = 1; i <= relativeTimes.size; i ++) {
+		if (time_offset == TIME_OFFSET_AS_FRACTION_FROM_START)
+			absoluteTimes [i] = tmin + relativeTimes [i] * (tmax - tmin);
+		else if (time_offset == TIME_OFFSET_AS_PERCENTAGE_FROM_START)
+			absoluteTimes [i] = tmin + relativeTimes [i] * (tmax - tmin) * 0.01;
+		else if (time_offset == TIME_OFFSET_AS_SECONDS_FROM_START)
+			absoluteTimes [i] = tmin + relativeTimes [i];
+		else {
 			// we should not be here
 		}
 	}
-	return times;
+	return absoluteTimes;
 }
 
 /*
 	a1, a#1, b1, b#1, ... g#1, a2, a#2, b2, c2, ....; a a# b c c# d d# e f f# g g#
 */
 static double note_to_frequency (conststring32 token, double a4) {
-	double base = a4 / 8.0;
+	const double base = a4 / 8.0;
 	integer octave, index;
 	const char32 note = *token++, char2 = *token++;
-	if (note == U'a' || note == U'A') {
+	if (note == U'a' || note == U'A')
 		index = 1;
-	} else if (note == U'b' || note == U'B') {
+	else if (note == U'b' || note == U'B')
 		index = 3;
-	} else if (note == U'c' || note == U'C') {
+	else if (note == U'c' || note == U'C')
 		index = 4;
-	} else if (note == U'd' || note == U'D') {
+	else if (note == U'd' || note == U'D')
 		index = 6;
-	} else if (note == U'e' || note == U'E') {
+	else if (note == U'e' || note == U'E')
 		index = 8;
-	} else if (note == U'f' || note == U'F') {
+	else if (note == U'f' || note == U'F')
 		index = 9;
-	} else if (note == U'g' || note == U'G') {
+	else if (note == U'g' || note == U'G')
 		index = 11;
-	} else {
+	else
 		return undefined;
-	}
 	char32 char3;
 	if (char2 == U'#') {
 		index ++;
@@ -137,111 +130,101 @@ static double note_to_frequency (conststring32 token, double a4) {
 		char3 = char2;
 	}
 
-	if (char3 >= U'0' && char3 <= U'9') {
+	if (char3 >= U'0' && char3 <= U'9')
 		octave = char3 - U'0';
-	} else {
+	else
 		return undefined;
-	}
-	double frequency = base * pow (2.0, octave - 1.0 + (index - 1.0) / 12.0);
+
+	const double frequency = base * pow (2.0, octave - 1.0 + (index - 1.0) / 12.0);
 	return frequency;
 }
 
 static autoPitchTier PitchTier_createAsModifiedPart (PitchTier me, double tmin, double tmax,
-	conststring32 times_string, int time_offset, conststring32 pitches_string, int pitch_unit, int pitch_as, int pitchAnchor_status)
+	constVECVU const& relativeTimes, int time_offset, conststring32 pitches_string, int pitch_unit, int pitch_as, int pitchAnchor_status)
 {
 	(void) pitch_unit;
 	try {
-		if (tmin >= tmax) {
-			tmin = my xmin; tmax = my xmax;
-		}
+		Function_unidirectionalAutowindow (me, & tmin, & tmax);
 		
-		if (((pitch_as == PITCH_VALUE_AS_FRACTION) || (pitch_as == PITCH_VALUE_AS_PERCENTAGE)) && 
-			pitchAnchor_status == PITCH_ANCHOR_IS_NOT_USED) {
+		if ((pitch_as == PITCH_VALUE_AS_FRACTION || pitch_as == PITCH_VALUE_AS_PERCENTAGE) &&
+				pitchAnchor_status == PITCH_ANCHOR_IS_NOT_USED)
 			Melder_throw (U"You need to specify an anchor value to calculate ", (pitch_as == PITCH_VALUE_AS_FRACTION ? U"fractions" : U"percentages"), U".");
-		}
 		
-		autoVEC times = getTimesFromRelativeTimesString (tmin, tmax, times_string, time_offset);
+		autoVEC times = getAbsoluteFromRelativeTimes (tmin, tmax, relativeTimes, time_offset);
 		
 		autoStrings items = Strings_createAsTokens (pitches_string, U" ");
-		integer numberOfPitches = items -> numberOfStrings;
+		const integer numberOfPitches = items -> numberOfStrings;
 		Melder_require (times.size == numberOfPitches,
 			U"The number of items in the times and the pitches string have to be equal.");
-		autoVEC pitchesraw = newVECraw (numberOfPitches);
+		autoVEC pitchesraw = raw_VEC (numberOfPitches);
 		for (integer i = 1; i <= numberOfPitches; i ++) {
-			conststring32 token = items -> strings [i].get();
-			if (pitch_as == PITCH_VALUE_AS_MUSIC_NOTE) {
+			const conststring32 token = items -> strings [i].get();
+			if (pitch_as == PITCH_VALUE_AS_MUSIC_NOTE)
 				pitchesraw [i] = note_to_frequency (token, 440.0);
-			} else {
+			else
 				Interpreter_numericExpression (0, token, & pitchesraw [i]);
-			}
 		}
-		
-		// now we have the real times and we can sort them tohether with the pitches
-		
-		autoVEC pitches = newVECcopy (pitchesraw.get());
+		/*
+			Now we have the real times and we can sort them together with the pitches
+		*/
+		autoVEC pitches = copy_VEC (pitchesraw.get());
 		NUMsortTogether (times.get(), pitches.get());
 		double pitchAnchor, pitch;
 		for (integer i = 1; i <= times.size; i ++) {
-			integer index = pitch_as != PITCH_VALUE_AS_SLOPES_AND_END ? i : times.size - i + 1;
-			double time = times [index];
-			if (pitchAnchor_status == PITCH_ANCHOR_IS_NOT_USED) {
+			const integer index = pitch_as != PITCH_VALUE_AS_SLOPES_AND_END ? i : times.size - i + 1;
+			const double time = times [index];
+			if (pitchAnchor_status == PITCH_ANCHOR_IS_NOT_USED)
 				pitchAnchor = undefined;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_CURRENT) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_CURRENT)
 				pitchAnchor = RealTier_getValueAtTime (me, time);
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_START) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_START)
 				pitchAnchor = i == 1 ? RealTier_getValueAtTime (me, tmin) : pitchAnchor;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_END) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_END)
 				pitchAnchor = i == 1 ? RealTier_getValueAtTime (me, tmax) : pitchAnchor;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_CURVE) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_CURVE)
 				pitchAnchor = i == 1 ? RealTier_getMean_curve (me, tmin, tmax) : pitchAnchor;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_POINTS) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MEAN_OF_POINTS)
 				pitchAnchor = i == 1 ? RealTier_getMean_points (me, tmin, tmax) : pitchAnchor;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_MAXIMUM) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MAXIMUM)
 				pitchAnchor = i == 1 ? RealTier_getMaximumValue_interval (me, tmin, tmax) : pitchAnchor;
-			} else if (pitchAnchor_status == PITCH_ANCHOR_IS_MINIMUM) {
+			else if (pitchAnchor_status == PITCH_ANCHOR_IS_MINIMUM)
 				pitchAnchor = i == 1 ? RealTier_getMinimumValue_interval (me, tmin, tmax) : pitchAnchor;
-			} else {
+			else {
 				// we should not be here
 			}
 			Melder_require (isdefined (pitchAnchor) || pitchAnchor_status == PITCH_ANCHOR_IS_NOT_USED,
 				U"The pitch anchor value is undefined because the PitchTier is empty.");
-			
 			/*
 				How to interpret the "pitch" value
-			*/
-			
-			if (pitch_as == PITCH_VALUE_AS_FREQUENCY) {
+			*/			
+			if (pitch_as == PITCH_VALUE_AS_FREQUENCY)
 				pitch = pitches [i];
-			} else if (pitch_as == PITCH_VALUE_AS_FRACTION) {
+			else if (pitch_as == PITCH_VALUE_AS_FRACTION)
 				pitch = pitchAnchor * (1.0 + pitches [i]);
-			} else if (pitch_as == PITCH_VALUE_AS_PERCENTAGE) {
+			else if (pitch_as == PITCH_VALUE_AS_PERCENTAGE)
 				pitch = pitchAnchor * (1.0 + pitches [i] * 0.01);
-			} else if (pitch_as == PITCH_VALUE_AS_START_AND_SLOPES) {
-				if (i == 1) {
+			else if (pitch_as == PITCH_VALUE_AS_START_AND_SLOPES) {
+				if (i == 1)
 					pitch = pitchAnchor;
-				} else {
+				else
 					pitch += (times [i] - times [i - 1]) * pitches [i];
-				}
 			} else if (pitch_as == PITCH_VALUE_AS_SLOPES_AND_END) {
-				if (i == 1) {
+				if (i == 1)
 					pitch = pitchAnchor;
-				} else {
+				else
 					pitch -= (times [index + 1] - times [index]) * pitches [index];
-				}
-			} else if (pitch_as == PITCH_VALUE_AS_MUSIC_NOTE) {
+			} else if (pitch_as == PITCH_VALUE_AS_MUSIC_NOTE)
 				pitch = pitches [i];
-			} else if (pitch_as == PITCH_VALUE_AS_SEMITONES) {
+			else if (pitch_as == PITCH_VALUE_AS_SEMITONES)
 				pitch = NUMsemitonesToHertz (pitches [i]);
-			} else {
+			else {
 				// we should not be here
 			}
 			pitches [index] = pitch;
 		}
-		
 		/*
 			Remove old points
 		*/
-		
 		autoPitchTier thee = PitchTier_createFromPoints (times [1], times [times.size], times.get(), pitches.get());
 		
 		return thee;
@@ -253,49 +236,20 @@ static autoPitchTier PitchTier_createAsModifiedPart (PitchTier me, double tmin, 
 static void PitchTiers_replacePoints (PitchTier me, PitchTier thee) {
 	AnyTier_removePointsBetween ((AnyTier) me, thy xmin, thy xmax);
 	for (integer i = 1; i <= thy points.size; i ++) {
-		RealPoint pp = thy points.at [i];
+		const RealPoint pp = thy points.at [i];
 		RealTier_addPoint (me, pp -> number, pp -> value);
 	}
 }
 
-void PitchTier_modifyInterval (PitchTier me, double tmin, double tmax, conststring32 times_string, int time_offset, conststring32 pitches_string, int pitch_unit, int pitch_as, int pitchAnchor_status)
+void PitchTier_modifyInterval (PitchTier me, double tmin, double tmax,
+	constVECVU const& relativeTimes, int time_offset, conststring32 pitches_string,
+	int pitch_unit, int pitch_as, int pitchAnchor_status)
 {
 	try {
-		autoPitchTier thee = PitchTier_createAsModifiedPart (me, tmin, tmax, times_string, time_offset, pitches_string, pitch_unit, pitch_as, pitchAnchor_status);
+		autoPitchTier thee = PitchTier_createAsModifiedPart (me, tmin, tmax, relativeTimes, time_offset, pitches_string, pitch_unit, pitch_as, pitchAnchor_status);
 		PitchTiers_replacePoints (me, thee.get());
 	} catch (MelderError) {
 		Melder_throw (me, U": interval modification not completed.");
-	}
-}
-
-
-autoPitchTier IntervalTier_PitchTier_to_PitchTier (IntervalTier me, PitchTier thee, conststring32 times_string, int time_offset, conststring32 pitches_string, int pitch_unit, int pitch_as, int pitchAnchor_status,
-	kMelder_string which, conststring32 criterion)
-{
-	try {
-		autoPitchTier him = Data_copy (thee);
-		for (integer i = 1; i <= my intervals.size; i ++) {
-			TextInterval segment = my intervals.at [i];
-			if (Melder_stringMatchesCriterion (segment -> text.get(), which, criterion, true)) {
-				double xmin = segment -> xmin, xmax = segment -> xmax;
-				autoPitchTier modified = PitchTier_createAsModifiedPart (thee, xmin, xmax, times_string, time_offset, pitches_string, pitch_unit, pitch_as, pitchAnchor_status);
-				PitchTiers_replacePoints (him.get(), modified.get());
-			}
-		}
-		return him;
-	} catch (MelderError) {
-		Melder_throw (me, U": cannot create PitchTier.");
-	}
-}
-
-static autoPitchTier TextGrid_PitchTier_to_PitchTier (TextGrid me, PitchTier thee, integer tierNumber,
-	conststring32 times_string, int time_offset, conststring32 pitches_string, int pitch_unit, int pitch_as, int pitchAnchor_status, kMelder_string which, conststring32 criterion)
-{
-	try {
-		IntervalTier tier = TextGrid_checkSpecifiedTierIsIntervalTier (me, tierNumber);
-		return IntervalTier_PitchTier_to_PitchTier (tier, thee, times_string, time_offset, pitches_string, pitch_unit, pitch_as, pitchAnchor_status, which, criterion);
-	} catch (MelderError) {
-		Melder_throw (me, U": cannot create PitchTier.");
 	}
 }
 
@@ -303,26 +257,24 @@ static autoPitchTier TextGrid_PitchTier_to_PitchTier (TextGrid me, PitchTier the
 	We specify pitches as tone levels (1 - numberOfToneLevels). These levels are relative to the pitch range of a speaker.
 	(normally in Mandarin Chinese they count 5 levels).
 */
-static autoPitchTier PitchTier_createAsModifiedPart_toneLevels (PitchTier me, double tmin, double tmax, double fmin, double fmax, integer numberOfToneLevels, conststring32 times_string, int time_offset, conststring32 pitches_string)
+static autoPitchTier PitchTier_createAsModifiedPart_toneLevels (PitchTier me, double tmin, double tmax, double fmin, double fmax,
+	integer numberOfToneLevels, constVECVU const& relativeTimes, int time_offset, constVECVU const& pitchesAsToneLevels)
 {
 	try {
-		if (tmin >= tmax) {
-			tmin = my xmin; tmax = my xmax;
-		}
-		Melder_require (fmin < fmax, 
+		Function_unidirectionalAutowindow (me, & tmin, & tmax);
+		Melder_require (fmin < fmax,
 			U"The lowest frequency should be lower than the highest frequency.");
 
-		autoVEC times = getTimesFromRelativeTimesString (tmin, tmax, times_string, time_offset);
-		autoVEC pitches = VEC_createFromString (pitches_string);
-		Melder_require (times.size == pitches.size,
-			U"The number of items in the times and the pitches string have to be equal.");
+		autoVEC times = getAbsoluteFromRelativeTimes (tmin, tmax, relativeTimes, time_offset);
+		Melder_require (times.size == pitchesAsToneLevels.size,
+			U"The number of times and the number of pitches have to be equal.");
 
-		double scale = log10 (fmax / fmin) / numberOfToneLevels;
-		for (integer i = 1; i <= pitches.size; i ++) {
-			pitches [i] = fmin * pow (10.0, scale * pitches [i]);
-		}
-		NUMsortTogether (times.get(), pitches.get());
-		autoPitchTier thee = PitchTier_createFromPoints (times [1], times [times.size], times.get(), pitches.get());
+		autoVEC pitches_hertz = raw_VEC (pitchesAsToneLevels.size);
+		const double scale = log10 (fmax / fmin) / numberOfToneLevels;
+		for (integer i = 1; i <= pitchesAsToneLevels.size; i ++)
+			pitches_hertz [i] = fmin * pow (10.0, scale * pitchesAsToneLevels [i]);
+		NUMsortTogether (times.get(), pitches_hertz.get());
+		autoPitchTier thee = PitchTier_createFromPoints (times [1], times [times.size], times.get(), pitches_hertz.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": interval modification not succeeded.");
@@ -330,9 +282,10 @@ static autoPitchTier PitchTier_createAsModifiedPart_toneLevels (PitchTier me, do
 }
 
 void PitchTier_modifyInterval_toneLevels (PitchTier me, double tmin, double tmax, double fmin, double fmax,
-	integer numberOfToneLevels, conststring32 times_string, int time_offset, conststring32 pitches_string) {
+	integer numberOfToneLevels, constVECVU const& relativeTimes, int time_offset, constVECVU const& pitchesAsToneLevels)
+{
 	try {
-		autoPitchTier thee = PitchTier_createAsModifiedPart_toneLevels (me, tmin, tmax, fmin, fmax, numberOfToneLevels, times_string, time_offset, pitches_string);
+		autoPitchTier thee = PitchTier_createAsModifiedPart_toneLevels (me, tmin, tmax, fmin, fmax, numberOfToneLevels, relativeTimes, time_offset, pitchesAsToneLevels);
 		PitchTiers_replacePoints (me, thee.get());
 	} catch (MelderError) {
 		Melder_throw (me, U": interval modification as tone levels not succeeded.");

@@ -2,7 +2,7 @@
 #define _Spectrum_h_
 /* Spectrum.h
  *
- * Copyright (C) 1992-2011,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2011,2015-2017,2019-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ PRAAT_LIB_EXPORT double Spectrum_getSkewness (Spectrum me, double power);
 PRAAT_LIB_EXPORT double Spectrum_getKurtosis (Spectrum me, double power);
 
 void Spectrum_drawInside (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum);
-void Spectrum_draw (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, int garnish);
+void Spectrum_draw (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, bool garnish);
 /*
 	Function:
 		draw a Spectrum into a Graphics.
@@ -87,12 +87,11 @@ void Spectrum_draw (Spectrum me, Graphics g, double fmin, double fmax, double mi
 		Autowindowing: if fmax <= fmin, x domain of drawing is [my xmin, my xmax].
 		[minimum, maximum]: power in dB/Hz; y range of drawing.
 */
-void Spectrum_drawLogFreq (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, int garnish);
+void Spectrum_drawLogFreq (Spectrum me, Graphics g, double fmin, double fmax, double minimum, double maximum, bool garnish);
 
-PRAAT_LIB_EXPORT autoTable Spectrum_downto_Table (Spectrum me, bool includeBinNumbers, bool includeFrequency,
+PRAAT_LIB_EXPORT autoTable Spectrum_tabulate (Spectrum me, bool includeBinNumbers, bool includeFrequency,
 	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity);
-void Spectrum_list (Spectrum me, bool includeBinNumbers, bool includeFrequency,
-	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity);
+PRAAT_LIB_EXPORT autoTable Spectrum_tabulate_verbose (Spectrum me);
 
 PRAAT_LIB_EXPORT autoSpectrum Matrix_to_Spectrum (Matrix me);
 

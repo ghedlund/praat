@@ -1,6 +1,6 @@
 /* GuiMenu.cpp
  *
- * Copyright (C) 1992-2012,2013,2015,2016,2017 Paul Boersma,
+ * Copyright (C) 1992-2005,2007-2021 Paul Boersma,
  *               2008 Stefan de Konink, 2010 Franz Brausse, 2013 Tom Naughton
  *
  * This code is free software; you can redistribute it and/or modify
@@ -31,18 +31,31 @@ void structGuiMenu :: v_destroy () noexcept {
 		(void) void_me;
 		GuiMenu me = (GuiMenu) _GuiObject_getUserData (widget);
 		trace (U"destroying GuiMenu ", Melder_pointer (me));
-		if (! me) return;   // we could be destroying me
+		if (! me)
+			return;   // we could be destroying me
 		my d_widget = nullptr;   // undangle
-		if (my d_cascadeButton) my d_cascadeButton -> d_widget = nullptr;   // undangle
-		if (my d_menuItem) my d_menuItem -> d_widget = nullptr;   // undangle
+		if (my d_cascadeButton)
+			my d_cascadeButton -> d_widget = nullptr;   // undangle
+		if (my d_menuItem)
+			my d_menuItem -> d_widget = nullptr;   // undangle
 		forget (me);
 	}
 	static void _guiGtkMenuCascadeButton_destroyCallback (GuiObject widget, gpointer void_me) {
 		(void) void_me;
 		GuiMenu me = (GuiMenu) _GuiObject_getUserData (widget);
-		if (! me) return;
+		if (! me)
+			return;
 		trace (U"destroying GuiButton ", Melder_pointer (my d_cascadeButton.get()));
 		gtk_widget_destroy (GTK_WIDGET (my d_widget));
+	}
+	static gint _guiGtkMenuCascadeButton_buttonCallback (GtkWidget *gtkMenu, GdkEvent *gdkEvent) {
+		if (gdkEvent -> type == GDK_BUTTON_PRESS) {
+			GtkWidget *gtkCascadeButton = (GtkWidget *) g_object_get_data (G_OBJECT (gtkMenu), "button");
+			gtk_menu_popup_at_widget (GTK_MENU (gtkMenu), GTK_WIDGET (gtkCascadeButton),
+					GDK_GRAVITY_SOUTH_WEST, GDK_GRAVITY_NORTH_WEST, gdkEvent);
+			return true;
+		}
+		return false;
 	}
 #elif motif
 	static void _guiMotifMenu_destroyCallback (GuiObject widget, XtPointer void_me, XtPointer call) {
@@ -50,16 +63,24 @@ void structGuiMenu :: v_destroy () noexcept {
 		(void) call;
 		GuiMenu me = (GuiMenu) _GuiObject_getUserData (widget);
 		trace (U"destroying GuiMenu ", Melder_pointer (me));
-		if (! me) return;   // we could be destroying me
+		if (! me)
+			return;   // we could be destroying me
 		my d_widget = nullptr;   // undangle
-		if (my d_cascadeButton) my d_cascadeButton -> d_widget = nullptr;   // undangle
-		if (my d_menuItem) my d_menuItem -> d_widget = nullptr;   // undangle
+		if (my d_cascadeButton)
+			my d_cascadeButton -> d_widget = nullptr;   // undangle
+		if (my d_menuItem)
+			my d_menuItem -> d_widget = nullptr;   // undangle
 		forget (me);
 	}
 #elif cocoa
 	static void (*theOpenDocumentCallback) (MelderFile file);
-	void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file)) {
+	static void (*theFinishedOpeningDocumentsCallback) ();
+	void Gui_setOpenDocumentCallback (
+		void (*openDocumentCallback) (MelderFile file),
+		void (*finishedOpeningDocumentsCallback) ()
+	) {
 		theOpenDocumentCallback = openDocumentCallback;
+		theFinishedOpeningDocumentsCallback = finishedOpeningDocumentsCallback;
 	}
 	static NSMenu *theMenuBar;
 	static int theNumberOfMenuBarItems = 0;
@@ -92,7 +113,7 @@ void structGuiMenu :: v_destroy () noexcept {
 						GuiWindow window = (GuiWindow) shell;
 						if (window -> d_tabCallback) {
 							try {
-								struct structGuiMenuItemEvent event { nullptr, false, false, false, false };
+								structGuiMenuItemEvent event { nullptr, false, false, false };
 								window -> d_tabCallback (window -> d_tabBoss, & event);
 							} catch (MelderError) {
 								Melder_flushError (U"Tab key not completely handled.");
@@ -124,10 +145,10 @@ void structGuiMenu :: v_destroy () noexcept {
 							*/
 							if (window -> d_shiftTabCallback) {
 								try {
-									struct structGuiMenuItemEvent event { nullptr, false, false, false, false };
+									structGuiMenuItemEvent event { nullptr, false, false, false };
 									window -> d_shiftTabCallback (window -> d_shiftTabBoss, & event);
 								} catch (MelderError) {
-									Melder_flushError (U"Tab key not completely handled.");
+									Melder_flushError (U"Shift-Tab not completely handled.");
 								}
 								return;
 							}
@@ -147,6 +168,39 @@ void structGuiMenu :: v_destroy () noexcept {
 						*/
 					}
 				}
+			} else if (character == NSEnterCharacter || character == NSNewlineCharacter || character == NSCarriageReturnCharacter) {
+				NSWindow *cocoaKeyWindow = [NSApp keyWindow];
+				if ([cocoaKeyWindow class] == [GuiCocoaShell class]) {
+					GuiShell shell = (GuiShell) [(GuiCocoaShell *) cocoaKeyWindow   getUserData];
+					if (shell -> classInfo == classGuiWindow) {
+						/*
+							Reroute Enter key presses from any multiline text view to the menu item that has a shortcut for them.
+						*/
+						GuiWindow window = (GuiWindow) shell;
+						if (! ([nsEvent modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask | NSCommandKeyMask | NSControlKeyMask)) && window -> d_enterCallback) {
+							try {
+								structGuiMenuItemEvent event { nullptr, false, false, false };
+								window -> d_enterCallback (window -> d_enterBoss, & event);
+							} catch (MelderError) {
+								Melder_flushError (U"Enter key not completely handled.");
+							}
+							return;
+						}
+					} else if (shell -> classInfo == classGuiDialog) {
+						/*
+							Reroute Enter key presses from any multiline text view to the default button.
+						*/
+						GuiDialog dialog = (GuiDialog) shell;
+						if (! ([nsEvent modifierFlags] & (NSAlternateKeyMask | NSShiftKeyMask | NSCommandKeyMask | NSControlKeyMask)) && dialog -> d_defaultCallback) {
+							try {
+								dialog -> d_defaultCallback (dialog -> d_defaultBoss);
+							} catch (MelderError) {
+								Melder_flushError (U"Default button not completely handled.");
+							}
+							return;
+						}
+					}
+				}
 			} else if (character == NSDeleteCharacter) {
 				NSWindow *cocoaKeyWindow = [NSApp keyWindow];
 				if ([cocoaKeyWindow class] == [GuiCocoaShell class]) {
@@ -155,7 +209,7 @@ void structGuiMenu :: v_destroy () noexcept {
 						GuiWindow window = (GuiWindow) shell;
 						if (([nsEvent modifierFlags] & NSAlternateKeyMask) && window -> d_optionBackspaceCallback) {
 							try {
-								struct structGuiMenuItemEvent event { nullptr, false, false, false, false };
+								structGuiMenuItemEvent event { nullptr, false, false, false };
 								window -> d_optionBackspaceCallback (window -> d_optionBackspaceBoss, & event);
 							} catch (MelderError) {
 								Melder_flushError (U"Option-Backspace not completely handled.");
@@ -186,14 +240,21 @@ void structGuiMenu :: v_destroy () noexcept {
 	- (void) application: (NSApplication *) sender openFiles: (NSArray *) fileNames
 	{
 		(void) sender;
-		if (praatP.userWantsToOpen) return;
+		if (praatP.userWantsToOpen)
+			return;
 		for (NSUInteger i = 1; i <= [fileNames count]; i ++) {
-			NSString *cocoaFileName = [fileNames objectAtIndex: i - 1];
-			structMelderFile file { };
-			Melder_8bitFileRepresentationToStr32_inplace ([cocoaFileName UTF8String], file. path);
-			if (theOpenDocumentCallback)
-				theOpenDocumentCallback (& file);
+			try {
+				NSString *cocoaFileName = [fileNames objectAtIndex: i - 1];
+				structMelderFile file { };
+				Melder_8bitFileRepresentationToStr32_inplace ([cocoaFileName UTF8String], file. path);
+				if (theOpenDocumentCallback)
+					theOpenDocumentCallback (& file);
+			} catch (MelderError) {
+				Melder_throw (U"Cannot open dropped file.");
+			}
 		}
+		if (theFinishedOpeningDocumentsCallback)
+			theFinishedOpeningDocumentsCallback ();
 	}
 	@end
 #endif
@@ -325,7 +386,7 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 		_GuiObject_setUserData (my d_widget, me.get());
 	#elif cocoa
 		if (! theMenuBar) {
-			int numberOfMenus = [[[NSApp mainMenu] itemArray] count];
+			integer numberOfMenus = uinteger_to_integer ([[[NSApp mainMenu] itemArray] count]);
 			trace (U"Number of menus: ", numberOfMenus);
 			[NSApp   setDelegate: NSApp];   // the app is its own delegate
 			theMenuBar = [[NSMenu alloc] init];
@@ -338,28 +399,28 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		if (! window) {
 			/*
-			 * Install the menu in the main OS X menu bar along the top of the screen.
-			 * This is done by creating a menu item for the main menu bar,
-			 * and during applicationWillFinishLaunching installing that item.
-			 */
+				Install the menu in the main OS X menu bar along the top of the screen.
+				This is done by creating a menu item for the main menu bar,
+				and during applicationWillFinishLaunching installing that item.
+			*/
             NSString *itemTitle = (NSString *) Melder_peek32toCfstring (title);
 			my d_cocoaMenuItem = [[GuiCocoaMenuItem alloc]
-				initWithTitle: itemTitle  action: nullptr   keyEquivalent: @""];
+				initWithTitle: itemTitle   action: nullptr   keyEquivalent: @""];
 
 			[my d_cocoaMenuItem   setSubmenu: my d_cocoaMenu];   // the item will retain the menu...
-			[my d_cocoaMenu release];   // ... so we can release the menu already (before even returning it!)
+			[my d_cocoaMenu   release];   // ... so we can release the menu already (before even returning it!)
 			theMenuBarItems [++ theNumberOfMenuBarItems] = my d_cocoaMenuItem;
 		} else if ([(NSView *) window -> d_widget   isKindOfClass: [NSView class]]) {
 			/*
-			 * Install the menu at the top of a window.
-			 * Menu title positioning information is maintained in that GuiWindow.
-			 */
+				Install the menu at the top of a window.
+				Menu title positioning information is maintained in that GuiWindow.
+			*/
 			NSRect parentRect = [(NSView *) window -> d_widget   frame];   // this is the window's top form
-			int parentWidth = parentRect.size.width, parentHeight = parentRect.size.height;
+			integer parentWidth = parentRect.size.width, parentHeight = parentRect.size.height;
 			if (window -> d_menuBarWidth == 0)
 				window -> d_menuBarWidth = -1;
-			int width = 18 + 7 * str32len (title), height = 35 /*25*/;
-			int x = window -> d_menuBarWidth, y = parentHeight + 1 - height;
+			integer width = 18 + 7 * str32len (title), height = 35 /*25*/;
+			integer x = window -> d_menuBarWidth, y = parentHeight + 1 - height;
             NSUInteger resizingMask = NSViewMinYMargin;
 			if (Melder_equ (title, U"Help")) {
 				x = parentWidth + 1 - width;
@@ -376,29 +437,28 @@ GuiMenu GuiMenu_createInWindow (GuiWindow window, conststring32 title, uint32 fl
 			//[nsPopupButton setBordered: NO];
             [my d_cocoaMenuButton   setAutoresizingMask: resizingMask]; // stick to top
 			if (flags & GuiMenu_INSENSITIVE)
-				[my d_cocoaMenuButton setEnabled: NO];
+				[my d_cocoaMenuButton   setEnabled: NO];
 
 			[[my d_cocoaMenuButton cell]   setArrowPosition: NSPopUpNoArrow /*NSPopUpArrowAtBottom*/];
 			[[my d_cocoaMenuButton cell]   setPreferredEdge: NSMaxYEdge];
 			/*
-			 * Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.
-			 */
+				Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.
+			*/
 			GuiCocoaMenuItem *item = [[GuiCocoaMenuItem alloc] initWithTitle: @"-you should never get to see this-" action: nullptr keyEquivalent: @""];
 			[my d_cocoaMenu   addItem: item];   // the menu will retain the item...
 			[item release];   // ... so we can release the item already
 			/*
-			 * Install the menu button in the form.
-			 */
+				Install the menu button in the form.
+			*/
 			[(NSView *) window -> d_widget   addSubview: my d_cocoaMenuButton];   // parent will retain the button...
 
 			[my d_cocoaMenuButton   release];   // ... so we can release the button already
 			/*
-			 * Attach the menu to the button.
-			 */
+				Attach the menu to the button.
+			*/
 			[my d_cocoaMenuButton   setMenu: my d_cocoaMenu];   // the button will retain the menu...
 			[my d_cocoaMenu   release];   // ... so we can release the menu already (before even returning it!)
 			[my d_cocoaMenuButton   setTitle: (NSString *) Melder_peek32toCfstring (title)];
-
 		}
 	#endif
 
@@ -423,7 +483,8 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 		my d_menuItem -> d_widget = gtk_menu_item_new_with_label (Melder_peek32to8 (title));
 		my d_widget = gtk_menu_new ();
 		GtkAccelGroup *ag = (GtkAccelGroup *) gtk_menu_get_accel_group (GTK_MENU (supermenu -> d_widget));
-		gtk_menu_set_accel_group (GTK_MENU (my d_widget), ag);
+		if (ag)
+			gtk_menu_set_accel_group (GTK_MENU (my d_widget), ag);
 		if (flags & GuiMenu_INSENSITIVE)
 			gtk_widget_set_sensitive (GTK_WIDGET (my d_widget), false);
 		gtk_menu_item_set_submenu (GTK_MENU_ITEM (my d_menuItem -> d_widget), GTK_WIDGET (my d_widget));
@@ -446,7 +507,7 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 			action: nullptr
 			keyEquivalent: @""];
 		trace (U"adding the item to its supermenu ", Melder_pointer (supermenu));
-		[supermenu -> d_cocoaMenu  addItem: item];   // the menu will retain the item...
+		[supermenu -> d_cocoaMenu   addItem: item];   // the menu will retain the item...
 		trace (U"release the item");
 		[item release];   // ... so we can release the item already
 		trace (U"creating menu ", title);
@@ -457,7 +518,7 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 		trace (U"adding the new menu ", Melder_pointer (me.get()), U" to its supermenu ", Melder_pointer (supermenu));
 		[supermenu -> d_cocoaMenu   setSubmenu: my d_cocoaMenu   forItem: item];   // the supermenu will retain the menu...
 		Melder_assert ([my d_cocoaMenu retainCount] == 2);
-		[my d_cocoaMenu release];   // ... so we can release the menu already, even before returning it
+		[my d_cocoaMenu   release];   // ... so we can release the menu already, even before returning it
 		my d_widget = my d_cocoaMenu;
 		my d_menuItem -> d_widget = (GuiObject) item;
 	#endif
@@ -470,37 +531,6 @@ GuiMenu GuiMenu_createInMenu (GuiMenu supermenu, conststring32 title, uint32 fla
 	#endif
 	return me.releaseToAmbiguousOwner();
 }
-
-#if gtk
-	static void set_position (GtkMenu *menu, gint *px, gint *py, gpointer data)
-	{
-		gint w, h;
-		GtkWidget *button = (GtkWidget *) g_object_get_data (G_OBJECT (menu), "button");
-
-		if (GTK_WIDGET (menu) -> requisition. width < button->allocation.width)
-			gtk_widget_set_size_request (GTK_WIDGET (menu), button->allocation.width, -1);
-
-		gdk_window_get_origin (button->window, px, py);
-		*px += button->allocation.x;
-		*py += button->allocation.y + button->allocation.height; /* Dit is vreemd */
-
-	}
-	static gint button_press (GtkWidget *widget, GdkEvent *event)
-	{
-		gint w, h;
-		GtkWidget *button = (GtkWidget *) g_object_get_data (G_OBJECT (widget), "button");
-
-	/*	gdk_window_get_size (button->window, &w, &h);
-		gtk_widget_set_usize (widget, w, 0);*/
-		
-		if (event->type == GDK_BUTTON_PRESS) {
-			GdkEventButton *bevent = (GdkEventButton *) event;
-			gtk_menu_popup (GTK_MENU (widget), nullptr, nullptr, (GtkMenuPositionFunc) set_position, nullptr, bevent->button, bevent->time);
-			return true;
-		}
-		return false;
-	}
-#endif
 
 GuiMenu GuiMenu_createInForm (GuiForm form, int left, int right, int top, int bottom, conststring32 title, uint32 flags) {
 	autoGuiMenu me = Thing_new (GuiMenu);
@@ -519,11 +549,11 @@ GuiMenu GuiMenu_createInForm (GuiForm form, int left, int right, int top, int bo
 		if (flags & GuiMenu_INSENSITIVE)
 			gtk_widget_set_sensitive (GTK_WIDGET (my d_widget), false);
 
-		g_signal_connect_object (G_OBJECT (my d_cascadeButton -> d_widget), "event",
-			GTK_SIGNAL_FUNC (button_press), G_OBJECT (my d_widget), G_CONNECT_SWAPPED);
 		g_object_set_data (G_OBJECT (my d_widget), "button", my d_cascadeButton -> d_widget);
+		g_signal_connect_object (G_OBJECT (my d_cascadeButton -> d_widget), "event",
+				G_CALLBACK (_guiGtkMenuCascadeButton_buttonCallback), G_OBJECT (my d_widget), G_CONNECT_SWAPPED);
 		gtk_menu_attach_to_widget (GTK_MENU (my d_widget), GTK_WIDGET (my d_cascadeButton -> d_widget), nullptr);
-		gtk_button_set_alignment (GTK_BUTTON (my d_cascadeButton -> d_widget), 0.0f, 0.5f);
+		gtk_button_set_alignment (GTK_BUTTON (my d_cascadeButton -> d_widget), 0.5f, 0.5f);
 		_GuiObject_setUserData (my d_widget, me.get());
 		_GuiObject_setUserData (my d_cascadeButton -> d_widget, me.get());
 	#elif motif
@@ -549,17 +579,17 @@ GuiMenu GuiMenu_createInForm (GuiForm form, int left, int right, int top, int bo
 		[[my d_cocoaMenuButton cell]   setArrowPosition: NSPopUpNoArrow /*NSPopUpArrowAtBottom*/];
 
         NSString *menuTitle = (NSString*) Melder_peek32toCfstring (title);
-        my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle:menuTitle];
+        my d_widget = my d_cocoaMenu = [[GuiCocoaMenu alloc] initWithTitle: menuTitle];
 		[my d_cocoaMenu   setAutoenablesItems: NO];
 		/*
-		 * Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.
-		 */
+			Apparently, Cocoa swallows title setting only if there is already a menu with a dummy item.
+		*/
 		NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: @"-you should never get to see this-" action: nullptr keyEquivalent: @""];
 		[my d_cocoaMenu   addItem: item];   // the menu will retain the item...
 		[item release];   // ... so we can release the item already
 		/*
-		 * Attach the menu to the button.
-		 */
+			Attach the menu to the button.
+		*/
 		[my d_cocoaMenuButton   setMenu: my d_cocoaMenu];   // the button will retain the menu...
 		[my d_cocoaMenu   release];   // ... so we can release the menu already (before even returning it!)
 		[my d_cocoaMenuButton   setTitle: (NSString *) Melder_peek32toCfstring (title)];

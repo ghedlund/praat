@@ -1,6 +1,6 @@
 /* praat_picture.cpp
  *
- * Copyright (C) 1992-2019 Paul Boersma
+ * Copyright (C) 1992-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include "praatP.h"
+#include "praatM.h"
 #include "Picture.h"
 #include "Printer.h"
 #include "machine.h"
@@ -45,27 +46,39 @@ static GuiMenuItem praatButton_fonts [1 + (int) kGraphics_font::MAX];
 
 static void updateFontMenu () {
 	if (! theCurrentPraatApplication -> batch) {
-		if (theCurrentPraatPicture -> font < (int) kGraphics_font::MIN) theCurrentPraatPicture -> font = (int) kGraphics_font::MIN;
-		if (theCurrentPraatPicture -> font > (int) kGraphics_font::MAX) theCurrentPraatPicture -> font = (int) kGraphics_font::MAX;
-		for (int i = (int) kGraphics_font::MIN; i <= (int) kGraphics_font::MAX; i ++) {
-			GuiMenuItem_check (praatButton_fonts [i], theCurrentPraatPicture -> font == i);
-		}
+		Melder_clip ((int) kGraphics_font::MIN, (int *) & theCurrentPraatPicture -> font, (int) kGraphics_font::MAX);
+		for (int i = (int) kGraphics_font::MIN; i <= (int) kGraphics_font::MAX; i ++)
+			GuiMenuItem_check (praatButton_fonts [i], (int) theCurrentPraatPicture -> font == i);
 	}
 }
-static void setFont (kGraphics_font font) {
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setFont (GRAPHICS, font);
-	}
-	theCurrentPraatPicture -> font = (int) font;
-	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
+DIRECT (GRAPHICS_NONE__Times) {
+	GRAPHICS_NONE
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font = kGraphics_font::TIMES);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
 		updateFontMenu ();
-	}
 }
-DIRECT (GRAPHICS_Times)     { setFont (kGraphics_font::TIMES);     END }
-DIRECT (GRAPHICS_Helvetica) { setFont (kGraphics_font::HELVETICA); END }
-DIRECT (GRAPHICS_Palatino)  { setFont (kGraphics_font::PALATINO);  END }
-DIRECT (GRAPHICS_Courier)   { setFont (kGraphics_font::COURIER);   END }
+DIRECT (GRAPHICS_NONE__Helvetica) {
+	GRAPHICS_NONE
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font = kGraphics_font::HELVETICA);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateFontMenu ();
+}
+DIRECT (GRAPHICS_NONE__Palatino) {
+	GRAPHICS_NONE
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font = kGraphics_font::PALATINO);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateFontMenu ();
+}
+DIRECT (GRAPHICS_NONE__Courier) {
+	GRAPHICS_NONE
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font = kGraphics_font::COURIER);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateFontMenu ();
+}
 
 /***** "Font" MENU: size part *****/
 
@@ -79,30 +92,52 @@ static void updateSizeMenu () {
 		GuiMenuItem_check (praatButton_24, theCurrentPraatPicture -> fontSize == 24.0);
 	}
 }
-static void setFontSize (double fontSize) {
-	//Melder_casual("Praat picture: set font size %d", (int) fontSize);
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setFontSize (GRAPHICS, fontSize);
-	}
-	theCurrentPraatPicture -> fontSize = fontSize;
-	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
+DIRECT (GRAPHICS_10) {
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = 10.0);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
 		updateSizeMenu ();
-	}
 }
-
-DIRECT (GRAPHICS_10) { setFontSize (10.0); END }
-DIRECT (GRAPHICS_12) { setFontSize (12.0); END }
-DIRECT (GRAPHICS_14) { setFontSize (14.0); END }
-DIRECT (GRAPHICS_18) { setFontSize (18.0); END }
-DIRECT (GRAPHICS_24) { setFontSize (24.0); END }
+DIRECT (GRAPHICS_12) {
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = 12.0);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateSizeMenu ();
+}
+DIRECT (GRAPHICS_14) {
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = 14.0);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateSizeMenu ();
+}
+DIRECT (GRAPHICS_18) {
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = 18.0);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateSizeMenu ();
+}
+DIRECT (GRAPHICS_24) {
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = 24.0);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateSizeMenu ();
+}
 FORM (GRAPHICS_Font_size, U"Praat picture: Font size", U"Font menu") {
 	POSITIVE (fontSize, U"Font size (points)", U"10")
 OK
 	SET_REAL (fontSize, (integer) theCurrentPraatPicture -> fontSize);
 DO
-	setFontSize (fontSize);
-END }
+	GRAPHICS_NONE
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize = fontSize);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updateSizeMenu ();
+}
 
 /*static void setFontSize_keepInnerViewport (int fontSize) {
 	double xmargin = praat_size * 4.2 / 72.0, ymargin = praat_size * 2.8 / 72.0;
@@ -123,7 +158,7 @@ END }
 		autoPraatPicture picture;
 		Graphics_setFontSize (GRAPHICS, praat_size = fontSize);
 	}
-	Picture_setSelection (praat_picture, x1NDC, x2NDC, y1NDC, y2NDC, False);
+	Picture_setSelection (praat_picture, x1NDC, x2NDC, y1NDC, y2NDC);
 	updateSizeMenu ();
 }*/
 
@@ -145,7 +180,8 @@ DIRECT (GRAPHICS_MouseSelectsInnerViewport) {
 		Picture_setMouseSelectsInnerViewport (praat_picture.get(), praat_mouseSelectsInnerViewport = true);
 	}
 	updateViewportMenu ();
-END }
+	END_NO_NEW_DATA
+}
 
 DIRECT (GRAPHICS_MouseSelectsOuterViewport) {
 	if (theCurrentPraatPicture != & theForegroundPraatPicture)
@@ -155,7 +191,8 @@ DIRECT (GRAPHICS_MouseSelectsOuterViewport) {
 		Picture_setMouseSelectsInnerViewport (praat_picture.get(), praat_mouseSelectsInnerViewport = false);
 	}
 	updateViewportMenu ();
-END }
+	END_NO_NEW_DATA
+}
 
 FORM (GRAPHICS_SelectInnerViewport, U"Praat picture: Select inner viewport", U"Select inner viewport...") {
 	LABEL (U"The viewport is the selected rectangle in the Picture window.")
@@ -168,14 +205,12 @@ FORM (GRAPHICS_SelectInnerViewport, U"Praat picture: Select inner viewport", U"S
 	REAL (bottom, U"right Vertical range (inches)", U"6.0")
 OK
 	double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0, ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
-	if (ymargin > 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC))
-		ymargin = 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC);
-	if (xmargin > 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC))
-		xmargin = 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC);
+	Melder_clipRight (& ymargin, 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC));
+	Melder_clipRight (& xmargin, 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC));
 	SET_REAL (left, theCurrentPraatPicture -> x1NDC + xmargin)
 	SET_REAL (right, theCurrentPraatPicture -> x2NDC - xmargin)
-	SET_REAL (top, 12 - theCurrentPraatPicture -> y2NDC + ymargin)
-	SET_REAL (bottom, 12 - theCurrentPraatPicture -> y1NDC - ymargin)
+	SET_REAL (top, 12.0 - theCurrentPraatPicture -> y2NDC + ymargin)
+	SET_REAL (bottom, 12.0 - theCurrentPraatPicture -> y1NDC - ymargin)
 DO
 	//if (theCurrentPraatObjects != & theForegroundPraatObjects) Melder_throw (U"Viewport commands are not available inside manuals.");
 	double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0, ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
@@ -185,43 +220,42 @@ DO
 		Graphics_inqWsViewport (GRAPHICS, & x1DC, & x2DC, & y1DC, & y2DC);
 		double x1wNDC, x2wNDC, y1wNDC, y2wNDC;
 		Graphics_inqWsWindow (GRAPHICS, & x1wNDC, & x2wNDC, & y1wNDC, & y2wNDC);
-		double wDC = (x2DC - x1DC) / (x2wNDC - x1wNDC);
-		double hDC = labs (y2DC - y1DC) / (y2wNDC - y1wNDC);
+		const double wDC = (x2DC - x1DC) / (x2wNDC - x1wNDC);
+		const double hDC = integer_abs (y2DC - y1DC) / (y2wNDC - y1wNDC);
 		xmargin *= Graphics_getResolution (GRAPHICS) / wDC;
 		ymargin *= Graphics_getResolution (GRAPHICS) / hDC;
 	}
-	if (xmargin > 2 * (right - left)) xmargin = 2 * (right - left);
-	if (ymargin > 2 * (bottom - top)) ymargin = 2 * (bottom - top);
+	Melder_clipRight (& xmargin, 2.0 * (right - left));
+	Melder_clipRight (& ymargin, 2.0 * (bottom - top));
 	trace (U"2: xmargin ", xmargin, U" ymargin ", ymargin);
-	if (left == right) {
+	if (left == right)
 		Melder_throw (U"The left and right edges of the viewport cannot be equal.\nPlease change the horizontal range.");
-	}
-	if (left > right) { double temp; temp = left; left = right; right = temp; }
-	if (top == bottom) {
+	Melder_sort (& left, & right);
+	if (top == bottom)
 		Melder_throw (U"The top and bottom edges of the viewport cannot be equal.\nPlease change the vertical range.");
-	}
 	theCurrentPraatPicture -> x1NDC = left - xmargin;
 	theCurrentPraatPicture -> x2NDC = right + xmargin;
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
-		if (top > bottom) { double temp; temp = top; top = bottom; bottom = temp; }
-		theCurrentPraatPicture -> y1NDC = 12-bottom - ymargin;
-		theCurrentPraatPicture -> y2NDC = 12-top + ymargin;
-		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC, false);
+		Melder_sort (& top, & bottom);
+		theCurrentPraatPicture -> y1NDC = (12.0 - bottom) - ymargin;
+		theCurrentPraatPicture -> y2NDC = (12.0 - top) + ymargin;
+		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
 		Graphics_updateWs (GRAPHICS);
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects) {   // in manual?
-		if (top > bottom) { double temp; temp = top; top = bottom; bottom = temp; }
+		Melder_sort (& top, & bottom);
 		double x1wNDC, x2wNDC, y1wNDC, y2wNDC;
 		Graphics_inqWsWindow (GRAPHICS, & x1wNDC, & x2wNDC, & y1wNDC, & y2wNDC);
-		double height_NDC = y2wNDC - y1wNDC;
-		theCurrentPraatPicture -> y1NDC = height_NDC-bottom - ymargin;
-		theCurrentPraatPicture -> y2NDC = height_NDC-top + ymargin;
+		const double height_NDC = y2wNDC - y1wNDC;
+		theCurrentPraatPicture -> y1NDC = height_NDC - bottom - ymargin;
+		theCurrentPraatPicture -> y2NDC = height_NDC - top + ymargin;
 	} else {
-		if (top < bottom) { double temp; temp = top; top = bottom; bottom = temp; }
+		Melder_sort (& bottom, & top);
 		theCurrentPraatPicture -> y1NDC = bottom - ymargin;
 		theCurrentPraatPicture -> y2NDC = top + ymargin;
 		Graphics_setViewport (GRAPHICS,
 			theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
-			theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);   // to ensure that Demo_x() updates
+			theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC
+		);   // to ensure that Demo_x() updates
 	}
 	trace (U"3:"
 		U" x1NDC ", theCurrentPraatPicture -> x1NDC,
@@ -229,7 +263,8 @@ DO
 		U" y1NDC ", theCurrentPraatPicture -> y1NDC,
 		U" y2NDC ", theCurrentPraatPicture -> y2NDC
 	);
-END }
+	END_NO_NEW_DATA
+}
 
 FORM (GRAPHICS_SelectOuterViewport, U"Praat picture: Select outer viewport", U"Select outer viewport...") {
 	LABEL (U"The viewport is the selected rectangle in the Picture window.")
@@ -243,56 +278,53 @@ FORM (GRAPHICS_SelectOuterViewport, U"Praat picture: Select outer viewport", U"S
 OK
 	SET_REAL (left, theCurrentPraatPicture -> x1NDC)
 	SET_REAL (right, theCurrentPraatPicture -> x2NDC)
-	SET_REAL (top, 12 - theCurrentPraatPicture -> y2NDC)
-	SET_REAL (bottom, 12 - theCurrentPraatPicture -> y1NDC)
+	SET_REAL (top, 12.0 - theCurrentPraatPicture -> y2NDC)
+	SET_REAL (bottom, 12.0 - theCurrentPraatPicture -> y1NDC)
 DO
 	//if (theCurrentPraatObjects != & theForegroundPraatObjects) Melder_throw (U"Viewport commands are not available inside manuals.");
-	if (left == right) {
+	if (left == right)
 		Melder_throw (U"The left and right edges of the viewport cannot be equal.\nPlease change the horizontal range.");
-	}
-	if (left > right) { double temp; temp = left; left = right; right = temp; }
-	if (top == bottom) {
+	Melder_sort (& left, & right);
+	if (top == bottom)
 		Melder_throw (U"The top and bottom edges of the viewport cannot be equal.\nPlease change the vertical range.");
-	}
 	theCurrentPraatPicture -> x1NDC = left;
 	theCurrentPraatPicture -> x2NDC = right;
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
-		if (top > bottom)
-			std::swap (top, bottom);
-		theCurrentPraatPicture -> y1NDC = 12-bottom;
-		theCurrentPraatPicture -> y2NDC = 12-top;
-		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC, false);
-		Graphics_updateWs (GRAPHICS);   // BUG: needed on Cocoa, but why?
+		Melder_sort (& top, & bottom);
+		theCurrentPraatPicture -> y1NDC = 12.0 - bottom;
+		theCurrentPraatPicture -> y2NDC = 12.0 - top;
+		Picture_setSelection (praat_picture.get(), theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_updateWs (GRAPHICS);
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects) {   // in manual?
-		if (top > bottom)
-			std::swap (top, bottom);
+		Melder_sort (& top, & bottom);
 		double x1wNDC, x2wNDC, y1wNDC, y2wNDC;
 		Graphics_inqWsWindow (GRAPHICS, & x1wNDC, & x2wNDC, & y1wNDC, & y2wNDC);
-		double height_NDC = y2wNDC - y1wNDC;
-		theCurrentPraatPicture -> y1NDC = height_NDC-bottom;
-		theCurrentPraatPicture -> y2NDC = height_NDC-top;
+		const double height_NDC = y2wNDC - y1wNDC;
+		theCurrentPraatPicture -> y1NDC = height_NDC - bottom;
+		theCurrentPraatPicture -> y2NDC = height_NDC - top;
 	} else {
-		if (top > bottom)
-			std::swap (top, bottom);
+		Melder_sort (& bottom, & top);
 		theCurrentPraatPicture -> y1NDC = bottom;
 		theCurrentPraatPicture -> y2NDC = top;
 		Graphics_setViewport (GRAPHICS,
 			theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC,
-			theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);   // to ensure that Demo_x() updates
+			theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC
+		);   // to ensure that Demo_x() updates
 	}
-END }
+	END_NO_NEW_DATA
+}
 
 FORM (GRAPHICS_ViewportText, U"Praat picture: Viewport text", U"Viewport text...") {
 	RADIOx (horizontalAlignment, U"Horizontal alignment", 2, 0)
-		RADIOBUTTON (U"Left")
-		RADIOBUTTON (U"Centre")
-		RADIOBUTTON (U"Right")
+		RADIOBUTTON (U"left")
+		RADIOBUTTON (U"centre")
+		RADIOBUTTON (U"right")
 	RADIOx (verticalAlignment, U"Vertical alignment", 2, 0)
-		RADIOBUTTON (U"Bottom")
-		RADIOBUTTON (U"Half")
-		RADIOBUTTON (U"Top")
+		RADIOBUTTON (U"bottom")
+		RADIOBUTTON (U"half")
+		RADIOBUTTON (U"top")
 	REAL (rotation, U"Rotation (degrees)", U"0")
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 3)
 OK
 DO
 	double x1WC, x2WC, y1WC, y2WC;
@@ -305,7 +337,8 @@ DO
 		verticalAlignment == 0 ? 0.0 : verticalAlignment == 1 ? 0.5 : 1.0, text);
 	Graphics_setTextRotation (GRAPHICS, 0.0);
 	Graphics_setWindow (GRAPHICS, x1WC, x2WC, y1WC, y2WC);
-END }
+	END_NO_NEW_DATA
+}
 
 /***** "Pen" MENU *****/
 
@@ -317,66 +350,76 @@ static GuiMenuItem praatButton_black, praatButton_white, praatButton_red, praatB
 
 static void updatePenMenu () {
 	if (! theCurrentPraatApplication -> batch) {
-		for (int i = Graphics_DRAWN; i <= Graphics_DASHED; i ++) {
+		for (int i = Graphics_DRAWN; i <= Graphics_DASHED; i ++)
 			GuiMenuItem_check (praatButton_lines [i], theCurrentPraatPicture -> lineType == i);
-		}
-		GuiMenuItem_check (praatButton_black   , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_BLACK));
-		GuiMenuItem_check (praatButton_white   , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_WHITE));
-		GuiMenuItem_check (praatButton_red     , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_RED));
-		GuiMenuItem_check (praatButton_green   , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_GREEN));
-		GuiMenuItem_check (praatButton_blue    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_BLUE));
-		GuiMenuItem_check (praatButton_yellow  , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_YELLOW));
-		GuiMenuItem_check (praatButton_cyan    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_CYAN));
-		GuiMenuItem_check (praatButton_magenta , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_MAGENTA));
-		GuiMenuItem_check (praatButton_maroon  , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_MAROON));
-		GuiMenuItem_check (praatButton_lime    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_LIME));
-		GuiMenuItem_check (praatButton_navy    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_NAVY));
-		GuiMenuItem_check (praatButton_teal    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_TEAL));
-		GuiMenuItem_check (praatButton_purple  , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_PURPLE));
-		GuiMenuItem_check (praatButton_olive   , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_OLIVE));
-		GuiMenuItem_check (praatButton_pink    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_PINK));
-		GuiMenuItem_check (praatButton_silver  , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_SILVER));
-		GuiMenuItem_check (praatButton_grey    , Graphics_Colour_equal (theCurrentPraatPicture -> colour, Graphics_GREY));
+		GuiMenuItem_check (praatButton_black   , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_BLACK));
+		GuiMenuItem_check (praatButton_white   , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_WHITE));
+		GuiMenuItem_check (praatButton_red     , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_RED));
+		GuiMenuItem_check (praatButton_green   , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_GREEN));
+		GuiMenuItem_check (praatButton_blue    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_BLUE));
+		GuiMenuItem_check (praatButton_yellow  , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_YELLOW));
+		GuiMenuItem_check (praatButton_cyan    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_CYAN));
+		GuiMenuItem_check (praatButton_magenta , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_MAGENTA));
+		GuiMenuItem_check (praatButton_maroon  , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_MAROON));
+		GuiMenuItem_check (praatButton_lime    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_LIME));
+		GuiMenuItem_check (praatButton_navy    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_NAVY));
+		GuiMenuItem_check (praatButton_teal    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_TEAL));
+		GuiMenuItem_check (praatButton_purple  , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_PURPLE));
+		GuiMenuItem_check (praatButton_olive   , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_OLIVE));
+		GuiMenuItem_check (praatButton_pink    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_PINK));
+		GuiMenuItem_check (praatButton_silver  , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_SILVER));
+		GuiMenuItem_check (praatButton_grey    , MelderColour_equal (theCurrentPraatPicture -> colour, Melder_GREY));
 	}
 }
-static void setLineType (int lineType) {
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setLineType (GRAPHICS, lineType);
-	}
-	theCurrentPraatPicture -> lineType = lineType;
-	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
+
+DIRECT (GRAPHICS_Solid_line) {
+	GRAPHICS_NONE
+		Graphics_setLineType (GRAPHICS, theCurrentPraatPicture -> lineType = Graphics_DRAWN);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
 		updatePenMenu ();
-	}
 }
-DIRECT (GRAPHICS_Solid_line)         { setLineType (Graphics_DRAWN);         END }
-DIRECT (GRAPHICS_Dotted_line)        { setLineType (Graphics_DOTTED);        END }
-DIRECT (GRAPHICS_Dashed_line)        { setLineType (Graphics_DASHED);        END }
-DIRECT (GRAPHICS_Dashed_dotted_line) { setLineType (Graphics_DASHED_DOTTED); END }
+DIRECT (GRAPHICS_Dotted_line) {
+	GRAPHICS_NONE
+		Graphics_setLineType (GRAPHICS, theCurrentPraatPicture -> lineType = Graphics_DOTTED);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updatePenMenu ();
+}
+DIRECT (GRAPHICS_Dashed_line) {
+	GRAPHICS_NONE
+		Graphics_setLineType (GRAPHICS, theCurrentPraatPicture -> lineType = Graphics_DASHED);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updatePenMenu ();
+}
+DIRECT (GRAPHICS_Dashed_dotted_line) {
+	GRAPHICS_NONE
+		Graphics_setLineType (GRAPHICS, theCurrentPraatPicture -> lineType = Graphics_DASHED_DOTTED);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
+		updatePenMenu ();
+}
 
 FORM (GRAPHICS_Line_width, U"Praat picture: Line width", nullptr) {
 	POSITIVE (lineWidth, U"Line width", U"1.0")
 OK
 	SET_REAL (lineWidth, theCurrentPraatPicture -> lineWidth)
 DO
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setLineWidth (GRAPHICS, lineWidth);
-	}
-	theCurrentPraatPicture -> lineWidth = lineWidth;
-END }
+	GRAPHICS_NONE
+		Graphics_setLineWidth (GRAPHICS, theCurrentPraatPicture -> lineWidth = lineWidth);
+	GRAPHICS_NONE_END
+}
 
 FORM (GRAPHICS_Arrow_size, U"Praat picture: Arrow size", nullptr) {
 	POSITIVE (arrowSize, U"Arrow size", U"1.0")
 OK
 	SET_REAL (arrowSize, theCurrentPraatPicture -> arrowSize)
 DO
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setArrowSize (GRAPHICS, arrowSize);
-	}
-	theCurrentPraatPicture -> arrowSize = arrowSize;
-END }
+	GRAPHICS_NONE
+		Graphics_setArrowSize (GRAPHICS, theCurrentPraatPicture -> arrowSize = arrowSize);
+	GRAPHICS_NONE_END
+}
 
 FORM (GRAPHICS_Speckle_size, U"Praat picture: Speckle size", nullptr) {
 	LABEL (U"Here you determine the diameter (in millimetres)")
@@ -385,72 +428,70 @@ FORM (GRAPHICS_Speckle_size, U"Praat picture: Speckle size", nullptr) {
 OK
 	SET_REAL (speckleSize, theCurrentPraatPicture -> speckleSize)
 DO
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setSpeckleSize (GRAPHICS, speckleSize);
-	}
-	theCurrentPraatPicture -> speckleSize = speckleSize;
-END }
+	GRAPHICS_NONE
+		Graphics_setSpeckleSize (GRAPHICS, theCurrentPraatPicture -> speckleSize = speckleSize);
+	GRAPHICS_NONE_END
+}
 
-static void setColour (Graphics_Colour colour) {
+static void setColour (MelderColour colour) {
 	{// scope
 		autoPraatPicture picture;
 		Graphics_setColour (GRAPHICS, colour);
 	}
 	theCurrentPraatPicture -> colour = colour;
-	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
 		updatePenMenu ();
-	}
 }
-DIRECT (GRAPHICS_Black)   { setColour (Graphics_BLACK);   END }
-DIRECT (GRAPHICS_White)   { setColour (Graphics_WHITE);   END }
-DIRECT (GRAPHICS_Red)     { setColour (Graphics_RED);     END }
-DIRECT (GRAPHICS_Green)   { setColour (Graphics_GREEN);   END }
-DIRECT (GRAPHICS_Blue)    { setColour (Graphics_BLUE);    END }
-DIRECT (GRAPHICS_Yellow)  { setColour (Graphics_YELLOW);  END }
-DIRECT (GRAPHICS_Cyan)    { setColour (Graphics_CYAN);    END }
-DIRECT (GRAPHICS_Magenta) { setColour (Graphics_MAGENTA); END }
-DIRECT (GRAPHICS_Maroon)  { setColour (Graphics_MAROON);  END }
-DIRECT (GRAPHICS_Lime)    { setColour (Graphics_LIME);    END }
-DIRECT (GRAPHICS_Navy)    { setColour (Graphics_NAVY);    END }
-DIRECT (GRAPHICS_Teal)    { setColour (Graphics_TEAL);    END }
-DIRECT (GRAPHICS_Purple)  { setColour (Graphics_PURPLE);  END }
-DIRECT (GRAPHICS_Olive)   { setColour (Graphics_OLIVE);   END }
-DIRECT (GRAPHICS_Pink)    { setColour (Graphics_PINK);    END }
-DIRECT (GRAPHICS_Silver)  { setColour (Graphics_SILVER);  END }
-DIRECT (GRAPHICS_Grey)    { setColour (Graphics_GREY);    END }
+DIRECT (GRAPHICS_Black)   { setColour (Melder_BLACK);   END_NO_NEW_DATA }
+DIRECT (GRAPHICS_White)   { setColour (Melder_WHITE);   END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Red)     { setColour (Melder_RED);     END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Green)   { setColour (Melder_GREEN);   END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Blue)    { setColour (Melder_BLUE);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Yellow)  { setColour (Melder_YELLOW);  END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Cyan)    { setColour (Melder_CYAN);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Magenta) { setColour (Melder_MAGENTA); END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Maroon)  { setColour (Melder_MAROON);  END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Lime)    { setColour (Melder_LIME);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Navy)    { setColour (Melder_NAVY);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Teal)    { setColour (Melder_TEAL);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Purple)  { setColour (Melder_PURPLE);  END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Olive)   { setColour (Melder_OLIVE);   END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Pink)    { setColour (Melder_PINK);    END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Silver)  { setColour (Melder_SILVER);  END_NO_NEW_DATA }
+DIRECT (GRAPHICS_Grey)    { setColour (Melder_GREY);    END_NO_NEW_DATA }
 
 FORM (GRAPHICS_Colour, U"Praat picture: Colour", nullptr) {
 	COLOUR (colour, U"Colour (0-1, name, or {r,g,b})", U"0.0")
 OK
 DO
-	{// scope
-		autoPraatPicture picture;
-		Graphics_setColour (GRAPHICS, colour);
-	}
-	theCurrentPraatPicture -> colour = colour;
-	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
+	GRAPHICS_NONE
+		Graphics_setColour (GRAPHICS, theCurrentPraatPicture -> colour = colour);
+	GRAPHICS_NONE_END
+	if (theCurrentPraatPicture == & theForegroundPraatPicture)
 		updatePenMenu ();
-	}
-END }
+}
 
 /***** "File" MENU *****/
 
 FORM_READ (GRAPHICS_Picture_readFromPraatPictureFile, U"Read picture from praat picture file", nullptr, false) {
 	Picture_readFromPraatPictureFile (praat_picture.get(), file);
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToEpsFile, U"Save picture as Encapsulated PostScript file", nullptr, U"praat.eps") {
 	Picture_writeToEpsFile (praat_picture.get(), file, true, false);
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToFontlessEpsFile_xipa, U"Save as fontless EPS file", nullptr, U"praat.eps") {
 	Picture_writeToEpsFile (praat_picture.get(), file, false, false);
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToFontlessEpsFile_silipa, U"Save as fontless EPS file", nullptr, U"praat.eps") {
 	Picture_writeToEpsFile (praat_picture.get(), file, false, true);
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToPdfFile, U"Save as PDF file", nullptr, U"praat.pdf") {
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
@@ -464,7 +505,8 @@ FORM_SAVE (GRAPHICS_Picture_writeToPdfFile, U"Save as PDF file", nullptr, U"praa
 			Melder_throw (U"Picture not written to PDF file ", file, U".");
 		}
 	}
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToPngFile_300, U"Save as PNG file", nullptr, U"praat.png") {
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
@@ -477,7 +519,8 @@ FORM_SAVE (GRAPHICS_Picture_writeToPngFile_300, U"Save as PNG file", nullptr, U"
 			Melder_throw (U"Picture not written to PNG file ", file, U".");
 		}
 	}
-END }
+	END_NO_NEW_DATA
+}
 
 FORM_SAVE (GRAPHICS_Picture_writeToPngFile_600, U"Save as PNG file", nullptr, U"praat.png") {
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
@@ -490,16 +533,20 @@ FORM_SAVE (GRAPHICS_Picture_writeToPngFile_600, U"Save as PNG file", nullptr, U"
 			Melder_throw (U"Picture not written to PNG file ", file, U".");
 		}
 	}
-END }
+	END_NO_NEW_DATA
+}
+
 
 FORM_SAVE (GRAPHICS_Picture_writeToPraatPictureFile, U"Save as Praat picture file", nullptr, U"praat.prapic") {
 	Picture_writeToPraatPictureFile (praat_picture.get(), file);
-END }
+	END_NO_NEW_DATA
+}
 
 #ifdef macintosh
 DIRECT (GRAPHICS_Page_setup) {
 	Printer_pageSetup ();
-END }
+	END_NO_NEW_DATA
+}
 #endif
 
 FORM (GRAPHICS_PostScript_settings, U"PostScript settings", U"PostScript settings...") {
@@ -515,9 +562,9 @@ FORM (GRAPHICS_PostScript_settings, U"PostScript settings", U"PostScript setting
 				U"Orientation", kGraphicsPostscript_orientation::DEFAULT)
 		POSITIVE (magnification, U"Magnification", U"1.0");
 		#if defined (linux)
-			TEXTFIELD (printCommand, U"Print command:", U"lpr %s")
+			TEXTFIELD (printCommand, U"Print command", U"lpr %s", 4)
 		#else
-			TEXTFIELD (printCommand, U"Print command:", U"lp -c %s")
+			TEXTFIELD (printCommand, U"Print command", U"lp -c %s", 4)
 		#endif
 	#endif
 	RADIO_ENUM (kGraphicsPostscript_fontChoiceStrategy, fontChoiceStrategy,
@@ -562,29 +609,31 @@ DO
 
 DIRECT (GRAPHICS_Print) {
 	Picture_print (praat_picture.get());
-END }
+	END_NO_NEW_DATA
+}
 
 #ifdef _WIN32
-	FORM_SAVE (GRAPHICS_Picture_writeToWindowsMetafile, U"Save as Windows metafile", nullptr, U"praat.emf") {
-		Picture_writeToWindowsMetafile (praat_picture.get(), file);
-	END }
+FORM_SAVE (GRAPHICS_Picture_writeToWindowsMetafile, U"Save as Windows metafile", nullptr, U"praat.emf") {
+	Picture_writeToWindowsMetafile (praat_picture.get(), file);
+	END_NO_NEW_DATA
+}
+
 #endif
 
 #if defined (_WIN32) || defined (macintosh)
 	DIRECT (GRAPHICS_Copy_picture_to_clipboard) {
 		Picture_copyToClipboard (praat_picture.get());
-	END }
+	END_NO_NEW_DATA
+}
 #endif
 
 /***** "Edit" MENU *****/
 
 DIRECT (GRAPHICS_Undo) {
 	Graphics_undoGroup (GRAPHICS);
-	if (theCurrentPraatPicture != & theForegroundPraatPicture) {
-		Graphics_play (GRAPHICS, GRAPHICS);
-	}
 	Graphics_updateWs (GRAPHICS);
-END }
+	END_NO_NEW_DATA
+}
 
 DIRECT (GRAPHICS_Erase_all) {
 	if (theCurrentPraatPicture == & theForegroundPraatPicture) {
@@ -592,20 +641,9 @@ DIRECT (GRAPHICS_Erase_all) {
 	} else {
 		Graphics_clearRecording (GRAPHICS);
 		Graphics_clearWs (GRAPHICS);
-		#if 1
-		autoPraatPicture picture;
-		Graphics_Colour colour = GRAPHICS -> colour;
-		Graphics_setColour (GRAPHICS, Graphics_WHITE);
-		double x1, y1, x2, y2;
-		//Melder_casual (GRAPHICS -> d_x1DC, U" ", GRAPHICS -> d_y1DC, U" ", GRAPHICS -> d_x2DC, U" ", GRAPHICS -> d_y2DC);
-		Graphics_DCtoWC (GRAPHICS, GRAPHICS -> d_x1DC, GRAPHICS -> d_y1DC, & x1, & y1);
-		Graphics_DCtoWC (GRAPHICS, GRAPHICS -> d_x2DC, GRAPHICS -> d_y2DC, & x2, & y2);
-		//Melder_casual (x1, U" ", y1, U" ", x2, U" ", y2);
-		Graphics_fillRectangle (GRAPHICS, x1, x2, y1, y2);
-		Graphics_setColour (GRAPHICS, colour);
-		#endif
 	}
-END }
+	END_NO_NEW_DATA
+}
 
 /***** "World" MENU *****/
 
@@ -615,10 +653,10 @@ FORM (GRAPHICS_Text, U"Praat picture: Text", U"Text...") {
 			U"Horizontal alignment", kGraphics_horizontalAlignment::LEFT)
 	REAL (verticalPosition, U"Vertical position", U"0.0")
 	OPTIONMENUx (verticalAlignment, U"Vertical alignment", 2, 0)
-		OPTION (U"Bottom")
-		OPTION (U"Half")
-		OPTION (U"Top")
-	TEXTFIELD (text, U"Text:", U"")
+		OPTION (U"bottom")
+		OPTION (U"half")
+		OPTION (U"top")
+	TEXTFIELD (text, U"Text", U"", 4)
 	OK
 DO
 	GRAPHICS_NONE
@@ -631,25 +669,23 @@ DO
 
 FORM (GRAPHICS_TextSpecial, U"Praat picture: Text special", nullptr) {
 	REAL (horizontalPosition, U"Horizontal position", U"0.0")
-	OPTIONMENUx (horizontalAlignment, U"Horizontal alignment", 2, 0)
-		OPTION (U"Left")
-		OPTION (U"Centre")
-		OPTION (U"Right")
+	OPTIONMENU_ENUM (kGraphics_horizontalAlignment, horizontalAlignment,
+			U"Horizontal alignment", kGraphics_horizontalAlignment::LEFT)
 	REAL (verticalPosition, U"Vertical position", U"0.0")
 	OPTIONMENUx (verticalAlignment, U"Vertical alignment", 2, 0)
-		OPTION (U"Bottom")
-		OPTION (U"Half")
-		OPTION (U"Top")
+		OPTION (U"bottom")
+		OPTION (U"half")
+		OPTION (U"top")
 	OPTIONMENU_ENUM (kGraphics_font, font, U"Font", kGraphics_font::DEFAULT)
 	POSITIVE (fontSize, U"Font size", U"10")
 	SENTENCE (rotation, U"Rotation (degrees or dx;dy)", U"0")
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 4)
 OK
 DO
 	kGraphics_font currentFont = Graphics_inqFont (GRAPHICS);
 	const double currentSize = Graphics_inqFontSize (GRAPHICS);
 	GRAPHICS_NONE
-		Graphics_setTextAlignment (GRAPHICS, (kGraphics_horizontalAlignment) horizontalAlignment, verticalAlignment);
+		Graphics_setTextAlignment (GRAPHICS, horizontalAlignment, verticalAlignment);
 		Graphics_setInner (GRAPHICS);
 		Graphics_setFont (GRAPHICS, (kGraphics_font) font);
 		Graphics_setFontSize (GRAPHICS, fontSize);
@@ -730,14 +766,18 @@ FORM (GRAPHICS_DrawFunction, U"Praat picture: Draw function", nullptr) {
 	REAL (fromX, U"From x", U"0.0")
 	REAL (toX, U"To x", U"0.0 (= all)")
 	NATURAL (numberOfHorizontalSteps, U"Number of horizontal steps", U"1000")
-	TEXTFIELD (formula, U"Formula:", U"x^2 - x^4")
+	FORMULA (formula, U"Formula", U"x^2 - x^4")
 	OK
 DO
+	if (numberOfHorizontalSteps < 2)
+		return;
 	double x1WC, x2WC, y1WC, y2WC;
-	if (numberOfHorizontalSteps < 2) return;
 	Graphics_inqWindow (GRAPHICS, & x1WC, & x2WC, & y1WC, & y2WC);
-	if (fromX == toX) fromX = x1WC, toX = x2WC;
-	autoNUMvector <double> y (1, numberOfHorizontalSteps);
+	if (fromX == toX) {
+		fromX = x1WC;
+		toX = x2WC;
+	}
+	autoVEC y = raw_VEC (numberOfHorizontalSteps);
 	autoPraatPictureFunction function = Thing_new (PraatPictureFunction);
 	function -> xmin = x1WC;
 	function -> xmax = x2WC;
@@ -752,7 +792,7 @@ DO
 	}
 	GRAPHICS_NONE
 		Graphics_setInner (GRAPHICS);
-		Graphics_function (GRAPHICS, y.peek(), 1, numberOfHorizontalSteps, fromX, toX);
+		Graphics_function (GRAPHICS, & y [0], 1, numberOfHorizontalSteps, fromX, toX);
 		Graphics_unsetInner (GRAPHICS);
 	GRAPHICS_NONE_END
 }
@@ -921,7 +961,7 @@ DO
 }
 
 FORM (GRAPHICS_InsertPictureFromFile, U"Praat picture: Insert picture from file", U"Insert picture from file...") {
-	TEXTFIELD (fileName, U"File name:", U"~/Desktop/paul.jpg")
+	INFILE (fileName, U"File name", U"~/Desktop/paul.jpg")
 	REAL (fromX, U"From x", U"0.0")
 	REAL (toX, U"To x", U"1.0")
 	REAL (fromY, U"From y", U"0.0")
@@ -945,11 +985,13 @@ OK
 	Graphics_inqWindow (GRAPHICS, & x1WC, & x2WC, & y1WC, & y2WC);
 	SET_REAL (left, x1WC)
 	SET_REAL (right, x2WC)
-	SET_REAL (top, y1WC)
-	SET_REAL (bottom, y2WC)
+	SET_REAL (bottom, y1WC)
+	SET_REAL (top, y2WC)
 DO
-	if (left == right) Melder_throw (U"Left and right should not be equal.");
-	if (top == bottom) Melder_throw (U"Top and bottom should not be equal.");
+	if (left == right)
+		Melder_throw (U"Left and right should not be equal.");
+	if (top == bottom)
+		Melder_throw (U"Top and bottom should not be equal.");
 	GRAPHICS_NONE
 		Graphics_setWindow (GRAPHICS, left, right, bottom, top);
 	GRAPHICS_NONE_END
@@ -965,7 +1007,7 @@ DIRECT (GRAPHICS_DrawInnerBox) {
 
 FORM (GRAPHICS_TextLeft, U"Praat picture: Text left", U"Text left/right/top/bottom...") {
 	BOOLEAN (farr, U"Far", true)
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 3)
 	OK
 DO
 	GRAPHICS_NONE
@@ -975,7 +1017,7 @@ DO
 
 FORM (GRAPHICS_TextRight, U"Praat picture: Text right", U"Text left/right/top/bottom...") {
 	BOOLEAN (farr, U"Far", true)
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 3)
 	OK
 DO
 	GRAPHICS_NONE
@@ -985,7 +1027,7 @@ DO
 
 FORM (GRAPHICS_TextTop, U"Praat picture: Text top", U"Text left/right/top/bottom...") {
 	BOOLEAN (farr, U"Far", true)
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 3)
 	OK
 DO
 	GRAPHICS_NONE
@@ -995,7 +1037,7 @@ DO
 
 FORM (GRAPHICS_TextBottom, U"Praat picture: Text bottom", U"Text left/right/top/bottom...") {
 	BOOLEAN (farr, U"Far", true)
-	TEXTFIELD (text, U"Text:", U"")
+	TEXTFIELD (text, U"Text", U"", 3)
 	OK
 DO
 	GRAPHICS_NONE
@@ -1057,7 +1099,8 @@ FORM (GRAPHICS_MarksLeft, U"Praat picture: Marks left", U"Marks left/right/top/b
 	OK
 DO
 	GRAPHICS_NONE
-		if (numberOfMarks < 2) Melder_throw (U"The number of marks should be at least 2.");
+		if (numberOfMarks < 2)
+			Melder_throw (U"The number of marks should be at least 2.");
 		Graphics_marksLeft (GRAPHICS, numberOfMarks, writeNumbers, drawTicks, drawDottedLines);
 	GRAPHICS_NONE_END
 }
@@ -1067,7 +1110,8 @@ FORM (GRAPHICS_MarksRight, U"Praat picture: Marks right", U"Marks left/right/top
 	OK
 DO
 	GRAPHICS_NONE
-		if (numberOfMarks < 2) Melder_throw (U"The number of marks should be at least 2.");
+		if (numberOfMarks < 2)
+			Melder_throw (U"The number of marks should be at least 2.");
 		Graphics_marksRight (GRAPHICS, numberOfMarks, writeNumbers, drawTicks, drawDottedLines);
 	GRAPHICS_NONE_END
 }
@@ -1077,7 +1121,8 @@ FORM (GRAPHICS_MarksBottom, U"Praat picture: Marks bottom", U"Marks left/right/t
 	OK
 DO
 	GRAPHICS_NONE
-		if (numberOfMarks < 2) Melder_throw (U"The number of marks should be at least 2.");
+		if (numberOfMarks < 2)
+			Melder_throw (U"The number of marks should be at least 2.");
 		Graphics_marksBottom (GRAPHICS, numberOfMarks, writeNumbers, drawTicks, drawDottedLines);
 	GRAPHICS_NONE_END
 }
@@ -1087,7 +1132,8 @@ FORM (GRAPHICS_MarksTop, U"Praat picture: Marks top", U"Marks left/right/top/bot
 	OK
 DO
 	GRAPHICS_NONE
-		if (numberOfMarks < 2) Melder_throw (U"The number of marks should be at least 2.");
+		if (numberOfMarks < 2)
+			Melder_throw (U"The number of marks should be at least 2.");
 		Graphics_marksTop (GRAPHICS, numberOfMarks, writeNumbers, drawTicks, drawDottedLines);
 	GRAPHICS_NONE_END
 }
@@ -1135,9 +1181,8 @@ DO
 }
 
 static void sortBoundingBox (double *x1WC, double *x2WC, double *y1WC, double *y2WC) {
-	double temp;
-	if (*x1WC > *x2WC) temp = *x1WC, *x1WC = *x2WC, *x2WC = temp;
-	if (*y1WC > *y2WC) temp = *y1WC, *y1WC = *y2WC, *y2WC = temp;
+	Melder_sort (x1WC, x2WC);
+	Melder_sort (y1WC, y2WC);
 }
 
 FORM (GRAPHICS_OneMarkLeft, U"Praat picture: One mark left", U"One mark left/right/top/bottom...") {
@@ -1145,7 +1190,7 @@ FORM (GRAPHICS_OneMarkLeft, U"Praat picture: One mark left", U"One mark left/rig
 	BOOLEAN (writeNumber, U"Write number", true)
 	BOOLEAN (drawTick, U"Draw tick", true)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", true)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dy;
@@ -1167,7 +1212,7 @@ FORM (GRAPHICS_OneMarkRight, U"Praat picture: One mark right", U"One mark left/r
 	BOOLEAN (writeNumber, U"Write number", true)
 	BOOLEAN (drawTick, U"Draw tick", true)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", true)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dy;
@@ -1189,7 +1234,7 @@ FORM (GRAPHICS_OneMarkTop, U"Praat picture: One mark top", U"One mark left/right
 	BOOLEAN (writeNumber, U"Write number", true)
 	BOOLEAN (drawTick, U"Draw tick", true)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", true)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dx;
@@ -1211,7 +1256,7 @@ FORM (GRAPHICS_OneMarkBottom, U"Praat picture: One mark bottom", U"One mark left
 	BOOLEAN (writeNumber, U"Write number", true)
 	BOOLEAN (drawTick, U"Draw tick", true)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", true)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dx;
@@ -1233,7 +1278,7 @@ FORM (GRAPHICS_OneLogarithmicMarkLeft, U"Praat picture: One logarithmic mark lef
 	BOOLEAN (writeNumber, U"Write number", 1)
 	BOOLEAN (drawTick, U"Draw tick", 1)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", 1)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dy;
@@ -1255,7 +1300,7 @@ FORM (GRAPHICS_OneLogarithmicMarkRight, U"Praat picture: One logarithmic mark ri
 	BOOLEAN (writeNumber, U"Write number", 1)
 	BOOLEAN (drawTick, U"Draw tick", 1)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", 1)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dy;
@@ -1277,7 +1322,7 @@ FORM (GRAPHICS_OneLogarithmicMarkTop, U"Praat picture: One logarithmic mark top"
 	BOOLEAN (writeNumber, U"Write number", 1)
 	BOOLEAN (drawTick, U"Draw tick", 1)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", 1)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dx;
@@ -1299,7 +1344,7 @@ FORM (GRAPHICS_OneLogarithmicMarkBottom, U"Praat picture: One logarithmic mark b
 	BOOLEAN (writeNumber, U"Write number", 1)
 	BOOLEAN (drawTick, U"Draw tick", 1)
 	BOOLEAN (drawDottedLine, U"Draw dotted line", 1)
-	TEXTFIELD (text, U"Draw text:", U"")
+	TEXTFIELD (text, U"Draw text", U"", 3)
 	OK
 DO
 	double x1WC, x2WC, y1WC, y2WC, dx;
@@ -1320,175 +1365,181 @@ FORM (GRAPHICS_HorizontalMmToWorldCoordinates, U"Compute horizontal distance in 
 	REAL (distance, U"Distance (mm)", U"10.0")
 	OK
 DO
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double wc = Graphics_dxMMtoWC (GRAPHICS, distance);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (wc, U"(world coordinates)");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_dxMMtoWC (GRAPHICS, distance);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" (world coordinates)");
+}
 
 FORM (GRAPHICS_HorizontalWorldCoordinatesToMm, U"Compute horizontal distance in millimetres", nullptr) {
 	REAL (distance, U"Distance (wc)", U"0.1")
 	OK
 DO
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double mm = Graphics_dxWCtoMM (GRAPHICS, distance);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (mm, U"mm");
-END }
+	QUERY_GRAPHICS_FOR_REAL   // TODO: do we need autoPraatPicture for any of these?
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_dxWCtoMM (GRAPHICS, distance);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" mm")
+}
 
 FORM (GRAPHICS_VerticalMmToWorldCoordinates, U"Compute vertical distance in world coordinates", nullptr) {
 	REAL (distance, U"Distance (mm)", U"10.0")
 	OK
 DO
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double wc = Graphics_dyMMtoWC (GRAPHICS, distance);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (wc, U"(world coordinates)");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_dyMMtoWC (GRAPHICS, distance);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" (world coordinates)")
+}
 
 FORM (GRAPHICS_VerticalWorldCoordinatesToMm, U"Compute vertical distance in millimetres", nullptr) {
 	REAL (distance, U"Distance (wc)", U"1.0")
 	OK
 DO
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double mm = Graphics_dyWCtoMM (GRAPHICS, distance);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (mm, U"mm");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_dyWCtoMM (GRAPHICS, distance);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" mm")
+}
 
 FORM (GRAPHICS_TextWidth_worldCoordinates, U"Text width in world coordinates", nullptr) {
-	TEXTFIELD (text, U"Text:", U"Hello world")
+	TEXTFIELD (text, U"Text", U"Hello world", 3)
 	OK
 DO
-	Graphics_setFont (GRAPHICS, static_cast<kGraphics_font> (theCurrentPraatPicture -> font));
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double wc = Graphics_textWidth (GRAPHICS, text);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (wc, U"(world coordinates)");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_textWidth (GRAPHICS, text);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" (world coordinates)")
+}
 
 FORM (GRAPHICS_TextWidth_mm, U"Text width in millimetres", nullptr) {
-	TEXTFIELD (text, U"Text:", U"Hello world")
+	TEXTFIELD (text, U"Text", U"Hello world", 3)
 	OK
 DO
-	Graphics_setFont (GRAPHICS, static_cast<kGraphics_font> (theCurrentPraatPicture -> font));
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double mm = Graphics_dxWCtoMM (GRAPHICS, Graphics_textWidth (GRAPHICS, text));
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (mm, U"mm");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font);
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_dxWCtoMM (GRAPHICS, Graphics_textWidth (GRAPHICS, text));
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" mm")
+}
 
 FORM (GRAPHICS_PostScriptTextWidth_worldCoordinates, U"PostScript text width in world coordinates", nullptr) {
 	RADIOx (phoneticFont, U"Phonetic font", 1, 0)
 		RADIOBUTTON (U"XIPA")
 		RADIOBUTTON (U"SILIPA")
-	TEXTFIELD (text, U"Text:", U"Hello world")
+	TEXTFIELD (text, U"Text", U"Hello world", 3)
 	OK
 DO
-	Graphics_setFont (GRAPHICS, static_cast<kGraphics_font> (theCurrentPraatPicture -> font));
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double wc = Graphics_textWidth_ps (GRAPHICS, text, phoneticFont);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (wc, U"(world coordinates)");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font);
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_textWidth_ps (GRAPHICS, text, phoneticFont);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" (world coordinates)")
+}
+
 
 FORM (GRAPHICS_PostScriptTextWidth_mm, U"PostScript text width in millimetres", nullptr) {
 	RADIOx (phoneticFont, U"Phonetic font", 1, 0)
 		RADIOBUTTON (U"XIPA")
 		RADIOBUTTON (U"SILIPA")
-	TEXTFIELD (text, U"Text:", U"Hello world")
+	TEXTFIELD (text, U"Text", U"Hello world", 3)
 	OK
 DO
-	Graphics_setFont (GRAPHICS, static_cast<kGraphics_font> (theCurrentPraatPicture -> font));
-	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
-	Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
-	Graphics_setInner (GRAPHICS);
-	double mm = Graphics_textWidth_ps_mm (GRAPHICS, text, phoneticFont);
-	Graphics_unsetInner (GRAPHICS);
-	Melder_informationReal (mm, U"mm");
-END }
+	QUERY_GRAPHICS_FOR_REAL
+		Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font);
+		Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
+		Graphics_setViewport (GRAPHICS, theCurrentPraatPicture -> x1NDC, theCurrentPraatPicture -> x2NDC, theCurrentPraatPicture -> y1NDC, theCurrentPraatPicture -> y2NDC);
+		Graphics_setInner (GRAPHICS);
+		const double result = Graphics_textWidth_ps_mm (GRAPHICS, text, phoneticFont);
+		Graphics_unsetInner (GRAPHICS);
+	QUERY_GRAPHICS_FOR_REAL_END (U" mm")
+}
 
-DIRECT (HELP_SearchManual_Picture) { Melder_search (); END }
+DIRECT (HELP_SearchManual_Picture) { Melder_search (); END_WITH_NEW_DATA }
 DIRECT (HELP_PictureWindowHelp) { HELP (U"Picture window") }
 DIRECT (HELP_AboutSpecialSymbols) { HELP (U"Special symbols") }
 DIRECT (HELP_AboutTextStyles) { HELP (U"Text styles") }
 DIRECT (HELP_PhoneticSymbols) { HELP (U"Phonetic symbols") }
 DIRECT (GRAPHICS_Picture_settings_report) {
-	MelderInfo_open ();
-	const conststring32 units = theCurrentPraatPicture == & theForegroundPraatPicture ? U" inches" : U"";
-	MelderInfo_writeLine (U"Outer viewport left: ", theCurrentPraatPicture -> x1NDC, units);
-	MelderInfo_writeLine (U"Outer viewport right: ", theCurrentPraatPicture -> x2NDC, units);
-	MelderInfo_writeLine (U"Outer viewport top: ",
-		theCurrentPraatPicture != & theForegroundPraatPicture ?
-			theCurrentPraatPicture -> y1NDC :
-			12 - theCurrentPraatPicture -> y2NDC, units);
-	MelderInfo_writeLine (U"Outer viewport bottom: ",
-		theCurrentPraatPicture != & theForegroundPraatPicture ?
-			theCurrentPraatPicture -> y2NDC :
-			12 - theCurrentPraatPicture -> y1NDC, units);
-	MelderInfo_writeLine (U"Font size: ", theCurrentPraatPicture -> fontSize, U" points");
-	double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0, ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
-	if (theCurrentPraatPicture != & theForegroundPraatPicture) {
-		integer x1DC, x2DC, y1DC, y2DC;
-		Graphics_inqWsViewport (GRAPHICS, & x1DC, & x2DC, & y1DC, & y2DC);
-		double x1wNDC, x2wNDC, y1wNDC, y2wNDC;
-		Graphics_inqWsWindow (GRAPHICS, & x1wNDC, & x2wNDC, & y1wNDC, & y2wNDC);
-		double wDC = (x2DC - x1DC) / (x2wNDC - x1wNDC);
-		double hDC = labs (y2DC - y1DC) / (y2wNDC - y1wNDC);
-		xmargin *= Graphics_getResolution (GRAPHICS) / wDC;
-		ymargin *= Graphics_getResolution (GRAPHICS) / hDC;
-	}
-	if (ymargin > 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC))
-		ymargin = 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC);
-	if (xmargin > 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC))
-		xmargin = 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC);
-	MelderInfo_writeLine (U"Inner viewport left: ", theCurrentPraatPicture -> x1NDC + xmargin, units);
-	MelderInfo_writeLine (U"Inner viewport right: ", theCurrentPraatPicture -> x2NDC - xmargin, units);
-	MelderInfo_writeLine (U"Inner viewport top: ",
-		theCurrentPraatPicture != & theForegroundPraatPicture ?
-			theCurrentPraatPicture -> y1NDC + ymargin :
-			12 - theCurrentPraatPicture -> y2NDC + ymargin, units);
-	MelderInfo_writeLine (U"Inner viewport bottom: ",
-		theCurrentPraatPicture != & theForegroundPraatPicture ?
-			theCurrentPraatPicture -> y2NDC - ymargin :
-			12 - theCurrentPraatPicture -> y1NDC - ymargin, units);
-	MelderInfo_writeLine (U"Font: ", kGraphics_font_getText ((kGraphics_font) theCurrentPraatPicture -> font));
-	MelderInfo_writeLine (U"Line type: ",
-		theCurrentPraatPicture -> lineType == Graphics_DRAWN ? U"Solid" :
-		theCurrentPraatPicture -> lineType == Graphics_DOTTED ? U"Dotted" :
-		theCurrentPraatPicture -> lineType == Graphics_DASHED ? U"Dashed" :
-		theCurrentPraatPicture -> lineType == Graphics_DASHED_DOTTED ? U"Dashed-dotted" :
-		U"(unknown)");
-	MelderInfo_writeLine (U"Line width: ", theCurrentPraatPicture -> lineWidth);
-	MelderInfo_writeLine (U"Arrow size: ", theCurrentPraatPicture -> arrowSize);
-	MelderInfo_writeLine (U"Speckle size: ", theCurrentPraatPicture -> speckleSize);
-	MelderInfo_writeLine (U"Colour: ", Graphics_Colour_name (theCurrentPraatPicture -> colour));
-	MelderInfo_writeLine (U"Red: ", theCurrentPraatPicture -> colour. red);
-	MelderInfo_writeLine (U"Green: ", theCurrentPraatPicture -> colour. green);
-	MelderInfo_writeLine (U"Blue: ", theCurrentPraatPicture -> colour. blue);
-	double x1WC, x2WC, y1WC, y2WC;
-	Graphics_inqWindow (GRAPHICS, & x1WC, & x2WC, & y1WC, & y2WC);
-	MelderInfo_writeLine (U"Axis left: ", x1WC);
-	MelderInfo_writeLine (U"Axis right: ", x2WC);
-	MelderInfo_writeLine (U"Axis bottom: ", y1WC);
-	MelderInfo_writeLine (U"Axis top: ", y2WC);
-	MelderInfo_close ();
-END }
-
+	INFO_NONE
+		MelderInfo_open ();
+		const conststring32 units = ( theCurrentPraatPicture == & theForegroundPraatPicture ? U" inches" : U"" );
+		MelderInfo_writeLine (U"Outer viewport left: ", theCurrentPraatPicture -> x1NDC, units);
+		MelderInfo_writeLine (U"Outer viewport right: ", theCurrentPraatPicture -> x2NDC, units);
+		MelderInfo_writeLine (U"Outer viewport top: ",
+			theCurrentPraatPicture != & theForegroundPraatPicture ?
+				theCurrentPraatPicture -> y1NDC :
+				12 - theCurrentPraatPicture -> y2NDC, units);
+		MelderInfo_writeLine (U"Outer viewport bottom: ",
+			theCurrentPraatPicture != & theForegroundPraatPicture ?
+				theCurrentPraatPicture -> y2NDC :
+				12 - theCurrentPraatPicture -> y1NDC, units);
+		MelderInfo_writeLine (U"Font size: ", theCurrentPraatPicture -> fontSize, U" points");
+		double xmargin = theCurrentPraatPicture -> fontSize * 4.2 / 72.0;
+		double ymargin = theCurrentPraatPicture -> fontSize * 2.8 / 72.0;
+		if (theCurrentPraatPicture != & theForegroundPraatPicture) {
+			integer x1DC, x2DC, y1DC, y2DC;
+			Graphics_inqWsViewport (GRAPHICS, & x1DC, & x2DC, & y1DC, & y2DC);
+			double x1wNDC, x2wNDC, y1wNDC, y2wNDC;
+			Graphics_inqWsWindow (GRAPHICS, & x1wNDC, & x2wNDC, & y1wNDC, & y2wNDC);
+			double wDC = (x2DC - x1DC) / (x2wNDC - x1wNDC);
+			double hDC = integer_abs (y2DC - y1DC) / (y2wNDC - y1wNDC);
+			xmargin *= Graphics_getResolution (GRAPHICS) / wDC;
+			ymargin *= Graphics_getResolution (GRAPHICS) / hDC;
+		}
+		Melder_clipRight (& ymargin, 0.4 * (theCurrentPraatPicture -> y2NDC - theCurrentPraatPicture -> y1NDC));
+		Melder_clipRight (& xmargin, 0.4 * (theCurrentPraatPicture -> x2NDC - theCurrentPraatPicture -> x1NDC));
+		MelderInfo_writeLine (U"Inner viewport left: ", theCurrentPraatPicture -> x1NDC + xmargin, units);
+		MelderInfo_writeLine (U"Inner viewport right: ", theCurrentPraatPicture -> x2NDC - xmargin, units);
+		MelderInfo_writeLine (U"Inner viewport top: ",
+			theCurrentPraatPicture != & theForegroundPraatPicture ?
+				theCurrentPraatPicture -> y1NDC + ymargin :
+				12 - theCurrentPraatPicture -> y2NDC + ymargin, units);
+		MelderInfo_writeLine (U"Inner viewport bottom: ",
+			theCurrentPraatPicture != & theForegroundPraatPicture ?
+				theCurrentPraatPicture -> y2NDC - ymargin :
+				12 - theCurrentPraatPicture -> y1NDC - ymargin, units);
+		MelderInfo_writeLine (U"Font: ", kGraphics_font_getText (theCurrentPraatPicture -> font));
+		MelderInfo_writeLine (U"Line type: ",
+			theCurrentPraatPicture -> lineType == Graphics_DRAWN ? U"Solid" :
+			theCurrentPraatPicture -> lineType == Graphics_DOTTED ? U"Dotted" :
+			theCurrentPraatPicture -> lineType == Graphics_DASHED ? U"Dashed" :
+			theCurrentPraatPicture -> lineType == Graphics_DASHED_DOTTED ? U"Dashed-dotted" :
+			U"(unknown)");
+		MelderInfo_writeLine (U"Line width: ", theCurrentPraatPicture -> lineWidth);
+		MelderInfo_writeLine (U"Arrow size: ", theCurrentPraatPicture -> arrowSize);
+		MelderInfo_writeLine (U"Speckle size: ", theCurrentPraatPicture -> speckleSize);
+		MelderInfo_writeLine (U"Colour: ", MelderColour_name (theCurrentPraatPicture -> colour));
+		MelderInfo_writeLine (U"Red: ", theCurrentPraatPicture -> colour. red);
+		MelderInfo_writeLine (U"Green: ", theCurrentPraatPicture -> colour. green);
+		MelderInfo_writeLine (U"Blue: ", theCurrentPraatPicture -> colour. blue);
+		double x1WC, x2WC, y1WC, y2WC;
+		Graphics_inqWindow (GRAPHICS, & x1WC, & x2WC, & y1WC, & y2WC);
+		MelderInfo_writeLine (U"Axis left: ", x1WC);
+		MelderInfo_writeLine (U"Axis right: ", x2WC);
+		MelderInfo_writeLine (U"Axis bottom: ", y1WC);
+		MelderInfo_writeLine (U"Axis top: ", y2WC);
+		MelderInfo_close ();
+	INFO_NONE_END
+}
 
 /**********   **********/
 
@@ -1560,7 +1611,6 @@ void praat_picture_open () {
 		#elif cocoa
 			GuiThing_show (dialog);
 		#endif
-		Picture_unhighlight (praat_picture.get());
 	}
 	/* Foregoing drawing routines may have changed some of the output attributes */
 	/* that can be set by the user. */
@@ -1568,7 +1618,7 @@ void praat_picture_open () {
 	/* This is especially necessary after an 'erase picture': */
 	/* the output attributes that were set by the user before the 'erase' */
 	/* must be recorded before copying to a PostScript file. */
-	Graphics_setFont (GRAPHICS, static_cast<kGraphics_font> (theCurrentPraatPicture -> font));
+	Graphics_setFont (GRAPHICS, theCurrentPraatPicture -> font);
 	Graphics_setFontSize (GRAPHICS, theCurrentPraatPicture -> fontSize);
 	Graphics_setLineType (GRAPHICS, theCurrentPraatPicture -> lineType);
 	Graphics_setLineWidth (GRAPHICS, theCurrentPraatPicture -> lineWidth);
@@ -1584,17 +1634,15 @@ void praat_picture_open () {
 }
 
 void praat_picture_close () {
-	if (theCurrentPraatPicture != & theForegroundPraatPicture) return;
-	if (! theCurrentPraatApplication -> batch) {
-		Picture_highlight (praat_picture.get());
-		#ifdef macintosh
-			//dialog -> f_drain ();
-		#endif
-	}
+	if (theCurrentPraatPicture != & theForegroundPraatPicture)
+		return;
+	if (! theCurrentPraatApplication -> batch)
+		Graphics_updateWs (GRAPHICS);
 }
 
 Graphics praat_picture_editor_open (bool eraseFirst) {
-	if (eraseFirst) Picture_erase (praat_picture.get());
+	if (eraseFirst)
+		Picture_erase (praat_picture.get());
 	praat_picture_open ();
 	return GRAPHICS;
 }
@@ -1604,7 +1652,8 @@ void praat_picture_editor_close () {
 }
 
 static autoDaata pictureRecognizer (integer nread, const char *header, MelderFile file) {
-	if (nread < 2) return autoDaata ();
+	if (nread < 2)
+		return autoDaata ();
 	if (strnequ (header, "PraatPictureFile", 16)) {
 		Picture_readFromPraatPictureFile (praat_picture.get(), file);
 		return Thing_new (Daata);   // a dummy
@@ -1617,7 +1666,7 @@ void praat_picture_init () {
 	GuiDrawingArea drawingArea = nullptr;
 	int margin, width, height, resolution, x, y;
 	theCurrentPraatPicture -> lineType = Graphics_DRAWN;
-	theCurrentPraatPicture -> colour = Graphics_BLACK;
+	theCurrentPraatPicture -> colour = Melder_BLACK;
 	theCurrentPraatPicture -> lineWidth = 1.0;
 	theCurrentPraatPicture -> arrowSize = 1.0;
 	theCurrentPraatPicture -> speckleSize = 1.0;
@@ -1830,10 +1879,14 @@ void praat_picture_init () {
 	praatButton_18 = praat_addMenuCommand (U"Picture", U"Font", U"18", nullptr, praat_CHECKBUTTON | praat_NO_API, GRAPHICS_18);
 	praatButton_24 = praat_addMenuCommand (U"Picture", U"Font", U"24", nullptr, praat_CHECKBUTTON | praat_NO_API, GRAPHICS_24);
 	praat_addMenuCommand (U"Picture", U"Font", U"-- font ---", nullptr, 0, nullptr);
-	praatButton_fonts [(int) kGraphics_font::TIMES] = praat_addMenuCommand (U"Picture", U"Font", U"Times", nullptr, praat_RADIO_FIRST, GRAPHICS_Times);
-	praatButton_fonts [(int) kGraphics_font::HELVETICA] = praat_addMenuCommand (U"Picture", U"Font", U"Helvetica", nullptr, praat_RADIO_NEXT, GRAPHICS_Helvetica);
-	praatButton_fonts [(int) kGraphics_font::PALATINO] = praat_addMenuCommand (U"Picture", U"Font", U"Palatino", nullptr, praat_RADIO_NEXT, GRAPHICS_Palatino);
-	praatButton_fonts [(int) kGraphics_font::COURIER] = praat_addMenuCommand (U"Picture", U"Font", U"Courier", nullptr, praat_RADIO_NEXT, GRAPHICS_Courier);
+	praatButton_fonts [(int) kGraphics_font::TIMES] = praat_addMenuCommand (U"Picture", U"Font", U"Times", nullptr, praat_RADIO_FIRST,
+			GRAPHICS_NONE__Times);
+	praatButton_fonts [(int) kGraphics_font::HELVETICA] = praat_addMenuCommand (U"Picture", U"Font", U"Helvetica", nullptr, praat_RADIO_NEXT,
+			GRAPHICS_NONE__Helvetica);
+	praatButton_fonts [(int) kGraphics_font::PALATINO] = praat_addMenuCommand (U"Picture", U"Font", U"Palatino", nullptr, praat_RADIO_NEXT,
+			GRAPHICS_NONE__Palatino);
+	praatButton_fonts [(int) kGraphics_font::COURIER] = praat_addMenuCommand (U"Picture", U"Font", U"Courier", nullptr, praat_RADIO_NEXT,
+			GRAPHICS_NONE__Courier);
 
 	praat_addMenuCommand (U"Picture", U"Help", U"Picture window help", nullptr, '?', HELP_PictureWindowHelp);
 	praat_addMenuCommand (U"Picture", U"Help", U"About special symbols", nullptr, 0, HELP_AboutSpecialSymbols);
@@ -1847,7 +1900,8 @@ void praat_picture_init () {
 	if (! theCurrentPraatApplication -> batch) {
 		width = height = resolution * 12;
 		scrollWindow = GuiScrolledWindow_createShown (dialog, margin, 0, Machine_getMenuBarHeight () + margin, 0, 1, 1, 0);
-		drawingArea = GuiDrawingArea_createShown (scrollWindow, width, height, nullptr, nullptr, nullptr, nullptr, nullptr, 0);
+		drawingArea = GuiDrawingArea_createShown (scrollWindow, width, height,
+				nullptr, nullptr, nullptr, nullptr, nullptr, 0);
 		GuiThing_show (dialog);
 	}
 
@@ -1869,26 +1923,6 @@ void praat_picture_prefsChanged () {
 	updateViewportMenu ();
 	Graphics_setFontSize (theCurrentPraatPicture -> graphics, theCurrentPraatPicture -> fontSize);   // so that the thickness of the selection rectangle is correct
 	Picture_setMouseSelectsInnerViewport (praat_picture.get(), praat_mouseSelectsInnerViewport);
-}
-
-void praat_picture_background () {
-	if (theCurrentPraatPicture != & theForegroundPraatPicture) return;   // Demo window and pictures ignore this
-	if (! theCurrentPraatApplication -> batch) {
-		//Picture_unhighlight (praat_picture.get());
-		#if cocoa
-			Picture_background (praat_picture.get());   // prevent Cocoa's very slow highlighting until woken up by Picture_foreground()
-		#endif
-	}
-}
-
-void praat_picture_foreground () {
-	if (theCurrentPraatPicture != & theForegroundPraatPicture) return;   // Demo window and pictures ignore this
-	if (! theCurrentPraatApplication -> batch) {
-		#if cocoa
-			Picture_foreground (praat_picture.get());   // wake up from the highlighting sleep caused by Picture_background()
-		#endif
-		//Picture_highlight (praat_picture.get());
-	}
 }
 
 /* End of file praat_picture.cpp */

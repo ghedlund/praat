@@ -1,5 +1,5 @@
 # Makefile of the library "external/portaudio"
-# Paul Boersma, 21 October 2018
+# Paul Boersma, 19 November 2020
 
 include ../../makefile.defs
 

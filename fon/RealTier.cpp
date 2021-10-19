@@ -1,6 +1,6 @@
 /* RealTier.cpp
  *
- * Copyright (C) 1992-2012,2014,2015,2016,2017 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -299,7 +299,7 @@ void RealTier_multiplyPart (RealTier me, double tmin, double tmax, double factor
 }
 
 void RealTier_draw (RealTier me, Graphics g, double tmin, double tmax, double fmin, double fmax,
-	int garnish, conststring32 method, conststring32 quantity)
+	bool garnish, conststring32 method, conststring32 quantity)
 {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	const bool drawLines = str32str (method, U"lines") || str32str (method, U"Lines");
@@ -313,11 +313,13 @@ void RealTier_draw (RealTier me, Graphics g, double tmin, double tmax, double fm
 	} else if (imax < imin) {
 		double fleft = RealTier_getValueAtTime (me, tmin);
 		double fright = RealTier_getValueAtTime (me, tmax);
-		if (drawLines) Graphics_line (g, tmin, fleft, tmax, fright);
+		if (drawLines)
+			Graphics_line (g, tmin, fleft, tmax, fright);
 	} else for (integer i = imin; i <= imax; i ++) {
 		RealPoint point = my points.at [i];
 		const double t = point -> number, f = point -> value;
-		if (drawSpeckles) Graphics_speckle (g, t, f);
+		if (drawSpeckles)
+			Graphics_speckle (g, t, f);
 		if (drawLines) {
 			if (i == 1)
 				Graphics_line (g, tmin, f, t, f);
@@ -339,7 +341,8 @@ void RealTier_draw (RealTier me, Graphics g, double tmin, double tmax, double fm
 		Graphics_textBottom (g, true, my v_getUnitText (0, 0, 0));
 		Graphics_marksBottom (g, 2, true, true, false);
 		Graphics_marksLeft (g, 2, true, true, false);
-		if (quantity) Graphics_textLeft (g, true, quantity);
+		if (quantity)
+			Graphics_textLeft (g, true, quantity);
 	}
 }
 
@@ -367,30 +370,35 @@ void RealTier_interpolateQuadratically (RealTier me, integer numberOfPointsPerPa
 			double time1 = point1 -> number, time2 = point2 -> number, tmid = 0.5 * (time1 + time2);
 			double value1 = point1 -> value, value2 = point2 -> value, valuemid;
 			double timeStep = (tmid - time1) / (numberOfPointsPerParabola + 1);
-			if (logarithmically) value1 = log (value1), value2 = log (value2);
+			if (logarithmically) {
+				value1 = log (value1);
+				value2 = log (value2);
+			}
 			valuemid = 0.5 * (value1 + value2);
 			/*
-			 * Left from the midpoint.
-			 */
+				Left from the midpoint.
+			*/
 			for (integer inewpoint = 1; inewpoint <= numberOfPointsPerParabola; inewpoint ++) {
 				double newTime = time1 + inewpoint * timeStep;
 				double phase = (newTime - time1) / (tmid - time1);
 				double newValue = value1 + (valuemid - value1) * phase * phase;
-				if (logarithmically) newValue = exp (newValue);
+				if (logarithmically)
+					newValue = exp (newValue);
 				RealTier_addPoint (thee.get(), newTime, newValue);
 			}
 			/*
-			 * The midpoint.
-			 */
+				The midpoint.
+			*/
 			RealTier_addPoint (thee.get(), tmid, logarithmically ? exp (valuemid) : valuemid);
 			/*
-			 * Right from the midpoint.
-			 */
+				Right from the midpoint.
+			*/
 			for (integer inewpoint = 1; inewpoint <= numberOfPointsPerParabola; inewpoint ++) {
 				double newTime = tmid + inewpoint * timeStep;
 				double phase = (time2 - newTime) / (time2 - tmid);
 				double newValue = value2 + (valuemid - value2) * phase * phase;
-				if (logarithmically) newValue = exp (newValue);
+				if (logarithmically)
+					newValue = exp (newValue);
 				RealTier_addPoint (thee.get(), newTime, newValue);
 			}
 		}
@@ -424,9 +432,8 @@ autoTable RealTier_downto_Table (RealTier me, conststring32 indexText, conststri
 autoRealTier Vector_to_RealTier (Vector me, integer channel, ClassInfo klas) {
 	try {
 		autoRealTier thee = RealTier_createWithClass (my xmin, my xmax, klas);
-		for (integer i = 1; i <= my nx; i ++) {
+		for (integer i = 1; i <= my nx; i ++)
 			RealTier_addPoint (thee.get(), Sampled_indexToX (me, i), my z [channel] [i]);
-		}
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to ", klas -> className, U".");
@@ -441,7 +448,7 @@ autoRealTier Vector_to_RealTier_peaks (Vector me, integer channel, ClassInfo kla
 			if (left <= centre && right < centre) {
 				double x, maximum;
 				Vector_getMaximumAndX (me, my x1 + (i - 2.5) * my dx, my x1 + (i + 0.5) * my dx,
-					channel, NUM_PEAK_INTERPOLATE_PARABOLIC, & maximum, & x);
+						channel, kVector_peakInterpolation :: PARABOLIC, & maximum, & x);
 				RealTier_addPoint (thee.get(), x, maximum);
 			}
 		}
@@ -459,7 +466,7 @@ autoRealTier Vector_to_RealTier_valleys (Vector me, integer channel, ClassInfo k
 			if (left >= centre && right > centre) {
 				double x, minimum;
 				Vector_getMinimumAndX (me, my x1 + (i - 2.5) * my dx, my x1 + (i + 0.5) * my dx,
-					channel, NUM_PEAK_INTERPOLATE_PARABOLIC, & minimum, & x);
+						channel, kVector_peakInterpolation :: PARABOLIC, & minimum, & x);
 				RealTier_addPoint (thee.get(), x, minimum);
 			}
 		}
@@ -472,9 +479,8 @@ autoRealTier Vector_to_RealTier_valleys (Vector me, integer channel, ClassInfo k
 autoRealTier PointProcess_upto_RealTier (PointProcess me, double value, ClassInfo klas) {
 	try {
 		autoRealTier thee = RealTier_createWithClass (my xmin, my xmax, klas);
-		for (integer i = 1; i <= my nt; i ++) {
+		for (integer i = 1; i <= my nt; i ++)
 			RealTier_addPoint (thee.get(), my t [i], value);
-		}
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to RealTier.");
@@ -503,6 +509,141 @@ void RealTier_removePointsBelow (RealTier me, double level) {
 		RealPoint point = my points.at [ipoint];
 		if (point -> value < level)
 			AnyTier_removePoint (me->asAnyTier(), ipoint);
+	}
+}
+
+void RealTier_PointProcess_into_RealTier (RealTier me, PointProcess pp, RealTier thee) {
+	for (integer i = 1; i <= pp -> nt; i ++) {
+		const double time = pp -> t [i];
+		const double value = RealTier_getValueAtTime (me, time);
+		RealTier_addPoint (thee, time, value);
+	}
+}
+
+autoRealTier RealTier_PointProcess_to_RealTier (RealTier me, PointProcess pp) {
+	try {
+		if (my points.size == 0)
+			Melder_throw (U"No points.");
+		autoRealTier thee = RealTier_create (pp -> xmin, pp -> xmax);
+		RealTier_PointProcess_into_RealTier (me, pp, thee.get());
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U" & ", pp, U": not converted to RealTier.");
+	}
+}
+
+autoRealTier AnyRealTier_downto_RealTier (RealTier me) {
+	try {
+		autoRealTier thee = Thing_new (RealTier);
+		my structRealTier :: v_copy (thee.get());
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": not converted to RealTier.");
+	}
+}
+
+static void RealTier_checkThatNoPointFallsOutsideDefinedTimeDomain (RealTier me) {
+	if (my points.size == 0) {
+		// nothing to check
+	} else if (my points.size == 1) {
+		const double onlyTime = my points.at [1] -> number;
+		if (isdefined (my xmin))
+			Melder_require (my xmin <= onlyTime,
+				U"The only point (at time ", onlyTime, U" seconds) falls outside the time domain, i.e. before ", my xmin, U" seconds.");
+		if (isdefined (my xmax))
+			Melder_require (my xmax >= onlyTime,
+				U"The only point (at time ", onlyTime, U" seconds) falls outside the time domain, i.e. after ", my xmax, U" seconds.");
+	} else {
+		const double firstTime = my points.at [1] -> number;
+		const double lastTime = my points.at [my points.size] -> number;
+		if (isdefined (my xmin))
+			Melder_require (my xmin <= firstTime,
+				U"The first point (at time ", firstTime, U" seconds) falls outside the time domain, i.e. before ", my xmin, U" seconds.");
+		if (isdefined (my xmax))
+			Melder_require (my xmax >= lastTime,
+				U"The last point (at time ", lastTime, U" seconds) falls outside the time domain, i.e. after ", my xmax, U" seconds.");
+	}
+}
+
+static void RealTier_fitUndefinedTimeDomainToData (RealTier me) {
+	if (my points.size == 0) {
+		if (isundef (my xmin) && isundef (my xmax)) {
+			my xmin = 0.0;
+			my xmax = 1.0;
+		} else if (isundef (my xmin)) {
+			my xmin = my xmax - 1.0;
+		} else if (isundef (my xmax)) {
+			my xmax = my xmin + 1.0;
+		}
+	} else if (my points.size == 1) {
+		const double onlyTime = my points.at [1] -> number;
+		if (isundef (my xmin) && isundef (my xmax)) {
+			my xmin = onlyTime - 1.0;
+			my xmax = onlyTime + 1.0;
+		} else if (isundef (my xmin)) {
+			my xmin = onlyTime - 1.0 * ( my xmax == onlyTime );
+		} else if (isundef (my xmax)) {
+			my xmax = onlyTime + 1.0 * ( my xmin == onlyTime );
+		}
+	} else {
+		const double firstTime = my points.at [1] -> number;
+		const double lastTime = my points.at [my points.size] -> number;
+		if (isundef (my xmin))
+			my xmin = firstTime;
+		if (isundef (my xmax))
+			my xmax = lastTime;
+	}
+}
+
+autoRealTier Table_to_RealTier (Table me, integer timeColumn, integer valueColumn, double tmin, double tmax) {
+	try {
+		Melder_require (timeColumn >= 1 && timeColumn <= my numberOfColumns,
+			U"The column number (for the times) should be between 1 and ", my numberOfColumns);
+		Melder_require (valueColumn >= 1 && valueColumn <= my numberOfColumns,
+			U"The column number (for the values) should be between 1 and ", my numberOfColumns);
+		Melder_require (! (tmax <= tmin),   // NaN-safe
+			U"The end of the time domain (", tmax, U") should be greater than the start of the time domain (", tmin, U").");
+		autoRealTier thee = RealTier_create (tmin, tmax);
+		Table_numericize_Assert (me, timeColumn);
+		Table_numericize_Assert (me, valueColumn);
+		for (integer irow = 1; irow <= my rows.size; irow ++) {
+			TableRow row = my rows.at [irow];
+			RealTier_addPoint (thee.get(), row -> cells [timeColumn]. number, row -> cells [valueColumn]. number);
+		}
+		/*
+			At this point, all times are in sorted order and unique,
+			because RealTier_addPoint inserts its time in order and complains if the time already exists.
+			The data-dependent tests therefore need to be only about the time domain.
+		*/
+		RealTier_checkThatNoPointFallsOutsideDefinedTimeDomain (thee.get());
+		RealTier_fitUndefinedTimeDomainToData (thee.get());
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": not converted to RealTier.");
+	}
+}
+
+autoRealTier Matrix_to_RealTier (Matrix me, integer timeColumn, integer valueColumn, double tmin, double tmax) {
+	try {
+		Melder_require (timeColumn >= 1 && timeColumn <= my nx,
+			U"The column number (for the times) should be between 1 and ", my nx);
+		Melder_require (valueColumn >= 1 && valueColumn <= my nx,
+			U"The column number (for the values) should be between 1 and ", my nx);
+		Melder_require (! (tmax <= tmin),   // NaN-safe
+			U"The end of the time domain (", tmax, U") should be greater than the start of the time domain (", tmin, U").");
+		autoRealTier thee = RealTier_create (tmin, tmax);
+		for (integer irow = 1; irow <= my ny; irow ++)
+			RealTier_addPoint (thee.get(), my z [irow] [timeColumn], my z [irow] [valueColumn]);
+		/*
+			At this point, all times are in sorted order and unique,
+			because RealTier_addPoint inserts its time in order and complains if the time already exists.
+			The data-dependent tests therefore need to be only about the time domain.
+		*/
+		RealTier_checkThatNoPointFallsOutsideDefinedTimeDomain (thee.get());
+		RealTier_fitUndefinedTimeDomainToData (thee.get());
+		return thee;
+	} catch (MelderError) {
+		Melder_throw (me, U": not converted to RealTier.");
 	}
 }
 

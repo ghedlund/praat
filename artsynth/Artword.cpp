@@ -1,6 +1,6 @@
 /* Artword.cpp
  *
- * Copyright (C) 1992-2009,2011,2015-2018 Paul Boersma
+ * Copyright (C) 1992-2009,2011,2015-2018,2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,8 +49,8 @@ autoArtword Artword_create (double totalTime) {
 
 void Artword_setDefault (Artword me, kArt_muscle muscle) {
 	ArtwordData f = & my data [(int) muscle];
-	f -> times = newVECzero (2);
-	f -> targets = newVECzero (2);
+	f -> times = zero_VEC (2);
+	f -> targets = zero_VEC (2);
 	f -> numberOfTargets = 2;
 	f -> times [1] = 0.0;
 	f -> targets [1] = 0.0;
@@ -71,8 +71,8 @@ static void ArtwordData_setTarget (ArtwordData me, double time, double target) {
 	}
 	if (my numberOfTargets == INT16_MAX)
 		Melder_throw (U"An Artword cannot have more than ", INT16_MAX, U" targets.");
-	my times.insert (insertionPosition, time);
-	my targets.insert (insertionPosition, target);
+	my times. insert (insertionPosition, time);
+	my targets. insert (insertionPosition, target);
 	my numberOfTargets ++;   // maintain invariant
 }
 
@@ -131,7 +131,7 @@ void Artword_intoArt (Artword me, Art art, double time) {
 void Artword_draw (Artword me, Graphics g, kArt_muscle muscle, bool garnish) {
 	int16 numberOfTargets = my data [(int) muscle]. numberOfTargets;
 	if (numberOfTargets > 0) {
-		autoVEC x = newVECraw (numberOfTargets), y = newVECraw (numberOfTargets);
+		autoVEC x = raw_VEC (numberOfTargets), y = raw_VEC (numberOfTargets);
 		Graphics_setInner (g);
 		Graphics_setWindow (g, 0, my totalTime, -1.0, 1.0);
 		for (int16 i = 1; i <= numberOfTargets; i ++) {

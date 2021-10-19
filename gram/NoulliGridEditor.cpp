@@ -1,6 +1,6 @@
 /* NoulliGridEditor.cpp
  *
- * Copyright (C) 2018 Paul Boersma
+ * Copyright (C) 2018-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,17 +39,16 @@ Thing_implement (NoulliGridEditor, TimeSoundEditor, 0);
 
 void structNoulliGridEditor :: v_draw () {
 	NoulliGrid data = (NoulliGrid) our data;
-	Graphics_Viewport viewport;
 	if (our d_sound.data) {
-		viewport = Graphics_insetViewport (our graphics.get(), 0.0, 1.0, 1.0 - SOUND_HEIGHT, 1.0);
-		Graphics_setColour (our graphics.get(), Graphics_WHITE);
+		Graphics_Viewport viewport = Graphics_insetViewport (our graphics.get(), 0.0, 1.0, 1.0 - SOUND_HEIGHT, 1.0);
+		Graphics_setColour (our graphics.get(), Melder_WHITE);
 		Graphics_setWindow (our graphics.get(), 0.0, 1.0, 0.0, 1.0);
 		Graphics_fillRectangle (our graphics.get(), 0.0, 1.0, 0.0, 1.0);
 		TimeSoundEditor_drawSound (this, -1.0, 1.0);
 		Graphics_resetViewport (our graphics.get(), viewport);
 		Graphics_insetViewport (our graphics.get(), 0.0, 1.0, 0.0, 1.0 - SOUND_HEIGHT);
 	}
-	Graphics_setColour (our graphics.get(), Graphics_WHITE);
+	Graphics_setColour (our graphics.get(), Melder_WHITE);
 	Graphics_setWindow (our graphics.get(), 0.0, 1.0, 0.0, 1.0);
 	Graphics_fillRectangle (our graphics.get(), 0.0, 1.0, 0.0, 1.0);
 	if (data -> numberOfCategories == 2) {
@@ -59,35 +58,37 @@ void structNoulliGridEditor :: v_draw () {
 			NoulliTier tier = data -> tiers.at [itier];
 			for (integer ipoint = 1; ipoint < tier -> points.size; ipoint ++) {
 				NoulliPoint point = tier -> points.at [ipoint], nextPoint = tier -> points.at [ipoint + 1];
-				double time = 0.5 * (point -> xmin + point -> xmax), nextTime = 0.5 * (nextPoint -> xmin + nextPoint -> xmax);
+				const double time = 0.5 * (point -> xmin + point -> xmax);
+				const double nextTime = 0.5 * (nextPoint -> xmin + nextPoint -> xmax);
 				if (time > our startWindow && nextTime < our endWindow) {
-					double prob = point -> probabilities [1], nextProb = nextPoint -> probabilities [1];
-					Graphics_setColour (our graphics.get(), Graphics_cyclingBackgroundColour (itier));
+					const double prob = point -> probabilities [1], nextProb = nextPoint -> probabilities [1];
+					Graphics_setColour (our graphics.get(), Melder_cyclingBackgroundColour (itier));
 					Graphics_line (our graphics.get(), time, prob, nextTime, nextProb);
 				}
 			}
-			Graphics_setColour (our graphics.get(), Graphics_BLACK);
+			Graphics_setColour (our graphics.get(), Melder_BLACK);
 		}
 	} else {
 		Graphics_setWindow (our graphics.get(), our startWindow, our endWindow, 0.0, data -> tiers.size);
 		for (integer itier = 1; itier <= data -> tiers.size; itier ++) {
 			NoulliTier tier = data -> tiers.at [itier];
-			double ymin = data -> tiers.size - itier, ymax = ymin + 1;
+			const double ymin = data -> tiers.size - itier, ymax = ymin + 1;
 			for (integer ipoint = 1; ipoint <= tier -> points.size; ipoint ++) {
 				NoulliPoint point = tier -> points.at [ipoint];
 				if (point -> xmax > our startWindow && point -> xmin < our endWindow) {
-					double xmin = point -> xmin > our startWindow ? point -> xmin : our startWindow;
-					double xmax = point -> xmax < our endWindow ? point -> xmax : our endWindow;
-					double prob1 = 1.0, prob2;
+					const double xmin = Melder_clippedLeft (our startWindow, point -> xmin);
+					const double xmax = Melder_clippedRight (point -> xmax, our endWindow);
+					double prob1 = 1.0;
 					for (integer icategory = 1; icategory <= point -> numberOfCategories; icategory ++) {
-						prob2 = prob1;
+						const double prob2 = prob1;
 						prob1 -= point -> probabilities [icategory];
-						Graphics_setColour (our graphics.get(), Graphics_cyclingBackgroundColour (icategory));
-						Graphics_fillRectangle (our graphics.get(), xmin, xmax, ymin + prob1 * (ymax - ymin), ymin + prob2 * (ymax - ymin));
+						Graphics_setColour (our graphics.get(), Melder_cyclingBackgroundColour (icategory));
+						Graphics_fillRectangle (our graphics.get(), xmin, xmax,
+								ymin + prob1 * (ymax - ymin), ymin + prob2 * (ymax - ymin));
 					}
 				}
 			}
-			Graphics_setColour (our graphics.get(), Graphics_BLACK);
+			Graphics_setColour (our graphics.get(), Melder_BLACK);
 			if (itier > 1) {
 				Graphics_setLineWidth (our graphics.get(), 1.0);
 				Graphics_line (our graphics.get(), our startWindow, ymax, our endWindow, ymax);
@@ -95,23 +96,20 @@ void structNoulliGridEditor :: v_draw () {
 		}
 	}
 	Graphics_setLineWidth (our graphics.get(), 1.0);
-	Graphics_setColour (our graphics.get(), Graphics_BLACK);
+	Graphics_setColour (our graphics.get(), Melder_BLACK);
 	our v_updateMenuItems_file ();
 }
 
-void structNoulliGridEditor :: v_play (double a_tmin, double a_tmax) {
+void structNoulliGridEditor :: v_play (double startTime, double endTime) {
 	if (our d_sound.data)
-		Sound_playPart (our d_sound.data, a_tmin, a_tmax, theFunctionEditor_playCallback, this);
+		Sound_playPart (our d_sound.data, startTime, endTime, theFunctionEditor_playCallback, this);
 }
 
 static void drawSelectionOrWindow (NoulliGridEditor me, double xmin, double xmax, double tmin, double tmax, conststring32 header) {
 	NoulliGrid grid = (NoulliGrid) my data;
 	for (integer itier = 1; itier <= grid -> tiers.size; itier ++) {
-		Graphics_Viewport vp = Graphics_insetViewport (my graphics.get(), xmin, xmax,
-			(grid -> tiers.size - itier + 0.0) / grid -> tiers.size * (1.0 - SOUND_HEIGHT),
-			(grid -> tiers.size - itier + 1.0) / grid -> tiers.size * (1.0 - SOUND_HEIGHT));
 		if (itier == 1) {
-			Graphics_setColour (my graphics.get(), Graphics_BLACK);
+			Graphics_setColour (my graphics.get(), Melder_BLACK);
 			Graphics_setTextAlignment (my graphics.get(), kGraphics_horizontalAlignment::CENTRE, Graphics_BOTTOM);
 			Graphics_text (my graphics.get(), 0.0, 1.0, header);
 		}
@@ -119,7 +117,7 @@ static void drawSelectionOrWindow (NoulliGridEditor me, double xmin, double xmax
 		integer winningCategory = NoulliPoint_getWinningCategory (average.get());
 		conststring32 winningCategoryName = grid -> categoryNames [winningCategory].get();
 		if (winningCategory != 0 && average -> probabilities [winningCategory] > 1.0/3.0) {
-			bool shouldDrawPicture =
+			const bool shouldDrawPicture =
 				(my p_showCategoryInSelectionViewerAs == kNoulliGridEditor_showCategoryInSelectionViewerAs::PICTURE ||
 				 my p_showCategoryInSelectionViewerAs == kNoulliGridEditor_showCategoryInSelectionViewerAs::PICTURE_AND_TEXT)
 				&&
@@ -129,9 +127,9 @@ static void drawSelectionOrWindow (NoulliGridEditor me, double xmin, double xmax
 				 Melder_equ_firstCharacterCaseInsensitive (winningCategoryName, U"scared") ||
 				 Melder_equ_firstCharacterCaseInsensitive (winningCategoryName, U"angry"));
 			if (shouldDrawPicture) {
-				Graphics_setColour (my graphics.get(), Graphics_cyclingBackgroundColour (winningCategory));
+				Graphics_setColour (my graphics.get(), Melder_cyclingBackgroundColour (winningCategory));
 				Graphics_fillEllipse (my graphics.get(), -0.985, +0.985, -0.985, +0.985);
-				Graphics_setColour (my graphics.get(), Graphics_cyclingTextColour (winningCategory));
+				Graphics_setColour (my graphics.get(), Melder_cyclingTextColour (winningCategory));
 				/*
 					Draw the eyes.
 				*/
@@ -185,32 +183,31 @@ static void drawSelectionOrWindow (NoulliGridEditor me, double xmin, double xmax
 				}
 				Graphics_setLineWidth (my graphics.get(), 1.0);
 			} else {
-				Graphics_setColour (my graphics.get(), Graphics_cyclingBackgroundColour (winningCategory));
+				Graphics_setColour (my graphics.get(), Melder_cyclingBackgroundColour (winningCategory));
 				Graphics_fillEllipse (my graphics.get(), -0.985, +0.985, -0.985, +0.985);
 			}
 			if (my p_showCategoryInSelectionViewerAs == kNoulliGridEditor_showCategoryInSelectionViewerAs::COLOUR_AND_TEXT ||
 				my p_showCategoryInSelectionViewerAs == kNoulliGridEditor_showCategoryInSelectionViewerAs::PICTURE_AND_TEXT ||
 				my p_showCategoryInSelectionViewerAs == kNoulliGridEditor_showCategoryInSelectionViewerAs::PICTURE && ! shouldDrawPicture)
 			{
-				Graphics_setColour (my graphics.get(), Graphics_cyclingTextColour (winningCategory));
+				Graphics_setColour (my graphics.get(), Melder_cyclingTextColour (winningCategory));
 				Graphics_setTextAlignment (my graphics.get(), kGraphics_horizontalAlignment::CENTRE, Graphics_HALF);
 				Graphics_text (my graphics.get(), 0.0, 0.0, winningCategoryName);
 			}
 		} else {
-			Graphics_setColour (my graphics.get(), Graphics_WHITE);
+			Graphics_setColour (my graphics.get(), Melder_WHITE);
 			Graphics_fillEllipse (my graphics.get(), -0.985, +0.985, -0.985, +0.985);
-			Graphics_setColour (my graphics.get(), Graphics_BLACK);
+			Graphics_setColour (my graphics.get(), Melder_BLACK);
 			Graphics_setTextAlignment (my graphics.get(), kGraphics_horizontalAlignment::CENTRE, Graphics_HALF);
 			Graphics_text (my graphics.get(), 0.0, 0.0, U"?");
 		}
-		Graphics_resetViewport (my graphics.get(), vp);
 	}
-	Graphics_setColour (my graphics.get(), Graphics_BLACK);
+	Graphics_setColour (my graphics.get(), Melder_BLACK);
 }
 
 void structNoulliGridEditor :: v_drawSelectionViewer () {
 	Graphics_setWindow (our graphics.get(), -1.0, +1.0, -1.0, +1.0);
-	Graphics_setColour (our graphics.get(), Graphics_WINDOW_BACKGROUND_COLOUR);
+	Graphics_setColour (our graphics.get(), Melder_WINDOW_BACKGROUND_COLOUR);
 	Graphics_fillRectangle (our graphics.get(), -1.0, +1.0, -1.0, +1.0);
 	drawSelectionOrWindow (this, 0.0, 1.0, our startSelection, our endSelection, U"");
 	//drawSelectionOrWindow (this, 0.0, 0.5, our startSelection, our endSelection,
@@ -218,7 +215,7 @@ void structNoulliGridEditor :: v_drawSelectionViewer () {
 	//drawSelectionOrWindow (this, 0.5, 1.0, our startWindow, our endWindow, U"Window");
 }
 
-void structNoulliGridEditor :: v_drawRealTimeSelectionViewer (int /* phase */, double time) {
+void structNoulliGridEditor :: v_drawRealTimeSelectionViewer (double time) {
 	Graphics_setWindow (our graphics.get(), -1.0, +1.0, -1.0, +1.0);
 	drawSelectionOrWindow (this, 0.0, 1.0, time - 1.0, time + 1.0, U"");
 }

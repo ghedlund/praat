@@ -1,6 +1,6 @@
 /* ExperimentMFC.cpp
  *
- * Copyright (C) 2001-2009,2011-2013,2015-2019 Paul Boersma
+ * Copyright (C) 2001-2009,2011-2013,2015-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,13 +98,14 @@ static void readSound (ExperimentMFC me, conststring32 fileNameHead, conststring
 			Determine partial file name.
 		*/
 		char32 *comma = str32chr (fileNames, U',');
-		if (comma) *comma = U'\0';
+		if (comma)
+			*comma = U'\0';
 		/*
 			Determine complete (relative) file name.
 		*/
 		Melder_sprint (pathName,kMelder_MAXPATH+1, fileNameHead, fileNames, fileNameTail);
 		/*
-			Make sure we are in the correct directory.
+			Make sure we are in the correct folder.
 		*/
 		if (MelderDir_isNull (& my rootDirectory)) {
 			/*
@@ -119,7 +120,7 @@ static void readSound (ExperimentMFC me, conststring32 fileNameHead, conststring
 			if (Melder_debug == 32) {
 				MelderInfo_open ();
 				MelderInfo_writeLine (U"Path name <", pathName, U">");
-				MelderInfo_writeLine (U"Root directory <", my rootDirectory.path, U">");
+				MelderInfo_writeLine (U"Root folder <", my rootDirectory.path, U">");
 				MelderInfo_writeLine (U"Full path name <", file.path, U">");
 				MelderInfo_close ();
 			}
@@ -157,7 +158,8 @@ static void readSound (ExperimentMFC me, conststring32 fileNameHead, conststring
 		/*
 			Cycle.
 		*/
-		if (! comma) break;
+		if (! comma)
+			break;
 		fileNames = & comma [1];
 	}
 }
@@ -181,10 +183,11 @@ void ExperimentMFC_start (ExperimentMFC me) {
 		my playBuffer.reset();   // is this needed?
 		my pausing = false;
 		my numberOfTrials = my numberOfDifferentStimuli * my numberOfReplicationsPerStimulus;
-		my stimuli = newINTVECzero (my numberOfTrials);
-		my responses = newINTVECzero (my numberOfTrials);
-		my goodnesses = newVECzero (my numberOfTrials);
-		my reactionTimes = newVECzero (my numberOfTrials);
+		my stimuli = zero_INTVEC (my numberOfTrials);
+		my responses = zero_INTVEC (my numberOfTrials);
+		my goodnesses = zero_VEC (my numberOfTrials);
+		my startingTime = undefined;   // not zero, in order that reaction times are never the duration that the computer has been running
+		my reactionTimes = zero_VEC (my numberOfTrials);
 		/*
 			Read all the sounds. They must all have the same sampling frequency and number of channels.
 		*/
@@ -285,35 +288,35 @@ static void playSound (ExperimentMFC me, Sound sound, Sound carrierBefore, Sound
 	integer numberOfSamplesWritten = 0;
 
 	const integer initialSilenceSamples = Melder_iround (initialSilenceDuration / my samplePeriod);
-	my playBuffer -> z.verticalBand (1, initialSilenceSamples) <<= 0.0;
+	my playBuffer -> z.verticalBand (1, initialSilenceSamples)  <<=  0.0;
 	numberOfSamplesWritten += initialSilenceSamples;
 
 	if (carrierBefore) {
 		my playBuffer -> z.verticalBand (numberOfSamplesWritten + 1, numberOfSamplesWritten + carrierBefore -> nx)
-				<<= carrierBefore -> z.all();
+				<<=  carrierBefore -> z.all();
 		numberOfSamplesWritten += carrierBefore -> nx;
 	}
 
 	if (sound) {
 		my playBuffer -> z.verticalBand (numberOfSamplesWritten + 1, numberOfSamplesWritten + sound -> nx)
-				<<= sound -> z.all();
+				<<=  sound -> z.all();
 		numberOfSamplesWritten += sound -> nx;
 	}
 
 	if (carrierAfter) {
 		my playBuffer -> z.verticalBand (numberOfSamplesWritten + 1, numberOfSamplesWritten + carrierAfter -> nx)
-				<<= carrierAfter -> z.all();
+				<<=  carrierAfter -> z.all();
 		numberOfSamplesWritten += carrierAfter -> nx;
 	}
 
 	const integer finalSilenceSamples = Melder_iround (finalSilenceDuration / my samplePeriod);
-	my playBuffer -> z.verticalBand (numberOfSamplesWritten + 1, numberOfSamplesWritten + finalSilenceSamples) <<= 0.0;
+	my playBuffer -> z.verticalBand (numberOfSamplesWritten + 1, numberOfSamplesWritten + finalSilenceSamples)  <<=  0.0;
 	numberOfSamplesWritten += finalSilenceSamples;
 
-	if (! my blankWhilePlaying)
+	if (my stimuliAreSounds && ! my blankWhilePlaying)
 		my startingTime = Melder_clock ();
 	Sound_playPart (my playBuffer.get(), 0.0, numberOfSamplesWritten * my samplePeriod, 0, nullptr);
-	if (my blankWhilePlaying)
+	if (my stimuliAreSounds && my blankWhilePlaying)
 		my startingTime = Melder_clock ();
 }
 
@@ -343,7 +346,7 @@ autoResultsMFC ResultsMFC_create (integer numberOfTrials) {
 	try {
 		autoResultsMFC me = Thing_new (ResultsMFC);
 		my numberOfTrials = numberOfTrials;
-		my result = NUMvector <structTrialMFC> (1, my numberOfTrials);
+		my result = newvectorzero <structTrialMFC> (my numberOfTrials);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"ResultsMFC not created.");

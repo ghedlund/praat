@@ -92,7 +92,7 @@ NORMAL (U"If ##Tier names# is \"a b c\", and ##Point tiers# is \"b\", "
 	"a point tier named \"b\", and another interval tier named \"c\".")
 MAN_END
 
-MAN_BEGIN (U"SpellingChecker", U"ppgb", 20110128)
+MAN_BEGIN (U"SpellingChecker", U"ppgb", 20190616)
 INTRO (U"One of the @@types of objects@ in Praat. For checking the spelling in texts and @TextGrid objects.")
 ENTRY (U"1. How to create a SpellingChecker object")
 NORMAL (U"You normally read in a SpellingChecker with @@Read from file...@ from the #Open menu.")
@@ -108,7 +108,7 @@ ENTRY (U"3. How to create a SpellingChecker object for the first time")
 NORMAL (U"If you are the maintainer of a word list for spelling checking, you will want "
 	"to convert this list to a SpellingChecker object that you can distribute among the transcribers of your corpus.")
 NORMAL (U"The first step is to create a @WordList object from your text file, as described on the @WordList man page. "
-	"Then you simply click ##To SpellingChecker#. A button labelled ##Edit...# appears. "
+	"Then you simply click ##To SpellingChecker#. A button labelled ##View & Edit...# appears. "
 	"This command allows you to set the following attributes of the SpellingChecker object:")
 /*TAG (U"##Check matching parentheses")
 DEFINITION (U"determines whether it is considered a spelling error if parentheses do not match, as in the string \"Hi) there\".")*/
@@ -190,7 +190,7 @@ MAN_BEGIN (U"TextGrids: Merge", U"ppgb", 20101230)
 INTRO (U"A command to merge all selected @TextGrid objects into a new @TextGrid.")
 MAN_END
 
-MAN_BEGIN (U"TextGridEditor", U"ppgb", 20110131)
+MAN_BEGIN (U"TextGridEditor", U"ppgb", 20210228)
 INTRO (U"One of the @Editors in Praat, for editing a @TextGrid object.")
 NORMAL (U"You can optionally include a copy of a @Sound or @LongSound in this editor, "
 	"by selecting both the TextGrid and the Sound or LongSound before clicking ##View & Edit#. "
@@ -208,7 +208,7 @@ ENTRY (U"Creating new intervals, boundaries, points, or tiers")
 NORMAL (U"To create a new interval, create a new boundary in an interval tier.")
 NORMAL (U"To create a new boundary or point in a tier, @click inside the cursor circle in that tier, "
 	"or choose one of the commands in the Boundary/Point menu to insert a boundary at the cursor time "
-	"on the selected tier (shortcut: Enter) or on any tier (shortcuts: Command-F1 through Command-F9). The original text "
+	"on the selected tier (shortcut: Enter) or on any tier (shortcuts: @@Keyboard shortcuts|Command-F1@ through @@Keyboard shortcuts|Command-F9@). The original text "
 	"in the interval that is split, is divided up between the two resulting intervals, depending on "
 	"the position of the text cursor in the text window.")
 NORMAL (U"To create a new tier, choose ##Add interval tier# or ##Add point tier# from the #Tier menu.")
@@ -270,18 +270,18 @@ ENTRY (U"Accelerations")
 NORMAL (U"To save the @TextGrid object as a text file without going to the @@Object window@: "
 	"choose ##Save TextGrid as text file...# from the #File menu.")
 ENTRY (U"Searching")
-NORMAL (U"The Search menu contains the command #Find (Command-F), which will allow you to specify "
+NORMAL (U"The Search menu contains the command #Find (@@Keyboard shortcuts|Command-F@), which will allow you to specify "
 	"a text whose first occurrence will then be looked for in the currently selected tier "
 	"(starting from the currently selected text in the currently selected interval). "
-	"The command ##Find again# (Command-G) will search for the next occurrence of the same search text.")
+	"The command ##Find again# (@@Keyboard shortcuts|Command-G@) will search for the next occurrence of the same search text.")
 ENTRY (U"Checking the spelling")
 NORMAL (U"You can check the spelling of the intervals in your tiers by including a @SpellingChecker "
 	"object as you launch the editor: select TextGrid + (Long)Sound + SpellingChecker, "
-	"then click ##View & Edit#. The #Spell menu will contain the commands ##Check spelling in tier# (Command-N), and ##Check spelling in interval# "
+	"then click ##View & Edit#. The #Spell menu will contain the commands ##Check spelling in tier# (@@Keyboard shortcuts|Command-N@), and ##Check spelling in interval# "
 	"which will search for the next word in the tier or interval that does not occur in the lexicon.")
 MAN_END
 
-MAN_BEGIN (U"WordList", U"ppgb", 20170913)
+MAN_BEGIN (U"WordList", U"ppgb", 20190616)
 INTRO (U"One of the @@types of objects@ in Praat. "
 	"An object of class WordList contains a sorted list of strings in a system-independent format. "
 	"WordList objects can be used for spelling checking after conversion to a @SpellingChecker object.")
@@ -295,12 +295,11 @@ NORMAL (U"The main functionality of a WordList is its ability to tell you whethe
 	"command. You supply the word and press OK. If the WordList does contain the word, "
 	"the value \"1\" will be written to the Info window; otherwise, the value \"0\" will be written.")
 ENTRY (U"3. How to create a binary WordList file")
-NORMAL (U"You can create a binary (compressed) WordList file from a simple text file that contains a long list of words. "
+NORMAL (U"You can create a binary WordList file from a simple text file that contains a long list of words. "
 	"Perhaps such a text file has been supplied by a lexicographic institution in your country; "
 	"because of copyright issues, such word lists cannot be distributed with the Praat program. "
 	"To convert the simple text file into a compressed WordList file, you basically take the following steps:")
-CODE (U"Read Strings from raw text file: \"lexicon.iso\"")
-CODE (U"Genericize")
+CODE (U"Read Strings from raw text file: \"lexicon.txt\"")
 CODE (U"Sort")
 CODE (U"To WordList")
 CODE (U"Save as binary file: \"lexicon.WordList\"")
@@ -313,99 +312,56 @@ CODE (U"cookies")
 CODE (U"cooking")
 CODE (U"cooks")
 CODE (U"Copenhagen")
-CODE (U"K\\o/bnhavn")
-CODE (U"M\\u\"nchen")
+CODE (U"Købnhavn")
+CODE (U"München")
 CODE (U"Munich")
-CODE (U"\\aongstr\\o\"m")
+CODE (U"ångström")
 NORMAL (U"These are just 11 words, but the procedure will work fine if you have a million of them, "
 	"and enough memory in your computer.")
 NORMAL (U"You can read the file into a @Strings object with @@Read Strings from raw text file...@ "
 	"from the #Open menu in the Objects window. The resulting @Strings object contains 11 strings in the above order, "
 	"as you can verify by viewing them with @Inspect.")
-NORMAL (U"In general, the Strings object will occupy a lot of memory, and be slow to read in. "
-	"For instance, a certain list of more than 300,000 Dutch word forms occupies 3.6 MB on disk, "
-	"and will occupy at least 7 MB of memory after it is read in. The extra 3.4 MB arise because the Strings object "
-	"contains a pointer to each of the strings, and each of the strings is in a separately allocated part of "
-	"the memory heap. Moreover, it takes 8 seconds on an average 1999 computer to read this object into memory. "
-	"For these reasons, we will use the WordList object if we need a sorted list for spelling checking.")
 NORMAL (U"If you select the Strings, you can click the ##To WordList# button. "
 	"However, you will get the following complaint:")
-CODE (U"String \"K\\o/bnhavn\" not generic. Please genericize first.")
-NORMAL (U"This complaint means that the strings are still in your computer's native text format, "
-	"which is ISO-Latin1 for Unix and Windows computers, or Mac encoding for Macintosh computers.")
-NORMAL (U"So you press the #Genericize button. You can see that the Strings object changes to")
-CODE (U"cook")
-CODE (U"cooked")
-CODE (U"cookie")
-CODE (U"cookies")
-CODE (U"cooking")
-CODE (U"cooks")
-CODE (U"Copenhagen")
-CODE (U"K\\bso/bnhavn")
-CODE (U"M\\bsu\\\" nchen")
-CODE (U"Munich")
-CODE (U"\\bsaongstr\\bso\\\" m")
-NORMAL (U"The strings are now in the generic system-independent format that is used everywhere in Praat "
-	"to draw strings (see @@Special symbols@).")
-NORMAL (U"You can again try to click the ##To WordList# button. However, you will get a complaint again:")
 CODE1 (U"String \"Copenhagen\" not sorted. Please sort first.")
-NORMAL (U"This complaint means that the strings have not been sorted in ASCII sorting order. "
+NORMAL (U"This complaint means that the strings have not been sorted in Unicode sorting order. "
 	"So you click #Sort, and the Strings object becomes:")
 CODE (U"Copenhagen")
-CODE (U"K\\bso/bnhavn")
-CODE (U"M\\bsu\\\" nchen")
+CODE (U"Købnhavn")
 CODE (U"Munich")
-CODE (U"\\bsaongstr\\bso\\\" m")
+CODE (U"München")
 CODE (U"cook")
 CODE (U"cooked")
 CODE (U"cookie")
 CODE (U"cookies")
 CODE (U"cooking")
 CODE (U"cooks")
-NORMAL (U"The strings are now in the Unicode sorting order, in which capitals come before lower-case letters, "
-	"and backslashes come in between these two series.")
+CODE (U"ångström")
+NORMAL (U"The strings are now in Unicode sorting order, in which capitals come before lower-case letters, "
+	"and composite characters follow the latter.")
 NORMAL (U"Clicking ##To WordList# now succeeds, and a WordList object appears in the list. "
 	"If you save it to a text file (with the Save menu), you will get the following file:")
 CODE (U"File type = \"ooTextFile\"")
 CODE (U"Object class = \"WordList\"")
 CODE (U"")
 CODE (U"string = \"Copenhagen")
-CODE (U"K\\bso/bnhavn")
-CODE (U"M\\bsu\\\" \\\" nchen")
+CODE (U"Købnhavn")
 CODE (U"Munich")
-CODE (U"\\bsaongstr\\bso\\\" \\\" m")
+CODE (U"München")
 CODE (U"cook")
 CODE (U"cooked")
 CODE (U"cookie")
 CODE (U"cookies")
 CODE (U"cooking")
-CODE (U"cooks\\\"r")
-NORMAL (U"Note that the double quotes (\\\" ) that appear inside the strings, have been doubled, "
+CODE (U"cooks")
+CODE (U"ångström\\\" ")
+NORMAL (U"Note that any double quotes (\\\" ) that appear inside the strings, will be doubled, "
 	"as is done everywhere inside strings in Praat text files.")
 NORMAL (U"After you have created a WordList text file, you can create a WordList object just by reading this file "
 	"with @@Read from file...@ from the #Open menu.")
-NORMAL (U"The WordList object has two advantages over the Strings object. First, it won't take up more "
+NORMAL (U"The WordList object has the advantage over the Strings object that it won't take up more "
 	"memory than the original word list. This is because the WordList is stored as a single string: "
-	"a contiguous list of strings, separated by new-line symbols. Thus, our 300,000-word list "
-	"will take up only 3.6 MB, and be read in 4 seconds.")
-NORMAL (U"However, disk storage and reading can again be improved by compressing the word list. "
-	"We can take advantage of the sorting, by noting for each entry how many leading characters "
-	"are equal to those of the previous entry. The list then becomes something equivalent to")
-CODE (U"Copenhagen")
-CODE (U"0 K\\bso/bnhavn")
-CODE (U"0 M\\bsu\\\" nchen")
-CODE (U"1 unich")
-CODE (U"0 \\bsaongstr\\bso\\\" m")
-CODE (U"0 cook")
-CODE (U"4 ed")
-CODE (U"4 ie")
-CODE (U"6 s")
-CODE (U"5 ng")
-CODE (U"4 s")
-NORMAL (U"You can save the WordList compressed in this way as a binary file with "
-	"@@Save as binary file...@. For our 300,000-word list, this file takes up only 1.1 MB "
-	"and can be read into memory (with @@Read from file...@) in a single second. "
-	"When read into memory, the WordList object is again expanded to 3.6 MB to allow rapid searching.")
+	"a contiguous list of strings, separated by new-line symbols.")
 MAN_END
 
 /*

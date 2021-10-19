@@ -2,7 +2,7 @@
 #define _Pitch_h_
 /* Pitch.h
  *
- * Copyright (C) 1992-2007,2009,2011,2012,2014-2019 Paul Boersma
+ * Copyright (C) 1992-2007,2009,2011,2012,2014-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ void Pitch_Frame_init (Pitch_Frame me, integer nCandidates);
 		my intensity == 0.0; // silent
 */
 
-inline static bool Pitch_util_frequencyIsVoiced (double f, double ceiling) {
+inline bool Pitch_util_frequencyIsVoiced (double f, double ceiling) {
 	return f > 0.0 && f < ceiling;   // note: return false is f is NaN
 }
 
@@ -160,6 +160,11 @@ PRAAT_LIB_EXPORT integer Pitch_getMeanAbsSlope_noOctave (Pitch me, double *slope
    'minimum', 'maximum', 'mean', and 'variance' may be null.
 */
 
+MelderFraction Pitch_getFractionOfLocallyVoicedFrames (Pitch me, double tmin, double tmax,
+	double ceiling, double silenceThreshold, double voicingThreshold);
+MelderFraction Pitch_getFractionOfLocallyUnvoicedFrames (Pitch me, double tmin, double tmax,
+	double ceiling, double silenceThreshold, double voicingThreshold);
+
 PRAAT_LIB_EXPORT autoPitch Pitch_killOctaveJumps (Pitch me);
 /* Add octave jumps so that every pitch step,
    including those across unvoiced frames,
@@ -204,6 +209,8 @@ PRAAT_LIB_EXPORT void Pitch_step (Pitch me, double step, double precision, doubl
 */
 
 PRAAT_LIB_EXPORT void Pitch_formula (Pitch me, conststring32 formula, Interpreter interpreter);
+
+autoVEC Pitch_listValuesInAllFrames (Pitch me);
 
 autoTable Pitch_tabulateCandidatesInFrame (Pitch me, integer frameNumber);
 autoTable Pitch_tabulateCandidates (Pitch me);

@@ -1,6 +1,6 @@
 /* Praat_tests.cpp
  *
- * Copyright (C) 2001-2007,2009,2011-2018 Paul Boersma
+ * Copyright (C) 2001-2007,2009,2011-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,15 +49,15 @@ static autoDaata newAutoData () {
 	autoDaata data (Thing_new (Daata));
 	return data;
 }
-static int length (conststring32 s) {
-	int result = str32len (s);
+static integer length (conststring32 s) {
+	integer result = str32len (s);
 	Melder_free (s);
 	return result;
 }
 
 static autoMAT constantHH (integer nrow, integer ncol, double value) {
-	autoMAT result = newMATraw (nrow, ncol);
-	result.all() <<= value;
+	autoMAT result = raw_MAT (nrow, ncol);
+	result.all()  <<=  value;
 	return result;
 }
 
@@ -71,6 +71,10 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 	Melder_clearInfo ();
 	Melder_stopwatch ();
 	switch (itest) {
+		case kPraatTests::UNDEFINED:
+		case kPraatTests::_:
+		case kPraatTests::CHECK_RANDOM_1009_2009: {
+		} break;
 		case kPraatTests::TIME_RANDOM_FRACTION: {
 			for (int64 i = 1; i <= n; i ++)
 				(void) NUMrandomFraction ();
@@ -83,12 +87,12 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_SORT: {
 			integer size = Melder_atoi (arg2);
-			autoVEC array = newVECraw (size);
+			autoVEC array = raw_VEC (size);
 			Melder_stopwatch ();
 			for (int64 iteration = 1; iteration <= n; iteration ++) {
 				for (int64 i = 1; i <= size; i ++)
 					array [i] = NUMrandomFraction ();
-				VECsort_inplace (array.get());
+				sort_VEC_inout (array.get());
 			}
 			t = Melder_stopwatch () / (size * log2 (size));
 		} break;
@@ -141,7 +145,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_MELDER_32: {
 			autoMelderString string;
 			char32 word [] { U"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = char32 (NUMrandomInteger (U'a', U'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				MelderString_copy (& string, word);
 				for (int j = 1; j <= 30; j ++)
@@ -151,7 +155,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_STRING_MELDER_32_ALLOC: {
 			char32 word [] { U"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = char32 (NUMrandomInteger (U'a', U'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				autoMelderString string;
 				MelderString_copy (& string, word);
@@ -163,7 +167,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_S: {
 			std::string s = "";
 			char word [] { "abc" };
-			word [2] = (char) NUMrandomInteger ('a', 'z');
+			word [2] = char (NUMrandomInteger ('a', 'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -174,7 +178,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_C: {
 			std::basic_string<char> s = "";
 			char word [] { "abc" };
-			word [2] = (char) NUMrandomInteger ('a', 'z');
+			word [2] = char (NUMrandomInteger ('a', 'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -185,7 +189,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_WS: {
 			std::wstring s = L"";
 			wchar_t word [] { L"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = wchar_t (NUMrandomInteger (L'a', L'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -196,7 +200,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_WC: {
 			std::basic_string<wchar_t> s = L"";
 			wchar_t word [] { L"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = wchar_t (NUMrandomInteger (L'a', L'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -207,7 +211,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_32: {
 			std::basic_string<char32_t> s = U"";
 			char32 word [] { U"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = char32 (NUMrandomInteger (U'a', U'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -218,7 +222,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STRING_CPP_U32STRING: {
 			std::u32string s = U"";
 			char32 word [] { U"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = char32 (NUMrandomInteger (U'a', U'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				s = word;
 				for (int j = 1; j <= 30; j ++)
@@ -241,7 +245,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_WCSCPY: {
 			wchar_t buffer [100];
 			wchar_t word [] { L"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = wchar_t (NUMrandomInteger (L'a', L'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				wcscpy (buffer, word);
 				for (int j = 1; j <= 30; j ++)
@@ -252,7 +256,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_STR32CPY: {
 			char32 buffer [100];
 			char32 word [] { U"abc" };
-			word [2] = NUMrandomInteger ('a', 'z');
+			word [2] = char32 (NUMrandomInteger (U'a', U'z'));
 			for (int64 i = 1; i <= n; i ++) {
 				str32cpy (buffer, word);
 				for (int j = 1; j <= 30; j ++)
@@ -301,8 +305,8 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_INNER: {
 			integer size = Melder_atoi (arg2);
-			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
-			autoVEC y = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC x = randomGauss_VEC (size, 0.0, 1.0);
+			autoVEC y = randomGauss_VEC (size, 0.0, 1.0);
 			double z = 0.0;
 			for (int64 i = 1; i <= n; i ++)
 				z += NUMinner (x.get(), y.get());
@@ -311,10 +315,10 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_OUTER_NUMMAT: {
 			integer nrow = 100, ncol = 100;
-			autoVEC x = newVECrandomGauss (nrow, 0.0, 1.0);
-			autoVEC y = newVECrandomGauss (ncol, 0.0, 1.0);
+			autoVEC x = randomGauss_VEC (nrow, 0.0, 1.0);
+			autoVEC y = randomGauss_VEC (ncol, 0.0, 1.0);
 			for (int64 i = 1; i <= n; i ++)
-				const autoMAT mat = newMATouter (x.get(), y.get());
+				const autoMAT mat = outer_MAT (x.get(), y.get());
 			t = Melder_stopwatch () / nrow / ncol;   // 6.1 Gops, i.e. less than one clock cycle per cell
 		} break;
 		case kPraatTests::CHECK_INVFISHERQ: {
@@ -344,7 +348,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_SUM: {
 			integer size = Melder_atoi (arg2);
-			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC x = randomGauss_VEC (size, 0.0, 1.0);
 			double z = 0.0;
 			for (int64 i = 1; i <= n; i ++) {
 				double sum = NUMsum (x.get());
@@ -355,7 +359,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_MEAN: {
 			integer size = Melder_atoi (arg2);
-			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC x = randomGauss_VEC (size, 0.0, 1.0);
 			double z = 0.0;
 			for (int64 i = 1; i <= n; i ++) {
 				double sum = NUMmean (x.get());
@@ -366,7 +370,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_STDEV: {
 			integer size = 10000;
-			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
+			autoVEC x = randomGauss_VEC (size, 0.0, 1.0);
 			double z = 0.0;
 			for (int64 i = 1; i <= n; i ++) {
 				double stdev = NUMstdev (x.get());
@@ -378,7 +382,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_ALLOC: {
 			integer size = Melder_atoi (arg2);
 			for (int64 iteration = 1; iteration <= n; iteration ++) {
-				autoVEC result = newVECraw (size);
+				autoVEC result = raw_VEC (size);
 				for (integer i = 1; i <= size; i ++)
 					result [i] = 0.0;
 			}
@@ -387,12 +391,12 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		case kPraatTests::TIME_ALLOC0: {
 			integer size = Melder_atoi (arg2);
 			for (int64 iteration = 1; iteration <= n; iteration ++)
-				autoVEC result = newVECzero (size);
+				autoVEC result = zero_VEC (size);
 			t = Melder_stopwatch () / size;   // 10^0..7: 76/7.7/1.23 / 0.165/0.24/0.25 / 1.30/1.63 ns
 		} break;
 		case kPraatTests::TIME_ZERO: {
 			integer size = Melder_atoi (arg2);
-			autoVEC result { size, kTensorInitializationType::RAW };
+			autoVEC result = raw_VEC (size);
 			double z = 0.0;
 			for (int64 iteration = 1; iteration <= n; iteration ++) {
 				for (integer i = 1; i <= size; i ++)
@@ -429,33 +433,33 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 		} break;
 		case kPraatTests::TIME_ADD: {
 			integer size = Melder_atoi (arg2);
-			autoMAT result = newMATrandomGauss (size, size, 0.0, 1.0);
+			autoMAT result = randomGauss_MAT (size, size, 0.0, 1.0);
 			Melder_stopwatch ();
 			for (integer iteration = 1; iteration <= n; iteration ++)
-				result.all() <<= 5.0;
+				result.all()  <<=  5.0;
 			t = Melder_stopwatch () / size / size;   // 10^0..4: 2.7/0.16/0.24 / 0.38/0.98
 			double sum = NUMsum (result.get());
 			MelderInfo_writeLine (sum);
 		} break;
 		case kPraatTests::TIME_SIN: {
 			integer size = Melder_atoi (arg2);
-			autoMAT result = newMATrandomGauss (size, size, 0.0, 1.0);
+			autoMAT result = randomGauss_MAT (size, size, 0.0, 1.0);
 			Melder_stopwatch ();
 			for (integer iteration = 1; iteration <= n; iteration ++)
-				MATsin_inplace (result.get());
+				sin_MAT_inout (result.get());
 			t = Melder_stopwatch () / size / size;   // 10^0..4: 18/5.3/5.2 / 5.3/12
 			double sum = NUMsum (result.get());
 			MelderInfo_writeLine (sum);
 		} break;
 		case kPraatTests::TIME_VECADD: {
 			integer size = Melder_atoi (arg2);
-			autoVEC x = newVECrandomGauss (size, 0.0, 1.0);
-			autoVEC y = newVECrandomGauss (size, 0.0, 1.0);
-			autoVEC result = newVECraw (size);
+			autoVEC x = randomGauss_VEC (size, 0.0, 1.0);
+			autoVEC y = randomGauss_VEC (size, 0.0, 1.0);
+			autoVEC result = raw_VEC (size);
 			Melder_stopwatch ();
 			for (integer iteration = 1; iteration <= n; iteration ++)
-				//VECadd (result.all(), x.all(), y.all());
-				result.all() <<= x.all() + y.all();
+				//add_VEC_out (result.all(), x.all(), y.all());
+				result.all()  <<=  x.all() + y.all();
 			t = Melder_stopwatch () / size;
 			double sum = NUMsum (result.get());
 			MelderInfo_writeLine (sum);
@@ -465,11 +469,11 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 			integer size2 = Melder_atoi (arg3);
 			integer size3 = Melder_atoi (arg4);
 			if (size2 == 0 || size3 == 0) size3 = size2 = size1;
-			//autoMAT const x = newMATrandomGauss (size1, size2, 0.0, 1.0);
-			//autoMAT const y = newMATrandomGauss (size2, size3, 0.0, 1.0);
+			//autoMAT const x = randomGauss_MAT (size1, size2, 0.0, 1.0);
+			//autoMAT const y = randomGauss_MAT (size2, size3, 0.0, 1.0);
 			autoMAT x = constantHH (size1, size2, 10.0);
 			autoMAT y = constantHH (size2, size3, 3.0);
-			autoMAT const result = newMATraw (size1, size3);
+			autoMAT const result = raw_MAT (size1, size3);
 			//MAT resultget = result.get();
 			//constMAT xget = x.get(), yget = y.get();
 			MATVU const result_all = result.all();
@@ -477,7 +481,8 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 			constMATVU const y_all = y.all();
 			Melder_stopwatch ();
 			for (integer iteration = 1; iteration <= n; iteration ++)
-				MATmul_forceMetal_ (result_all, x_all, y_all);
+				//MATmul_forceMetal_ (result_all, x_all, y_all);
+				_mul_allowAllocation_MAT_out (result_all, x_all, y_all);
 			const integer numberOfComputations = size1 * size2 * size3 * 2;
 			t = Melder_stopwatch () / numberOfComputations;
 			const double sum = NUMsum (result.get());
@@ -487,7 +492,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 			//Melder_require (NUMequal (result.get(), constantHH (size, size, size * 30.0).get()), U"...");
 		} break;
 		case kPraatTests::THING_AUTO: {
-			int numberOfThingsBefore = theTotalNumberOfThings;
+			integer numberOfThingsBefore = theTotalNumberOfThings;
 			{
 				Melder_casual (U"1\n");
 				autoDaata data = Thing_new (Daata);
@@ -575,7 +580,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 				const autoVEC f { e, 10 };
 				#endif
 				{
-					autoVEC g { 100, kTensorInitializationType::ZERO };
+					autoVEC g = zero_VEC (100);
 					g [1] = 3.0;
 					VEC gg = g.get();
 					gg [2] = 4.0;
@@ -589,41 +594,41 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 					//gg.reset();
 				}
 				{
-					double x [1+2], *px = & x [0];
+					double x [3], *px = & x [0];
 					const double *cpx = px;
-					VEC vx { px, 2 };
-					constVEC cvx { px, 2 };
-					const VEC c_vx { px, 2 };
+					VEC vx (px, 2);
+					constVEC cvx (px, 2);
+					const VEC c_vx (px, 2);
 					double a = c_vx [1];
 					const double b = c_vx [2];
 					const double y = 0.0, *py = & y;
-					//VEC vy { py, 0 };   // should be refused by the compiler
+					//VEC vy (py, 0);   // ruled out: "No matching constructor for initialization of VEC" (2021-04-03)
 					constVEC cvy { py, 2 };
-					//const VEC c_vy = VEC (py, 2);
+					//const VEC c_vy = VEC (py, 2);   // ruled out: "No matching constructor for initialization of VEC" (2021-04-03)
 					const VEC c_vy = (const VEC) VEC (const_cast<double *> (py), 2);
 					double c = c_vy [1];
 					const double d = c_vy [2];
-					//VEC c_vy2 = VEC (py, 2);
+					//VEC c_vy2 = VEC (py, 2);   // ruled out: "No matching constructor for initialization of VEC" (2021-04-03)
 				}
 
 				VEC h;
 				autoVEC j;
-				//VEC jh = j;
-				//VEC zero = newVECzero (10);   // should be ruled out
-				//constVEC zero = newVECzero (10);   // should be ruled out
-				//j = h;   // up assignment standardly correctly ruled out
-				//h = j;   // down assignment was explicitly ruled out as well
-				//h = VEC (j);
-				VEC & jref = j;   // (in)correctly? accepted
+				//VEC jh = j;   // ruled out: "No viable conversion from autoVEC to VEC" (2021-04-03)
+				//VEC zero = zero_VEC (10);   // ruled out: "No viable conversion from autoVEC to VEC" (2021-04-03)
+				//constVEC zero = zero_VEC (10);   // ruled out: "No viable conversion from autoVEC to constVEC" (2021-04-03)
+				//j = h;   // ruled out: "No viable overloaded '='" (2021-04-03)
+				//h = j;   // ruled out: "No viable overloaded '='" (2021-04-03)
+				//h = VEC (j);   // ruled out: "No matching conversion for functional-style cast from autoVEC to VEC" (2021-04-03)
+				//VEC & jref = j;   // ruled out: "Non-const lvalue reference to type VEC cannot bind to a value of unrelated type autoVEC" (2021-04-03)
 				VEC *ph = & h;
 				autoVEC *pj = & j;
-				ph = pj;   // (in)correctly? accepted
-				//pj = ph;   // correctly ruled out
+				//ph = pj;   // correctly ruled out: Assigning to 'VEC' from incompatible type 'autoVEC' (2021-04-03)
+				//pj = ph;   // correctly ruled out: "Assigning to 'autoVEC *' from incompatible type 'VEC *' (2021-04-03)
 				#endif
 				autoSound sound = Sound_create (1, 0.0, 1.0, 10000, 0.0001, 0.0);
 				sound = Sound_create (1, 0.0, 1.0, 10000, 0.0001, 0.00005);
 				Melder_casual (U"hello ", sound -> dx);
-				autostring32vector v;
+				autoSTRVEC v;
 				mutablestring32 *pm = v.peek2();
 				const mutablestring32 *pcm = v.peek2();
 				//conststring32 *pc = v.peek2();
@@ -634,7 +639,7 @@ int Praat_tests (kPraatTests itest, conststring32 arg1, conststring32 arg2, cons
 					//aa = aac;
 					aa = bb;
 					aac = bbc;
-					bbc.at = bb.at;
+					bbc.cells = bb.cells;
 				}
 			}
 		} break;

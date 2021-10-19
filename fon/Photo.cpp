@@ -1,6 +1,6 @@
 /* Photo.cpp
  *
- * Copyright (C) 2013-2018 Paul Boersma
+ * Copyright (C) 2013-2020 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,7 +142,7 @@ autoPhoto Photo_readFromImageFile (MelderFile file) {
 			cairo_surface_destroy (surface);
 			return me;
 		#elif defined (_WIN32)
-			Gdiplus::Bitmap gdiplusBitmap (Melder_peek32toW (file -> path));
+			Gdiplus::Bitmap gdiplusBitmap (Melder_peek32toW_fileSystem (file -> path));
 			integer width = gdiplusBitmap. GetWidth ();
 			integer height = gdiplusBitmap. GetHeight ();
 			if (width == 0 || height == 0)
@@ -161,9 +161,7 @@ autoPhoto Photo_readFromImageFile (MelderFile file) {
 			return me;
 		#elif defined (macintosh)
 			autoPhoto me;
-			char utf8 [500];
-			Melder_str32To8bitFileRepresentation_inplace (file -> path, utf8);
-			CFStringRef path = CFStringCreateWithCString (nullptr, utf8, kCFStringEncodingUTF8);
+			CFStringRef path = CFStringCreateWithCString (nullptr, Melder_peek32to8_fileSystem (file -> path), kCFStringEncodingUTF8);
 			CFURLRef url = CFURLCreateWithFileSystemPath (nullptr, path, kCFURLPOSIXPathStyle, false);
 			CFRelease (path);
 			CGImageSourceRef imageSource = CGImageSourceCreateWithURL (url, nullptr);
@@ -280,7 +278,8 @@ autoPhoto Photo_readFromImageFile (MelderFile file) {
 					encoderParameters. Parameter [0]. Value = & quality;
 					p = & encoderParameters;
 				}
-				gdiplusBitmap. Save (Melder_peek32toW (file -> path), & imageEncoderInfos [iencoder]. Clsid, p);
+				gdiplusBitmap. Save (Melder_peek32toW_fileSystem (file -> path),
+						& imageEncoderInfos [iencoder]. Clsid, p);
 				Melder_free (imageEncoderInfos);
 				return;
 			}
@@ -437,8 +436,11 @@ void Photo_replaceTransparency (Photo me, Matrix transparency) {
 }
 
 static void _Photo_cellArrayOrImage (Photo me, Graphics g, double xmin, double xmax, double ymin, double ymax, bool interpolate) {
-	if (xmax <= xmin) { xmin = my xmin; xmax = my xmax; }
-	if (ymax <= ymin) { ymin = my ymin; ymax = my ymax; }
+	Function_unidirectionalAutowindow (me, & xmin, & xmax);
+	if (ymax <= ymin) {
+		ymin = my ymin;
+		ymax = my ymax;
+	}
 	integer ixmin, ixmax, iymin, iymax;
 	Sampled_getWindowSamples    (me, xmin - 0.49999 * my dx, xmax + 0.49999 * my dx, & ixmin, & ixmax);
 	SampledXY_getWindowSamplesY (me, ymin - 0.49999 * my dy, ymax + 0.49999 * my dy, & iymin, & iymax);
@@ -446,12 +448,14 @@ static void _Photo_cellArrayOrImage (Photo me, Graphics g, double xmin, double x
 		Melder_fatal (U"ixmin ", ixmin, U" ixmax ", ixmax, U" iymin ", iymin, U" iymax ", iymax);
 		return;
 	}
+	if (xmin >= xmax || ymin >= ymax)
+		return;
 	Graphics_setInner (g);
 	Graphics_setWindow (g, xmin, xmax, ymin, ymax);
-	automatrix <double_rgbt> z (iymax - (iymin - 1), ixmax - (ixmin - 1), kTensorInitializationType::RAW);
+	automatrix z = newmatrixraw <MelderColour> (iymax - (iymin - 1), ixmax - (ixmin - 1));
 	for (integer iy = iymin; iy <= iymax; iy ++) {
 		for (integer ix = ixmin; ix <= ixmax; ix ++) {
-			double_rgbt& cell = z [iy - (iymin - 1)] [ix - (ixmin - 1)];
+			MelderColour& cell = z [iy - (iymin - 1)] [ix - (ixmin - 1)];
 			cell. red          = my d_red          -> z [iy] [ix];
 			cell. green        = my d_green        -> z [iy] [ix];
 			cell. blue         = my d_blue         -> z [iy] [ix];

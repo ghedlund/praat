@@ -2,7 +2,7 @@
 #define _Ui_h_
 /* Ui.h
  *
- * Copyright (C) 1992-2011,2012,2013,2015,2017,2018 Paul Boersma
+ * Copyright (C) 1992-2005,2007-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include "Gui.h"
 #include "Interpreter.h"
 Thing_declare (EditorCommand);
+
+#include "Ui_enums.h"
 
 /* Forms for getting arguments from the user. */
 
@@ -92,12 +94,20 @@ enum class _kUiField_type {
 	CHANNEL_ = 9,
 	LABEL_ = 10,
 	TEXT_ = 11,
-	NUMVEC_ = 12,
-	NUMMAT_ = 13,
-	BOOLEAN_ = 14,
-	RADIO_ = 15,
-	OPTIONMENU_ = 16,
-	LIST_ = 17,
+	FORMULA_ = 12,
+	INFILE_ = 13,
+	OUTFILE_ = 14,
+	FOLDER_ = 15,
+	REALVECTOR_ = 16,
+	POSITIVEVECTOR_ = 17,
+	INTEGERVECTOR_ = 18,
+	NATURALVECTOR_ = 19,
+	REALMATRIX_ = 20,
+	STRINGARRAY_ = 21,
+	BOOLEAN_ = 22,
+	RADIO_ = 23,
+	OPTIONMENU_ = 24,
+	LIST_ = 25,
 	LABELLED_TEXT_MIN_ = 1,
 	LABELLED_TEXT_MAX_ = 9
 };
@@ -108,17 +118,23 @@ Thing_define (UiField, Thing) {
 	double realValue;
 	integer integerValue, integerDefaultValue;
 	autostring32 stringValue, stringDefaultValue;
-	autoVEC numericVectorValue;
-	autoMAT numericMatrixValue;
-	Graphics_Colour colourValue;
+	kUi_realVectorFormat realVectorDefaultFormat;   // for REALVECTOR_, POSITIVEVECTOR_
+	autoVEC realVectorValue, realVectorDefaultValue;   // for REALVECTOR_, POSITIVEVECTOR_
+	kUi_integerVectorFormat integerVectorDefaultFormat;   // for INTEGERVECTOR_, NATURALVECTOR_
+	autoINTVEC integerVectorValue, integerVectorDefaultValue;   // for INTEGERVECTOR_, NATURALVECTOR_
+	autoMAT numericMatrixValue, numericMatrixDefaultValue;   // for REALMATRIX_
+	kUi_stringArrayFormat stringArrayFormat;   // for STRINGARRAY_
+	autoSTRVEC stringArrayValue, stringArrayDefaultValue;   // for STRINGARRAY_
+	MelderColour colourValue;
 	OrderedOf<structUiOption> options;
-	conststring32vector strings;
+	constSTRVEC strings;
 	GuiLabel label;
 	GuiText text;
 	GuiCheckButton checkButton;
 	GuiRadioButton radioButton;
 	GuiList list;
 	GuiOptionMenu optionMenu;
+	GuiButton pushButton;   // like "Browse..." for INFILE_, OUTFILE_, FOLDER_ (2021-03-30)
 	int y;
 
 	conststring32 variableName;   // a reference to a name known at compile time, for use by the Praat library
@@ -127,18 +143,21 @@ Thing_define (UiField, Thing) {
 	int *intVariable;
 	bool *boolVariable;
 	conststring32 *stringVariable;
-	Graphics_Colour *colourVariable;
-	constVEC *numericVectorVariable;
+	MelderColour *colourVariable;
+	constVEC *realVectorVariable;
+	constINTVEC *integerVectorVariable;
 	constMAT *numericMatrixVariable;
+	constSTRVEC *stringArrayVariable;
 
 	int subtract;
+	integer numberOfLines;
 
 	void v_destroy () noexcept
 		override;
 };
 
 #define UiCallback_ARGS \
-	UiForm _sendingForm, integer _narg, Stackel _args, conststring32 _sendingString, Interpreter interpreter, conststring32 _invokingButtonTitle, bool _modified, void *_closure
+	UiForm _sendingForm, integer _narg, Stackel _args, conststring32 _sendingString, Interpreter interpreter, conststring32 _invokingButtonTitle, bool _isModified, void *_closure
 typedef void (*UiCallback) (UiCallback_ARGS);
 
 #define MAXIMUM_NUMBER_OF_FIELDS  50
@@ -147,7 +166,7 @@ typedef void (*UiCallback) (UiCallback_ARGS);
 Thing_define (UiForm, Thing) {
 	EditorCommand command;
 	GuiWindow d_dialogParent;
-	autostring32 invokingButtonTitle, helpTitle;
+	autostring32 invokingButtonTitle, helpTitle, scriptFilePath;
 	UiCallback okCallback;
 	void *buttonClosure;
 
@@ -194,15 +213,23 @@ UiField UiForm_addWord (UiForm me, conststring32 *variable, conststring32 variab
 UiField UiForm_addSentence (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 label, conststring32 defaultValue);
 UiField UiForm_addLabel (UiForm me, conststring32 *variable, conststring32 label);
 UiField UiForm_addBoolean (UiForm me, bool *variable, conststring32 variableName, conststring32 label, bool defaultValue);
-UiField UiForm_addText (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
-UiField UiForm_addNumvec (UiForm me, constVEC *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
-UiField UiForm_addNummat (UiForm me, constMAT *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
+UiField UiForm_addText (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue, integer numberOfLines = 1);
+UiField UiForm_addFormula (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
+UiField UiForm_addInfile (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
+UiField UiForm_addOutfile (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
+UiField UiForm_addFolder (UiForm me, conststring32 *variable, conststring32 variableName, conststring32 name, conststring32 defaultValue);
+UiField UiForm_addRealVector (UiForm me, constVEC *variable, conststring32 variableName, conststring32 name, kUi_realVectorFormat defaultFormat, conststring32 defaultValue);
+UiField UiForm_addPositiveVector (UiForm me, constVEC *variable, conststring32 variableName, conststring32 name, kUi_realVectorFormat defaultFormat, conststring32 defaultValue);
+UiField UiForm_addIntegerVector (UiForm me, constINTVEC *variable, conststring32 variableName, conststring32 name, kUi_integerVectorFormat defaultFormat, conststring32 defaultValue);
+UiField UiForm_addNaturalVector (UiForm me, constINTVEC *variable, conststring32 variableName, conststring32 name, kUi_integerVectorFormat defaultFormat, conststring32 defaultValue);
+UiField UiForm_addRealMatrix (UiForm me, constMAT *variable, conststring32 variableName, conststring32 name, constMATVU defaultValue);
+UiField UiForm_addStringArray (UiForm me, constSTRVEC *variable, conststring32 variableName, conststring32 name, constSTRVEC defaultValue, integer numberOfLines = 7);
 UiField UiForm_addRadio (UiForm me, int *intVariable, conststring32 *stringVariable, conststring32 variableName, conststring32 label, int defaultValue, int base);
 UiOption UiRadio_addButton (UiField me, conststring32 label);
 UiField UiForm_addOptionMenu (UiForm me, int *intVariable, conststring32 *stringVariable, conststring32 variableName, conststring32 label, int defaultValue, int base);
 UiOption UiOptionMenu_addButton (UiField me, conststring32 label);
-UiField UiForm_addList (UiForm me, integer *integerVariable, conststring32 *stringVariable, conststring32 variableName, conststring32 label, conststring32vector strings, integer defaultValue);
-UiField UiForm_addColour (UiForm me, Graphics_Colour *colourVariable, conststring32 variableName, conststring32 label, conststring32 defaultValue);
+UiField UiForm_addList (UiForm me, integer *integerVariable, conststring32 *stringVariable, conststring32 variableName, conststring32 label, constSTRVEC strings, integer defaultValue);
+UiField UiForm_addColour (UiForm me, MelderColour *colourVariable, conststring32 variableName, conststring32 label, conststring32 defaultValue);
 UiField UiForm_addChannel (UiForm me, integer *variable, conststring32 variableName, conststring32 label, conststring32 defaultValue);
 void UiForm_finish (UiForm me);
 
@@ -234,7 +261,7 @@ void UiForm_setPauseForm (UiForm me,
 	void UiForm_setOption (UiForm me, int *p_variable, int value);
 	void UiForm_setOptionAsString (UiForm me, int *p_variable, conststring32 stringValue /* cattable */);
 /* Colour fields: */
-	void UiForm_setColourAsGreyValue (UiForm me, Graphics_Colour *p_variable, double greyValue);
+	void UiForm_setColourAsGreyValue (UiForm me, MelderColour *p_variable, double greyValue);
 
 void UiForm_do (UiForm me, bool modified);
 /*
@@ -273,13 +300,15 @@ void UiForm_info (UiForm me, integer narg);
 	These functions work from the GUI as well as from a script.
 */
 integer UiForm_getInteger (UiForm me, conststring32 fieldName);   // Integer, Natural, Boolean, Radio, List
-char32 * UiForm_getString (UiForm me, conststring32 fieldName);   // Word, Sentence, Text, Numvec, Nummat, Radio, List
+char32 * UiForm_getString (UiForm me, conststring32 fieldName);   // Word, Sentence, Text, RealMatrix, Radio, List
 MelderFile UiForm_getFile (UiForm me, conststring32 fieldName);   // FileIn, FileOut
+VEC UiForm_getRealVector (UiForm me, conststring32 fieldName);   // RealVector
+INTVEC UiForm_getIntegerVector (UiForm me, conststring32 fieldName);   // IntegerVector
 
 double UiForm_getReal_check (UiForm me, conststring32 fieldName);
 integer UiForm_getInteger_check (UiForm me, conststring32 fieldName);
 char32 * UiForm_getString_check (UiForm me, conststring32 fieldName);
-Graphics_Colour UiForm_getColour_check (UiForm me, conststring32 fieldName);
+MelderColour UiForm_getColour_check (UiForm me, conststring32 fieldName);
 
 void UiForm_call (UiForm me, integer narg, Stackel args, Interpreter interpreter);
 void UiForm_parseString (UiForm me, conststring32 arguments, Interpreter interpreter);
@@ -319,6 +348,8 @@ void Ui_setAllowExecutionHook (bool (*allowExecutionHook) (void *closure), void 
 
 void UiForm_Interpreter_addVariables (UiForm me, Interpreter interpreter);
 int UiForm_getClickedContinueButton (UiForm me);
+
+void Ui_prefs ();
 
 /* End of file Ui.h */
 #endif
