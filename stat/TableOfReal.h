@@ -30,6 +30,10 @@ Thing_declare (Interpreter);
 
 PRAAT_LIB_EXPORT void TableOfReal_init (TableOfReal me, integer numberOfRows, integer numberOfColumns);
 PRAAT_LIB_EXPORT autoTableOfReal TableOfReal_create (integer numberOfRows, integer numberOfColumns);
+
+PRAAT_LIB_EXPORT void TableOfReal_checkRowNumberWithinRange (TableOfReal me, integer rowNumber);
+PRAAT_LIB_EXPORT void TableOfReal_checkColumnNumberWithinRange (TableOfReal me, integer columnNumber);
+
 PRAAT_LIB_EXPORT void TableOfReal_removeRow (TableOfReal me, integer rowNumber);
 PRAAT_LIB_EXPORT void TableOfReal_removeColumn (TableOfReal me, integer columnNumber);
 PRAAT_LIB_EXPORT void TableOfReal_insertRow (TableOfReal me, integer rowNumber);

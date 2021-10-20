@@ -83,7 +83,7 @@ double Formant_getValueAtSample(Formant me, integer iframe, long which, int unit
 }
 
 double Formant_getIntensityAtSample(Formant me, integer iframe) {
-	Formant_Frame frame =&(my d_frames[ iframe ]);
+	Formant_Frame frame =&(my frames[ iframe ]);
 	return frame-> intensity;
 }
 #endif

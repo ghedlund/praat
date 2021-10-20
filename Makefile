@@ -31,61 +31,61 @@ all: all-external all-self
 		$(LIBS)
 
 all-external:
-  	$(MAKE) -C external/clapack
-  	$(MAKE) -C external/gsl
-  	$(MAKE) -C external/glpk
-  	$(MAKE) -C external/mp3
-  	$(MAKE) -C external/flac
-  	$(MAKE) -C external/portaudio
-  	$(MAKE) -C external/espeak
-  	$(MAKE) -C external/vorbis
-  	$(MAKE) -C external/opusfile
+	$(MAKE) -C external/clapack
+	$(MAKE) -C external/gsl
+	$(MAKE) -C external/glpk
+	$(MAKE) -C external/mp3
+	$(MAKE) -C external/flac
+	$(MAKE) -C external/portaudio
+	$(MAKE) -C external/espeak
+	$(MAKE) -C external/vorbis
+	$(MAKE) -C external/opusfile
 
 all-self:
-  	$(MAKE) -C kar
-  	$(MAKE) -C melder
-  	$(MAKE) -C sys
-  	$(MAKE) -C dwsys
-  	$(MAKE) -C stat
-  	$(MAKE) -C fon
-  	$(MAKE) -C dwtools
-  	$(MAKE) -C LPC
-  	$(MAKE) -C EEG
-  	$(MAKE) -C gram
-  	$(MAKE) -C FFNet
-  	$(MAKE) -C artsynth
-  	$(MAKE) -C main main_Praat.o $(ICON)
-    $(MAKE) -C jpraat jpraat.o
+	$(MAKE) -C kar
+	$(MAKE) -C melder
+	$(MAKE) -C sys
+	$(MAKE) -C dwsys
+	$(MAKE) -C stat
+	$(MAKE) -C fon
+	$(MAKE) -C dwtools
+	$(MAKE) -C LPC
+	$(MAKE) -C EEG
+	$(MAKE) -C gram
+	$(MAKE) -C FFNet
+	$(MAKE) -C artsynth
+	$(MAKE) -C main main_Praat.o $(ICON)
+	$(MAKE) -C jpraat jpraat.o
 
 clean: clean-external clean-self
-  	$(RM) $(LIBRARY)
+	$(RM) $(LIBRARY)
 
 clean-external:
-  	$(MAKE) -C external/clapack clean
-    $(MAKE) -C external/gsl clean
-    $(MAKE) -C external/glpk clean
-    $(MAKE) -C external/mp3 clean
-    $(MAKE) -C external/flac clean
-    $(MAKE) -C external/portaudio clean
-    $(MAKE) -C external/espeak clean
-    $(MAKE) -C external/vorbis clean
-    $(MAKE) -C external/opusfile clean
+	$(MAKE) -C external/clapack clean
+	$(MAKE) -C external/gsl clean
+	$(MAKE) -C external/glpk clean
+	$(MAKE) -C external/mp3 clean
+	$(MAKE) -C external/flac clean
+	$(MAKE) -C external/portaudio clean
+	$(MAKE) -C external/espeak clean
+	$(MAKE) -C external/vorbis clean
+	$(MAKE) -C external/opusfile clean
 
 clean-self:
-    $(MAKE) -C kar clean
-    $(MAKE) -C melder clean
-    $(MAKE) -C sys clean
-    $(MAKE) -C dwsys clean
-    $(MAKE) -C stat clean
-    $(MAKE) -C fon clean
-    $(MAKE) -C dwtools clean
-    $(MAKE) -C LPC clean
-    $(MAKE) -C EEG clean
-    $(MAKE) -C gram clean
-    $(MAKE) -C FFNet clean
-    $(MAKE) -C artsynth clean
-    $(MAKE) -C main clean
-    $(MAKE) -C jpraat clean
+	$(MAKE) -C kar clean
+	$(MAKE) -C melder clean
+	$(MAKE) -C sys clean
+	$(MAKE) -C dwsys clean
+	$(MAKE) -C stat clean
+	$(MAKE) -C fon clean
+	$(MAKE) -C dwtools clean
+	$(MAKE) -C LPC clean
+	$(MAKE) -C EEG clean
+	$(MAKE) -C gram clean
+	$(MAKE) -C FFNet clean
+	$(MAKE) -C artsynth clean
+	$(MAKE) -C main clean
+	$(MAKE) -C jpraat clean
 
 install:
-  	$(INSTALL)
+	$(INSTALL)

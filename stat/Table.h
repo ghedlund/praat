@@ -131,10 +131,10 @@ PRAAT_LIB_EXPORT autoTable Table_readFromCharacterSeparatedTextFile (MelderFile 
 
 PRAAT_LIB_EXPORT autoTable Table_extractRowsWhereColumn_number (Table me, integer column, kMelder_number which, double criterion);
 PRAAT_LIB_EXPORT autoTable Table_extractRowsWhereColumn_string (Table me, integer column, kMelder_string which, conststring32 criterion);
-PRAAT_LIB_EXPORT autoTable Table_collapseRows (Table me, conststring32 factors_string, conststring32 columnsToSum_string,
-	conststring32 columnsToAverage_string, conststring32 columnsToMedianize_string,
-	conststring32 columnsToAverageLogarithmically_string, conststring32 columnsToMedianizeLogarithmically_string);
-PRAAT_LIB_EXPORT autoTable Table_rowsToColumns (Table me, conststring32 factors_string, integer columnToTranspose, conststring32 columnsToExpand_string);
+autoTable Table_collapseRows (Table me, constSTRVEC factors, constSTRVEC columnsToSum,
+	constSTRVEC columnsToAverage, constSTRVEC columnsToMedianize,
+	constSTRVEC columnsToAverageLogarithmically, constSTRVEC columnsToMedianizeLogarithmically);
+autoTable Table_rowsToColumns (Table me, constSTRVEC const& factors_names, conststring32 columnToTranspose, constSTRVEC const& columnsToExpand_names);
 PRAAT_LIB_EXPORT autoTable Table_transpose (Table me);
 
 PRAAT_LIB_EXPORT void Table_checkSpecifiedRowNumberWithinRange (Table me, integer rowNumber);

@@ -24,7 +24,7 @@
 
 #include "praatlib.h"
 PRAAT_LIB_EXPORT autoStrings Strings_createAsFileList (conststring32 path /* cattable */);
-PRAAT_LIB_EXPORT autoStrings Strings_createAsDirectoryList (conststring32 path /* cattable */);
+PRAAT_LIB_EXPORT autoStrings Strings_createAsFolderList (conststring32 path /* cattable */);
 PRAAT_LIB_EXPORT autoStrings Strings_readFromRawTextFile (MelderFile file);
 PRAAT_LIB_EXPORT void Strings_writeToRawTextFile (Strings me, MelderFile file);
 

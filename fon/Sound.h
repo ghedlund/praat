@@ -101,7 +101,7 @@ PRAAT_LIB_EXPORT autoSound Sound_createSimple (integer numberOfChannels, double 
 PRAAT_LIB_EXPORT autoSound Sound_convertToMono (Sound me);
 PRAAT_LIB_EXPORT autoSound Sound_convertToStereo (Sound me);
 PRAAT_LIB_EXPORT autoSound Sound_extractChannel (Sound me, integer ichannel);
-autoSound Sound_extractChannels (Sound me, constVECVU const& channelNumbers);
+autoSound Sound_extractChannels (Sound me, constINTVECVU const& channelNumbers);
 autoSound Sounds_combineToStereo (OrderedOf<structSound>* me);
 
 /* Levels for Sampled_getValueAtSample (me, index, level, unit) */

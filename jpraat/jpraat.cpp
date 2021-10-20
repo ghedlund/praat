@@ -336,7 +336,7 @@ return 0;
 }
 
 // LongSound_getWindowExtrema_wrapped -> LongSound_getWindowExtrema
-PRAAT_LIB_EXPORT void LongSound_getWindowExtrema_wrapped(LongSound arg0,double arg1,double arg2,int arg3,double* arg4,double* arg5) {
+PRAAT_LIB_EXPORT void LongSound_getWindowExtrema_wrapped(LongSound arg0,double arg1,double arg2,integer arg3,double* arg4,double* arg5) {
 	try {
 		LongSound_getWindowExtrema(arg0,arg1,arg2,arg3,arg4,arg5);
 	} catch (const char* e) {
@@ -362,7 +362,7 @@ PRAAT_LIB_EXPORT void LongSound_savePartAsAudioFile_wrapped(LongSound arg0,int a
 }
 
 // LongSound_saveChannelAsAudioFile_wrapped -> LongSound_saveChannelAsAudioFile
-PRAAT_LIB_EXPORT void LongSound_saveChannelAsAudioFile_wrapped(LongSound arg0,int arg1,int arg2,MelderFile arg3) {
+PRAAT_LIB_EXPORT void LongSound_saveChannelAsAudioFile_wrapped(LongSound arg0,int arg1,integer arg2,MelderFile arg3) {
 	try {
 		LongSound_saveChannelAsAudioFile(arg0,arg1,arg2,arg3);
 	} catch (const char* e) {
@@ -1257,10 +1257,24 @@ PRAAT_LIB_EXPORT Spectrum Spectrum_create_wrapped(double arg0,integer arg1) {
 	return NULL;
 }
 
-// Spectrum_downto_Table_wrapped -> Spectrum_downto_Table
-PRAAT_LIB_EXPORT Table Spectrum_downto_Table_wrapped(Spectrum arg0,bool arg1,bool arg2,bool arg3,bool arg4,bool arg5,bool arg6) {
+// Spectrum_tabulate_wrapped -> Spectrum_tabulate
+PRAAT_LIB_EXPORT Table Spectrum_tabulate_wrapped(Spectrum arg0,bool arg1,bool arg2,bool arg3,bool arg4,bool arg5,bool arg6) {
 	try {
-		return Spectrum_downto_Table(arg0,arg1,arg2,arg3,arg4,arg5,arg6).releaseToAmbiguousOwner();
+		return Spectrum_tabulate(arg0,arg1,arg2,arg3,arg4,arg5,arg6).releaseToAmbiguousOwner();
+	} catch (const char* e) {
+		jpraat_set_error(e);
+	} catch (MelderError) {
+		jpraat_set_melder_error();
+	} catch (...) {
+		jpraat_set_error("Unknown error");
+	}
+	return NULL;
+}
+
+// Spectrum_tabulate_verbose_wrapped -> Spectrum_tabulate_verbose
+PRAAT_LIB_EXPORT Table Spectrum_tabulate_verbose_wrapped(Spectrum arg0) {
+	try {
+		return Spectrum_tabulate_verbose(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -1540,20 +1554,6 @@ PRAAT_LIB_EXPORT Formant Sound_to_Formant_keepAll_wrapped(Sound arg0,double arg1
 PRAAT_LIB_EXPORT Formant Sound_to_Formant_willems_wrapped(Sound arg0,double arg1,double arg2,double arg3,double arg4,double arg5) {
 	try {
 		return Sound_to_Formant_willems(arg0,arg1,arg2,arg3,arg4,arg5).releaseToAmbiguousOwner();
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
-// Table_createWithColumnNames_wrapped -> Table_createWithColumnNames
-PRAAT_LIB_EXPORT Table Table_createWithColumnNames_wrapped(integer arg0,conststring32 arg1) {
-	try {
-		return Table_createWithColumnNames(arg0,arg1).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -1999,19 +1999,6 @@ PRAAT_LIB_EXPORT bool Table_getExtrema_wrapped(Table arg0,integer arg1,double* a
 return 0;
 }
 
-// Table_sortRows_string_wrapped -> Table_sortRows_string
-PRAAT_LIB_EXPORT void Table_sortRows_string_wrapped(Table arg0,conststring32 arg1) {
-	try {
-		Table_sortRows_string(arg0,arg1);
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-}
-
 // Table_randomizeRows_wrapped -> Table_randomizeRows
 PRAAT_LIB_EXPORT void Table_randomizeRows_wrapped(Table arg0) {
 	try {
@@ -2110,34 +2097,6 @@ PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_number_wrapped(Table arg0,in
 PRAAT_LIB_EXPORT Table Table_extractRowsWhereColumn_string_wrapped(Table arg0,integer arg1,enum kMelder_string arg2,conststring32 arg3) {
 	try {
 		return Table_extractRowsWhereColumn_string(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
-// Table_collapseRows_wrapped -> Table_collapseRows
-PRAAT_LIB_EXPORT Table Table_collapseRows_wrapped(Table arg0,conststring32 arg1,conststring32 arg2,conststring32 arg3,conststring32 arg4,conststring32 arg5,conststring32 arg6) {
-	try {
-		return Table_collapseRows(arg0,arg1,arg2,arg3,arg4,arg5,arg6).releaseToAmbiguousOwner();
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
-// Table_rowsToColumns_wrapped -> Table_rowsToColumns
-PRAAT_LIB_EXPORT Table Table_rowsToColumns_wrapped(Table arg0,conststring32 arg1,integer arg2,conststring32 arg3) {
-	try {
-		return Table_rowsToColumns(arg0,arg1,arg2,arg3).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -2430,34 +2389,6 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_readFromHeaderlessSpreadsheetFile_wrapp
 	return NULL;
 }
 
-// TableOfReal_extractRowRanges_wrapped -> TableOfReal_extractRowRanges
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowRanges_wrapped(TableOfReal arg0,conststring32 arg1) {
-	try {
-		return TableOfReal_extractRowRanges(arg0,arg1).releaseToAmbiguousOwner();
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
-// TableOfReal_extractColumnRanges_wrapped -> TableOfReal_extractColumnRanges
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnRanges_wrapped(TableOfReal arg0,conststring32 arg1) {
-	try {
-		return TableOfReal_extractColumnRanges(arg0,arg1).releaseToAmbiguousOwner();
-	} catch (const char* e) {
-		jpraat_set_error(e);
-	} catch (MelderError) {
-		jpraat_set_melder_error();
-	} catch (...) {
-		jpraat_set_error("Unknown error");
-	}
-	return NULL;
-}
-
 // TableOfReal_extractRowsWhereColumn_wrapped -> TableOfReal_extractRowsWhereColumn
 PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereColumn_wrapped(TableOfReal arg0,integer arg1,enum kMelder_number arg2,double arg3) {
 	try {
@@ -2486,10 +2417,10 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereRow_wrapped(TableOfR
 	return NULL;
 }
 
-// TableOfReal_extractRowsWhereLabel_wrapped -> TableOfReal_extractRowsWhereLabel
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
+// TableOfReal_extractRowsWhoseLabel_wrapped -> TableOfReal_extractRowsWhoseLabel
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhoseLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
 	try {
-		return TableOfReal_extractRowsWhereLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
+		return TableOfReal_extractRowsWhoseLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -2500,10 +2431,10 @@ PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractRowsWhereLabel_wrapped(TableOfRe
 	return NULL;
 }
 
-// TableOfReal_extractColumnsWhereLabel_wrapped -> TableOfReal_extractColumnsWhereLabel
-PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhereLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
+// TableOfReal_extractColumnsWhoseLabel_wrapped -> TableOfReal_extractColumnsWhoseLabel
+PRAAT_LIB_EXPORT TableOfReal TableOfReal_extractColumnsWhoseLabel_wrapped(TableOfReal arg0,enum kMelder_string arg1,conststring32 arg2) {
 	try {
-		return TableOfReal_extractColumnsWhereLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
+		return TableOfReal_extractColumnsWhoseLabel(arg0,arg1,arg2).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -2584,10 +2515,10 @@ PRAAT_LIB_EXPORT Strings Strings_createAsFileList_wrapped(conststring32 arg0) {
 	return NULL;
 }
 
-// Strings_createAsDirectoryList_wrapped -> Strings_createAsDirectoryList
-PRAAT_LIB_EXPORT Strings Strings_createAsDirectoryList_wrapped(conststring32 arg0) {
+// Strings_createAsFolderList_wrapped -> Strings_createAsFolderList
+PRAAT_LIB_EXPORT Strings Strings_createAsFolderList_wrapped(conststring32 arg0) {
 	try {
-		return Strings_createAsDirectoryList(arg0).releaseToAmbiguousOwner();
+		return Strings_createAsFolderList(arg0).releaseToAmbiguousOwner();
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
@@ -3112,10 +3043,10 @@ PRAAT_LIB_EXPORT void IntervalTier_removeBoundariesBetweenIdenticallyLabeledInte
 	}
 }
 
-// IntervalTier_cutIntervalsOnLabelMatch_wrapped -> IntervalTier_cutIntervalsOnLabelMatch
-PRAAT_LIB_EXPORT void IntervalTier_cutIntervalsOnLabelMatch_wrapped(IntervalTier arg0,conststring32 arg1) {
+// IntervalTier_combineIntervalsOnLabelMatch_wrapped -> IntervalTier_combineIntervalsOnLabelMatch
+PRAAT_LIB_EXPORT void IntervalTier_combineIntervalsOnLabelMatch_wrapped(IntervalTier arg0,conststring32 arg1) {
 	try {
-		IntervalTier_cutIntervalsOnLabelMatch(arg0,arg1);
+		IntervalTier_combineIntervalsOnLabelMatch(arg0,arg1);
 	} catch (const char* e) {
 		jpraat_set_error(e);
 	} catch (MelderError) {
