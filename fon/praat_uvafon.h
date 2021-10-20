@@ -23,5 +23,9 @@
 void praat_uvafon_init ();
 void praat_uvafon_TextGrid_init ();
 
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT void praat_lib_uvafon_init();
+#endif
+
 #endif
 /* End of file praat_uvafon.h */

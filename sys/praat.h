@@ -60,10 +60,13 @@ be read by Data_readFromTextFile () and Data_readFromBinaryFile ().
 
 #include "praatlib.h"
 
-PRAAT_LIB_EXPORT void praat_init (conststring32 title, int argc, char **argv);
+void praat_init (conststring32 title, int argc, char **argv);
 void praat_run ();
 void praat_setStandAloneScriptText (conststring32 text);   // call before praat_init if you want to create a stand-alone application without Objects and Picture window
-PRAAT_LIB_EXPORT void praatlib_init ();   // for use in an application that uses Praatlib
+
+#ifdef PRAAT_LIB
+PRAAT_LIB_EXPORT void libjpraat_init();   // for use in an application that uses Praatlib
+#endif
 
 #define praat_addAction1(c1,n1,t,a,f,c)  praat_addAction1_ (c1, n1, t, a, f, c, U"" #c)
 #define praat_addAction2(c1,n1,c2,n2,t,a,f,c)  praat_addAction2_ (c1, n1, c2, n2, t, a, f, c, U"" #c)
