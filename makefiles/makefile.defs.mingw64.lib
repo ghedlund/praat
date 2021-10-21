@@ -1,8 +1,8 @@
-PREFIX = /mingw64/bin/x86_64-w64-mingw32-
+PREFIX = x86_64-w64-mingw32-
 
-CC = $(PREFIX)gcc-posix
+CC = $(PREFIX)gcc
 
-CXX = $(PREFIX)g++-posix
+CXX = $(PREFIX)g++
 
 COMMONFLAGS = -pthread -DPRAAT_LIB -municode -D_FILE_OFFSET_BITS=64 -O3 
 
@@ -10,12 +10,12 @@ CFLAGS = -std=gnu99 $(COMMONFLAGS)
 
 CXXFLAGS = -std=gnu++17 $(CFLAGS) -Wshadow
 
-LINK = $(PREFIX)g++-posix
+LINK = $(PREFIX)g++
 
 EXECUTABLE = Praat.exe
 LIBRARY = jpraat.dll
 
-LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 /mingw64/lib/GdiPlus.dll -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -static -Wl,--subsystem,windows
+LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -static -Wl,--subsystem,windows
 
 AR = $(PREFIX)ar
 RANLIB = $(PREFIX)ranlib
