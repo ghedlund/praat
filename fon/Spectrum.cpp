@@ -86,12 +86,6 @@ double structSpectrum :: v_getValueAtSample (integer isamp, integer which, int u
 	return undefined;
 }
 
-#ifdef PRAAT_LIB
-double Spectrum_getValueAtSample(Spectrum me, integer isamp, integer which, int units) {
-	return my v_getValueAtSample(isamp, which, units);
-}
-#endif
-
 autoSpectrum Spectrum_create (double fmax, integer nf) {
 	try {
 		autoSpectrum me = Thing_new (Spectrum);
@@ -228,16 +222,15 @@ if(ifmin==1)ifmin=2;  /* BUG */
 autoTable Spectrum_tabulate (Spectrum me, bool includeBinNumbers, bool includeFrequency,
 	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity)
 {
-	integer ncol = 0;
-	if(includeBinNumbers) ++ncol;
-	if(includeFrequency) ++ncol;
-	if(includeRealPart) ++ncol;
-	if(includeImaginaryPart) ++ncol;
-	if(includeEnergyDensity) ++ncol;
-	if(includePowerDensity) ++ncol;
+	integer ncols = 0;
+	if(includeBinNumbers) ++ncols;
+	if(includeFrequency) ++ncols;
+	if(includeRealPart) ++ncols;
+	if(includeImaginaryPart) ++ncols;
+	if(includeEnergyDensity) ++ncols;
+	if(includePowerDensity) ++ncols;
 	try {
-
-		autoTable thee = Table_createWithoutColumnNames (my nx, ncol);
+		autoTable thee = Table_createWithoutColumnNames (my nx, ncols);
 		integer icol = 0;
 		if (includeBinNumbers)
 			Table_setColumnLabel (thee.get(), ++ icol, U"bin");
