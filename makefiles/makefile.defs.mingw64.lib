@@ -1,25 +1,24 @@
-# File: makefile.defs.mingw64
+PREFIX = /mingw64/bin/x86_64-w64-mingw32-
 
-# System: MinGW
-# Paul Boersma, 17 December 2014
+CC = $(PREFIX)gcc-posix
 
-CC = /mingw64/bin/gcc -std=gnu99 -isystem /mingw64/include
+CXX = $(PREFIX)g++-posix
 
-CXX = /mingw64/bin/g++ -std=gnu++17 -Wshadow -m64
+COMMONFLAGS = -pthread -DPRAAT_LIB -municode -D_FILE_OFFSET_BITS=64 -O3 
 
-CFLAGS = -DPRAAT_LIB -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN32_IE=0x0501 -DUNICODE -D_FILE_OFFSET_BITS=64 -Dmain=wingwmain -O1 -pthread
+CFLAGS = -std=gnu99 $(COMMONFLAGS)
 
-CXXFLAGS = $(CFLAGS)
+CXXFLAGS = -std=gnu++17 $(CFLAGS) -Wshadow
 
-LINK = /mingw64/bin/g++
+LINK = $(PREFIX)g++-posix
 
 EXECUTABLE = Praat.exe
 LIBRARY = jpraat.dll
 
-LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 /mingw64/lib/GdiPlus.dll -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -Wl,--subsystem,windows
+LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 /mingw64/lib/GdiPlus.dll -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -static -Wl,--subsystem,windows
 
-AR = /mingw64/bin/ar
-RANLIB = /mingw64/bin/ranlib
-WINDRES = /mingw64/bin/windres
+AR = $(PREFIX)ar
+RANLIB = $(PREFIX)ranlib
+WINDRES = $(PREFIX)windres
 ICON = praat_win.o
 MAIN_ICON = main/praat_win.o
