@@ -531,9 +531,14 @@ autoTable Formant_downto_Table (Formant me, bool includeFrameNumbers,
 	bool includeNumberOfFormants, integer frequencyDecimals,
 	bool includeBandwidths)
 {
+	integer ncol = my maxnFormants;
+	if(includeFrameNumbers) ++ncol;
+	if(includeTimes) ++ncol;
+	if(includeIntensity) ++ncol;
+	if(includeNumberOfFormants) ++ncol;
+	if(includeBandwidths) ncol += my maxnFormants;
 	try {
-		autoTable thee = Table_createWithoutColumnNames (my nx, includeFrameNumbers + includeTimes + includeIntensity +
-			includeNumberOfFormants + my maxnFormants * (1 + includeBandwidths));
+		autoTable thee = Table_createWithoutColumnNames (my nx, ncol);
 		integer icol = 0;
 		if (includeFrameNumbers)     Table_setColumnLabel (thee.get(), ++ icol, U"frame");
 		if (includeTimes)            Table_setColumnLabel (thee.get(), ++ icol, U"time(s)");

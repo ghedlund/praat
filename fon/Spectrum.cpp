@@ -228,9 +228,16 @@ if(ifmin==1)ifmin=2;  /* BUG */
 autoTable Spectrum_tabulate (Spectrum me, bool includeBinNumbers, bool includeFrequency,
 	bool includeRealPart, bool includeImaginaryPart, bool includeEnergyDensity, bool includePowerDensity)
 {
+	integer ncol = 0;
+	if(includeBinNumbers) ++ncol;
+	if(includeFrequency) ++ncol;
+	if(includeRealPart) ++ncol;
+	if(includeImaginaryPart) ++ncol;
+	if(includeEnergyDensity) ++ncol;
+	if(includePowerDensity) ++ncol;
 	try {
-		autoTable thee = Table_createWithoutColumnNames (my nx,
-				includeBinNumbers + includeFrequency + includeRealPart + includeImaginaryPart + includeEnergyDensity + includePowerDensity);
+
+		autoTable thee = Table_createWithoutColumnNames (my nx, ncol);
 		integer icol = 0;
 		if (includeBinNumbers)
 			Table_setColumnLabel (thee.get(), ++ icol, U"bin");
