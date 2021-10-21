@@ -19,11 +19,8 @@ for f in /usr/bin/x86_64-w64-mingw32-*; do
     sudo ln -s $f
 done
 
+for f in x86_64-w64-mingw32-*; do name=`echo $f | awk -F '-' '{out=$4; for(i=5;i<=NF;i++){out=out"-"$i}; print out;}'`; sudo ln -s $f $name; done
 
-for f in *; do 
-    name=`echo $f | awk -F '-' '{print $4}'`
-    sudo ln -s $f $name
-done
 
 cd ../include
 sudo ln -s shlobj.h Shlobj.h
