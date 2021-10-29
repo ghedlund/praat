@@ -84,14 +84,8 @@ static structMelderDir homeDir { };
 // inline structMelderDir Melder_preferencesFolder { };   // already declared in Melder_files.h (checked 2021-03-07)
 
 #ifdef PRAAT_LIB
-inline structMelderDir Melder_praatPreferencesFolder { };
-
-PRAAT_LIB_EXPORT conststring32 praatlib_dir() {
-    return Melder_preferencesFolder.path;
-}
-
 PRAAT_LIB_EXPORT conststring32 praat_dir() {
-    return Melder_praatPreferencesFolder.path;
+    return Melder_preferencesFolder.path;
 }
 #endif
 
@@ -1111,43 +1105,10 @@ PRAAT_LIB_EXPORT void libjpraat_init () {
 	praatP.argumentNumber = 1;
 	Melder_batch = true;
 	praatP.userWantsToOpen = false;
-	praatP.title = Melder_dup (U"libjpraat");
+	praatP.title = Melder_dup (U"Praat");
 	theCurrentPraatApplication -> batch = true;
-	Melder_getHomeDir (& homeDir);
-    
-    if(MelderDir_isNull (& Melder_praatPreferencesFolder)) { // shouldn't be set yet anyway
-        structMelderDir prefParentDir { };   // directory under which to store our preferences directory
-        Melder_getPrefDir (& prefParentDir);
-        
-        autostring32 praatProgramTitle = Melder_dup(U"Praat");
 
-        /*
-         * Make sure that the program's private directory exists.
-         */
-        char32 name [256];
-        #if defined (UNIX)
-            Melder_sprint (name,256, U".", U"praat", U"-dir");   // for example .praat-dir
-        #elif defined (macintosh)
-            Melder_sprint (name,256, praatProgramTitle.get(), U" Prefs");   // for example Praat Prefs
-        #elif defined (_WIN32)
-            Melder_sprint (name,256, praatProgramTitle.get());   // for example Praat
-        #endif
-        try {
-            #if defined (UNIX) || defined (macintosh)
-                Melder_createDirectory (& prefParentDir, name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-            #else
-                Melder_createDirectory (& prefParentDir, name, 0);
-            #endif
-            MelderDir_getSubdir (& prefParentDir, name, & Melder_praatPreferencesFolder);
-        } catch (MelderError) {
-            /*
-             * If we arrive here, the directory could not be created,
-             * and all the files are null. Praat should nevertheless start up.
-             */
-            Melder_clearError ();
-        }
-    }
-    
+    Melder_getHomeDir (& homeDir);
     if (MelderDir_isNull (& Melder_preferencesFolder)) {   // not yet set by the --pref-dir option?
         structMelderDir prefParentDir { };   // directory under which to store our preferences directory
         Melder_getPrefDir (& prefParentDir);
@@ -1178,6 +1139,25 @@ PRAAT_LIB_EXPORT void libjpraat_init () {
             Melder_clearError ();
         }
     }
+    if (! MelderDir_isNull (& Melder_preferencesFolder)) {
+		#if defined (UNIX)
+			MelderDir_getFile (& Melder_preferencesFolder, U"prefs5", & prefsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"buttons5", & buttonsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"pid", & pidFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"message", & messageFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"tracing", & tracingFile);
+		#elif defined (_WIN32)
+			MelderDir_getFile (& Melder_preferencesFolder, U"Preferences5.ini", & prefsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"Buttons5.ini", & buttonsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"Message.txt", & messageFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"Tracing.txt", & tracingFile);
+		#elif defined (macintosh)
+			MelderDir_getFile (& Melder_preferencesFolder, U"Prefs5", & prefsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"Buttons5", & buttonsFile);
+			MelderDir_getFile (& Melder_preferencesFolder, U"Tracing.txt", & tracingFile);
+		#endif
+		Melder_tracingToFile (& tracingFile);
+	}
     
 	praat_actions_init ();
 	praat_menuCommands_init ();
