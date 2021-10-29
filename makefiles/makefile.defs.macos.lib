@@ -12,7 +12,7 @@ CFLAGS = -DuseCarbon=0 -Dmacintosh -mmacosx-version-min=10.7 -DPRAAT_LIB -fvisib
 
 CXXFLAGS = $(CFLAGS) -ObjC++ -arch x86_64 -fmessage-length=80 -stdlib=libc++ -Wshadow 
 
-LINK = clang++ -Wl,--whole-archive
+LINK = clang++
 
 EXECUTABLE = praat
 LIBRARY = libjpraat.dylib
