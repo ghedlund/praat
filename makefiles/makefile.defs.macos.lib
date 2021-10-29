@@ -8,11 +8,11 @@ CC = clang -std=gnu99
 
 CXX = clang++ -std=c++17
 
-CFLAGS = -DuseCarbon=0 -Dmacintosh -mmacosx-version-min=10.7 -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -Wno-return-type-c-linkage -g
+CFLAGS = -DuseCarbon=0 -Dmacintosh -mmacosx-version-min=10.7 -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -Wno-return-type-c-linkage -O3 
 
 CXXFLAGS = $(CFLAGS) -ObjC++ -arch x86_64 -fmessage-length=80 -stdlib=libc++ -Wshadow 
 
-LINK = clang++
+LINK = clang++ -Wl,--whole-archive
 
 EXECUTABLE = praat
 LIBRARY = libjpraat.dylib
