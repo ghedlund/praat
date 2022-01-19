@@ -133,7 +133,7 @@ static void checkTierSelection (FormantPathEditor me, conststring32 verbPhrase) 
 
 /***** FILE MENU *****/
 
-static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes (FormantPathEditor me, EDITOR_ARGS_DIRECT) {
+static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes (FormantPathEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	CONVERT_DATA_TO_ONE
 		if (my endSelection <= my startSelection)
 			Melder_throw (U"No selection.");
@@ -142,7 +142,7 @@ static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes (FormantP
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero (FormantPathEditor me, EDITOR_ARGS_DIRECT) {
+static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero (FormantPathEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	CONVERT_DATA_TO_ONE
 		if (my endSelection <= my startSelection)
 			Melder_throw (U"No selection.");
@@ -315,12 +315,12 @@ static void menu_cb_DrawTextGridAndPitch (FormantPathEditor me, EDITOR_ARGS_FORM
 				U"Cannot compute pitch.");
 		}
 		Editor_openPraatPicture (me);
-		double pitchFloor_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(), my p_pitch_floor, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
-		double pitchCeiling_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(), my p_pitch_ceiling, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
-		double pitchFloor_overt = Function_convertToNonlogarithmic (my d_pitch.get(), pitchFloor_hidden, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
-		double pitchCeiling_overt = Function_convertToNonlogarithmic (my d_pitch.get(), pitchCeiling_hidden, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
-		double pitchViewFrom_overt = ( my p_pitch_viewFrom < my p_pitch_viewTo ? my p_pitch_viewFrom : pitchFloor_overt );
-		double pitchViewTo_overt = ( my p_pitch_viewFrom < my p_pitch_viewTo ? my p_pitch_viewTo : pitchCeiling_overt );
+		const double pitchFloor_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(), my p_pitch_floor, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
+		const double pitchCeiling_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(), my p_pitch_ceiling, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
+		const double pitchFloor_overt = Function_convertToNonlogarithmic (my d_pitch.get(), pitchFloor_hidden, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
+		const double pitchCeiling_overt = Function_convertToNonlogarithmic (my d_pitch.get(), pitchCeiling_hidden, Pitch_LEVEL_FREQUENCY, (int) my p_pitch_unit);
+		const double pitchViewFrom_overt = ( my p_pitch_viewFrom < my p_pitch_viewTo ? my p_pitch_viewFrom : pitchFloor_overt );
+		const double pitchViewTo_overt = ( my p_pitch_viewFrom < my p_pitch_viewTo ? my p_pitch_viewTo : pitchCeiling_overt );
 		TextGrid_Pitch_drawSeparately (my textGridView.get(), my d_pitch.get(), my pictureGraphics, my startWindow, my endWindow,
 			pitchViewFrom_overt, pitchViewTo_overt, showBoundariesAndPoints, my p_useTextStyles, garnish,
 			speckle, my p_pitch_unit
@@ -493,7 +493,7 @@ static void menu_cb_DrawVisibleCandidates (FormantPathEditor me, EDITOR_ARGS_FOR
 	EDITOR_END
 }
 
-static void INFO_DATA__stressOfFitsListing (FormantPathEditor me, EDITOR_ARGS_DIRECT) {
+static void INFO_DATA__stressOfFitsListing (FormantPathEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	INFO_DATA
 		FormantPath formantPath = (FormantPath) my data;
 		double startTime = my startSelection, endTime = my endSelection;
@@ -561,7 +561,7 @@ static void menu_cb_showFormants (FormantPathEditor me, EDITOR_ARGS_DIRECT) {
 	FunctionEditor_redraw (me);
 }
 
-static void INFO_DATA__formantListing (FormantPathEditor me, EDITOR_ARGS_DIRECT) {
+static void INFO_DATA__formantListing (FormantPathEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	INFO_DATA
 		const double startTime = my startSelection, endTime = my endSelection;
 		MelderInfo_open ();
@@ -576,11 +576,11 @@ static void INFO_DATA__formantListing (FormantPathEditor me, EDITOR_ARGS_DIRECT)
 			integer i1, i2;
 			Sampled_getWindowSamples (my d_formant.get(), startTime, endTime, & i1, & i2);
 			for (integer i = i1; i <= i2; i ++) {
-				double t = Sampled_indexToX (my d_formant.get(), i);
-				double f1 = Formant_getValueAtTime (my d_formant.get(), 1, t, kFormant_unit::HERTZ);
-				double f2 = Formant_getValueAtTime (my d_formant.get(), 2, t, kFormant_unit::HERTZ);
-				double f3 = Formant_getValueAtTime (my d_formant.get(), 3, t, kFormant_unit::HERTZ);
-				double f4 = Formant_getValueAtTime (my d_formant.get(), 4, t, kFormant_unit::HERTZ);
+				const double t = Sampled_indexToX (my d_formant.get(), i);
+				const double f1 = Formant_getValueAtTime (my d_formant.get(), 1, t, kFormant_unit::HERTZ);
+				const double f2 = Formant_getValueAtTime (my d_formant.get(), 2, t, kFormant_unit::HERTZ);
+				const double f3 = Formant_getValueAtTime (my d_formant.get(), 3, t, kFormant_unit::HERTZ);
+				const double f4 = Formant_getValueAtTime (my d_formant.get(), 4, t, kFormant_unit::HERTZ);
 				MelderInfo_writeLine (Melder_fixed (t, 6), U"   ", Melder_fixed (f1, 6), U"   ", Melder_fixed (f2, 6), U"   ", Melder_fixed (f3, 6), U"   ", Melder_fixed (f4, 6));
 			}
 		}
@@ -905,7 +905,6 @@ void structFormantPathEditor :: v_prefs_getValues (EditorCommand /* cmd */) {
 	our pref_alignment () = our p_alignment = v_prefs_addFields_textAlignmentInIntervals;
 	our pref_shiftDragMultiple () = our p_shiftDragMultiple = false;
 	our pref_showNumberOf () = our p_showNumberOf = v_prefs_addFields_showNumberOf;
-	FunctionEditor_redraw (this);
 }
 
 void structFormantPathEditor :: v_createMenuItems_view_timeDomain (EditorMenu menu) {

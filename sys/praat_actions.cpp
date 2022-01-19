@@ -587,7 +587,7 @@ void praat_actions_show () {
 		actionsInvisible = false;
 		GuiMenu currentSubmenu1 = nullptr, currentSubmenu2 = nullptr;
 		bool writeMenuGoingToSeparate = false;
-		int y = Machine_getMenuBarHeight () + 10;
+		int y = Machine_getMenuBarBottom () + 10;
 		for (integer i = 1; i <= theActions.size; i ++) {   // add buttons or make existing buttons sensitive (executable)
 			Praat_Command me = theActions.at [i];
 			if (my depth == 0) currentSubmenu1 = nullptr, currentSubmenu2 = nullptr;   // prevent attachment of later deep actions to earlier submenus after removal of label
@@ -661,9 +661,6 @@ void praat_actions_createWriteMenu (GuiWindow window) {
 	#if gtk
 		GuiMenu_addSeparator (praat_writeMenu);
 	#endif
-}
-
-void praat_actions_init () {
 }
 
 void praat_actions_createDynamicMenu (GuiWindow window) {
@@ -842,7 +839,7 @@ void praat_actions_writeC (bool isInHeaderFile, bool includeSaveAPI,
 	try {
 		integer numberOfApiActions = 0;
 		for (; i <= theActions.size; i ++) {
-			Melder_casual (i, U": ", theActions.at [i] -> class1 -> className, U": ", theActions.at [i] -> title.get());
+			//Melder_casual (i, U": ", theActions.at [i] -> class1 -> className, U": ", theActions.at [i] -> title.get());
 			Praat_Command command = theActions.at [i];
 			const bool deprecated = ( command -> deprecationYear > 0 );
 			if (! actionIsToBeIncluded (command, deprecated, includeSaveAPI, includeQueryAPI, includeModifyAPI,

@@ -121,7 +121,7 @@ public:
 	operator FILE * () {
 		return ptr;
 	}
-	void reset (FILE *f) {
+	void operator= (FILE *f) {
 		if (ptr)
 			fclose (ptr);   // BUG: not a normal closure
 		ptr = f;

@@ -1,6 +1,6 @@
 /* Collection.cpp
  *
- * Copyright (C) 1992-2012,2014-2020 Paul Boersma
+ * Copyright (C) 1992-2012,2014-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,8 +99,8 @@ void _CollectionOfDaata_v_writeText (_CollectionOfDaata* me, MelderFile file) {
 void _CollectionOfDaata_v_readText (_CollectionOfDaata* me, MelderReadText text, int formatVersion) {
 	if (formatVersion < 0) {
 		autostring8 line = Melder_32to8 (MelderReadText_readLine (text));
-		long_not_integer l_size;
-		Melder_require (line && sscanf (line.get(), "%ld", & l_size) == 1 && l_size >= 0,
+		integer l_size;
+		Melder_require (line && sscanf (line.get(), "%td", & l_size) == 1 && l_size >= 0,
 			U"Collection::readText: cannot read size.");
 		my _grow (l_size);
 		for (integer i = 1; i <= l_size; i ++) {
@@ -110,10 +110,10 @@ void _CollectionOfDaata_v_readText (_CollectionOfDaata* me, MelderReadText text,
 					Melder_throw (U"Missing object line.");
 			} while (! strnequ (line.get(), "Object ", 7));
 
-			long_not_integer itemNumberRead;   // %ld
+			integer itemNumberRead;
 			char klas [200], nameTag [2000];
 			int_not_integer n = 0;   // %n
-			integer stringsRead = sscanf (line.get(), "Object %ld: class %199s %1999s%n", & itemNumberRead, klas, nameTag, & n);
+			integer stringsRead = sscanf (line.get(), "Object %td: class %199s %1999s%n", & itemNumberRead, klas, nameTag, & n);
 			Melder_require (stringsRead >= 2,
 				U"Collection::readText: cannot read header of object ", i, U".");
 			Melder_require (itemNumberRead == i,
@@ -130,7 +130,7 @@ void _CollectionOfDaata_v_readText (_CollectionOfDaata* me, MelderReadText text,
 				char *location = & line [n];
 				if (*location == ' ')
 					n ++;   // skip space character
-				integer length = strlen (location);
+				integer length = str8len (location);
 				if (length > 0 && location [length - 1] == '\n')
 					location [length - 1] = '\0';
 				Thing_setName (my at [i], Melder_peek8to32 (line.get()+n));

@@ -1,6 +1,6 @@
 /* praat_Sound.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ DO
 }
 
 FORM (SAVE_ONE__LongSound_savePartAsAudioFile, U"LongSound: Save part as audio file", nullptr) {
-	OUTFILE (audioFile, U"Audio file:", U"")
+	OUTFILE (audioFile, U"Audio file", U"")
 	RADIO (type, U"Type", 3)
 	{ int i; for (i = 1; i <= Melder_NUMBER_OF_AUDIO_FILE_TYPES; i ++) {
 		RADIOBUTTON (Melder_audioFileTypeString (i))
@@ -1222,7 +1222,7 @@ DIRECT (SINGLETON_CREATION_WINDOW__Sound_recordStereo) {
 FORM (RECORD_ONE__Sound_record_fixedTime, U"Record Sound", nullptr) {
 	LABEL (U"This menu command is usually hidden,")
 	LABEL (U"   because its behaviour is platform-dependent.")
-	LABEL (U"The combination of “microphone” and “44100 Hz” is likely")
+	LABEL (U"The combination of “microphone” and “48000 Hz” is likely")
 	LABEL (U"   to work on all computers.")
 	LABEL (U"The “Gain” and “Balance” settings tend to be obsolete")
 	LABEL (U"   and may not work at all on your computer.")
@@ -1774,10 +1774,8 @@ FORM (PREFS__SoundOutputPrefs, U"Sound playing preferences", nullptr) {
 	LABEL (U"Decrease asynchronicity if sound plays with discontinuities.")
 	OPTIONMENU_ENUM (kMelder_asynchronicityLevel, maximumAsynchronicity,
 			U"Maximum asynchronicity", kMelder_asynchronicityLevel::DEFAULT)
-	#define xstr(s) str(s)
-	#define str(s) #s
-	REAL (silenceBefore, U"Silence before (s)", U"" xstr (kMelderAudio_outputSilenceBefore_DEFAULT))
-	REAL (silenceAfter, U"Silence after (s)", U"" xstr (kMelderAudio_outputSilenceAfter_DEFAULT))
+	REAL (silenceBefore, U"Silence before (s)", U"" stringize(kMelderAudio_outputSilenceBefore_DEFAULT))
+	REAL (silenceAfter, U"Silence after (s)", U"" stringize(kMelderAudio_outputSilenceAfter_DEFAULT))
 	OPTIONMENU_ENUM (kMelder_outputSoundSystem, outputSoundSystem,
 			U"Output sound system", kMelder_outputSoundSystem::DEFAULT)
 OK

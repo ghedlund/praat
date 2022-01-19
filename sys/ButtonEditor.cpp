@@ -1,6 +1,6 @@
 /* ButtonEditor.cpp
  *
- * Copyright (C) 1996-2020 Paul Boersma
+ * Copyright (C) 1996-2021 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,7 +209,8 @@ int structButtonEditor :: v_goToPage (conststring32 title) {
 		case 'a': {   // toggle visibility of action
 			integer i = Melder_atoi (& title [1]);
 			Praat_Command action = praat_getAction (i);
-			if (! action) return 0;
+			if (! action)
+				return 0;
 			if (action -> hidden)
 				praat_showAction (action -> class1, action -> class2, action -> class3, action -> title.get());
 			else
@@ -299,7 +300,7 @@ static void gui_radiobutton_cb_actionsTZ (ButtonEditor me, GuiRadioButtonEvent /
 
 void structButtonEditor :: v_createChildren () {
 	ButtonEditor_Parent :: v_createChildren ();
-	int x = 3, y = Machine_getMenuBarHeight () + 4;
+	int x = 3, y = Machine_getMenuBarBottom () + 4;
 	GuiRadioGroup_begin ();
 	constexpr int LETTER_BUTTON_WIDTH = BUTTON_WIDTH * 2 / 3;
 	button1 = GuiRadioButton_createShown (our windowForm, x, x + BUTTON_WIDTH, y, y + Gui_RADIOBUTTON_HEIGHT,

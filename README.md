@@ -30,7 +30,7 @@ Multi-language text-to-speech facilities allow you to segment the sound into wor
 #### Grammar models
 
 With Praat, you can try out Optimality-Theoretic and Harmonic-Grammar learning,
-as well as seevral kinds of neural-network models.
+as well as several kinds of neural-network models.
 
 #### Statistical analysis
 
@@ -44,11 +44,11 @@ For more information, consult the website [praat.org](https://praat.org), which 
 While the [Praat website](https://praat.org) contains the latest executable for all platforms that we support
 (or used to support), the [releases on GitHub](https://github.com/praat/praat/releases) contain many older executables as well.
 
-The meaning of the names of binary files available on GitHub is as follows:
+The meaning of the names of binary files available on GitHub is as follows (editions that currently receive updates are in bold):
 
 ### 1.1. Windows binaries
-- `praatXXXX_win64.zip`: zipped executable for 64-bit Windows (XP and higher)
-- `praatXXXX_win32.zip`: zipped executable for 32-bit Windows (XP and higher)
+- **`praatXXXX_win64.zip`: zipped executable for 64-bit Windows (** XP and higher, or **7 and higher)**
+- **`praatXXXX_win32.zip`: zipped executable for 32-bit Windows (** XP and higher, or **7 and higher)**
 - `praatconXXXX_win64.zip`: zipped executable for 64-bit Windows, console edition
 - `praatconXXXX_win32.zip`: zipped executable for 32-bit Windows, console edition
 - `praatconXXXX_win32sit.exe`: self-extracting StuffIt archive with executable for 32-bit Windows, console edition
@@ -56,8 +56,8 @@ The meaning of the names of binary files available on GitHub is as follows:
 - `praatXXXX_win98sit.exe`: self-extracting StuffIt archive with executable for Windows 98
 
 ### 1.2. Mac binaries
-- `praatXXXX_mac.dmg`: disk image with universal executable for (64-bit) Intel and Apple Silicon Macs (Cocoa)
-- `praatXXXX_xcodeproj.zip`: zipped Xcode project file for the universal (64-bit) edition (Cocoa)
+- **`praatXXXX_mac.dmg`: disk image with universal executable for (64-bit) Intel and Apple Silicon Macs (Cocoa)**
+- **`praatXXXX_xcodeproj.zip`: zipped Xcode project file for the universal (64-bit) edition (Cocoa)**
 - `praatXXXX_mac64.dmg`: disk image with executable for 64-bit Intel Macs (Cocoa)
 - `praatXXXX_xcodeproj64.zip`: zipped Xcode project file for the 64-bit edition (Cocoa)
 - `praatXXXX_mac32.dmg`: disk image with executable for 32-bit Intel Macs (Carbon)
@@ -71,11 +71,11 @@ The meaning of the names of binary files available on GitHub is as follows:
 - `praatXXXX_mac7.sit`: StuffIt archive with executable for MacOS 7
 
 ### 1.3. Unix binaries
-- `praatXXXX_rpi_armv7.tar.gz`: gzipped tarred executable for 32-bit Linux on the Raspberry Pi 4B (GTK 2 or 3)
-- `praatXXXX_chrome64.tar.gz`: gzipped tarred executable for 64-bit Linux on Chromebooks (GTK 2 or 3)
-- `praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for 64-bit Linux, without GUI or graphics
-- `praatXXXX_linux64nogui.tar.gz`: gzipped tarred executable for 64-bit Linux, without GUI but with graphics (Cairo and Pango)
-- `praatXXXX_linux64.tar.gz`: gzipped tarred executable for 64-bit Linux (GTK 2 or 3)
+- **`praatXXXX_rpi_armv7.tar.gz`: gzipped tarred executable for 32-bit Linux on the Raspberry Pi 4B (GTK** 2 or **3)**
+- **`praatXXXX_chrome64.tar.gz`: gzipped tarred executable for 64-bit Linux on Chromebooks (GTK** 2 or **3)**
+- **`praatXXXX_linux64barren.tar.gz`: gzipped tarred executable for 64-bit Linux, without GUI or graphics**
+- **`praatXXXX_linux64nogui.tar.gz`: gzipped tarred executable for 64-bit Linux, without GUI but with graphics (Cairo and Pango)**
+- **`praatXXXX_linux64.tar.gz`: gzipped tarred executable for 64-bit Linux (GTK** 2 or **3)**
 - `praatXXXX_linux32.tar.gz`: gzipped tarred executable for 32-bit Linux (GTK 2)
 - `praatXXXX_linux_motif64.tar.gz`: gzipped tarred executable for 64-bit Linux (Motif)
 - `praatXXXX_linux_motif32.tar.gz`: gzipped tarred executable for 32-bit Linux (Motif)
@@ -122,8 +122,8 @@ The code requires that your compiler supports C99 and C++17.
 
 To compile Praat's Windows edition on a 64-bit Windows computer,
 install Cygwin on that computer,
-and under Cygwin install the Devel packages x86_64-w64-mingw32 (for 64-bit targets)
-and/or i686-w64-mingw32 (for 32-bit targets).
+and under Cygwin install the Devel packages mingw64-x86_64-gcc-g++ (for 64-bit targets)
+and/or mingw64-i686-gcc-g++ (for 32-bit targets).
 Move the Praat sources directory somewhere in your `/home/yourname` tree,
 e.g. as `/home/yourname/praats` and/or `/home/yourname/praats32`;
 the folders `fon` and `sys` should be visible within these folders.
@@ -144,8 +144,9 @@ Then type `make` to build `Praat.exe`
 
 Extract the *praatXXXX_xcodeproj.zip* file from the [latest release](https://github.com/praat/praat/releases)
 into the directory that contains `sys`, `fon`, `dwtools` and so on.
-Then open the project `praat.xcodeproj` in Xcode 12.5 and choose Build or Run for the target `praat_mac`.
-You can compile with the 11.3 SDK, which will work as far back as macOS 10.9, which is our deployment target.
+Then open the project `praat.xcodeproj` in Xcode 13.1 and choose Build or Run for the target `praat_mac`.
+You can compile with the 12.0 (i.e. the newest and standard) SDK, which will work as far back as macOS 10.9,
+which is our deployment target.
 
 If you get an error message like “Code Signing Identity xxx does not match any valid, non-expired,
 code-signing certificate in your keychain”, then select the target `praat_mac`, go to Info → Build,
@@ -161,7 +162,7 @@ try the target `praat_mac_a` (static) or `praat_mac_so` (dynamic).
 
 **Notarization.** If you want others to be able to use your Mac app,
 you will probably have to not only *sign* the executable, but also *notarize* it. To this end,
-do Xcode (version 12) -> Product -> Archive -> Distribute App -> Developer ID -> Upload ->
+do Xcode (version 13) -> Product -> Archive -> Distribute App -> Developer ID -> Upload ->
 Automatically manage signing -> Upload -> ...wait... (“Package Approved”) ...wait...
 (“Ready to distribute”) -> Export Notarized App). If your Praat.app was built into
 `~/builds/mac_products/Configuration64`, then you can save the notarized
@@ -243,13 +244,13 @@ or `praat-build` into a Windows or Linux terminal (or `praat-run` to build and r
 
 Your source code folders, such as `fon` and `sys`, will reside in a folder like `/Users/yourname/Praats/src`,
 where you also put `praat.xcodeproj`, as described above in 3.2.
-On Paul’s 2018 MacBook Pro with Xcode 12.2, building Praat with Command-B or Command-R,
+On Paul’s 2018 MacBook Pro with Xcode 13.1, building Praat with Command-B or Command-R,
 after cleaning the build folder with Shift-Command-K,
-takes 120 seconds for the x86_64 part and 110 seconds for the ARM64 part (optimization level O3).
+takes 160 seconds for the x86_64 part and 150 seconds for the ARM64 part (optimization level O3).
 
 ### 4.2. Windows development set-up
 
-Under Parallels Desktop 17 or later, install Windows 10. In Windows 10, install Cygwin,
+Under Parallels Desktop 17.1 or later, install Windows 10 or Windows 11. In Windows, install Cygwin,
 and create a `praats` folder, as described above in 3.1.
 
 There are two options for your source tree: either it resides on the MacOS disk
@@ -259,10 +260,10 @@ whereas compiling Praat on the Windows disk takes only 4 minutes and 20 seconds.
 So we go with installing the source tree under the Cygwin home folder, as follows.
 
 You need to get the source from the MacOS disk, so you have to mount the MacOS disk
-from Cygwin. This is easy: in Parallels Desktop, choose `Windows 10` -> `Configure`,
+from Cygwin. This is easy: in Parallels Desktop, choose `Windows 10 or 11` -> `Configure`,
 then `Options`, then `Sharing`, then `Share Mac`, and set `Share folders` to `Home folder only`
 (if this scares you, then use `Custom Folders` instead).
-Your MacOS home folder (i.e. `/Users/yourname`) is now visible anywhere on Windows 10
+Your MacOS home folder (i.e. `/Users/yourname`) is now visible anywhere on Windows
 as the `Z` drive (or so), and from the `Cygwin64 Terminal` you can access it as `/cygdrive/z`.
 
 When developing Praat for Windows, you just edit your files in Xcode;
@@ -271,7 +272,8 @@ Then, just as you use Command-B and Command-R in Xcode,
 you will be able to type `praat-build` (which only builds) or `praat-run` (which builds and runs)
 into your `Cygwin64 Terminal`. To accomplish this,
 add the following definitions into `/home/yourname/.profile` in your Cygwin home folder,
-so that the `bash` shell will automatically execute them whenever you start your `Cygwin64 Terminal`:
+so that the `bash` shell will automatically execute them whenever you start your `Cygwin64 Terminal`
+(you will need to have installed `rsync` and `make`):
 
     # in Cygwin:~/.profile
     PRAAT_SOURCES="/cygdrive/z/Praats/src"
@@ -301,19 +303,19 @@ If you also want to develop the 32-bit edition, you add to `.profile`:
 
 ### 4.3. Linux development set-up
 
-Under Parallels Desktop 17 or later, install Ubuntu 18.04 (or 20.04), and create
+Under Parallels Desktop 17 or later, install Ubuntu 18.04 or 20.04, and create
 a folder `praats` in your home folder, as described above in 3.3.
 
-In Parallels Desktop, choose `Ubuntu 18.04` -> `Configure`,
+In Parallels Desktop, choose `Ubuntu 18.04 or 20.04` -> `Configure`,
 then `Options`, then `Sharing`, then `Share Mac`, and set `Share folders` to `Home folder only`
 (or use `Custom Folders` instead).
-Your MacOS home folder (i.e. `/Users/yourname`) is now visible on the Ubuntu 18.04 desktop
+Your MacOS home folder (i.e. `/Users/yourname`) is now visible on the Ubuntu desktop
 as `Home`, and from the `Terminal` you can access it as `/media/psf/Home`.
 
 When developing Praat for Linux, you just edit and save your files in Xcode.
 You will be able to type `praat-build` (which only builds) or `praat-run` (which builds and runs)
 into your `Terminal` after you add the following definitions into
-`/home/parallels/.bash_aliases` in your Ubuntu 18.04 home folder
+`/home/parallels/.bash_aliases` in your Ubuntu home folder
 (this will be run automatically by `.bashrc` whenever you start a `Terminal` window,
 assuming that it uses the `bash` shell):
 
@@ -376,17 +378,17 @@ create a folder `praatc`, and define
     alias praatc="~/praatsc/praat"
     alias praatc-run="praatc-build && praat"
 
-To test Praat for Chrome64, you can just run it on Ubuntu 18.04 by typing `praatc`,
+To test Praat for Chrome64, you can just run it on Ubuntu by typing `praatc`,
 or you transfer it to a Chromebook for the real test.
 
 ### 4.4. Chromebook development set-up
 
 Parallels Desktop 17 has no emulator for Chrome, so the choice is between
-building Praat on a Chromebook directly or building Praat on Ubuntu 18.04.
+building Praat on a Chromebook directly or building Praat on Ubuntu 18.04 or 20.04.
 On a 2019 HP Chromebook with Intel processor, building Praat takes
 a forbidding 27 minutes.
 
-So we choose to build Praat on Ubuntu 18.04 (under Parallels Desktop on the Mac),
+So we choose to build Praat on Ubuntu (under Parallels Desktop on the Mac),
 because building the Intel Chrome64 edition on Ubuntu 18.04 takes only
 2 minutes and 10 seconds. If you have the Linux set-up described in 4.3,
 you can do this with the `bc` command.
@@ -402,10 +404,10 @@ typing your password each time. To accomplish this, type
     # on Ubuntu command line
     ssh-keygen
 
-on your Ubuntu 18.04. This gives you a file `~/.ssh/id_rsa.pub` on your Ubuntu 18.04,
+on your Ubuntu. This gives you a file `~/.ssh/id_rsa.pub` on your Ubuntu,
 which contains your public `ssh` key. You should append the contents of this `id_rsa.pub`
 to the file `~/.ssh/authorized_keys` on your intermediary computer. From that moment on,
-your intermediary computer will accept `rsync -e ssh` calls from your Ubuntu 18.04.
+your intermediary computer will accept `rsync -e ssh` calls from your Ubuntu.
 On the intermediary computer, create a folder `~/builds`, and a folder `chrome64` inside that.
 If you now define
 
@@ -444,7 +446,7 @@ For edits in a `cpp` file (no changes in header files), this whole cycle can be 
 
 ### 4.5. Raspberry Pi development set-up
 
-One could perhaps create the Raspberry Pi edition by cross-compiling on Ubuntu 18.04.
+One could perhaps create the Raspberry Pi edition by cross-compiling on Ubuntu 18.04 or 20.04.
 If any reader of these lines has precise instructions, we would like to know about it
 (the main problem is how to install the GTK etc libraries in the Raspberry Pi toolchain,
 or how to get `dpkg` under Ubuntu-buster to actually find `armhf` libraries).

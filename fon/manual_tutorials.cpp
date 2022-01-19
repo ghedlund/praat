@@ -1,6 +1,6 @@
 /* manual_tutorials.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,61 @@
 void manual_tutorials_init (ManPages me);
 void manual_tutorials_init (ManPages me) {
 
-MAN_BEGIN (U"What's new?", U"ppgb", 20211025)
+MAN_BEGIN (U"What's new?", U"ppgb", 20220105)
 INTRO (U"Latest changes in Praat.")
+NORMAL (U"##6.2.05# (5 January 2022)")
+LIST_ITEM (U"• Calling Praat from the command line: the switch $$--send$ sends a script "
+	"to a different already running GUI instance of Praat; this is more flexible than using %sendpraat, "
+	"because $$--send$ will start a new instance of Praat if Praat is not yet running.")
+NORMAL (U"##6.2.04# (18 December 2021)")
+LIST_ITEM (U"• TextGrid window on Mac: fix entering Japanese text with the Enter key.")
+LIST_ITEM (U"• Praat now includes eSpeak 1.51, raising the number of supported languages from 100 to 130.")
+LIST_ITEM (U"• Scripting: support for $$infile$, $$outfile$ and $folder fields in forms.")
+LIST_ITEM (U"• Calling Praat from the command line: the switch $$--open$ now adds files to an already running instance of Praat; "
+	"this was already the case on Windows, but it now works in the same way on the Mac and on Linux.")
+LIST_ITEM (U"• Scripting on Mac: multiline text fields in forms have scroll bars and behave like other fields.")
+NORMAL (U"##6.2.03# (3 December 2021)")
+LIST_ITEM (U"• Mac: made Enter key work as expected (i.e. character selection) on Japanese keyboards in multi-line text fields in dialogs and TextGrid window.")
+NORMAL (U"##6.2.02# (2 December 2021)")
+LIST_ITEM (U"• Fixed a hang if there were negative pitch values in Sound: Change Gender.")
+LIST_ITEM (U"• Fixed a crash if the size of a PCA did not match the size of a TableOfReal.")
+NORMAL (U"##6.2.01# (17 November 2021)")
+LIST_ITEM (U"• Sound window: corrected a bug that caused a thick waveform during or after playing.")
+ENTRY (U"What used to be new?")
+LIST_ITEM (U"• @@What was new in 6.2?")
+LIST_ITEM (U"• @@What was new in 6.1?")
+LIST_ITEM (U"• @@What was new in 6.0?")
+LIST_ITEM (U"• @@What was new in 5.4?")
+LIST_ITEM (U"• @@What was new in 5.3?")
+LIST_ITEM (U"• @@What was new in 5.2?")
+LIST_ITEM (U"• @@What was new in 5.1?")
+LIST_ITEM (U"• @@What was new in 5.0?")
+LIST_ITEM (U"• @@What was new in 4.6?")
+LIST_ITEM (U"• @@What was new in 4.5?")
+LIST_ITEM (U"• @@What was new in 4.4?")
+LIST_ITEM (U"• @@What was new in 4.3?")
+LIST_ITEM (U"• @@What was new in 4.2?")
+LIST_ITEM (U"• @@What was new in 4.1?")
+LIST_ITEM (U"• @@What was new in 4.0?")
+LIST_ITEM (U"• @@What was new in 3.9?")
+LIST_ITEM (U"• @@What was new in 3.8?")
+LIST_ITEM (U"• @@What was new in 3.7?")
+LIST_ITEM (U"• @@What was new in 3.6?")
+LIST_ITEM (U"• @@What was new in 3.5?")
+LIST_ITEM (U"• @@What was new in 3.3?")
+LIST_ITEM (U"• @@What was new in 3.2?")
+LIST_ITEM (U"• @@What was new in 3.1?")
+MAN_END
+
+MAN_BEGIN (U"What was new in 6.2?", U"ppgb", 20211115)
+NORMAL (U"##6.2# (15 November 2021)")
+LIST_ITEM (U"• TextGrid window: closing box and opening triangle for IPA chart.")
+LIST_ITEM (U"• Linux: compatibility with Wayland (rather than just X11).")
+LIST_ITEM (U"• Chromebook: surrogate window title replaces the one that Chromebooks won’t show.")
+LIST_ITEM (U"• Much longer list of functions in manual.")
+NORMAL (U"##6.1.56# (3 November 2021)")
+LIST_ITEM (U"• Scripting: ##Record Sound (fixed time)...# should return an object ID.")
+LIST_ITEM (U"• More phonetic symbols in EPS files.")
 NORMAL (U"##6.1.55# (25 October 2021)")
 LIST_ITEM (U"• TextGrid window: guard against a rare crash on Windows.")
 LIST_ITEM (U"• TextGrid: Extract part: guard against producing an empty interval tier.")
@@ -213,29 +266,6 @@ LIST_ITEM (U"• Repaired ##Sound: Concatenate with overlap...#.")
 LIST_ITEM (U"• Mac: Info and script windows: prevent line breaks caused by tab stops.")
 NORMAL (U"##6.1.01# (14 August 2019)")
 LIST_ITEM (U"• Repaired ##TextGrid: Replace interval texts...#.")
-ENTRY (U"What used to be new?")
-LIST_ITEM (U"• @@What was new in 6.1?")
-LIST_ITEM (U"• @@What was new in 6.0?")
-LIST_ITEM (U"• @@What was new in 5.4?")
-LIST_ITEM (U"• @@What was new in 5.3?")
-LIST_ITEM (U"• @@What was new in 5.2?")
-LIST_ITEM (U"• @@What was new in 5.1?")
-LIST_ITEM (U"• @@What was new in 5.0?")
-LIST_ITEM (U"• @@What was new in 4.6?")
-LIST_ITEM (U"• @@What was new in 4.5?")
-LIST_ITEM (U"• @@What was new in 4.4?")
-LIST_ITEM (U"• @@What was new in 4.3?")
-LIST_ITEM (U"• @@What was new in 4.2?")
-LIST_ITEM (U"• @@What was new in 4.1?")
-LIST_ITEM (U"• @@What was new in 4.0?")
-LIST_ITEM (U"• @@What was new in 3.9?")
-LIST_ITEM (U"• @@What was new in 3.8?")
-LIST_ITEM (U"• @@What was new in 3.7?")
-LIST_ITEM (U"• @@What was new in 3.6?")
-LIST_ITEM (U"• @@What was new in 3.5?")
-LIST_ITEM (U"• @@What was new in 3.3?")
-LIST_ITEM (U"• @@What was new in 3.2?")
-LIST_ITEM (U"• @@What was new in 3.1?")
 MAN_END
 
 MAN_BEGIN (U"What was new in 6.1?", U"ppgb", 20190713)
@@ -511,7 +541,7 @@ LIST_ITEM (U"• Linux: removed a bug that could cause too many flashes when scr
 LIST_ITEM (U"• Mac: repaired a bug that could cause a crash in the VowelEditor window.")
 MAN_END
 
-MAN_BEGIN (U"What was new in 5.4?", U"ppgb", 20141003)
+MAN_BEGIN (U"What was new in 5.4?", U"ppgb", 20141004)
 NORMAL (U"##5.4# (4 October 2014)")
 NORMAL (U"##5.3.87# (3 October 2014)")
 LIST_ITEM (U"• Windows scripting: prevented incorrect handling of relative paths after the use of chooseReadFile\\$ .")
@@ -3139,11 +3169,9 @@ NORMAL (U"Answer: nowadays most journals allow you to cite computer programs and
 	"The style approved by the American Psychological Association, "
 	"and therefore by many journals, is like the following "
 	"(change the dates and version number as needed):")
-#define xstr(s) str(s)
-#define str(s) #s
-NORMAL (U"Boersma, Paul & Weenink, David (" xstr(PRAAT_YEAR) "). "
+NORMAL (U"Boersma, Paul & Weenink, David (" stringize(PRAAT_YEAR) "). "
 	"Praat: doing phonetics by computer [Computer program]. "
-	"Version " xstr(PRAAT_VERSION_STR) ", retrieved " xstr(PRAAT_DAY) " " xstr(PRAAT_MONTH) " " xstr(PRAAT_YEAR) " from http://www.praat.org/")
+	"Version " stringize(PRAAT_VERSION_STR) ", retrieved " stringize(PRAAT_DAY) " " stringize(PRAAT_MONTH) " " stringize(PRAAT_YEAR) " from http://www.praat.org/")
 NORMAL (U"If the journal does not allow you to cite a web site, then try:")
 NORMAL (U"Boersma, Paul (2001). Praat, a system for doing phonetics by computer. "
 	"%%Glot International% ##5:9/10#, 341-345.")

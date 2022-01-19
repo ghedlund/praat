@@ -116,6 +116,9 @@ static void drawBackgroundAndData (FunctionEditor me) {
 		Update rectangles.
 	*/
 
+	/*
+		Initialize to 0; rectangles that stay at zero will not be drawn.
+	*/
 	for (integer i = 0; i < 8; i++)
 		my rect [i]. left = my rect [i]. right = 0;
 
@@ -173,17 +176,32 @@ static void drawBackgroundAndData (FunctionEditor me) {
 	if (selectionIsNonempty) {
 		const double window = my endWindow - my startWindow;
 		const double left =
-			my startSelection == my startWindow ? my _functionViewerLeft + my MARGIN :
-			my startSelection == my tmin ? my _functionViewerLeft :
-			my startSelection < my startWindow ? my _functionViewerLeft + my MARGIN * 0.3 :
-			my startSelection < my endWindow ? my _functionViewerLeft + my MARGIN + (my _functionViewerRight - my _functionViewerLeft - my MARGIN * 2) * (my startSelection - my startWindow) / window :
-			my startSelection == my endWindow ? my _functionViewerRight - my MARGIN : my _functionViewerRight - my MARGIN * 0.7;
+			my startSelection == my startWindow ?
+				my _functionViewerLeft + my MARGIN
+			: my startSelection == my tmin ?
+				my _functionViewerLeft
+			: my startSelection < my startWindow ?
+				my _functionViewerLeft + my MARGIN * 0.3
+			: my startSelection < my endWindow ?
+				my _functionViewerLeft + my MARGIN + (my _functionViewerRight - my _functionViewerLeft - my MARGIN * 2) * (my startSelection - my startWindow) / window
+			: my startSelection == my endWindow ?
+				my _functionViewerRight - my MARGIN
+			:
+				my _functionViewerRight - my MARGIN * 0.7
+		;
 		const double right =
-			my endSelection < my startWindow ? my _functionViewerLeft + my MARGIN * 0.7 :
-			my endSelection == my startWindow ? my _functionViewerLeft + my MARGIN :
-			my endSelection < my endWindow ? my _functionViewerLeft + my MARGIN + (my _functionViewerRight - my _functionViewerLeft - my MARGIN * 2) * (my endSelection - my startWindow) / window :
-			my endSelection == my endWindow ? my _functionViewerRight - my MARGIN :
-			my endSelection < my tmax ? my _functionViewerRight - my MARGIN * 0.3 : my _functionViewerRight;
+			my endSelection < my startWindow ?
+				my _functionViewerLeft + my MARGIN * 0.7
+			: my endSelection == my startWindow ?
+				my _functionViewerLeft + my MARGIN
+			: my endSelection < my endWindow ?
+				my _functionViewerLeft + my MARGIN + (my _functionViewerRight - my _functionViewerLeft - my MARGIN * 2) * (my endSelection - my startWindow) / window
+			: my endSelection == my endWindow ?
+				my _functionViewerRight - my MARGIN
+			: my endSelection < my tmax ?
+				my _functionViewerRight - my MARGIN * 0.3
+			: my _functionViewerRight
+		;
 		my rect [7]. left = left;
 		my rect [7]. right = right;
 		my rect [7]. bottom = my height_pxlt - my space - my TOP_MARGIN;
@@ -198,6 +216,9 @@ static void drawBackgroundAndData (FunctionEditor me) {
 	Graphics_fillRectangle (my graphics.get(), my _functionViewerLeft, my _selectionViewerRight, my BOTTOM_MARGIN, my height_pxlt);
 	Graphics_setColour (my graphics.get(), Melder_BLACK);
 
+	/*
+		Buttons (still without text).
+	*/
 	my viewFunctionViewerAsPixelettes ();
 	Graphics_setFont (my graphics.get(), kGraphics_font :: HELVETICA);
 	Graphics_setFontSize (my graphics.get(), 12.0);
@@ -207,6 +228,28 @@ static void drawBackgroundAndData (FunctionEditor me) {
 		if (left < right)
 			Graphics_button (my graphics.get(), left, right, my rect [i]. bottom, my rect [i]. top);
 	}
+
+	/*
+		Opening triangle (sometimes over button).
+	*/
+	if (my v_hasSelectionViewer() && ! my p_showSelectionViewer) {
+		const bool weHaveToDrawOverSelectionRectangleWithText = ( selectionIsNonempty && my endSelection == my tmax && my endWindow != my tmax );
+		Graphics_setLineWidth (my graphics.get(), 1.0);
+		const double left = my _functionViewerRight - my space + 9.0, right = my _functionViewerRight - 3.0;
+		const double bottom = my height_pxlt - my space - my TOP_MARGIN + 3.0, top = my height_pxlt - my TOP_MARGIN - 3.0;
+		Graphics_setColour (my graphics.get(), Melder_PINK);
+		const double x [] = { left, right, left }, y [] = { bottom, 0.5 * (bottom + top), top };
+		Graphics_fillArea (my graphics.get(), 3, x, y);
+		if (! weHaveToDrawOverSelectionRectangleWithText) {
+			Graphics_setColour (my graphics.get(), Melder_GREY);
+			Graphics_polyline_closed (my graphics.get(), 3, x, y);
+		}
+		Graphics_setColour (my graphics.get(), Melder_BLACK);
+	}
+
+	/*
+		Button texts (sometimes over opening triangle).
+	*/
 	const double verticalCorrection = my height_pxlt / (my height_pxlt - 111.0 + 11.0)
 		#ifdef _WIN32
 			* 1.5
@@ -400,10 +443,11 @@ static void menu_cb_preferences (FunctionEditor me, EDITOR_ARGS_FORM) {
 		my pref_showSelectionViewer() = my p_showSelectionViewer = showSelectionViewer;
 		my pref_arrowScrollStep() = my p_arrowScrollStep = arrowScrollStep;
 		if (my p_showSelectionViewer != oldShowSelectionViewer)
-			my updateGeometry (GuiControl_getWidth  (my drawingArea), GuiControl_getHeight (my drawingArea));
+			my updateGeometry (GuiControl_getWidth (my drawingArea), GuiControl_getHeight (my drawingArea));
 		if (! oldSynchronizedZoomAndScroll && my pref_synchronizedZoomAndScroll())
 			updateGroup (me);
 		my v_prefs_getValues (cmd);
+		FunctionEditor_redraw (me);
 	EDITOR_END
 }
 
@@ -426,22 +470,22 @@ void structFunctionEditor :: v_do_pictureSelection (EditorCommand cmd) {
 
 /********** QUERY MENU **********/
 
-static void QUERY_EDITOR_FOR_REAL__getB (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+static void QUERY_EDITOR_FOR_REAL__getB (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my startSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
-static void QUERY_EDITOR_FOR_REAL__getCursor (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+static void QUERY_EDITOR_FOR_REAL__getCursor (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = 0.5 * (my startSelection + my endSelection);
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
-static void QUERY_EDITOR_FOR_REAL__getE (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+static void QUERY_EDITOR_FOR_REAL__getE (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my endSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
-static void QUERY_EDITOR_FOR_REAL__getSelectionDuration (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+static void QUERY_EDITOR_FOR_REAL__getSelectionDuration (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my endSelection - my startSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
@@ -1182,6 +1226,22 @@ static void gui_drawingarea_cb_expose (FunctionEditor me, GuiDrawingArea_ExposeE
 		Draw the selection part.
 	*/
 	if (my p_showSelectionViewer) {
+		/*
+			Draw closing box.
+		*/
+		my viewAllAsPixelettes ();
+		Graphics_setLineWidth (my graphics.get(), 1.0);
+		const double left = my width_pxlt - my space + 9.0, right = my width_pxlt - 3.0;
+		const double bottom = my height_pxlt - my space + 5.0, top = my height_pxlt - 5.0;
+		Graphics_setColour (my graphics.get(), Melder_PINK);
+		Graphics_fillRectangle (my graphics.get(), left, right, bottom, top);
+		Graphics_setColour (my graphics.get(), Melder_GREY);
+		Graphics_line (my graphics.get(), left + 2.0, bottom + 2.0, right - 2.0, top - 2.0);
+		Graphics_line (my graphics.get(), left + 2.0, top - 2.0, right - 2.0, bottom + 2.0);
+		Graphics_setColour (my graphics.get(), Melder_BLACK);
+		/*
+			Draw content.
+		*/
 		my viewInnerSelectionViewerAsFractionByFraction ();
 		if (my duringPlay)
 			my v_drawRealTimeSelectionViewer (my playCursor);
@@ -1257,6 +1317,16 @@ static void gui_drawingarea_cb_mouse (FunctionEditor me, GuiDrawingArea_MouseEve
 	static bool anchorIsInSelectionViewer = false;
 	static bool anchorIsInWideDataView = false;
 	if (event -> isClick()) {
+		if (my v_hasSelectionViewer() || my p_showSelectionViewer) {
+			const double left = my width_pxlt - my space + 9.0, right = my width_pxlt - 3.0;
+			const double bottom = my height_pxlt - my space + 5.0, top = my height_pxlt - 5.0;
+			if (x_pxlt > left && x_pxlt < right && y_pxlt > bottom && y_pxlt < top) {
+				my pref_showSelectionViewer() = my p_showSelectionViewer = ! my p_showSelectionViewer;
+				my updateGeometry (GuiControl_getWidth (my drawingArea), GuiControl_getHeight (my drawingArea));
+				FunctionEditor_redraw (me);
+				return;
+			}
+		}
 		my clickWasModifiedByShiftKey = event -> shiftKeyPressed;
 		anchorIsInSelectionViewer = my isInSelectionViewer (x_pxlt);
 		anchorIsInWideDataView = ( y_pxlt > my dataBottom_pxlt() && y_pxlt < my dataTop_pxlt() );
@@ -1341,8 +1411,8 @@ void structFunctionEditor :: v_createChildren () {
 
 	if (our v_hasText ()) {
 		our textArea = GuiText_createShown (our windowForm, 0, 0,
-			Machine_getMenuBarHeight (),
-			Machine_getMenuBarHeight () + TEXT_HEIGHT,
+			Machine_getMenuBarBottom (),
+			Machine_getMenuBarBottom () + TEXT_HEIGHT,
 			GuiText_INKWRAP | GuiText_SCROLLED
 		);
 		#if gtk
@@ -1364,7 +1434,7 @@ void structFunctionEditor :: v_createChildren () {
 	#endif
 	our drawingArea = GuiDrawingArea_createShown (our windowForm,
 		0, 0,
-		Machine_getMenuBarHeight () + ( our v_hasText () ? TEXT_HEIGHT + marginBetweenTextAndDrawingAreaToEnsureCorrectUnhighlighting : 0), -8 - Gui_PUSHBUTTON_HEIGHT,
+		Machine_getMenuBarBottom () + ( our v_hasText () ? TEXT_HEIGHT + marginBetweenTextAndDrawingAreaToEnsureCorrectUnhighlighting : 0), -8 - Gui_PUSHBUTTON_HEIGHT,
 		gui_drawingarea_cb_expose, gui_drawingarea_cb_mouse,
 		nullptr, gui_drawingarea_cb_resize, this, 0
 	);

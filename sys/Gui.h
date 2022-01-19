@@ -84,7 +84,11 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 
 #define Gui_LEFT_DIALOG_SPACING  20
 #define Gui_RIGHT_DIALOG_SPACING  20
-#define Gui_TOP_DIALOG_SPACING  14
+#if defined (chrome)
+	#define Gui_TOP_DIALOG_SPACING  34
+#else
+	#define Gui_TOP_DIALOG_SPACING  14
+#endif
 #define Gui_BOTTOM_DIALOG_SPACING  20
 #define Gui_HORIZONTAL_DIALOG_SPACING  12
 #define Gui_VERTICAL_DIALOG_SPACING_SAME  12
@@ -201,7 +205,8 @@ constexpr bool theCommandKeyIsToTheLeftOfTheOptionKey =
 	void XtSetSensitive (GuiObject w, Boolean value);
 	void XtUnmanageChild (GuiObject self);
 	void XtUnmanageChildren (GuiObjectList children, Cardinal num_children);
-	void GuiAppInitialize (const char *name, unsigned int argc, char **argv);
+	void * GuiWin_initialize1 (conststring32 name);
+	void GuiWin_initialize2 (unsigned int argc, char **argv);
 	void GuiApp_setApplicationShell (GuiObject shell);
 	GuiObject XtVaCreateWidget (const char *name, int widgetClass, GuiObject parent, ...);
 	GuiObject XtVaCreateManagedWidget (const char *name, int widgetClass, GuiObject parent, ...);
@@ -347,6 +352,9 @@ Thing_define (GuiShell, GuiForm) {
 	int d_width, d_height;
 	#if gtk
 		GtkWindow *d_gtkWindow;
+		#if defined (chrome)
+			GtkWidget *chrome_surrogateShellTitleLabelWidget;
+		#endif
 	#elif cocoa
 		GuiCocoaShell *d_cocoaShell;
 	#elif motif
@@ -908,6 +916,7 @@ struct _history_entry_s {
 Thing_define (GuiText, GuiControl) {
 	GuiText_ChangedCallback d_changedCallback;
 	Thing d_changedBoss;
+	uint32 flags;
 	#if cocoa
 		GuiCocoaScrolledWindow *d_cocoaScrollView;
 		GuiCocoaTextView *d_cocoaTextView;
@@ -999,7 +1008,7 @@ void GuiObject_destroy (GuiObject me);
 
 /********** EVENTS **********/
 
-#if defined (macintosh) || defined (_WIN32)
+#if defined (macintosh)
 void Gui_setOpenDocumentCallback (void (*openDocumentCallback) (MelderFile file), void (*finishedOpeningDocumentsCallback) ());
 #endif
 
@@ -1010,7 +1019,7 @@ void Gui_setQuitApplicationCallback (int (*quitApplicationCallback) (void));
 extern uinteger theGuiTopLowAccelerators [8];
 
 /*
-	'parent' is the top-level widget returned by GuiAppInitialize.
+	'parent' is the top-level widget.
 */
 void Gui_injectMessageProcs (GuiWindow parent);
 

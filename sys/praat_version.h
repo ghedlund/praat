@@ -1,13 +1,14 @@
+<<<<<<< HEAD
 #ifndef PRAAT_VERSION_H
 #define PRAAT_VERSION_H
 
-#define PRAAT_VERSION_STR 6.1.55
-#define PRAAT_VERSION_CSTR "6.1.55"
-#define PRAAT_VERSION_NUM 6155
-#define PRAAT_YEAR 2021
-#define PRAAT_MONTH October
-#define PRAAT_MONTH_CSTR "October"
-#define PRAAT_DAY 25
+#define PRAAT_VERSION_STR 6.2.05
+#define PRAAT_VERSION_CSTR "6.2.05"
+#define PRAAT_VERSION_NUM 6205
+#define PRAAT_YEAR 2022
+#define PRAAT_MONTH January
+#define PRAAT_MONTH_CSTR "January"
+#define PRAAT_DAY 5
 
 #ifdef PRAAT_LIB
 // create a struct for version information

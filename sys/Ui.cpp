@@ -425,13 +425,22 @@ static void UiField_widgetToValue (UiField me) {
 		case _kUiField_type::REALMATRIX_:
 		{
 			autostring32 stringValue = GuiText_getString (my text);
-			MAT result;
-			bool ownedByInterpreter;
-			Interpreter_numericMatrixExpression (nullptr, stringValue.get(), & result, & ownedByInterpreter);
-			if (ownedByInterpreter) {
-				my numericMatrixValue. adoptFromAmbiguousOwner (result);
-			} else {
-				my numericMatrixValue = copy_MAT (result);
+			kUi_realMatrixFormat format = (kUi_realMatrixFormat) GuiOptionMenu_getValue (my optionMenu);
+			switch (format) {
+				case kUi_realMatrixFormat::ONE_ROW_PER_LINE_: {
+					my numericMatrixValue = splitByLinesAndWhitespace_MAT (stringValue.get());
+				} break; case kUi_realMatrixFormat::FORMULA_: {
+					MAT result;
+					bool ownedByInterpreter;
+					Interpreter_numericMatrixExpression (nullptr, stringValue.get(), & result, & ownedByInterpreter);
+					if (ownedByInterpreter) {
+						my numericMatrixValue. adoptFromAmbiguousOwner (result);
+					} else {
+						my numericMatrixValue = copy_MAT (result);
+					}
+				} break; case kUi_realMatrixFormat::UNDEFINED: {
+					Melder_fatal (U"Unknown matrix format.");
+				}
 			}
 			if (my numericMatrixVariable)
 				*my numericMatrixVariable = my numericMatrixValue.get();
@@ -1612,17 +1621,21 @@ void UiForm_do (UiForm me, bool modified) {
 }
 
 static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelField) {
+	if (my formLabel && str32chr (my formLabel.get(), U':'))
+		trace (U"Form label with colon: ", my formLabel.get());
 	if (my type == _kUiField_type::LABEL_) {
-		bool weAreFollowedByAWideField =
+		const bool weAreFollowedByAWideField =
 			next && (next -> type == _kUiField_type::TEXT_ || next -> type == _kUiField_type::FORMULA_ ||
 			next -> type == _kUiField_type::INFILE_ || next -> type == _kUiField_type::OUTFILE_ ||
 			next -> type == _kUiField_type::FOLDER_ ||
 			next -> type == _kUiField_type::REALMATRIX_ ||
 			next -> type == _kUiField_type::STRINGARRAY_);
-		bool weLabelTheFollowingField =
-			weAreFollowedByAWideField &&
-			Melder_stringMatchesCriterion (my stringValue.get(), kMelder_string::ENDS_WITH, U":", true);
-		bool weAreAComment = ! weLabelTheFollowingField;
+		const bool weEndInAColon =
+				Melder_stringMatchesCriterion (my stringValue.get(), kMelder_string::ENDS_WITH, U":", true);
+		if (weEndInAColon)
+			Melder_casual (U"Label with colon: ", my stringValue.get());
+		const bool weLabelTheFollowingField = weAreFollowedByAWideField && weEndInAColon;
+		const bool weAreAComment = ! weLabelTheFollowingField;
 		if (weAreAComment)
 			MelderInfo_writeLine (U"\t/* ", my stringValue.get(), U" */");
 		return;
@@ -1715,7 +1728,8 @@ static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelF
 	if (! my variableName)
 		Melder_warning (U"Missing variable name for field label: ", my formLabel.get());
 	MelderInfo_write (my variableName ? my variableName : cName);
-	if (! isLastNonLabelField) MelderInfo_write (U",");
+	if (! isLastNonLabelField)
+		MelderInfo_write (U",");
 
 	/*
 		Get the units.
@@ -1732,14 +1746,14 @@ static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelF
 		}
 	}
 	*q = U'\0';
-	bool unitsAreAvailable = ( units [0] != U'\0' );
-	bool unitsContainRange = str32str (units, U"-");
+	const bool unitsAreAvailable = ( units [0] != U'\0' );
+	const bool unitsContainRange = str32str (units, U"-");
 
 	/*
 		Get the example.
 	*/
 	conststring32 example = my stringDefaultValue.get();   // BUG dangle
-	bool exampleIsAvailable = ( example && example [0] != U'\0' );
+	const bool exampleIsAvailable = ( example && example [0] != U'\0' );
 
 	if (exampleIsAvailable) {
 		/*
@@ -1784,7 +1798,8 @@ static void UiField_api_header_C (UiField me, UiField next, bool isLastNonLabelF
 		for (int i = 1; i <= my options.size; i ++) {
 			if (i == my integerDefaultValue)
 				continue;
-			if (firstWritten) MelderInfo_write (U",");
+			if (firstWritten)
+				MelderInfo_write (U",");
 			MelderInfo_write (U" \"", my options.at [i] -> name.get(), U"\"");
 			firstWritten = true;
 		}
