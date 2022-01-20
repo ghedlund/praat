@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #ifndef PRAAT_VERSION_H
 #define PRAAT_VERSION_H
 
