@@ -1115,8 +1115,8 @@ PRAAT_LIB_EXPORT void libjpraat_init () {
 		Melder_tracingToFile (& tracingFile);
 	}
     
-	praat_actions_init ();
-	praat_menuCommands_init ();
+	//praat_actions_init ();
+	//praat_menuCommands_init ();
 
 	Thing_recognizeClassesByName (classCollection, classStrings, classManPages, classStringSet, nullptr);
 	Thing_recognizeClassByOtherName (classStringSet, U"SortedSetOfString");
