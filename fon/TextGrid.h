@@ -103,6 +103,7 @@ autoTableOfReal TextTier_downto_TableOfReal_any (TextTier me);
 
 autoTextGrid PointProcess_to_TextGrid_vuv (PointProcess me, double maxT, double meanT);
 
+PRAAT_LIB_EXPORT integer TextInterval_labelLength (TextInterval me);
 PRAAT_LIB_EXPORT integer TextPoint_labelLength (TextPoint me);
 PRAAT_LIB_EXPORT integer IntervalTier_maximumLabelLength (IntervalTier me);
 PRAAT_LIB_EXPORT integer TextTier_maximumLabelLength (TextTier me);
@@ -128,7 +129,7 @@ PRAAT_LIB_EXPORT void TextGrid_writeToChronologicalTextFile (TextGrid me, Melder
 PRAAT_LIB_EXPORT autoTextGrid TextGrid_readFromChronologicalTextFile (MelderFile file);
 PRAAT_LIB_EXPORT autoTextGrid TextGrid_readFromCgnSyntaxFile (MelderFile file);
 
-PRAAT_LIB_EXPORT autoTable TextGrid_downto_Table (TextGrid me, bool includeLineNumbers, int timeDecimals, bool includeTierNames, bool includeEmptyIntervals);
+PRAAT_LIB_EXPORT autoTable TextGrid_downto_Table (TextGrid me, bool includeLineNumbers, integer timeDecimals, bool includeTierNames, bool includeEmptyIntervals);
 autoTable TextGrid_tabulateOccurrences (TextGrid me, constVEC searchTiers, kMelder_string which, conststring32 criterion, bool caseSensitive);
 void TextGrid_list (TextGrid me, bool includeLineNumbers, integer timeDecimals, bool includeTierNames, bool includeEmptyIntervals);
 
