@@ -8,7 +8,7 @@ CC = clang -std=gnu99
 
 CXX = clang++ -std=c++17
 
-CFLAGS = -DuseCarbon=0 -Dmacintosh -mmacosx-version-min=10.7 -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -Wno-return-type-c-linkage -O3 
+CFLAGS = -DuseCarbon=0 -Dmacintosh -mmacosx-version-min=10.9 -DPRAAT_LIB -fvisibility=default -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -Wno-return-type-c-linkage -O3 
 
 CXXFLAGS = $(CFLAGS) -ObjC++ -arch x86_64 -fmessage-length=80 -stdlib=libc++ -Wshadow 
 
@@ -17,7 +17,7 @@ LINK = clang++
 EXECUTABLE = praat
 LIBRARY = libjpraat.dylib
 
-LIBS = -arch x86_64 -mmacosx-version-min=10.7 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework Accelerate -framework OpenCL
+LIBS = -arch x86_64 -mmacosx-version-min=10.9 -stdlib=libc++ -fobjc-link-runtime -framework Cocoa -framework AudioToolbox -framework AudioUnit -framework CoreAudio -framework Metal -framework MetalKit -framework MetalPerformanceShaders -framework Accelerate -framework OpenCL
 
 AR = ar
 RANLIB = ranlib
