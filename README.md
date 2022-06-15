@@ -144,7 +144,7 @@ Then type `make` to build `Praat.exe`
 
 Extract the *praatXXXX_xcodeproj.zip* file from the [latest release](https://github.com/praat/praat/releases)
 into the directory that contains `sys`, `fon`, `dwtools` and so on.
-Then open the project `praat.xcodeproj` in Xcode 13.1 and choose Build or Run for the target `praat_mac`.
+Then open the project `praat.xcodeproj` in Xcode 13.4 and choose Build or Run for the target `praat_mac`.
 You can compile with the 12.0 (i.e. the newest and standard) SDK, which will work as far back as macOS 10.9,
 which is our deployment target.
 
@@ -188,9 +188,6 @@ and type one of the four following commands:
 
     # on Ubuntu command line
     cp makefiles/makefile.defs.linux.pulse ./makefile.defs
-
-    # on Ubuntu command line
-    cp makefiles/makefile.defs.linux.pulse_static ./makefile.defs
 
     # on Chromebook command line
     cp makefiles/makefile.defs.chrome64 ./makefile.defs
@@ -244,9 +241,9 @@ or `praat-build` into a Windows or Linux terminal (or `praat-run` to build and r
 
 Your source code folders, such as `fon` and `sys`, will reside in a folder like `/Users/yourname/Praats/src`,
 where you also put `praat.xcodeproj`, as described above in 3.2.
-On Paul’s 2018 MacBook Pro with Xcode 13.1, building Praat with Command-B or Command-R,
+On Paul’s 2018 MacBook Pro with Xcode 13.4, building Praat with Command-B or Command-R,
 after cleaning the build folder with Shift-Command-K,
-takes 160 seconds for the x86_64 part and 150 seconds for the ARM64 part (optimization level O3).
+takes 380 seconds for the x86_64 part and ARM64 part together (optimization level O3).
 
 ### 4.2. Windows development set-up
 
@@ -328,12 +325,6 @@ assuming that it uses the `bash` shell):
         make -j12 )"
     alias praat="~/praats/praat"
     alias praat-run="praat-build && praat"
-    alias praatt-build="( cd ~/praatst &&\
-        rsync -rptvz $PRAAT_SOURCES/ $PRAAT_EXCLUDES . &&\
-        cp makefiles/makefile.defs.linux.pulse_static makefile.defs &&\
-        make -j12 )"
-    alias praatt="~/praatst/praatt"
-    alias praatt-run="praatt-build && praatt"
 
 Building Praat this way takes 2 minutes and 10 seconds (optimization level O3).
 
@@ -544,7 +535,6 @@ On Ubuntu you can define
 
     # in Ubuntu:~/.bash_aliases
     alias praat-dist="praat-build && rsync -t ~/praats/praat /media/psf/Home/builds/linux64"
-    alias praatt-dist="praatt-build && rsync -t ~/praatst/praat_static /media/psf/Home/builds/linux64"
     alias praatb-dist="praatb-build && rsync -t ~/praatsb/praat_barren /media/psf/Home/builds/linux64"
     alias praatn-dist="praatn-build && rsync -t ~/praatsn/praat_nogui /media/psf/Home/builds/linux64"
     alias praatc-dist="praatc-build && rsync -t ~/praatsc/praat /media/psf/Home/builds/chrome64"
@@ -553,7 +543,6 @@ so that you can “upload” the five executables to the Mac with
 
     # on Ubuntu command line
     praat-dist
-    praatt-dist
     praatb-dist
     praatn-dist
     praatc-dist
@@ -574,10 +563,6 @@ you can issue the following commands to create the packages and install them in 
       tar cvf praat$(PRAAT_VERSION)_linux64.tar praat &&\
       gzip praat$(PRAAT_VERSION)_linux64.tar &&\
       mv praat$(PRAAT_VERSION)_linux64.tar.gz $PRAAT_WWW )
-    ( cd ~/builds/linux64 &&\
-      tar cvf praat$(PRAAT_VERSION)_linux64static.tar praat_static &&\
-      gzip praat$(PRAAT_VERSION)_linux64static.tar &&\
-      mv praat$(PRAAT_VERSION)_linux64static.tar.gz $PRAAT_WWW )
     ( cd ~/builds/linux64 &&\
       tar cvf praat$(PRAAT_VERSION)_linux64barren.tar praat_barren &&\
       gzip praat$(PRAAT_VERSION)_linux64barren.tar &&\

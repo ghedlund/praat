@@ -52,9 +52,8 @@ FORM (GRAPHICS_EACH__DataModeler_speckle, U"DataModeler: Speckle", nullptr) {
 	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
-	const integer order = 6;
 	GRAPHICS_EACH (DataModeler)
-		DataModeler_speckle (me, GRAPHICS, xmin, xmax,ymin, ymax, 0, order + 1, errorBars, barWidth_wc, garnish);
+		DataModeler_speckle (me, GRAPHICS, xmin, xmax, ymin, ymax, false, 0, errorBars, barWidth_wc, garnish);
 	GRAPHICS_EACH_END
 }
 
@@ -902,7 +901,7 @@ DO
 
 DIRECT (EDITOR_ONE_WITH_ONE_OptimalCeilingTier_edit) {
 	EDITOR_ONE_WITH_ONE (an,OptimalCeilingTier, Sound)   // Sound may be null
-		autoOptimalCeilingTierEditor editor = OptimalCeilingTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoOptimalCeilingTierEditor editor = OptimalCeilingTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -1088,6 +1087,8 @@ FORM (CONVERT_EACH_TO_ONE__Table_to_DataModeler, U"", nullptr) {
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Table)
+		Melder_require (type != kDataModelerFunction::LINEAR,
+			U"No linear functions implemented. Choose another model.");
 		const integer xcolumn = Table_getColumnIndexFromColumnLabel (me, columnWithX_string);
 		const integer ycolumn = Table_getColumnIndexFromColumnLabel (me, columnWithY_string);
 		const integer scolumn = Table_findColumnIndexFromColumnLabel (me, columnEithSigma_string);

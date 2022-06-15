@@ -56,6 +56,7 @@
 #include "VocalTractTier.h"
 
 #include "praat_TimeFrameSampled.h"
+#include "praat_TimeTier.h"
 #include "praat_Matrix.h"
 
 #define praat_Quefrency_RANGE(fromQuefrency,toQuefrency) \
@@ -111,11 +112,11 @@ FORM (GRAPHICS_EACH__FormantPath_drawAsGrid, U"FormantPath: Draw as grid", nullp
 	INTEGER (numberOfRows, U"Number of rows", U"0")
 	INTEGER (numberOfColumns, U"Number of columns", U"0")
 	POSITIVE (xSpaceFraction, U"X space fraction", U"0.1")
-	POSITIVE (ySpaceFraction, U"Y space fraction", U"0.1")
+	POSITIVE (ySpaceFraction, U"Y space fraction", U"0.2")
 	POSITIVE (lineEvery_Hz, U"Horizontal line every (Hz)", U"1000.0")
 	REAL (xCursor, U"X cursor line at (s)", U"-0.1 (=no line)")
 	REAL (yCursor, U"Y cursor at (Hz)", U"-100.0 (=no line)")
-	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"7 7 7 7")
+	NATURALVECTOR (parameters, U"Coefficients by track", WHITESPACE_SEPARATED_, U"3 3 3 3 3")
 	BOOLEAN (markCandidatesWithinPath, U"Mark candidates within path", false)
 	COLOUR (markColour, U"Mark colour", U"{0.984,0.984, 0.7}")
 	BOOLEAN (showStress, U"Show stress", true)
@@ -713,7 +714,7 @@ FORM (CONVERT_EACH_TO_ONE__PowerCepstrogram_to_PowerCepstrum_slice, U"PowerCepst
 DO
 	CONVERT_EACH_TO_ONE (PowerCepstrogram)
 		autoPowerCepstrum result = PowerCepstrogram_to_PowerCepstrum_slice (me, time);
-	CONVERT_EACH_TO_ONE_END (my name.get(), NUMnumber_as_stringWithDotReplacedByUnderscore (time));
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time));
 }
 
 FORM (LIST__PowerCepstrogram_listCPP, U"PowerCepstrogram: List cepstral peak prominences", U"PowerCepstrogram: To Table (cepstral peak prominences)...") {
@@ -1044,7 +1045,7 @@ FORM (CONVERT_EACH_TO_ONE__LPC_to_Polynomial_slice, U"LPC: To Polynomial", U"LPC
 DO
 	CONVERT_EACH_TO_ONE (LPC)
 		autoPolynomial result = LPC_to_Polynomial (me, time);
-	CONVERT_EACH_TO_ONE_END (my name.get(), NUMnumber_as_stringWithDotReplacedByUnderscore (time))
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time))
 }
 
 FORM (CONVERT_EACH_TO_ONE__LPC_to_Spectrum_slice, U"LPC: To Spectrum", U"LPC: To Spectrum (slice)...") {
@@ -1056,7 +1057,7 @@ FORM (CONVERT_EACH_TO_ONE__LPC_to_Spectrum_slice, U"LPC: To Spectrum", U"LPC: To
 DO
 	CONVERT_EACH_TO_ONE (LPC)
 		autoSpectrum result = LPC_to_Spectrum (me, time, minimumFrequencyResolution, bandwidthReduction, deemphasisFrequency);
-	CONVERT_EACH_TO_ONE_END (my name.get(), NUMnumber_as_stringWithDotReplacedByUnderscore (time))
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time))
 }
 
 FORM (CONVERT_EACH_TO_ONE__LPC_to_Spectrogram, U"LPC: To Spectrogram", U"LPC: To Spectrogram...") {
@@ -1079,7 +1080,7 @@ FORM (CONVERT_EACH_TO_ONE__LPC_to_VocalTract_slice_special, U"LPC: To VocalTract
 DO
 	CONVERT_EACH_TO_ONE (LPC)
 		autoVocalTract result = LPC_to_VocalTract_slice_special (me, time, glottalDamping, radiationDamping, internalDamping);
-	CONVERT_EACH_TO_ONE_END (my name.get(), NUMnumber_as_stringWithDotReplacedByUnderscore (time))
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time))
 }
 
 FORM (CONVERT_EACH_TO_ONE__LPC_to_VocalTract_slice, U"LPC: To VocalTract", U"LPC: To VocalTract (slice)...") {
@@ -1089,7 +1090,7 @@ FORM (CONVERT_EACH_TO_ONE__LPC_to_VocalTract_slice, U"LPC: To VocalTract", U"LPC
 DO
 	CONVERT_EACH_TO_ONE (LPC)
 		autoVocalTract result = LPC_to_VocalTract_slice (me, time, length);
-	CONVERT_EACH_TO_ONE_END (my name.get(), NUMnumber_as_stringWithDotReplacedByUnderscore (time))
+	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", NUMnumber_as_stringWithDotReplacedByUnderscore (time))
 }
 
 DIRECT (CONVERT_EACH_TO_ONE__LPC_downto_Matrix_lpc) {
@@ -1404,9 +1405,6 @@ DO
 		autoLPC result = LPC_Sound_to_LPC_robust (me, you, windowLength, preEmphasisFrequency, numberOfStandardDeviations, maximumNumberOfIterations, tolerance, locationVariable);
 	CONVERT_ONE_AND_ONE_TO_ONE_END (my name.get(), U"_r");
 }
-
-extern void praat_TimeTier_query_init (ClassInfo klas);
-extern void praat_TimeTier_modify_init (ClassInfo klas);
 
 static autoDaata HTKParameterFileRecognizer (integer nread, const char *header, MelderFile file) {
 	if (nread < 12 ) // HTK header is 12 bytes

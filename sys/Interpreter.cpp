@@ -1396,8 +1396,11 @@ static void assignToNumericVectorElement (Interpreter me, char32 *& p, const cha
 		if (! status) {
 			value = undefined;
 		} else if (my returnType == kInterpreter_ReturnType::OBJECT_) {
-			int IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
-			WHERE (SELECTED) { selectedObject = IOBJECT; numberOfSelectedObjects += 1; }
+			integer IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
+			WHERE (SELECTED) {
+				selectedObject = IOBJECT;
+				numberOfSelectedObjects += 1;
+			}
 			if (numberOfSelectedObjects > 1)
 				Melder_throw (U"Multiple objects selected. Cannot assign object IDs to vector element. "
 						"Perhaps use a vector variable instead.");
@@ -1532,8 +1535,11 @@ static void assignToNumericMatrixElement (Interpreter me, char32 *& p, const cha
 		if (! status) {
 			value = undefined;
 		} else if (my returnType == kInterpreter_ReturnType::OBJECT_) {
-			int IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
-			WHERE (SELECTED) { selectedObject = IOBJECT; numberOfSelectedObjects += 1; }
+			integer IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
+			WHERE (SELECTED) {
+				selectedObject = IOBJECT;
+				numberOfSelectedObjects += 1;
+			}
 			if (numberOfSelectedObjects > 1)
 				Melder_throw (U"Multiple objects selected. Cannot assign object IDs to matrix element. "
 						"Perhaps use a vector variable instead.");
@@ -2401,12 +2407,12 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									p ++;   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to string array ", arrayName.string, U".");
-								InterpreterVariable var = Interpreter_lookUpVariable (me, arrayName.string);
 								if (isCommand (p)) {
 									/*
 										Statement like: lines$# = Get all strings
 									*/
 									bool status = praat_executeCommand (me, p);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, arrayName.string);
 									if (! status)
 										var -> stringArrayValue = autoSTRVEC();   // anything can have happened, including an incorrect returnType
 									else if (my returnType == kInterpreter_ReturnType::STRINGARRAY_)
@@ -2421,6 +2427,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									STRVEC value;
 									bool owned;
 									Interpreter_stringArrayExpression (me, p, & value, & owned);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, arrayName.string);
 									StringArrayVariable_move (var, value, owned);
 								}
 							} else if (*p == U'[') {
@@ -2592,15 +2599,16 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									This must be an assignment to a matrix variable.
 								*/
 								p ++;   // step over equals sign
-								while (Melder_isHorizontalSpace (*p)) p ++;   // go to first token after assignment
+								while (Melder_isHorizontalSpace (*p))
+									p ++;   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to matrix ", matrixName.string, U".");
-								InterpreterVariable var = Interpreter_lookUpVariable (me, matrixName.string);
 								if (isCommand (p)) {
 									/*
 										Statement like: values## = Get all values
 									*/
 									bool status = praat_executeCommand (me, p);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, matrixName.string);
 									if (! status)
 										var -> numericMatrixValue = autoMAT();   // anything can have happened, including an incorrect returnType
 									else if (my returnType == kInterpreter_ReturnType::REALMATRIX_)
@@ -2612,6 +2620,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									MAT value;
 									bool owned;
 									Interpreter_numericMatrixExpression (me, p, & value, & owned);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, matrixName.string);
 									NumericMatrixVariable_move (var, value, owned);
 								}
 							} else if (*p == U'[') {
@@ -2711,24 +2720,33 @@ void Interpreter_run (Interpreter me, char32 *text) {
 							if (*p == U'=') {
 								/*
 									This must be an assignment to a vector variable.
+									First compute the value of the expression,
+									*then* look up (perhaps create) the vector variable (the order is important)
+									then assign the value to that vector variable.
+									Reversing the order of the first and second step would fail the following test:
+								*/
+								/*@praat
+									asserterror Variable interpreter_assignToVector# does not exist.
+									interpreter_assignToVector# = interpreter_assignToVector# + 5
 								*/
 								p ++;   // step over equals sign
 								while (Melder_isHorizontalSpace (*p))
 									p ++;   // go to first token after assignment
 								if (*p == U'\0')
 									Melder_throw (U"Missing right-hand expression in assignment to vector ", vectorName.string, U".");
-								InterpreterVariable var = Interpreter_lookUpVariable (me, vectorName.string);
 								if (isCommand (p)) {
 									/*
 										Statement like: times# = Get all times
 									*/
 									bool status = praat_executeCommand (me, p);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, vectorName.string);
 									if (! status)
 										var -> numericVectorValue = autoVEC();   // anything can have happened, including an incorrect returnType
 									else if (my returnType == kInterpreter_ReturnType::OBJECT_) {
 										var -> numericVectorValue = autoVEC();
-										int IOBJECT;
-										WHERE (SELECTED) *var -> numericVectorValue. append() = ID;
+										integer IOBJECT;
+										WHERE (SELECTED)
+											*var -> numericVectorValue. append() = ID;
 									} else if (my returnType == kInterpreter_ReturnType::REALVECTOR_)
 										var -> numericVectorValue = my returnedRealVector.move();
 									else
@@ -2737,6 +2755,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									VEC value;
 									bool owned;
 									Interpreter_numericVectorExpression (me, p, & value, & owned);
+									InterpreterVariable var = Interpreter_lookUpVariable (me, vectorName.string);   // not earlier, because it could have appeared in the expression
 									NumericVectorVariable_move (var, value, owned);
 								}
 							} else if (*p == U'[') {
@@ -2922,8 +2941,11 @@ void Interpreter_run (Interpreter me, char32 *text) {
 							if (! status) {
 								value = undefined;   // anything can have happened, including an incorrect return type
 							} else if (my returnType == kInterpreter_ReturnType::OBJECT_) {
-								int IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
-								WHERE (SELECTED) { selectedObject = IOBJECT; numberOfSelectedObjects += 1; }
+								integer IOBJECT, selectedObject = 0, numberOfSelectedObjects = 0;
+								WHERE (SELECTED) {
+									selectedObject = IOBJECT;
+									numberOfSelectedObjects += 1;
+								}
 								if (numberOfSelectedObjects > 1)
 									Melder_throw (U"Multiple objects selected. Cannot assign object IDs to numeric variable. "
 											"Perhaps use a vector variable instead.");

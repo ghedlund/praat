@@ -22,14 +22,39 @@
 void manual_tutorials_init (ManPages me);
 void manual_tutorials_init (ManPages me) {
 
-MAN_BEGIN (U"What's new?", U"ppgb", 20220105)
+MAN_BEGIN (U"What's new?", U"ppgb", 20220518)
 INTRO (U"Latest changes in Praat.")
+NORMAL (U"##6.2.14# (24 May 2022)")
+LIST_ITEM (U"• TextGrid window: repaired a bug introduced in 6.2.10 by which a click on the boundary insertion circle "
+	"would copy the contents of a new interval from another tier (if that other tier stood selected).")
+NORMAL (U"##6.2.13# (18 May 2022)")
+LIST_ITEM (U"• Playing a sound on the Mac: prevented an audible click at the end of audio output (appending a silence at the end is no longer needed).")
+LIST_ITEM (U"• FormantPath window: more flexible visualization.")
+LIST_ITEM (U"• New versions of PortAudio and Unicode.")
+LIST_ITEM (U"• Removed the sendpraat directive.")
+LIST_ITEM (U"• Removed several small interface bugs, and improved manual.")
+NORMAL (U"##6.2.12# (17 April 2022)")
+LIST_ITEM (U"• Table: Get sum...")
+LIST_ITEM (U"• Scripting an editor window can now query analyses that are not visible (e.g. after zooming).")
+NORMAL (U"##6.2.11# (8 April 2022)")
+LIST_ITEM (U"• Windows: Demo window could hang with use of Chinese keyboard (after Play).")
+NORMAL (U"##6.2.10# (17 March 2022)")
+LIST_ITEM (U"• TextGrid window: restored the splitting of labels.")
+LIST_ITEM (U"• Save Demo Window as PDF file... (Goodies menu).")
+NORMAL (U"##6.2.09# (15 February 2022)")
+LIST_ITEM (U"• Windows: support for a screen resolution of 204 dpi.")
+NORMAL (U"##6.2.08# (5 February 2022)")
+LIST_ITEM (U"• Mac: more checks on audio devices when playing sounds.")
+NORMAL (U"##6.2.07# (28 January 2022)")
+LIST_ITEM (U"• Prevented a rare crash in the TextGrid window.")
+LIST_ITEM (U"• Windows: corrected a bug introduced in 6.2.04 by which some file names were unreadable.")
+NORMAL (U"##6.2.06# (20 January 2022)")
+LIST_ITEM (U"• Mac: prevent Demo window from hanging on copy or paste.")
 NORMAL (U"##6.2.05# (5 January 2022)")
 LIST_ITEM (U"• Calling Praat from the command line: the switch $$--send$ sends a script "
 	"to a different already running GUI instance of Praat; this is more flexible than using %sendpraat, "
 	"because $$--send$ will start a new instance of Praat if Praat is not yet running.")
 NORMAL (U"##6.2.04# (18 December 2021)")
-LIST_ITEM (U"• TextGrid window on Mac: fix entering Japanese text with the Enter key.")
 LIST_ITEM (U"• Praat now includes eSpeak 1.51, raising the number of supported languages from 100 to 130.")
 LIST_ITEM (U"• Scripting: support for $$infile$, $$outfile$ and $folder fields in forms.")
 LIST_ITEM (U"• Calling Praat from the command line: the switch $$--open$ now adds files to an already running instance of Praat; "
@@ -2314,7 +2339,58 @@ CODE (U"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "
 	"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
 MAN_END
 
-MAN_BEGIN (U"Acknowledgments", U"ppgb", 20211016)
+MAN_BEGIN (U"Unicode Inc. license agreement", U"ppgb", 20220515)
+NORMAL (U"The Praat source code contains a copy of the Unicode Character Database, "
+	"as well as derived software (see @Acknowledgments). "
+	"Here is the Unicode Inc. license text:")
+CODE (U"UNICODE, INC. LICENSE AGREEMENT - DATA FILES AND SOFTWARE")
+CODE (U"")
+CODE (U"See Terms of Use <https://www.unicode.org/copyright.html> "
+	"for definitions of Unicode Inc.’s Data Files and Software.")
+CODE (U"")
+CODE (U"NOTICE TO USER: Carefully read the following legal agreement.")
+CODE (U"BY DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING UNICODE INC.'S "
+	"DATA FILES (\"DATA FILES\"), AND/OR SOFTWARE (\"SOFTWARE\"), "
+	"YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE "
+	"TERMS AND CONDITIONS OF THIS AGREEMENT.")
+CODE (U"IF YOU DO NOT AGREE, DO NOT DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE "
+	"THE DATA FILES OR SOFTWARE.")
+CODE (U"")
+CODE (U"COPYRIGHT AND PERMISSION NOTICE")
+CODE (U"")
+CODE (U"Copyright © 1991-2022 Unicode, Inc. All rights reserved.")
+CODE (U"Distributed under the Terms of Use in https://www.unicode.org/copyright.html.")
+CODE (U"")
+CODE (U"Permission is hereby granted, free of charge, to any person obtaining "
+	"a copy of the Unicode data files and any associated documentation "
+	"(the \"Data Files\") or Unicode software and any associated documentation "
+	"(the \"Software\") to deal in the Data Files or Software "
+	"without restriction, including without limitation the rights to use, "
+	"copy, modify, merge, publish, distribute, and/or sell copies of "
+	"the Data Files or Software, and to permit persons to whom the Data Files "
+	"or Software are furnished to do so, provided that either")
+CODE (U"(a) this copyright and permission notice appear with all copies "
+	"of the Data Files or Software, or")
+CODE (U"(b) this copyright and permission notice appear in associated Documentation.")
+CODE (U"")
+CODE (U"THE DATA FILES AND SOFTWARE ARE PROVIDED \"AS IS\", WITHOUT WARRANTY OF "
+	"ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE "
+	"WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND "
+	"NONINFRINGEMENT OF THIRD PARTY RIGHTS.")
+CODE (U"IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS "
+	"NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL "
+	"DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, "
+	"DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER "
+	"TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR "
+	"PERFORMANCE OF THE DATA FILES OR SOFTWARE.")
+CODE (U"")
+CODE (U"Except as contained in this notice, the name of a copyright holder "
+	"shall not be used in advertising or otherwise to promote the sale, "
+	"use or other dealings in these Data Files or Software without prior "
+	"written authorization of the copyright holder.")
+MAN_END
+
+MAN_BEGIN (U"Acknowledgments", U"ppgb", 20220515)
 NORMAL (U"The following people contributed source code to Praat:")
 LIST_ITEM (U"Paul Boersma: user interface, graphics, @printing, @@Intro|sound@, "
 	"@@Intro 3. Spectral analysis|spectral analysis@, @@Intro 4. Pitch analysis|pitch analysis@, "
@@ -2338,8 +2414,8 @@ LIST_ITEM (U"XIPA: IPA font for Unix by Fukui Rei (GPL).")
 LIST_ITEM (U"GSL: GNU Scientific Library by Gerard Jungman and Brian Gough (GPL 3 or later).")
 LIST_ITEM (U"GLPK: GNU Linear Programming Kit by Andrew Makhorin (GPL 3 or later); "
 	"contains AMD software by the same author (LGPL 2.1 or later).")
-LIST_ITEM (U"PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn Roche, Dominic Mazzoni, Darren Gibbs "
-	"(CC-BY-like license).")
+LIST_ITEM (U"PortAudio: Portable Audio Library by Ross Bencina, Phil Burk, Bjorn Roche, Dominic Mazzoni, Darren Gibbs, "
+	"version 19.7.0 of April 2021 (CC-BY-like license).")
 LIST_ITEM (U"Espeak: text-to-speech synthesizer by Jonathan Duddington and Reece Dunn (GPL 3 or later).")
 LIST_ITEM (U"MAD: MPEG Audio Decoder by Underbit Technologies (GPL 2 or later).")
 LIST_ITEM (U"FLAC: Free Lossless Audio Codec by Josh Coalson and Xiph.Org, version 1.3.3 (@@FLAC BSD 3-clause license@).")
@@ -2349,8 +2425,10 @@ LIST_ITEM (U"Opus: audio compression by Jean-Marc Valin, Gregory Maxwell, Christ
 LIST_ITEM (U"SILK: audio compression by Skype Limited (@@Skype Limited BSD 3-clause license@).")
 LIST_ITEM (U"fftpack: public domain Fourier transforms by Paul Swarztrauber, translated to C by Christopher Montgomery.")
 LIST_ITEM (U"@LAPACK: public domain numeric algorithms by Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd., "
-	"Courant Institute, Argonne National Lab, and Rice University.")
+	"Courant Institute, Argonne National Lab, and Rice University, "
+	"C edition by Peng Du, Keith Seymour and Julie Langdou, version 3.2.1 of June 2009.")
 LIST_ITEM (U"Regular expressions by Henry Spencer, Mark Edel, Christopher Conrad, Eddy De Greef (GPL 2 or later).")
+LIST_ITEM (U"Unicode Character Database by Unicode Inc., version 14.0 of September 2021 (@@Unicode Inc. license agreement@)")
 NORMAL (U"Most of the source code of Praat is distributed under the General Public License, version 2 or later. "
 	"However, as Praat includes the above software written by others, "
 	"the whole of Praat is distributed under the General Public License, version 3 or later.")
@@ -3064,6 +3142,104 @@ CODE (U"The GNU General Public License does not permit incorporating your progra
 	"the library.  If this is what you want to do, use the GNU Lesser General "
 	"Public License instead of this License.  But first, please read "
 	"<https://www.gnu.org/licenses/why-not-lgpl.html>.")
+MAN_END
+
+MAN_BEGIN (U"Privacy and security", U"ppgb", 20220121)
+INTRO (U"Praat is an \"isolated\" app. You download it from praat.org, "
+	"then record sounds into Praat (all in RAM) or open a sound file, "
+	"then analyse or manipulate that sound. The only way in which your results "
+	"are saved to disk (as e.g. a Pitch file, a TextGrid file, or a sound file), "
+	"is when you explicitly choose one of the #Save or #Export commands "
+	"from Praat’s menus; Praat will not by itself save any data files to disk "
+	"or send any information anywhere. When you create a picture in the Picture window, "
+	"the only way to move that picture anywhere else is if you save it explicitly "
+	"to a picture file (e.g. PNG) or if you Copy–Paste it to e.g. a text editing "
+	"app such as e.g. Microsoft Word; Praat will not by itself save any picture to disk "
+	"or to the clipboard or send any information anywhere. "
+	"Praat will run just fine on your computer if it does not have Internet access, "
+	"and in fact Praat cannot even notice whether you are in a network or not. "
+	"Praat works entirely stand-alone.")
+ENTRY (U"Praat does not call home")
+NORMAL (U"When you are using Praat, you can be assured that Praat does not attempt to send any of your data "
+	"or pictures or settings to the Praat team. "
+	"In fact, Praat never accesses the Internet, not even to @@checking for updates|check for updates@.")
+ENTRY (U"No telemetry")
+NORMAL (U"Praat does no telemetry, i.e. it does not send anything to the Praat team while you are using Praat:")
+LIST_ITEM (U"\\bu No surveillance")
+LIST_ITEM (U"\\bu No tracking")
+LIST_ITEM (U"\\bu No Google Analytics")
+LIST_ITEM (U"\\bu In general, no spying or data mining by the Praat team")
+ENTRY (U"What does Praat save to disk without asking you?")
+NORMAL (U"Praat will save your preferences to your own disk on your own computer, "
+	"in a folder of your own, when you close Praat. "
+	"This includes the settings in your Sound window (e.g. your last chosen Pitch range), "
+	"so that your Sound windows will look the same after you start Praat up again. "
+	"The goal of this is to provide a continuous user experience, and is what you probably expect, "
+	"because most apps that you use on your computer work this way.")
+ENTRY (U"What we do measure")
+NORMAL (U"Praat does no telemetry, i.e. it does not send us anything while you are using Praat. "
+	"We do receive some information, though, when %you contact %us. This happens when you download "
+	"a new Praat version for your computer. We log the Praat downloads, so that we can potentially count "
+	"how often which edition and which version of Praat is downloaded.")
+ENTRY (U"Wouldn’t telemetry be useful for the quality of Praat?")
+NORMAL (U"Companies that use telemetry tend to argue that gathering information on how their app is used "
+	"is useful for improving the quality of their app (by collecting error messages), "
+	"or to know which features are rarely used, so that those features can be removed.")
+NORMAL (U"We are skeptical. If we, as Praat developers, have made a programming error, "
+	"then we hope that an \"assertion\" will help solve the issue. "
+	"An assertion is a place in our code where Praat will crash if a certain assumption "
+	"is not met. A message window will pop up in Praat that says that Praat will crash, together "
+	"with the request to send some relevant information by email to us, the developers of Praat. "
+	"If you do send this crash information on to us (you can read it, as it is normal English without secrets), "
+	"we will then virtually always find out (sometimes with some more help from you, "
+	"such as the sound file or script that caused the crash) "
+	"what was wrong, and correct the mistake, so that our programming error (\"bug\") no longer occurs "
+	"in the next version of Praat. We will also build an automatable test that checks, for all future "
+	"versions of Praat, that the bug does not reappear. In this way, every Praat version tends to be more stable and correct "
+	"than the previous version. We believe that this practice minimizes the problems with Praat sufficiently, "
+	"and no automated reporting of error messages and crash messages is necessary.")
+NORMAL (U"As for the removal of obsolete features, we are just very conservative. "
+	"Typically, file types from the 1980s and 1990s can typically still be opened in the 2020s, "
+	"and old Praat scripts should continue to run for at least 15 years after we marked a language feature "
+	"as \"deprecated\" or \"obsolete\" (and removed it from the manual). "
+	"This has not prevented us from also being able to open file types invented in the 2020s "
+	"or to have a modern scripting language that supports vectors, matrices and string arrays, "
+	"and backward compatibility hardly hampers the continual modernization of Praat.")
+ENTRY (U"Praat scripts and plug-ins")
+NORMAL (U"As with R scripts, Python scripts, and quite generally any kinds of scripts from any source, "
+	"you should consider Praat scripts written by others, such as plug-ins that you download, "
+	"as separate apps with their own privacy and security issues. Use a script or plug-in only "
+	"if you completely trust that script or plug-in and its creators.")
+MAN_END
+
+MAN_BEGIN (U"Checking for updates", U"ppgb", 20220217)
+INTRO (U"Updates for Praat are available from $$www.praat.org$.")
+NORMAL (U"Your current version (if you are reading this from the manual inside the Praat program, rather than from the website) is " stringize(PRAAT_VERSION_STR)
+	", from " stringize(PRAAT_MONTH) " " stringize(PRAAT_DAY) ", " stringize(PRAAT_YEAR) ". "
+	"Given that we tend to release new Praat versions once or twice a month, "
+	"you can probably guess whether it would be worth your while to have a look at $$www.praat.org$ "
+	"to see what is new, and perhaps download a new version.")
+NORMAL (U"Praat improves continually, and old features will almost always continue to work, "
+	"so there should never be a reason to continue to work with older versions.")
+ENTRY (U"Why no automatic update checking?")
+NORMAL (U"Many apps automatically check for updates when you start them up. "
+	"This means that the owners of such an app are capable of recording which users use their app when, "
+	"which is information that can potentially harm your privacy, for instance when a government "
+	"or legal investigation demands that the app owners provide them with access to such information. "
+	"The Praat team wants to stay far away from the possibility of such situations occurring, "
+	"even if you may be convinced that usage of the Praat program cannot be regarded by anybody "
+	"as being anything other than perfectly innocent. For this resason, the Praat program "
+	"will never contact the Praat team and, more generally, "
+	"will never attempt to access the Internet by itself. For more information, see @@Privacy and security@.")
+MAN_END
+
+MAN_BEGIN (U"Reporting a problem", U"ppgb", 20220116)
+INTRO (U"Anything that you consider incorrect behaviour of Praat (a \"bug\") can be reported "
+	"to the authors by email ($$paul.boersma\\@ uva.nl$). "
+	"This includes any crashes.")
+NORMAL (U"Questions about how to use Praat for your specific cases "
+	"can be posed to the Praat User List ($$https://groups.io/g/Praat-Users-List$). "
+	"This includes any questions on why your self-written Praat script does something unexpected.")
 MAN_END
 
 MAN_BEGIN (U"Praat menu", U"ppgb", 20161227)
@@ -4398,12 +4574,6 @@ ENTRY (U"Purpose")
 NORMAL (U"You can give the selected object a new name.")
 ENTRY (U"Behaviour")
 NORMAL (U"If you type special symbols or spaces, the Object window will replace them with underscores.")
-MAN_END
-
-MAN_BEGIN (U"Resource fork", U"ppgb", 20030316)
-INTRO (U"One of the two %forks of a Macintosh file (the other is the %%data fork%). "
-	"If a Macintosh file is moved to another platform directly, the resource fork is lost. "
-	"To backup your Macintosh files, use compression, for instance with #DropStuff\\tm.")
 MAN_END
 
 MAN_BEGIN (U"Save menu", U"ppgb", 20211015)

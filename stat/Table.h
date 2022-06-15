@@ -2,7 +2,7 @@
 #define _Table_h_
 /* Table.h
  *
- * Copyright (C) 2002-2012,2014-2019,2021 Paul Boersma
+ * Copyright (C) 2002-2012,2014-2019,2021,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,9 +69,11 @@ PRAAT_LIB_EXPORT void Table_setStringValue (Table me, integer rowNumber, integer
 PRAAT_LIB_EXPORT void Table_setNumericValue (Table me, integer row, integer column, double value);
 
 /* For optimizations only (e.g. conversion to Matrix or TableOfReal). */
+<<<<<<< HEAD
 PRAAT_LIB_EXPORT void Table_numericize_Assert (Table me, integer columnNumber);
 
 PRAAT_LIB_EXPORT double Table_getQuantile (Table me, integer column, double quantile);
+PRAAT_LIB_EXPORT double Table_getSum (Table me, integer column);
 PRAAT_LIB_EXPORT double Table_getMean (Table me, integer column);
 PRAAT_LIB_EXPORT double Table_getMaximum (Table me, integer icol);
 PRAAT_LIB_EXPORT double Table_getMinimum (Table me, integer icol);

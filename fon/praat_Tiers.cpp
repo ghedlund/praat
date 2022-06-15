@@ -55,7 +55,7 @@ DIRECT (HELP_AmplitudeTier_help) {
 
 DIRECT (EDITOR_ONE_WITH_ONE_AmplitudeTier_viewAndEdit) {
 	EDITOR_ONE_WITH_ONE (an,AmplitudeTier, Sound)   // Sound may be null
-		autoAmplitudeTierEditor editor = AmplitudeTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoAmplitudeTierEditor editor = AmplitudeTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -257,7 +257,7 @@ DIRECT (HELP_DurationTier_help) {
 
 DIRECT (EDITOR_ONE_WITH_ONE_DurationTier_edit) {
 	EDITOR_ONE_WITH_ONE (a,DurationTier, Sound)   // Sound may be null
-		autoDurationTierEditor editor = DurationTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoDurationTierEditor editor = DurationTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -618,7 +618,7 @@ DIRECT (HELP_IntensityTier_help) {
 
 DIRECT (EDITOR_ONE_WITH_ONE_IntensityTier_viewAndEdit) {
 	EDITOR_ONE_WITH_ONE (an,IntensityTier, Sound)   // Sound may be null
-		autoIntensityTierEditor editor = IntensityTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoIntensityTierEditor editor = IntensityTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -811,7 +811,7 @@ DO_ALTERNATIVE (GRAPHICS_old_PitchTier_draw)
 
 DIRECT (EDITOR_ONE_WITH_ONE_PitchTier_viewAndEdit) {
 	EDITOR_ONE_WITH_ONE (a,PitchTier, Sound)   // Sound may be null
-		autoPitchTierEditor editor = PitchTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoPitchTierEditor editor = PitchTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -1608,7 +1608,7 @@ DIRECT (HELP_RealTier_help) {
 
 DIRECT (EDITOR_ONE_WITH_ONE_RealTier_viewAndEdit) {
 	EDITOR_ONE_WITH_ONE (a,RealTier, Sound)   // Sound may be null
-		autoRealTierEditor editor = RealTierEditor_create (ID_AND_FULL_NAME, me, you, true);
+		autoRealTierEditor editor = RealTierEditor_create (ID_AND_FULL_NAME, me, you);
 	EDITOR_ONE_WITH_ONE_END
 }
 
@@ -1643,7 +1643,7 @@ DO
 
 FORM (MODIFY_RealTier_addPoint, U"Add one point", U"RealTier: Add point...") {
 	REAL (time, U"Time (s)", U"0.5")
-	REAL (intensity, U"Intensity (dB)", U"75")
+	REAL (intensity, U"Y value", U"75")
 	OK
 DO
 	MODIFY_EACH (RealTier)

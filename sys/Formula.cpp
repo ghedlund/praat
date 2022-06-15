@@ -113,7 +113,7 @@ enum { NO_SYMBOL_,
 		ERB_, HERTZ_TO_ERB_, ERB_TO_HERTZ_,
 		SUM_, MEAN_, STDEV_, CENTER_,
 		EVALUATE_, EVALUATE_NOCHECK_, EVALUATE_STR_, EVALUATE_NOCHECK_STR_,
-		STRING_STR_, SLEEP_, UNICODE_, UNICODE_STR_,
+		STRING_STR_, NUMBERS_VEC_, SLEEP_, UNICODE_, UNICODE_STR_,
 	#define HIGH_FUNCTION_1  UNICODE_STR_
 
 	/* Functions of 2 variables; if you add, update the #defines. */
@@ -268,7 +268,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"erb", U"hertzToErb", U"erbToHertz",
 	U"sum", U"mean", U"stdev", U"center",
 	U"evaluate", U"evaluate_nocheck", U"evaluate$", U"evaluate_nocheck$",
-	U"string$", U"sleep", U"unicode", U"unicode$",
+	U"string$", U"numbers#", U"sleep", U"unicode", U"unicode$",
 	U"arctan2", U"randomUniform", U"randomInteger", U"randomGauss", U"randomBinomial", U"randomGamma",
 	U"chiSquareP", U"chiSquareQ", U"incompleteGammaP", U"invChiSquareQ", U"studentP", U"studentQ", U"invStudentQ",
 	U"beta", U"beta2", U"besselI", U"besselK", U"lnBeta",
@@ -3401,7 +3401,7 @@ static void do_##function () { \
 				"not a matrix. Did you mean to use " #function "## instead?"); \
 	} else { \
 		Melder_throw (message, x->whichText(), \
-				U". The function " #function " requires a numeric argument"); \
+				U". The function " #function " requires a numeric argument."); \
 	} \
 } \
 static void do_##function##_VEC () { \
@@ -3424,8 +3424,8 @@ static void do_##function##_VEC () { \
 			pushNumericVector (result.move()); \
 		} \
 	} else { \
-		Melder_throw (message, x->whichText(), \
-				U". The function " #function " requires a vector argument"); \
+		Melder_throw (U"The function " #function "# requires a vector argument, not ", \
+				x->whichText(), U"."); \
 	} \
 } \
 static void do_##function##_MAT () { \
@@ -3452,8 +3452,8 @@ static void do_##function##_MAT () { \
 			pushNumericMatrix (result.move()); \
 		} \
 	} else { \
-		Melder_throw (message, x->whichText(), \
-				U". The function " #function " requires a matrix argument"); \
+		Melder_throw (U"The function " #function "## requires a matrix argument, not ", \
+				x->whichText(), U"."); \
 	} \
 }
 DO_NUM_WITH_TENSORS (abs, fabs (xvalue), U"Cannot take the absolute value (abs) of ")
@@ -3815,7 +3815,7 @@ static void do_do () {
 		//praat_updateSelection ();
 		double value = undefined;
 		if (valueString.string [0] == 1) {   // nothing written with MelderInfo by praat_doAction or praat_doMenuCommand? then the return value is the ID of the selected object
-			int IOBJECT, result = 0, found = 0;
+			integer IOBJECT, result = 0, found = 0;
 			WHERE (SELECTED) {
 				result = IOBJECT;
 				found += 1;
@@ -5581,6 +5581,21 @@ static void do_string_STR () {
 		Melder_throw (U"The function \"string$\" requires a number, not ", value->whichText(), U".");
 	}
 }
+static void do_numbers_VEC () {
+	/*
+		result# = numbers# (strings$#)
+	*/
+	const Stackel stringsel = pop;
+	if (stringsel->which == Stackel_STRING_ARRAY) {
+		const constSTRVEC strings = stringsel->stringArray;
+		autoVEC result = zero_VEC (strings.size);
+		for (integer i = 1; i <= strings.size; i ++)
+			result [i] = Melder_atof (strings [i]);
+		pushNumericVector (result.move());
+	} else {
+		Melder_throw (U"The function \"numbers#\" requires a string array, not ", stringsel->whichText(), U".");
+	}
+}
 static void do_sleep () {
 	const Stackel value = pop;
 	if (value->which == Stackel_NUMBER) {
@@ -5749,6 +5764,12 @@ static void do_tensorLiteral () {
 		}
 		pushNumericVector (result.move());
 	} else if (last->which == Stackel_NUMERIC_VECTOR) {
+		/*@praat
+			a# = zero# (0)   ; edge case
+			a## = { a#, a# }
+			assert numberOfRows (a##) = 2
+			assert numberOfColumns (a##) = 0
+		@*/
 		const integer sharedNumberOfColumns = last->numericVector.size;
 		autoMAT result = raw_MAT (numberOfElements, sharedNumberOfColumns);
 		result.row (numberOfElements)  <<=  last->numericVector;
@@ -7511,6 +7532,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case OBJECT_ROW_STR_: { do_object_row_STR ();
 } break; case OBJECT_COL_STR_: { do_object_col_STR ();
 } break; case STRING_STR_: { do_string_STR ();
+} break; case NUMBERS_VEC_: { do_numbers_VEC ();
 } break; case SLEEP_: { do_sleep ();
 } break; case UNICODE_: { do_unicode ();
 } break; case UNICODE_STR_: { do_unicode_STR ();

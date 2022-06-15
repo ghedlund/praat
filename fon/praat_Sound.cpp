@@ -149,37 +149,37 @@ DIRECT (EDITOR_ONE__LongSound_view) {
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -274,37 +274,37 @@ DO
 /********** LONGSOUND & SOUND **********/
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__LongSound_Sound_saveAsWavFile, U"Save as WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_WAV, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -646,14 +646,14 @@ DO_ALTERNATIVE (GRAPHICS_EACH__old_Sound_draw)
 
 static void cb_SoundEditor_publication (Editor /* me */, autoDaata publication) {
 	/*
-	 * Keep the gate for error handling.
-	 */
+		Keep the gate for error handling.
+	*/
 	try {
 		const bool isaSpectrum = Thing_isa (publication.get(), classSpectrum);
 		praat_new (publication.move(), U"");
 		praat_updateSelection ();
 		if (isaSpectrum) {
-			int IOBJECT;
+			integer IOBJECT;
 			FIND_ONE_WITH_IOBJECT (Spectrum)
 			autoSpectrumEditor editor2 = SpectrumEditor_create (ID_AND_FULL_NAME, me);
 			praat_installEditor (editor2.get(), IOBJECT);
@@ -1300,13 +1300,13 @@ DIRECT (MODIFY_Sound_reverse) {
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAs24BitWavFile, U"Save as 24-bit WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_WAV, 24);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAs32BitWavFile, U"Save as 32-bit WAV file", nullptr, U"wav") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_WAV, 32);
 	SAVE_ALL_LISTED_END
 }
@@ -1803,19 +1803,19 @@ DIRECT (INFO_NONE__Praat_reportSoundServerProperties) {
 #endif
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsAifcFile, U"Save as AIFC file", nullptr, U"aifc") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFC, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsAiffFile, U"Save as AIFF file", nullptr, U"aiff") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_AIFF, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsFlacFile, U"Save as FLAC file", nullptr, U"flac") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_FLAC, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -1827,13 +1827,13 @@ FORM_SAVE (SAVE_ONE__Sound_saveAsKayFile, U"Save as Kay sound file", nullptr, U"
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsNextSunFile, U"Save as NeXT/Sun file", nullptr, U"au") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NEXT_SUN, 16);
 	SAVE_ALL_LISTED_END
 }
 
 FORM_SAVE (SAVE_ALL__Sound_saveAsNistFile, U"Save as NIST file", nullptr, U"nist") {
-	SAVE_ALL_LISTED (Sampled, SoundAndLongSoundList)
+	SAVE_ALL_LISTED (SampledXY, SoundAndLongSoundList)
 		LongSound_concatenate (list.get(), file, Melder_NIST, 16);
 	SAVE_ALL_LISTED_END
 }
@@ -2002,13 +2002,6 @@ DIRECT (HELP__FilteringTutorial) {
 
 /***** file recognizers *****/
 
-static autoDaata macSoundOrEmptyFileRecognizer (integer nread, const char * /* header */, MelderFile file) {
-	/***** No data in file? This may be a Macintosh sound file with only a resource fork. *****/
-	if (nread > 0)
-		return autoDaata ();
-	Melder_throw (U"File ", file, U" contains no audio data.");   // !!!
-}
-
 static autoDaata soundFileRecognizer (integer nread, const char *header, MelderFile file) {
 	if (nread < 16)
 		return autoDaata ();
@@ -2107,7 +2100,6 @@ static int publishPlayedProc () {
 void praat_Sound_init () {
 	Thing_recognizeClassesByName (classSound, classLongSound, classSoundList, classSoundSet, nullptr);
 
-	Data_recognizeFileType (macSoundOrEmptyFileRecognizer);
 	Data_recognizeFileType (soundFileRecognizer);
 	Data_recognizeFileType (movieFileRecognizer);
 	Data_recognizeFileType (sesamFileRecognizer);
@@ -2118,6 +2110,7 @@ void praat_Sound_init () {
 	structSoundRecorder           :: f_preferences ();
 	structFunctionEditor          :: f_preferences ();
 	LongSound_preferences ();
+	structSoundArea               :: f_preferences ();
 	structTimeSoundEditor         :: f_preferences ();
 	structTimeSoundAnalysisEditor :: f_preferences ();
 
@@ -2155,6 +2148,7 @@ void praat_Sound_init () {
 	praat_addMenuCommand (U"Objects", U"Open", U"Read from special sound file", nullptr, 0, nullptr);
 		praat_addMenuCommand (U"Objects", U"Open", U"Read Sound from raw Alaw file...", nullptr, praat_DEPTH_1, READ1_Sound_readFromRawAlawFile);
 
+	praat_addMenuCommand (U"Objects", U"Goodies", U"-- sound goodies --", nullptr, 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Stop playing sound", nullptr, GuiMenu_ESCAPE,
 			PLAY__stopPlayingSound);
 	praat_addMenuCommand (U"Objects", U"Preferences", U"-- sound prefs --", nullptr, 0, nullptr);

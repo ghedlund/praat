@@ -2,7 +2,7 @@
 #define _NoulliGridEditor_h_
 /* NoulliGridEditor.h
  *
- * Copyright (C) 2018,2020,2021 Paul Boersma
+ * Copyright (C) 2018,2020-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,10 @@
 #include "NoulliGridEditor_enums.h"
 
 Thing_define (NoulliGridEditor, TimeSoundEditor) {
+	NoulliGrid noulliGrid () { return static_cast <NoulliGrid> (our data); }
+
+	void v_distributeAreas ()
+		override;
 	void v_draw ()
 		override;
 	void v_play (double startTime, double endTime)
@@ -44,12 +48,9 @@ Thing_define (NoulliGridEditor, TimeSoundEditor) {
 	#include "NoulliGridEditor_prefs.h"
 };
 
-void NoulliGridEditor_init (NoulliGridEditor me, conststring32 title, NoulliGrid data, Sound sound, bool ownSound);
-autoNoulliGridEditor NoulliGridEditor_create (conststring32 title, NoulliGrid grid, Sound sound, bool ownSound);
+autoNoulliGridEditor NoulliGridEditor_create (conststring32 title, NoulliGrid grid, Sound sound);
 /*
-	`sound` may be null;
-	if `ownSound` is `true`, the editor will contain a deep copy of the Sound,
-	which the editor will destroy when the editor is destroyed.
+	`sound` may be null
 */
 
 /* End of file NoulliGridEditor.h */

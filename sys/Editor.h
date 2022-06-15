@@ -2,7 +2,7 @@
 #define _Editor_h_
 /* Editor.h
  *
- * Copyright (C) 1992-2018 Paul Boersma
+ * Copyright (C) 1992-2020,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "Gui.h"
 #include "Ui.h"
 #include "Graphics.h"
-#include "prefs.h"
+#include "Preferences.h"
 
 #include "Editor_enums.h"
 
@@ -58,7 +58,6 @@ Thing_define (Editor, Thing) {
 	OrderedOf<structEditorMenu> menus;
 	Daata data;   // the data that can be displayed and edited
 	autoDaata previousData;   // the data that can be displayed and edited
-	bool ownData;
 	char32 undoText [100];
 	Graphics pictureGraphics;
 	Editor_DataChangedCallback d_dataChangedCallback;
@@ -219,7 +218,7 @@ void Editor_init (Editor me, int x, int y , int width, int height,
 	if 'y' > 0, 'y' is the distance to the top of the screen;
 	if 'y' < 0, |'y'| is the distance to the bottom of the screen;
 	if 'y' is 0, the editor is vertically centred on the screen;
-	This routine does not transfer ownership of 'data' to the Editor,
+	This routine does not transfer ownership of '*pData' to the Editor,
 	and the Editor will not destroy 'data' when the Editor itself is destroyed.
 */
 

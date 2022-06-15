@@ -1,6 +1,6 @@
 /* praat_objectMenus.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "DataEditor.h"
 #include "site.h"
 #include "GraphicsP.h"
+#include "DemoEditor.h"
 
 #define EDITOR  theCurrentPraatObjects -> list [IOBJECT]. editors
 
@@ -365,6 +366,11 @@ DO
 	INFO_NONE_END
 }
 
+FORM_SAVE (GRAPHICS_saveDemoWindowAsPdfFile, U"Save Demo window as PDF file", nullptr, U"praatDemoWindow.pdf") {
+	Demo_saveToPdfFile (file);
+	END_NO_NEW_DATA
+}
+
 /********** Callbacks of the Technical menu. **********/
 
 FORM (PREFS__debug, U"Set debugging options", nullptr) {
@@ -472,7 +478,8 @@ static void readFromFile (MelderFile file) {
 	if (Thing_isa (object.get(), classManPages) && ! Melder_batch) {
 		ManPages manPages = (ManPages) object.get();
 		ManPage firstPage = manPages -> pages.at [1];
-		autoManual manual = Manual_create (firstPage -> title.get(), object.releaseToAmbiguousOwner(), true);
+		autoManual manual = Manual_create (firstPage -> title.get(),
+				(ManPages) object.releaseToAmbiguousOwner(), true);
 		if (manPages -> executable)
 			Melder_warning (U"These manual pages contain links to executable scripts.\n"
 				"Only navigate these pages if you trust their author!");
@@ -673,17 +680,27 @@ static void cb_finishedOpeningDocuments () {
 #if cocoa
 DIRECT (PRAAT__cut) {
 	PRAAT
-		[[[NSApp keyWindow] firstResponder] cut: nil];
+		NSWindow *window = [NSApp keyWindow];
+		NSResponder *firstResponder = [window firstResponder];
+		if ([firstResponder isKindOfClass: [NSTextView class]])
+			[(NSTextView *) firstResponder cut: nil];
 	PRAAT_END
 }
 DIRECT (PRAAT__copy) {
 	PRAAT
-		[[[NSApp keyWindow] firstResponder] copy: nil];
+		NSWindow *window = [NSApp keyWindow];
+		NSResponder *firstResponder = [window firstResponder];
+		if ([firstResponder isKindOfClass: [NSTextView class]])
+			[(NSTextView *) firstResponder copy: nil];
 	PRAAT_END
 }
 DIRECT (PRAAT__paste) {
 	PRAAT
-		[[[NSApp keyWindow] firstResponder] pasteAsPlainText: nil];
+		trace (U"Pasting to app.");
+		NSWindow *window = [NSApp keyWindow];
+		NSResponder *firstResponder = [window firstResponder];
+		if ([firstResponder isKindOfClass: [NSTextView class]])
+			[(NSTextView *) firstResponder pasteAsPlainText: nil];
 	PRAAT_END
 }
 DIRECT (PRAAT__minimize) {
@@ -778,6 +795,8 @@ void praat_addMenus (GuiWindow window) {
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Calculator...", nullptr, 'U',
 			INFO_NONE__praat_calculator);
 	praat_addMenuCommand (U"Objects", U"Goodies", U"Report difference of two proportions...", nullptr, 0, INFO_reportDifferenceOfTwoProportions);
+	praat_addMenuCommand (U"Objects", U"Goodies", U"-- demo window --", nullptr, 0, nullptr);
+	praat_addMenuCommand (U"Objects", U"Goodies", U"Save Demo window as PDF file...", nullptr, 0, GRAPHICS_saveDemoWindowAsPdfFile);
 
 	menuItem = praat_addMenuCommand (U"Objects", U"Praat", U"Preferences", nullptr, praat_UNHIDABLE, nullptr);
 	preferencesMenu = menuItem ? menuItem -> d_menu : nullptr;

@@ -2,7 +2,7 @@
 #define _KlattGridAreas_h_
 /* KlattGridAreas.h
  *
- * Copyright (C) 2009-2011 David Weenink, 2017,2021 Paul Boersma
+ * Copyright (C) 2009-2011 David Weenink, 2017,2021,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,101 +23,14 @@
 
 Thing_define (KlattGrid_RealTierArea, RealTierArea) {
 };
-
-Thing_define (KlattGrid_OpenPhaseTierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_OpenPhaseTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_CollisionPhaseTierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_CollisionPhaseTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_Power1TierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_Power1TierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_Power2TierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_Power2TierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_DoublePulsingTierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_DoublePulsingTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_PitchTierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U" Hz"; }
-	#include "KlattGrid_PitchTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_FlutterTierArea, KlattGrid_RealTierArea) {
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_FlutterTierArea_prefs.h"
-};
+inline void KlattGrid_RealTierArea_init (KlattGrid_RealTierArea me, FunctionEditor editor, RealTier realTier) {
+	RealTierArea_init (me, editor, realTier);
+}
 
 Thing_define (KlattGrid_IntensityTierArea, KlattGrid_RealTierArea) {
 	conststring32 v_rightTickUnits ()
 		override { return U" dB"; }
 	#include "KlattGrid_IntensityTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_DecibelTierArea, KlattGrid_IntensityTierArea) {
-	conststring32 v_rightTickUnits ()
-		override { return U" dB"; }
-	#include "KlattGrid_DecibelTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_VoicingAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-};
-
-Thing_define (KlattGrid_AspirationAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-};
-
-Thing_define (KlattGrid_BreathinessAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-};
-
-Thing_define (KlattGrid_SpectralTiltTierArea, KlattGrid_IntensityTierArea) {
-	#include "KlattGrid_SpectralTiltTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_FricationBypassTierArea, KlattGrid_IntensityTierArea) {
-	#include "KlattGrid_FricationBypassTierArea_prefs.h"
-};
-
-Thing_define (KlattGrid_FricationAmplitudeTierArea, KlattGrid_IntensityTierArea) {
 };
 
 /* End of file KlattGridAreas.h */

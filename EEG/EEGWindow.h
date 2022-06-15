@@ -2,7 +2,7 @@
 #define _EEGWindow_h_
 /* EEGWindow.h
  *
- * Copyright (C) 2011-2018 Paul Boersma
+ * Copyright (C) 2011-2018,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,12 @@
  */
 
 #include "TextGridEditor.h"
-#include "EEG.h"
+#include "EEGArea.h"
 
 Thing_define (EEGWindow, TextGridEditor) {
-	EEG eeg;
+	EEG eeg() { return static_cast <EEG> (our data); }
+
+	//autoEEGArea eegArea; BUG: this will have to return once EEGWindow no longer inherits from TextGridEditor
 	GuiMenuItem extractSelectedEEGPreserveTimesButton, extractSelectedEEGTimeFromZeroButton;
 
 	bool v_hasPitch ()
@@ -37,8 +39,6 @@ Thing_define (EEGWindow, TextGridEditor) {
 		override;
 	void v_createHelpMenuItems (EditorMenu menu)
 		override;
-	conststring32 v_getChannelName (integer channelNumber)
-		override;
 	void v_createMenuItems_file_extract (EditorMenu menu)
 		override;
 	void v_updateMenuItems_file ()
@@ -46,8 +46,6 @@ Thing_define (EEGWindow, TextGridEditor) {
 
 	#include "EEGWindow_prefs.h"
 };
-
-void EEGWindow_init (EEGWindow me, conststring32 title, EEG eeg);
 
 autoEEGWindow EEGWindow_create (conststring32 title, EEG eeg);
 

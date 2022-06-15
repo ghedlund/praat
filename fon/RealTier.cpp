@@ -163,10 +163,13 @@ double RealTier_getMaximumValue (RealTier me) {
 }
 
 double RealTier_getMinimumValue (RealTier me) {
+	Melder_assert (me);
 	double result = undefined;
 	integer n = my points.size;
 	for (integer i = 1; i <= n; i ++) {
+		Melder_assert (my points.at._elements);
 		RealPoint point = my points.at [i];
+		Melder_assert (point);
 		if (isundef (result) || point -> value < result)
 			result = point -> value;
 	}
@@ -175,12 +178,16 @@ double RealTier_getMinimumValue (RealTier me) {
 
 double RealTier_getArea (RealTier me, double tmin, double tmax) {
 	integer n = my points.size, imin, imax;
-	if (n == 0) return undefined;
-	if (n == 1) return (tmax - tmin) * my points.at [1] -> value;
+	if (n == 0)
+		return undefined;
+	if (n == 1)
+		return (tmax - tmin) * my points.at [1] -> value;
 	imin = AnyTier_timeToLowIndex (me->asAnyTier(), tmin);
-	if (imin == n) return (tmax - tmin) * my points.at [n] -> value;
+	if (imin == n)
+		return (tmax - tmin) * my points.at [n] -> value;
 	imax = AnyTier_timeToHighIndex (me->asAnyTier(), tmax);
-	if (imax == 1) return (tmax - tmin) * my points.at [1] -> value;
+	if (imax == 1)
+		return (tmax - tmin) * my points.at [1] -> value;
 	Melder_assert (imin < n);
 	Melder_assert (imax > 1);
 	/*
@@ -212,7 +219,8 @@ double RealTier_getArea (RealTier me, double tmin, double tmax) {
 double RealTier_getMean_curve (RealTier me, double tmin, double tmax) {
 	Function_unidirectionalAutowindow (me, & tmin, & tmax);
 	const double area = RealTier_getArea (me, tmin, tmax);
-	if (isundef (area)) return undefined;
+	if (isundef (area))
+		return undefined;
 	return area / (tmax - tmin);
 }
 

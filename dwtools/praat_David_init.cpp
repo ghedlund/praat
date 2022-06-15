@@ -1,6 +1,6 @@
 /* praat_David_init.cpp
  *
- * Copyright (C) 1993-2021 David Weenink, 2015 Paul Boersma
+ * Copyright (C) 1993-2022 David Weenink, 2015 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,6 +112,7 @@
 #include "Roots_to_Spectrum.h"
 #include "Sound_and_Spectrum_dft.h"
 #include "Sound_extensions.h"
+#include "Sound_and_TextGrid_extensions.h"
 #include "Sounds_to_DTW.h"
 #include "Spectrum_extensions.h"
 #include "Spectrogram.h"
@@ -126,6 +127,7 @@
 #include "TextGrid_extensions.h"
 #include "TextGridTierNavigator.h"
 #include "TextGridNavigator.h"
+#include "Vector_extensions.h"
 
 #include "Categories_and_Strings.h"
 #include "CCA_and_Correlation.h"
@@ -3241,6 +3243,17 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
+FORM (QUERY_ONE_FOR_REAL__Intensity_getNearestLevelCrossing, U"Intensity: Get nearest level crossing", U"") {
+	REAL (time, U"Time (s)", U"0.1")
+	REAL (level, U"Level (dB)", U"60")
+	OPTIONMENU_ENUM (kVectorSearchDirection, searchDirection, U"Search direction", kVectorSearchDirection::DEFAULT)
+	OK
+DO
+	QUERY_ONE_FOR_REAL (Intensity)
+		const double result = Vector_getNearestLevelCrossing (me, 1, time, level, searchDirection);
+	QUERY_ONE_FOR_REAL_END (U" seconds")
+}
+
 /***************** IntensityTier ***************************************************/
 
 FORM (CONVERT_EACH_TO_ONE__IntensityTier_to_TextGrid_silences, U"IntensityTier: To TextGrid (silences)", U"Intensity: To TextGrid (silences)...") {
@@ -5683,13 +5696,13 @@ FORM (QUERY_ONE_FOR_REAL__Sound_getNearestLevelCrossing, U"Sound: Get nearest le
 	CHANNEL (channel, U"Channel (number, Left, or Right)", U"1")
 	REAL (time, U"Time (s)", U"0.1")
 	REAL (level, U"Level", U"0.1")
-	OPTIONMENU_ENUM (kSoundSearchDirection, searchDirection, U"Search direction", kSoundSearchDirection::DEFAULT)
+	OPTIONMENU_ENUM (kVectorSearchDirection, searchDirection, U"Search direction", kVectorSearchDirection::DEFAULT)
 	OK
 DO
 	QUERY_ONE_FOR_REAL (Sound)
 		Melder_require (channel > 0 && channel <= my ny,
 			U"The channel number should be between 1 and ", my ny, U".");
-		const double result = Sound_getNearestLevelCrossing (me, channel, time, level, searchDirection);
+		const double result = Vector_getNearestLevelCrossing (me, channel, time, level, searchDirection);
 	QUERY_ONE_FOR_REAL_END (U" seconds")
 }
 
@@ -5748,6 +5761,16 @@ DO
 			fmin, fmax, flatnessThreshold, silenceThreshold_dB, minimumSilenceDuration, minimumSpeechDuration, 
 			silenceLabel, speechLabel
 		);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
+FORM (CONVERT_EACH_TO_ONE__Sound_to_TextGrid_highMidLowIntervals, U"Sound: To TextGrid (high, mid, low)", nullptr) {
+	REAL (maxLevel, U"Maximum level", U"0.5")
+	REAL (minLevel, U"Minimum level", U"-0.5")
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Sound)
+		autoTextGrid result = Sound_to_TextGrid_highMidLowIntervals (me, minLevel, maxLevel);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -7119,7 +7142,7 @@ FORM (GRAPHICS_EACH__Table_drawEllipses, U"Table: Draw ellipses", nullptr) {
 	REAL (ymax, U"right Vertical range", U"0.0 (= auto)")
 	SENTENCE (factorColumn_string, U"Factor column", U"Vowel")
 	POSITIVE (numberOfSigmas, U"Number of sigmas", U"1.0")
-	REAL (fontSize, U"Font size", U"12.0 (0 = no label)")
+	REAL (fontSize, U"Label font size", U"12.0 (0 = no label)")
 	BOOLEAN (garnish, U"Garnish", true)
 	OK
 DO
@@ -7142,7 +7165,7 @@ FORM (GRAPHICS_EACH__Table_drawEllipsesWhere, U"Table: Draw ellipses where", nul
 	REAL (ymax, U"right Vertical range", U"0.0 (= auto)")
 	SENTENCE (factorColumn_string, U"Factor column", U"Vowel")
 	POSITIVE (numberOfSigmas, U"Number of sigmas", U"1.0")
-	REAL (fontSize, U"Font size", U"12 (0 = no label)")
+	REAL (fontSize, U"Label font size", U"12 ; (0 = no label)")
 	BOOLEAN (garnish, U"Garnish", true)
 	LABEL (U"Use data only in rows where the following condition holds.")
 	FORMULA (condition, U"Condition", U"1; self$[\"gender\"]=\"male\"")
@@ -8507,7 +8530,7 @@ static void cb_publish (Editor /*editor*/, autoDaata publish) {
 
 DIRECT (CREATION_WINDOW__VowelEditor_create) {
 	CREATION_WINDOW (a,Sound)
-		autoVowelEditor creationWindow = VowelEditor_create (U"VowelEditor", nullptr);
+		autoVowelEditor creationWindow = VowelEditor_create (U"VowelEditor");
 		Editor_setPublicationCallback (creationWindow.get(), cb_publish);
 	CREATION_WINDOW_END
 }
@@ -9625,6 +9648,8 @@ void praat_David_init () {
 
 	praat_addAction1 (classIntensity, 0, U"To TextGrid (silences)...", U"To IntensityTier (valleys)", 0,
 			CONVERT_EACH_TO_ONE__Intensity_to_TextGrid_silences);
+	praat_addAction1 (classIntensity, 0, U"Get nearest level crossing...", U"Get time of maximum...", 1,
+			QUERY_ONE_FOR_REAL__Intensity_getNearestLevelCrossing);
 	praat_addAction1 (classIntensityTier, 0, U"To TextGrid (silences)...", nullptr, 0, 
 			CONVERT_EACH_TO_ONE__IntensityTier_to_TextGrid_silences);
 	praat_addAction1 (classIntensityTier, 0, U"To Intensity...", nullptr, praat_HIDDEN,
@@ -10072,6 +10097,8 @@ void praat_David_init () {
 			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_detectSilences);
 	praat_addAction1 (classSound, 0, U"To TextGrid (voice activity)...", U"To IntervalTier", 1,
 			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_voiceActivity);
+	praat_addAction1 (classSound, 0, U"To TextGrid (high, mid, low)...", U"To IntervalTier", praat_HIDDEN + praat_DEPTH_1,
+			CONVERT_EACH_TO_ONE__Sound_to_TextGrid_highMidLowIntervals);
     praat_addAction1 (classSound, 0, U"Play one channel...", U"Play", praat_HIDDEN, 
 			PLAY_EACH__Sound_playOneChannel);
     praat_addAction1 (classSound, 0, U"Play as frequency shifted...", U"Play", praat_HIDDEN, 

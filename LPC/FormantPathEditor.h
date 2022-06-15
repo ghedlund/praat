@@ -2,7 +2,7 @@
 #define _FormantPathEditor_h_
 /* FormantPathEditor.h
  *
- * Copyright (C) 2020-2021 David Weenink
+ * Copyright (C) 2020-2022 David Weenink, 2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #include "Sound.h"
 #include "LPC.h"
 #include "TextGrid.h"
-#include "TextGridView.h"
 #include "TimeSoundAnalysisEditor.h"
 
 #include "TextGridEditor_enums.h"
@@ -43,19 +42,18 @@
 	be calculated whenever they are needed from the information in the tiers.
 	
 	Multichannel sounds don't make sense with respect to the analysis part. If both channels are the same sound, one is redundant.
-	If two different sounds? May be only copy channel 1?
+	If two different sounds, then average (convert to mono), as in other editors.
 */
 
 Thing_define (FormantPathEditor, TimeSoundAnalysisEditor) {
-	autoTextGrid textgrid;
-	autoTextGridView textGridView, previousTextGridView;
+	FormantPath formantPath() { return static_cast <FormantPath> (our data); }
+
+	//autoTextGrid textgrid;
 	autoFormant previousFormant;
 	Graphics_Viewport selectionViewer_viewport;
 	integer selectedTier, selectedCandidate;
-	bool suppressRedraw;
-	autostring32 findString;
 	GuiMenuItem navigateSettingsButton, navigateNextButton, navigatePreviousButton;
-	GuiMenuItem extractSelectedTextGridPreserveTimesButton, extractSelectedTextGridTimeFromZeroButton;
+
 	void v_info ()
 		override;
 	void v_createChildren ()
@@ -65,12 +63,6 @@ Thing_define (FormantPathEditor, TimeSoundAnalysisEditor) {
 	void v_createHelpMenuItems (EditorMenu menu)
 		override;
 	void v_dataChanged ()
-		override;
-	void v_createMenuItems_file_extract (EditorMenu menu)
-		override;
-	void v_createMenuItems_file_write (EditorMenu menu)
-		override;
-	void v_createMenuItems_file_draw (EditorMenu menu)
 		override;
 	void v_prepareDraw ()
 		override;
@@ -82,8 +74,6 @@ Thing_define (FormantPathEditor, TimeSoundAnalysisEditor) {
 		override;
 	bool v_hasText ()
 		override { return false; }
-	//bool v_click (double xWC, double yWC, bool shiftKeyPressed)
-	//	override;
 	void v_clickSelectionViewer (double xWC, double yWC)
 		override;
 	void v_draw_analysis_formants ()
@@ -106,22 +96,14 @@ Thing_define (FormantPathEditor, TimeSoundAnalysisEditor) {
 		override;
 	void v_highlightSelection (double left, double right, double bottom, double top)
 		override;
-	void v_unhighlightSelection (double left, double right, double bottom, double top)
-		/*override*/;
 	double v_getBottomOfSoundArea ()
 		override;
 	double v_getBottomOfSoundAndAnalysisArea ()
 		override;
-	void v_updateMenuItems_file ()
-		override;
-	void v_createMenuItems_pitch_picture (EditorMenu menu)
-		override;
 	void v_createMenuItems_formant (EditorMenu menu)
 		override;
 	virtual void v_updateMenuItems_navigation ();
-	void v_saveData () 
-		override;
-	void v_restoreData ()
+	void v_reset_analysis ()
 		override;
 	#include "FormantPathEditor_prefs.h"
 };
