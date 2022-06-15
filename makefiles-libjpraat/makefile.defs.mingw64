@@ -1,0 +1,20 @@
+# File: makefile.defs.mingw64
+# System: MinGW
+
+PREFIX = x86_64-w64-mingw32-
+CC = $(PREFIX)gcc
+CXX = $(PREFIX)g++
+LINK = $(PREFIX)g++
+AR = $(PREFIX)ar
+RANLIB = $(PREFIX)ranlib
+WINDRES = $(PREFIX)windres
+
+COMMONFLAGS = -pthread -DPRAAT_LIB -municode -D_FILE_OFFSET_BITS=64 -O3
+CFLAGS = -std=gnu99 $(COMMONFLAGS)
+CXXFLAGS = -std=gnu++17 $(CFLAGS) -Wshadow
+LIBS = -L/mingw64/lib -lwinmm -lwsock32 -lcomctl32 -lole32 -lgdi32 -lgdiplus -lcomdlg32 -static -lpthread -static-libgcc -static-libstdc++ -mwindows -static -Wl,--subsystem,windows
+
+EXECUTABLE = Praat.exe
+LIBRARY = jpraat.dll
+ICON = praat_win.o
+MAIN_ICON = main/praat_win.o
