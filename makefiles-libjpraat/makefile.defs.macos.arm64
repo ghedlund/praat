@@ -1,0 +1,27 @@
+# File: makefile.defs.macos.arm64.lib
+# Create jpraat library for target TARGET = arm64-apple-macos11
+
+# System: Mac OS X
+# Greg Hedlund, 15 June 2022
+
+CC = clang -std=gnu99
+CXX = clang++ -std=c++17
+LINK = clang++
+AR = ar
+RANLIB = ranlib
+
+TARGET = arm64-apple-macos11
+
+CFLAGS = -DuseCarbon=0 -target $(TARGET) -Dmacintosh  -DPRAAT_LIB -fvisibility=default \
+    -D_FILE_OFFSET_BITS=64 -Wundef -fPIC -Wno-return-type-c-linkage -O3
+CXXFLAGS = $(CFLAGS) -ObjC++ -fmessage-length=80 -stdlib=libc++ -Wshadow
+
+LIBS = -target $(TARGET) -stdlib=libc++ -Xlinker -U -Xlinker _objc_loadClassref \
+    -fobjc-link-runtime -framework Cocoa -framework AudioToolbox \
+    -framework AudioUnit -framework CoreAudio -framework Metal -framework MetalKit -framework MetalPerformanceShaders \
+    -framework Accelerate -framework OpenCL
+
+EXECUTABLE = praat
+LIBRARY = libjpraat-$(TARGET).dylib
+ICON =
+MAIN_ICON =

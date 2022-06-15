@@ -1,7 +1,8 @@
 # File: Makefile
 
-# Makefile for Praat
-# Paul Boersma & David Weenink, 6 June 2022
+# Makefile for Praat.
+# Paul Boersma, 24 May 2020
+# David Weenink, 22 December 2020
 
 # System-dependent definitions of CC, LIBS, ICON and MAIN_ICON should be in
 # makefile.defs, which has to be copied and renamed
@@ -13,7 +14,7 @@ include makefile.defs
 
 # Makes the Praat executable in the source directory.
 all: all-external all-self
-	$(LINK) -o $(EXECUTABLE) main/main_Praat.o $(MAIN_ICON) fon/libfon.a \
+	$(LINK) -shared -o $(LIBRARY) sys/praat_version.o jpraat/jpraat.o main/main_Praat.o $(MAIN_ICON) fon/libfon.a \
 		artsynth/libartsynth.a FFNet/libFFNet.a \
 		gram/libgram.a EEG/libEEG.a \
 		LPC/libLPC.a dwtools/libdwtools.a \
@@ -35,7 +36,7 @@ all-external:
 	$(MAKE) -C external/glpk
 	$(MAKE) -C external/mp3
 	$(MAKE) -C external/flac
-	$(MAKE) -C external/portaudio
+	$(MAKE) -C external/portaudio -f Makefile-mac
 	$(MAKE) -C external/espeak
 	$(MAKE) -C external/vorbis
 	$(MAKE) -C external/opusfile
@@ -55,9 +56,10 @@ all-self:
 	$(MAKE) -C FFNet
 	$(MAKE) -C artsynth
 	$(MAKE) -C main main_Praat.o $(ICON)
+	$(MAKE) -C jpraat jpraat.o
 
 clean: clean-external clean-self
-	$(RM) praat
+	$(RM) $(LIBRARY)
 
 clean-external:
 	$(MAKE) -C external/clapack clean
@@ -65,7 +67,7 @@ clean-external:
 	$(MAKE) -C external/glpk clean
 	$(MAKE) -C external/mp3 clean
 	$(MAKE) -C external/flac clean
-	$(MAKE) -C external/portaudio clean
+	$(MAKE) -C external/portaudio -f Makefile-mac clean
 	$(MAKE) -C external/espeak clean
 	$(MAKE) -C external/vorbis clean
 	$(MAKE) -C external/opusfile clean
@@ -85,6 +87,7 @@ clean-self:
 	$(MAKE) -C FFNet clean
 	$(MAKE) -C artsynth clean
 	$(MAKE) -C main clean
+	$(MAKE) -C jpraat clean
 
 install:
 	$(INSTALL)

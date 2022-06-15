@@ -69,7 +69,6 @@ PRAAT_LIB_EXPORT void Table_setStringValue (Table me, integer rowNumber, integer
 PRAAT_LIB_EXPORT void Table_setNumericValue (Table me, integer row, integer column, double value);
 
 /* For optimizations only (e.g. conversion to Matrix or TableOfReal). */
-<<<<<<< HEAD
 PRAAT_LIB_EXPORT void Table_numericize_Assert (Table me, integer columnNumber);
 
 PRAAT_LIB_EXPORT double Table_getQuantile (Table me, integer column, double quantile);

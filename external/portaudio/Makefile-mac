@@ -4,11 +4,11 @@
 include ../../makefile.defs
 
 OBJECTS = \
-	pa_mac_hostapis.o pa_mac_util.o pa_mac_core.o pa_mac_core_blocking.o pa_mac_core_utilities.o \
+	pa_mac_hostapis.o pa_unix_util.o pa_mac_core.o pa_mac_core_blocking.o pa_mac_core_utilities.o \
 	pa_ringbuffer.o pa_trace.o \
 	pa_front.o pa_cpuload.o \
 	pa_allocation.o pa_process.o pa_converters.o pa_dither.o \
-	pa_stream.o
+	pa_stream.o pa_asio.o pa_debugprint.o
 
 .PHONY: all clean
 
