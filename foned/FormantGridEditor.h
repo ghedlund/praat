@@ -19,67 +19,37 @@
  */
 
 #include "FunctionEditor.h"
-#include "FormantGrid.h"
-#include "RealTierArea.h"
-
-Thing_define (FormantGridArea, RealTierArea) {
-	virtual FormantGrid v_formantGrid() = 0;
-	FormantGrid formantGrid() { return our v_formantGrid(); }
-
-	bool editingBandwidths;
-	integer selectedFormant;
-
-	Function v_function() override {
-		FormantGrid grid = our formantGrid();
-		OrderedOf<structRealTier>* tiers = ( our editingBandwidths ? & grid -> bandwidths : & grid -> formants );
-		RealTier tier = tiers->at [our selectedFormant];
-		return tier;
-	}
-	
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U" Hz"; }
-
-	#include "FormantGridArea_prefs.h"
-};
-inline void FormantGridArea_init (FormantGridArea me, FunctionEditor editor) {
-	my editingBandwidths = false;
-	my selectedFormant = 1;
-	RealTierArea_init (me, editor);
-	my setGlobalYRange_fraction (0.0, 1.0);
-}
+#include "FormantGridArea.h"
 
 Thing_define (FormantGridEditor, FunctionEditor) {
-	autoFormantGridArea formantGridArea;
+	DEFINE_FunctionArea (1, FormantGridArea, formantGridArea);
 
-	GuiMenuItem d_bandwidthsToggle;
-
-	void v_createMenus ()
-		override;
-	void v_distributeAreas ()
-		override;
-	void v_draw ()
-		override;
-	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double globalY_fraction)
-		override;
-	void v_play (double startTime, double endTime)
-		override;
-
-	virtual bool v_hasSourceMenu () { return true; }
-
-	#include "FormantGridEditor_prefs.h"
-};
-
-Thing_define (FormantGridEditor_FormantGridArea, FormantGridArea) {
-	FormantGrid v_formantGrid() override {
-		Thing_cast (FormantGridEditor, editor, our _editor);
-		Thing_cast (FormantGrid, grid, editor -> data);
-		return grid;
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our formantGridArea() -> _formantGrid = static_cast <FormantGrid> (our data());
+		OrderedOf<structRealTier>* tiers =
+				( our formantGridArea() -> editingBandwidths ? & our formantGridArea() -> _formantGrid -> bandwidths : & our formantGridArea() -> _formantGrid -> formants );
+		RealTier tier = tiers->at [our formantGridArea() -> selectedFormant];
+		our formantGridArea() -> functionChanged (tier);
+	}
+	void v_distributeAreas () override {
+		our formantGridArea() -> setGlobalYRange_fraction (0.0, 1.0);
+	}
+	void v_play (double startTime, double endTime) override {
+		FormantGridArea_playPart (our formantGridArea().get(), startTime, endTime, theFunctionEditor_playCallback, this);
 	}
 };
 
-autoFormantGridEditor FormantGridEditor_create (conststring32 title, FormantGrid formantGrid);
+inline autoFormantGridEditor FormantGridEditor_create (conststring32 title, FormantGrid formantGrid) {
+	try {
+		autoFormantGridEditor me = Thing_new (FormantGridEditor);
+		my formantGridArea() = FormantGridArea_create (true, nullptr, me.get());
+		FunctionEditor_init (me.get(), title, formantGrid);
+		return me;
+	} catch (MelderError) {
+		Melder_throw (U"FormantGrid window not created.");
+	}
+}
 
 /* End of file FormantGridEditor.h */
 #endif

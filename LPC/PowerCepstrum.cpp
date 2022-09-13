@@ -146,15 +146,13 @@ void PowerCepstrum_drawTrendLine (PowerCepstrum me, Graphics g, double qmin, dou
  */
 void PowerCepstrum_fitTrendLine (PowerCepstrum me, double qmin, double qmax, double *out_a, double *out_intercept, kCepstrum_trendType lineType, kCepstrum_trendFit method) {
 	try {
-		double a, intercept;
-		if (qmax <= qmin) {
-			qmin = my xmin;
-			qmax = my xmax;
-		}
-
+		Function_unidirectionalAutowindow (me, & qmin, & qmax);
+		
+		double a = undefined, intercept;
 		integer imin, imax;
-		if (Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax) == 0)
-			return;
+		Melder_require (qmin >= my xmin && qmax <= my xmax,
+			U"Your quefrency range is outside the domain.");
+		Matrix_getWindowSamplesX (me, qmin, qmax, & imin, & imax);
 		Melder_clipLeft (2_integer, & imin); // never use q=0 in fitting
 		integer numberOfPoints = imax - imin + 1;
 		Melder_require (numberOfPoints > 1,
@@ -459,19 +457,18 @@ double PowerCepstrum_getPeakProminence_hillenbrand (PowerCepstrum me, double pit
 double PowerCepstrum_getPeakProminence (PowerCepstrum me, double pitchFloor, double pitchCeiling, kVector_peakInterpolation peakInterpolationType, double qstartFit, double qendFit, kCepstrum_trendType lineType, kCepstrum_trendFit fitMethod, double *out_qpeak) {
 	double slope, intercept, qpeak, peakdB;
 	PowerCepstrum_fitTrendLine (me, qstartFit, qendFit, & slope, & intercept, lineType, fitMethod);
-	PowerCepstrum_getMaximumAndQuefrency (me, pitchFloor, pitchCeiling, peakInterpolationType, & peakdB, & qpeak);
-	const double xq = ( lineType == kCepstrum_trendType::EXPONENTIAL_DECAY ? log(qpeak) : qpeak );
-	const double db_background = slope * xq + intercept;
-	const double cpp = peakdB - db_background;
+	autoPowerCepstrum thee = Data_copy (me);
+	PowerCepstrum_subtractTrendLine_inplace (thee.get(), slope, intercept,lineType);
+	PowerCepstrum_getMaximumAndQuefrency (thee.get(), pitchFloor, pitchCeiling, peakInterpolationType, & peakdB, & qpeak);
 	if (out_qpeak)
 		*out_qpeak = qpeak;
-	return cpp;
+	return peakdB;
 }
 
 autoMatrix PowerCepstrum_to_Matrix (PowerCepstrum me) {
 	try {
 		autoMatrix thee = Thing_new (Matrix);
-		my structMatrix :: v_copy (thee.get());
+		my structMatrix :: v1_copy (thee.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no Matrix created.");
@@ -483,7 +480,7 @@ autoPowerCepstrum Matrix_to_PowerCepstrum (Matrix me) {
 		Melder_require (my ny == 1,
 			U"Matrix should have exactly 1 row.");
 		autoPowerCepstrum thee = Thing_new (PowerCepstrum);
-		my structMatrix :: v_copy (thee.get());
+		my structMatrix :: v1_copy (thee.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": not converted to PowerCepstrum.");

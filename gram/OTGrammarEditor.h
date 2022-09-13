@@ -22,16 +22,16 @@
 #include "OTGrammar.h"
 
 Thing_define (OTGrammarEditor, HyperPage) {
-	OTGrammar otGrammar() { return static_cast <OTGrammar> (our data); }
+	OTGrammar otGrammar() { return static_cast <OTGrammar> (our data()); }
 
 	integer selected;
 	bool d_constraintsAreDrawnVertically;
 
-	bool v_editable ()
+	bool v_hasEditMenu ()
 		override { return true; }
 	void v_createMenus ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_draw ()
 		override;

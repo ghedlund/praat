@@ -1,6 +1,6 @@
-/* TextGridEditor_enums.h
+/* NoulliGridArea.cpp
  *
- * Copyright (C) 1992-2005,2007,2013,2015,2016,2020 Paul Boersma
+ * Copyright (C) 2018-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,13 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-enums_begin (kTextGridEditor_showNumberOf, 1)
-	enums_add (kTextGridEditor_showNumberOf, 1, NOTHING, U"nothing")
-	enums_add (kTextGridEditor_showNumberOf, 2, INTERVALS_OR_POINTS, U"intervals or points")
-	enums_add (kTextGridEditor_showNumberOf, 3, NONEMPTY_INTERVALS_OR_POINTS, U"non-empty intervals or points")
-enums_end (kTextGridEditor_showNumberOf, 3, INTERVALS_OR_POINTS)
+#include "NoulliGridArea.h"
+#include "EditorM.h"
 
-/* End of file TextGridEditor_enums.h */
+Thing_implement (NoulliGridArea, FunctionArea, 0);
+
+void structNoulliGridArea :: v_drawInside () {
+	NoulliGrid_paintInside (our noulliGrid(), our graphics(), our startWindow(), our endWindow());
+}
+
+/* End of file NoulliGridArea.cpp */

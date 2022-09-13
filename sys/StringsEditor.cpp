@@ -22,16 +22,12 @@
 
 Thing_implement (StringsEditor, Editor, 0);
 
-void structStringsEditor :: v_destroy () noexcept {
-	StringsEditor_Parent :: v_destroy ();
-}
-
 static void menu_cb_help (StringsEditor /* me */, EDITOR_ARGS_DIRECT) {
 	HELP (U"StringsEditor")
 }
 
-void structStringsEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	StringsEditor_Parent :: v_createHelpMenuItems (menu);
+void structStringsEditor :: v_createMenuItems_help (EditorMenu menu) {
+	StringsEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"StringsEditor help", U'?', menu_cb_help);
 }
 
@@ -117,7 +113,7 @@ void structStringsEditor :: v_createChildren () {
 	GuiButton_createShown (our windowForm, 310, 400, -10 - Gui_PUSHBUTTON_HEIGHT, -10, U"Remove", gui_button_cb_remove, this, 0);
 }
 
-void structStringsEditor :: v_dataChanged () {
+void structStringsEditor :: v1_dataChanged () {
 	updateList (this);
 }
 

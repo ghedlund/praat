@@ -25,25 +25,17 @@
 #include "FormantGridEditor.h"
 
 Thing_define (KlattGrid_RealTierEditor, RealTierEditor) {
-	KlattGrid klattgrid() { return static_cast <KlattGrid> (our data); }
+	KlattGrid klattgrid() { return static_cast <KlattGrid> (our data()); }
 
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_play (double startTime, double endTime)
 		override;
 };
 
 Thing_define (KlattGrid_IntensityTierEditor, KlattGrid_RealTierEditor) {
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	conststring32 v_quantityText ()
-		override { return U"Intensity (dB)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set intensity range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum intensity (dB)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum intensity (dB)"; }
 };
 void KlattGrid_IntensityTierEditor_init (KlattGrid_IntensityTierEditor me, autoKlattGrid_IntensityTierArea area, conststring32 title, KlattGrid klattgrid);
 
@@ -51,23 +43,17 @@ void KlattGrid_IntensityTierEditor_init (KlattGrid_IntensityTierEditor me, autoK
 # pragma mark - KlattGrid_PitchTierEditor
 
 Thing_define (KlattGrid_PitchTierEditor, KlattGrid_RealTierEditor) {
-	void v_createHelpMenuItems (EditorMenu menu)
-		override;
-	conststring32 v_quantityText ()
-		override { return U"Frequency (Hz)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set frequency range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum frequency (Hz)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum frequency (Hz)"; }
-};
-Thing_define (KlattGrid_PitchTierArea, PitchTierArea) {
-	Function v_function() override {
-		Thing_cast (KlattGrid_PitchTierEditor, editor, our _editor);
-		return editor -> klattgrid() -> phonation -> pitch.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> pitch.get());
 	}
-	#include "KlattGrid_PitchTierArea_prefs.h"
+	void v_createMenuItems_help (EditorMenu menu)
+		override;
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable pitch tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_PitchTierEditor KlattGrid_PitchTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -75,10 +61,14 @@ autoKlattGrid_PitchTierEditor KlattGrid_PitchTierEditor_create (conststring32 ti
 #pragma mark - KlattGrid_VoicingAmplitudeTierEditor
 
 Thing_define (KlattGrid_VoicingAmplitudeTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_VoicingAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_VoicingAmplitudeTierEditor) our _editor) -> klattgrid() -> phonation -> voicingAmplitude.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> voicingAmplitude.get());
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable voicing amplitude tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
 	}
 };
 autoKlattGrid_VoicingAmplitudeTierEditor KlattGrid_VoicingAmplitudeTierEditor_create (conststring32 title, KlattGrid klattgrid);
@@ -87,26 +77,15 @@ autoKlattGrid_VoicingAmplitudeTierEditor KlattGrid_VoicingAmplitudeTierEditor_cr
 #pragma mark - KlattGrid_FlutterTierEditor
 
 Thing_define (KlattGrid_FlutterTierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Flutter (0..1)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set flutter range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum (0..1)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum (0..1)"; }
-};
-Thing_define (KlattGrid_FlutterTierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_FlutterTierEditor) our _editor) -> klattgrid() -> phonation -> flutter.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> flutter.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_FlutterTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable flutter tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_FlutterTierEditor KlattGrid_FlutterTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -114,24 +93,15 @@ autoKlattGrid_FlutterTierEditor KlattGrid_FlutterTierEditor_create (conststring3
 #pragma mark - KlattGrid_Power1TierEditor
 
 Thing_define (KlattGrid_Power1TierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Power1"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set power1 range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum"; }
-};
-Thing_define (KlattGrid_Power1TierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_Power1TierEditor) our _editor) -> klattgrid() -> phonation -> power1.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> power1.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_Power1TierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable power1 tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_Power1TierEditor KlattGrid_Power1TierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -139,24 +109,15 @@ autoKlattGrid_Power1TierEditor KlattGrid_Power1TierEditor_create (conststring32 
 #pragma mark - KlattGrid_Power2TierEditor
 
 Thing_define (KlattGrid_Power2TierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Power2"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set power2 range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum"; }
-};
-Thing_define (KlattGrid_Power2TierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_Power2TierEditor) our _editor) -> klattgrid() -> phonation -> power2.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> power2.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_Power2TierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable power2 tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_Power2TierEditor KlattGrid_Power2TierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -164,26 +125,15 @@ autoKlattGrid_Power2TierEditor KlattGrid_Power2TierEditor_create (conststring32 
 #pragma mark - KlattGrid_OpenPhaseTierEditor
 
 Thing_define (KlattGrid_OpenPhaseTierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Open phase (0..1)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set open phase range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum (0..1)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum (0..1)"; }
-};
-Thing_define (KlattGrid_OpenPhaseTierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_OpenPhaseTierEditor) our _editor) -> klattgrid() -> phonation -> openPhase.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> openPhase.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_OpenPhaseTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable open phase tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_OpenPhaseTierEditor KlattGrid_OpenPhaseTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -191,26 +141,15 @@ autoKlattGrid_OpenPhaseTierEditor KlattGrid_OpenPhaseTierEditor_create (conststr
 #pragma mark - KlattGrid_CollisionPhaseTierEditor
 
 Thing_define (KlattGrid_CollisionPhaseTierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Collision phase (0..1)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set collision phase range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum (0..1)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum (0..1)"; }
-};
-Thing_define (KlattGrid_CollisionPhaseTierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_CollisionPhaseTierEditor) our _editor) -> klattgrid() -> phonation -> collisionPhase.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> collisionPhase.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_CollisionPhaseTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable collision phase tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_CollisionPhaseTierEditor KlattGrid_CollisionPhaseTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -218,26 +157,15 @@ autoKlattGrid_CollisionPhaseTierEditor KlattGrid_CollisionPhaseTierEditor_create
 #pragma mark - KlattGrid_DoublePulsingTierEditor
 
 Thing_define (KlattGrid_DoublePulsingTierEditor, KlattGrid_RealTierEditor) {
-	conststring32 v_quantityText ()
-		override { return U"Double pulsing (0..1)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set double pulsing range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum (0..1)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum (0..1)"; }
-};
-Thing_define (KlattGrid_DoublePulsingTierArea, RealTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_DoublePulsingTierEditor) our _editor) -> klattgrid() -> phonation -> doublePulsing.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> doublePulsing.get());
 	}
-	double v_minimumLegalY ()
-		override { return 0.0; }
-	double v_maximumLegalY ()
-		override { return 1.0; }
-	conststring32 v_rightTickUnits ()
-		override { return U""; }
-	#include "KlattGrid_DoublePulsingTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable double pulsing tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_DoublePulsingTierEditor KlattGrid_DoublePulsingTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -245,12 +173,15 @@ autoKlattGrid_DoublePulsingTierEditor KlattGrid_DoublePulsingTierEditor_create (
 #pragma mark - KlattGrid_SpectralTiltTierEditor
 
 Thing_define (KlattGrid_SpectralTiltTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_SpectralTiltTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_SpectralTiltTierEditor) our _editor) -> klattgrid() -> phonation -> spectralTilt.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> spectralTilt.get());
 	}
-	#include "KlattGrid_SpectralTiltTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable spectral tilt tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_SpectralTiltTierEditor KlattGrid_SpectralTiltTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -258,10 +189,14 @@ autoKlattGrid_SpectralTiltTierEditor KlattGrid_SpectralTiltTierEditor_create (co
 #pragma mark - KlattGrid_AspirationAmplitudeTierEditor
 
 Thing_define (KlattGrid_AspirationAmplitudeTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_AspirationAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_AspirationAmplitudeTierEditor) our _editor) -> klattgrid() -> phonation -> aspirationAmplitude.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> aspirationAmplitude.get());
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable aspiration amplitude tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
 	}
 };
 autoKlattGrid_AspirationAmplitudeTierEditor KlattGrid_AspirationAmplitudeTierEditor_create (conststring32 title, KlattGrid klattgrid);
@@ -270,10 +205,14 @@ autoKlattGrid_AspirationAmplitudeTierEditor KlattGrid_AspirationAmplitudeTierEdi
 #pragma mark - KlattGrid_BreathinessAmplitudeTierEditor
 
 Thing_define (KlattGrid_BreathinessAmplitudeTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_BreathinessAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_BreathinessAmplitudeTierEditor) our _editor) -> klattgrid() -> phonation -> breathinessAmplitude.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> phonation -> breathinessAmplitude.get());
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable breathiness amplitude tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
 	}
 };
 autoKlattGrid_BreathinessAmplitudeTierEditor KlattGrid_BreathinessAmplitudeTierEditor_create (conststring32 title, KlattGrid klattgrid);
@@ -284,24 +223,16 @@ autoKlattGrid_BreathinessAmplitudeTierEditor KlattGrid_BreathinessAmplitudeTierE
 Thing_define (KlattGrid_DecibelTierEditor, KlattGrid_IntensityTierEditor) {
 	kKlattGridFormantType formantType;
 	integer iformant;
-
-	conststring32 v_quantityText ()
-		override { return U"Amplitude (dB)"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set amplitude range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum amplitude (dB)"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum amplitude (dB)"; }
-};
-Thing_define (KlattGrid_DecibelTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		KlattGrid_DecibelTierEditor editor = (KlattGrid_DecibelTierEditor) our _editor;
-		return KlattGrid_getAddressOfAmplitudes (editor -> klattgrid(), editor -> formantType)->at [editor -> iformant];
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (
+				KlattGrid_getAddressOfAmplitudes (our klattgrid(), our formantType)->at [our iformant]);
 	}
-	conststring32 v_rightTickUnits ()
-		override { return U" dB"; }
-	#include "KlattGrid_DecibelTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable formant amplitude tier", DataGui_defaultForegroundColour (our realTierArea().get())   // BUG: make more specific
+		);
+	}
 };
 autoKlattGrid_DecibelTierEditor KlattGrid_DecibelTierEditor_create (conststring32 title, KlattGrid klattgrid,
 		kKlattGridFormantType formantType, integer iformant);
@@ -310,12 +241,15 @@ autoKlattGrid_DecibelTierEditor KlattGrid_DecibelTierEditor_create (conststring3
 #pragma mark - KlattGrid_FricationBypassTierEditor
 
 Thing_define (KlattGrid_FricationBypassTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_FricationBypassTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_FricationBypassTierEditor) our _editor) -> klattgrid() -> frication -> bypass.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> frication -> bypass.get());
 	}
-	#include "KlattGrid_FricationBypassTierArea_prefs.h"
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable frication bypass tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+	}
 };
 autoKlattGrid_FricationBypassTierEditor KlattGrid_FricationBypassTierEditor_create (conststring32 title, KlattGrid klattgrid);
 
@@ -323,10 +257,14 @@ autoKlattGrid_FricationBypassTierEditor KlattGrid_FricationBypassTierEditor_crea
 #pragma mark - KlattGrid_FricationAmplitudeTierArea
 
 Thing_define (KlattGrid_FricationAmplitudeTierEditor, KlattGrid_IntensityTierEditor) {
-};
-Thing_define (KlattGrid_FricationAmplitudeTierArea, KlattGrid_IntensityTierArea) {
-	Function v_function() override {
-		return ((KlattGrid_FricationAmplitudeTierEditor) our _editor) -> klattgrid() -> frication -> fricationAmplitude.get();
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (our klattgrid() -> frication -> fricationAmplitude.get());
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable frication amplitude tier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
 	}
 };
 autoKlattGrid_FricationAmplitudeTierEditor KlattGrid_FricationAmplitudeTierEditor_create (conststring32 title, KlattGrid klattgrid);
@@ -335,18 +273,23 @@ autoKlattGrid_FricationAmplitudeTierEditor KlattGrid_FricationAmplitudeTierEdito
 #pragma mark - KlattGrid_FormantGridEditor
 
 Thing_define (KlattGrid_FormantGridEditor, FormantGridEditor) {
+	KlattGrid klattgrid() { return static_cast <KlattGrid> (our data()); }
+	kKlattGridFormantType formantType;
+
+	void v1_dataChanged () override {
+		our structFunctionEditor :: v1_dataChanged ();
+		our formantGridArea() -> _formantGrid = KlattGrid_getAddressOfFormantGrid (our klattgrid(), our formantType)->get();
+		OrderedOf<structRealTier>* tiers =
+				( our formantGridArea() -> editingBandwidths ? & our formantGridArea() -> _formantGrid -> bandwidths : & our formantGridArea() -> _formantGrid -> formants );
+		RealTier tier = tiers->at [our formantGridArea() -> selectedFormant];
+		our formantGridArea() -> functionChanged (tier);
+	}
 	void v_play (double startTime, double endTime)
 		override;
-	bool v_hasSourceMenu ()
-		override { return false; }
-};
-Thing_define (KlattGrid_FormantGridArea, FormantGridArea) {
-	kKlattGridFormantType formantType;
-	FormantGrid v_formantGrid() override {
-		Thing_cast (KlattGrid_FormantGridEditor, editor, our _editor);
-		Thing_cast (KlattGrid, klattgrid, editor -> data);
-		FormantGrid formantgrid = KlattGrid_getAddressOfFormantGrid (klattgrid, our formantType)->get();
-		return formantgrid;
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our formantGridArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable formant grid", DataGui_defaultForegroundColour (our formantGridArea().get())   // BUG: should split up
+		);
 	}
 };
 autoKlattGrid_FormantGridEditor KlattGrid_FormantGridEditor_create (conststring32 title, KlattGrid data, kKlattGridFormantType formantType);

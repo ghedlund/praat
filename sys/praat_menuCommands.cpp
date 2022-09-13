@@ -107,7 +107,7 @@ static GuiMenu windowMenuToWidget (conststring32 window, conststring32 menu) {
 		str32equ (window, U"Objects") ? praat_objects_resolveMenu (menu) : nullptr;
 }
 
-GuiMenuItem praat_addMenuCommand_ (conststring32 window, conststring32 menu, conststring32 title /* cattable */,
+static GuiMenuItem praat_addMenuCommand__ (conststring32 window, conststring32 menu, conststring32 title /* cattable */,
 	conststring32 after, uint32 flags, UiCallback callback, conststring32 nameOfCallback)
 {
 	integer position;
@@ -116,13 +116,13 @@ GuiMenuItem praat_addMenuCommand_ (conststring32 window, conststring32 menu, con
 	int deprecationYear = 0;
 	uint32 guiFlags = 0;
 	if (flags > 7) {
-		depth = (flags & praat_DEPTH_7) >> 16;
-		unhidable = (flags & praat_UNHIDABLE) != 0;
-		hidden = (flags & praat_HIDDEN) != 0 && ! unhidable;
+		depth = (flags & GuiMenu_DEPTH_7) >> 16;
+		unhidable = (flags & GuiMenu_UNHIDABLE) != 0;
+		hidden = (flags & GuiMenu_HIDDEN) != 0 && ! unhidable;
 		key = flags & 0x000000FF;
-		noApi = (flags & praat_NO_API) != 0;
-		forceApi = (flags & praat_FORCE_API) != 0;
-		deprecationYear = (flags & praat_DEPRECATED) == praat_DEPRECATED ? 2000 + (flags >> 24) : 0;
+		noApi = (flags & GuiMenu_NO_API) != 0;
+		forceApi = (flags & GuiMenu_FORCE_API) != 0;
+		deprecationYear = (flags & GuiMenu_DEPRECATED) == GuiMenu_DEPRECATED ? 2000 + (flags >> 24) : 0;
 		guiFlags = key ? flags & (0x000000FF | GuiMenu_SHIFT | GuiMenu_OPTION | GuiMenu_BUTTON_STATE_MASK) : flags & GuiMenu_BUTTON_STATE_MASK;
 	}
 	if (callback && ! title) {
@@ -230,6 +230,33 @@ GuiMenuItem praat_addMenuCommand_ (conststring32 window, conststring32 menu, con
 	Thing_cast (GuiMenuItem, button_as_GuiMenuItem, command -> button);
 	theCommands. addItemAtPosition_move (command.move(), position);
 	return button_as_GuiMenuItem;
+}
+GuiMenuItem praat_addMenuCommand_ (conststring32 window, conststring32 menu, conststring32 title /* cattable */,
+	conststring32 after, uint32 flags, UiCallback callback, conststring32 nameOfCallback)
+{
+	const char32 *pSeparator = str32str (title, U" || ");
+	if (! pSeparator)
+		return praat_addMenuCommand__ (window, menu, title, after, flags, callback, nameOfCallback);
+	if (flags < 8)
+		flags *= GuiMenu_DEPTH_1;   // turn 1..7 into GuiMenu_DEPTH_1..GuiMenu_DEPTH_7, because the flags are ORed below
+	integer positionOfSeparator = pSeparator - title;
+	static MelderString string;
+	MelderString_copy (& string, title);
+	char32 *pTitle = & string. string [0];
+	GuiMenuItem result = nullptr;
+	do {
+		pTitle [positionOfSeparator] = U'\0';
+		GuiMenuItem menuItem = praat_addMenuCommand__ (window, menu, pTitle, after, flags, callback, nameOfCallback);
+		if (menuItem)
+			result = menuItem;   // only the first
+		pTitle += positionOfSeparator + 4;   // step past " || "
+		pSeparator = str32str (pTitle, U" || ");
+		if (pSeparator)
+			positionOfSeparator = pSeparator - pTitle;
+		flags |= GuiMenu_HIDDEN;
+	} while (pSeparator);
+	(void) praat_addMenuCommand__ (window, menu, pTitle, after, flags | GuiMenu_HIDDEN, callback, nameOfCallback);
+	return result;
 }
 
 void praat_addMenuCommandScript (conststring32 window, conststring32 menu, conststring32 title,

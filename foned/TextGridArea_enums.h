@@ -1,6 +1,6 @@
-/* Editor_enums.h
+/* TextGridArea_enums.h
  *
- * Copyright (C) 1992-2007,2013,2015,2017 Paul Boersma
+ * Copyright (C) 1992-2005,2007,2013,2015,2016,2020,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-enums_begin (kEditor_writeNameAtTop, 0)
-	enums_add (kEditor_writeNameAtTop, 0, NO_, U"no")
-	enums_add (kEditor_writeNameAtTop, 1, FAR_, U"far")
-	enums_add (kEditor_writeNameAtTop, 2, NEAR_, U"near")
-enums_end (kEditor_writeNameAtTop, 2, FAR_)
+enums_begin (kTextGridArea_showNumberOf, 1)
+	enums_add (kTextGridArea_showNumberOf, 1, NOTHING, U"nothing")
+	enums_add (kTextGridArea_showNumberOf, 2, INTERVALS_OR_POINTS, U"intervals or points")
+	enums_add (kTextGridArea_showNumberOf, 3, NONEMPTY_INTERVALS_OR_POINTS, U"non-empty intervals or points")
+enums_end (kTextGridArea_showNumberOf, 3, INTERVALS_OR_POINTS)
 
-/* End of file Editor_enums.h */
+/* End of file TextGridArea_enums.h */

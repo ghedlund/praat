@@ -1,6 +1,6 @@
 /* Ui.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -155,10 +155,6 @@ static conststring32 formatStringArray (constSTRVEC strings, kUi_stringArrayForm
 /***** class UiField: the things that have values in an UiForm dialog *****/
 
 Thing_implement (UiField, Thing, 0);
-
-void structUiField :: v_destroy () noexcept {
-	our UiField_Parent :: v_destroy ();
-}
 
 static autoUiField UiField_create (_kUiField_type type, conststring32 nameOrNull) {
 	autoUiField me = Thing_new (UiField);
@@ -597,12 +593,12 @@ void Ui_setAllowExecutionHook (bool (*allowExecutionHook) (void *closure), void 
 	theAllowExecutionClosureHint = allowExecutionClosure;
 }
 
-void structUiForm :: v_destroy () noexcept {
+void structUiForm :: v9_destroy () noexcept {
 	if (our d_dialogForm) {
 		trace (U"form <<", our d_dialogForm -> name.get(), U">>, invoking-button title <<", our invokingButtonTitle.get(), U">>");
 		GuiObject_destroy (our d_dialogForm -> d_widget);   // BUG: make sure this destroys the shell
 	}
-	our UiForm_Parent :: v_destroy ();
+	our UiForm_Parent :: v9_destroy ();
 }
 
 static void gui_button_cb_revert (UiForm me, GuiButtonEvent /* event */) {
@@ -918,7 +914,7 @@ static void commonOkCallback (UiForm /* dia */, integer /* narg */, Stackel /* a
 	Interpreter interpreter, conststring32 /* invokingButtonTitle */, bool /* modified */, void *closure)
 {
 	EditorCommand cmd = (EditorCommand) closure;
-	cmd -> commandCallback (cmd -> d_editor, cmd, cmd -> d_uiform.get(), 0, nullptr, nullptr, interpreter);
+	cmd -> commandCallback (cmd -> sender, cmd, cmd -> d_uiform.get(), 0, nullptr, nullptr, interpreter);
 }
 
 autoUiForm UiForm_createE (EditorCommand cmd, conststring32 title, conststring32 invokingButtonTitle, conststring32 helpTitle) {

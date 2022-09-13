@@ -350,7 +350,7 @@ autoHMMStateSequence HMMStateSequence_create (integer numberOfItems) {
 autoStrings HMMStateSequence_to_Strings (HMMStateSequence me) {
 	try {
 		autoStrings thee = Thing_new (Strings);
-		my structStrings :: v_copy (thee.get());
+		my structStrings :: v1_copy (thee.get());
 		return thee;
 	} catch (MelderError) {
 		Melder_throw (me, U": no Strings created.");
@@ -360,8 +360,8 @@ autoStrings HMMStateSequence_to_Strings (HMMStateSequence me) {
 
 /**************** HMM ******************************/
 
-void structHMM :: v_info () {
-	structDaata :: v_info ();
+void structHMM :: v1_info () {
+	structDaata :: v1_info ();
 	MelderInfo_writeLine (U"Number of states: ", numberOfStates);
 	for (integer i = 1; i <= numberOfStates; i ++) {
 		const HMMState hmms = our states->at [i];

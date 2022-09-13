@@ -575,7 +575,7 @@ static void print (void *void_me, Graphics graphics) {
 
 /********** class HyperPage **********/
 
-void structHyperPage :: v_destroy () noexcept {
+void structHyperPage :: v9_destroy () noexcept {
 	if (our praatApplication) {
 		for (int iobject = ((PraatObjects) our praatObjects) -> n; iobject >= 1; iobject --) {
 			((PraatObjects) our praatObjects) -> list [iobject]. name. reset();
@@ -585,7 +585,7 @@ void structHyperPage :: v_destroy () noexcept {
 		Melder_free (our praatObjects);
 		Melder_free (our praatPicture);
 	}
-	our HyperPage_Parent :: v_destroy ();
+	our HyperPage_Parent :: v9_destroy ();
 }
 
 static void gui_drawingarea_cb_expose (HyperPage me, GuiDrawingArea_ExposeEvent /* event */) {
@@ -939,7 +939,7 @@ void HyperPage_clear (HyperPage me) {
 	Graphics_updateWs (my graphics.get());
 }
 
-void structHyperPage :: v_dataChanged () {
+void structHyperPage :: v1_dataChanged () {
 	const bool oldError = Melder_hasError ();   // this method can be called during error time
 	(void) our v_goToPage (our currentPageTitle.get());
 	if (Melder_hasError () && ! oldError)

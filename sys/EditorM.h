@@ -421,7 +421,7 @@ _form_inited_: \
 #define VOID_EDITOR_END
 
 #define DATA_BEGIN__  \
-	Melder_assert (my data);
+	Melder_assert (my data());
 
 #define PLAY_DATA  \
 	DATA_BEGIN__
@@ -500,10 +500,9 @@ _form_inited_: \
 	FOR_STRING__
 
 #define MODIFY_DATA(undoTitle)  \
-	Editor_save (me, undoTitle);
+	Editor_save (my boss(), undoTitle);
 #define MODIFY_DATA_END  \
-	FunctionEditor_redraw (me); \
-	Editor_broadcastDataChanged (me);
+	Editor_broadcastDataChanged (my boss());
 
 #define CONVERT_DATA_TO_ONE  \
 	DATA_BEGIN__
@@ -511,14 +510,14 @@ _form_inited_: \
 	if (interpreter) \
 		interpreter -> returnType = kInterpreter_ReturnType::OBJECT_; \
 	Thing_setName (result.get(), __VA_ARGS__); \
-	Editor_broadcastPublication (me, result.move());
+	Editor_broadcastPublication (my boss(), result.move());
 
 #define CREATE_ONE
 #define CREATE_ONE_END(...)  \
 	if (interpreter) \
 		interpreter -> returnType = kInterpreter_ReturnType::OBJECT_; \
 	Thing_setName (result.get(), __VA_ARGS__); \
-	Editor_broadcastPublication (me, result.move());
+	Editor_broadcastPublication (my boss(), result.move());
 
 #define HELP(title)  \
 	Melder_help (title);

@@ -24,19 +24,25 @@
 Thing_define (PitchTierArea, RealTierArea) {
 	PitchTier pitchTier() { return static_cast <PitchTier> (our function()); }
 
+	conststring32 v_menuTitle ()
+		override { return U"PitchTier"; }
 	double v_minimumLegalY ()
 		override { return 0.0; }
 	conststring32 v_rightTickUnits ()
 		override { return U" Hz"; }
+	conststring32 v_quantityText ()
+		override { return U"Frequency (Hz)"; }
+	conststring32 v_setRangeTitle ()
+		override { return U"Set frequency range..."; }
+	conststring32 v_minimumLabelText ()
+		override { return U"Minimum frequency (Hz)"; }
+	conststring32 v_maximumLabelText ()
+		override { return U"Maximum frequency (Hz)"; }
 
 	#include "PitchTierArea_prefs.h"
 };
 
-inline autoPitchTierArea PitchTierArea_create (FunctionEditor editor, PitchTier pitchTier) {
-	autoPitchTierArea me = Thing_new (PitchTierArea);
-	RealTierArea_init (me.get(), editor, pitchTier);
-	return me;
-}
+DEFINE_FunctionArea_create (PitchTierArea, PitchTier)
 
 /* End of file PitchTierArea.h */
 #endif

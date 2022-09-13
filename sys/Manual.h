@@ -22,7 +22,7 @@
 #include "ManPages.h"
 
 Thing_define (Manual, HyperPage) {
-	ManPages manPages() { return static_cast <ManPages> (our data); }
+	ManPages manPages() { return static_cast <ManPages> (our data()); }
 
 	bool ownManPages;
 	integer visiblePageNumber;
@@ -33,7 +33,7 @@ Thing_define (Manual, HyperPage) {
 	bool suppressLinksHither;
 	conststring32 printPagesStartingWith;
 
-	void v_destroy () noexcept
+	void v9_destroy () noexcept
 		override;
 	bool v_scriptable ()
 		override { return false; }
@@ -41,9 +41,9 @@ Thing_define (Manual, HyperPage) {
 		override;
 	void v_createMenus ()
 		override;
-	bool v_hasQueryMenu ()
+	bool v_canReportSettings ()
 		override { return false; }
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_draw ()
 		override;

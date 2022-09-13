@@ -19,33 +19,67 @@
  */
 
 #include "FunctionEditor.h"
+#include "SoundArea.h"
+#include "PointArea.h"
 #include "PitchTierArea.h"
 #include "DurationTierArea.h"
 #include "Manipulation.h"
 
 #include "ManipulationEditor_enums.h"
 
+Thing_define (ManipulationSoundArea, SoundArea) {
+};
+DEFINE_FunctionArea_create (ManipulationSoundArea, Sound)
+
+Thing_define (ManipulationPulsesArea, PointArea) {
+	PointProcess pulses() { return static_cast <PointProcess> (our function()); }
+	void v_createMenus ()
+		override;
+};
+DEFINE_FunctionArea_create (ManipulationPulsesArea, PointProcess)
+
+Thing_define (ManipulationPitchTierArea, PitchTierArea) {
+	PitchTier pitch() { return static_cast <PitchTier> (our function()); }
+	ManipulationPulsesArea borrowedPulsesArea;
+	void v_drawInside ()
+		override;
+	void v_createMenus ()
+		override;
+	#include "ManipulationEditor_prefs.h"
+};
+DEFINE_FunctionArea_create (ManipulationPitchTierArea, PitchTier)
+
+Thing_define (ManipulationDurationTierArea, DurationTierArea) {
+	DurationTier duration() { return static_cast <DurationTier> (our function()); }
+	void v_drawInside ()
+		override;
+	void v_createMenus ()
+		override;
+};
+DEFINE_FunctionArea_create (ManipulationDurationTierArea, DurationTier)
+
+
 Thing_define (ManipulationEditor, FunctionEditor) {
-	Manipulation manipulation() { return static_cast <Manipulation> (our data); }
+	DEFINE_FunctionArea (1, ManipulationSoundArea, soundArea)
+	DEFINE_FunctionArea (2, ManipulationPitchTierArea, pitchTierArea)
+	DEFINE_FunctionArea (3, ManipulationDurationTierArea, durationTierArea)
+	DEFINE_FunctionArea (4, ManipulationPulsesArea, pulsesArea)
 
-	/*
-		Quick access to internal objects.
-	*/
-	Sound sound() { return our manipulation() -> sound.get(); }
-	PointProcess pulses() { return our manipulation() -> pulses.get(); }
-	PitchTier pitch() { return our manipulation() -> pitch.get(); }
-	DurationTier duration() { return our manipulation() -> duration.get(); }
+	Manipulation manipulation() { return static_cast <Manipulation> (our data()); }
 
-	/*
-		Areas.
-	*/
-	autoPitchTierArea pitchTierArea;
-	autoDurationTierArea durationTierArea;
+	void v1_dataChanged () override {
+		ManipulationEditor_Parent :: v1_dataChanged ();
+		our soundArea() -> functionChanged (our manipulation() -> sound.get());
+		our pitchTierArea() -> functionChanged (our manipulation() -> pitch.get());
+		if (! our manipulation() -> duration)   // repair an old-fashioned Manipulation that has a PitchTier only
+			our manipulation() -> duration = DurationTier_create (our manipulation() -> xmin, our manipulation() -> xmax);
+		our durationTierArea() -> functionChanged (our manipulation() -> duration.get());
+		our pulsesArea() -> functionChanged (our manipulation() -> pulses.get());
+	}
 
 	autoPointProcess previousPulses;
 	autoPitchTier previousPitch;
 	autoDurationTier previousDuration;
-	double soundmin, soundmax;
 	int synthesisMethod;
 	GuiMenuItem synthPulsesButton, synthPulsesHumButton;
 	GuiMenuItem synthPulsesLpcButton;
@@ -58,32 +92,39 @@ Thing_define (ManipulationEditor, FunctionEditor) {
 
 	void v_createMenus ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_saveData ()
 		override;
 	void v_restoreData ()
 		override;
-	void v_distributeAreas ()
-		override;
-	void v_draw ()
-		override;
-	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double y_fraction)
+	void v_distributeAreas () override {
+		our pulsesArea() -> setGlobalYRange_fraction (0.67, 1.00);
+		our soundArea() -> setGlobalYRange_fraction (0.67, 1.00);
+		our pitchTierArea() -> setGlobalYRange_fraction (0.17, 0.67);
+		our durationTierArea() -> setGlobalYRange_fraction (0.0, 0.17);
+	}
+	void v_draw () override {
+		FunctionArea_drawTwo (our pulsesArea().get(), our soundArea().get());
+		FunctionArea_drawOne (our pitchTierArea().get());
+		FunctionArea_drawOne (our durationTierArea().get());
+	}
+	void v_updateMenuItems ()
 		override;
 	void v_play (double tmin, double tmax)
 		override;
-
-	#include "ManipulationEditor_prefs.h"
-};
-
-Thing_define (ManipulationEditor_PitchTierArea, PitchTierArea) {
-	Function v_function() override {
-		return ((ManipulationEditor) our _editor) -> pitch();
-	}
-};
-Thing_define (ManipulationEditor_DurationTierArea, DurationTierArea) {
-	Function v_function() override {
-		return ((ManipulationEditor) our _editor) -> duration();
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our soundArea().get(),
+			FunctionArea_legend_WAVEFORM U" %%non-modifiable mono copy of sound", DataGui_defaultForegroundColour (our soundArea().get()),
+			FunctionArea_legend_POLES U" ##modifiable pulses", DataGui_defaultForegroundColour (our pulsesArea().get())
+		);
+		FunctionArea_drawLegend (our pitchTierArea().get(),
+			FunctionArea_legend_SPECKLES U" %%pitch derived from pulses", Melder_GREY,
+			FunctionArea_legend_LINES_SPECKLES U" ##manipulatable pitch", DataGui_defaultForegroundColour (our pitchTierArea().get())
+		);
+		FunctionArea_drawLegend (our durationTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##manipulatable duration", DataGui_defaultForegroundColour (our durationTierArea().get())
+		);
 	}
 };
 

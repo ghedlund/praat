@@ -22,18 +22,16 @@
 #include "Strings_.h"
 
 Thing_define (StringsEditor, Editor) {
-	Strings strings() { return static_cast <Strings> (our data); }
+	Strings strings() { return static_cast <Strings> (our data()); }
 
 	GuiList list;
 	GuiText text;
 
-	void v_destroy () noexcept
-		override;
 	void v_createChildren ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v_dataChanged ()
+	void v1_dataChanged ()
 		override;
 };
 

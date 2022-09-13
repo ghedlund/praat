@@ -22,20 +22,20 @@
 #include "OTMulti.h"
 
 Thing_define (OTMultiEditor, HyperPage) {
-	OTMulti otMulti() { return static_cast <OTMulti> (our data); }
+	OTMulti otMulti() { return static_cast <OTMulti> (our data()); }
 
 	autostring32 form1, form2;
 	GuiText form1Text, form2Text;
 	integer selectedConstraint;
 	bool d_constraintsAreDrawnVertically;
 
-	bool v_editable ()
+	bool v_hasEditMenu ()
 		override { return true; }
 	void v_createChildren ()
 		override;
 	void v_createMenus ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_draw ()
 		override;

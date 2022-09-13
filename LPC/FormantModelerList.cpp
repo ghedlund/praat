@@ -37,14 +37,14 @@
 #include "oo_DESCRIPTION.h"
 #include "FormantModelerList_def.h"
 /*
-void structFormantModelerListDrawingSpecification :: v_writeBinary (FILE *_filePointer_) {}
-void structFormantModelerList :: v_writeBinary (FILE *_filePointer_) {}
-void structFormantModelerListDrawingSpecification :: v_readBinary (FILE *_filePointer_, int _formatVersion_) {}
-void structFormantModelerList :: v_readBinary (FILE *_filePointer_, int _formatVersion_) {}
+void structFormantModelerListDrawingSpecification :: v1_writeBinary (FILE *_filePointer_) {}
+void structFormantModelerList :: v1_writeBinary (FILE *_filePointer_) {}
+void structFormantModelerListDrawingSpecification :: v1_readBinary (FILE *_filePointer_, int _formatVersion_) {}
+void structFormantModelerList :: v1_readBinary (FILE *_filePointer_, int _formatVersion_) {}
 
 */
-void structFormantModelerList :: v_info () {
-	
+void structFormantModelerList :: v1_info () {
+	// do nothing
 };
 
 Thing_implement (FormantModelerList, Function, 0);
@@ -68,9 +68,9 @@ autoFormantModelerList FormantPath_to_FormantModelerList (FormantPath me, double
 		}
 		thy numberOfParametersPerTrack = copy_INTVEC (numberOfParametersPerTrack);
 		thy numberOfTracksPerModel = thy numberOfParametersPerTrack.size;
-		thy numberOfModelers = my formants . size;
+		thy numberOfModelers = my formantCandidates . size;
 		for (integer imodel = 1; imodel <= thy numberOfModelers; imodel ++) {
-			Formant formanti = (Formant) my formants . at [imodel];
+			Formant formanti = (Formant) my formantCandidates . at [imodel];
 			autoFormantModeler fm = Formant_to_FormantModeler (formanti, startTime, endTime,  thy numberOfParametersPerTrack.get());
 			Thing_setName (fm.get(), Melder_fixed (my ceilings [imodel], 0));
 			thy formantModelers. addItem_move (fm.move());

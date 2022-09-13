@@ -26,10 +26,10 @@
 
 Thing_implement (Manual, HyperPage, 0);
 
-void structManual :: v_destroy () noexcept {
+void structManual :: v9_destroy () noexcept {
 	if (our ownManPages)
-		forget (our data);
-	Manual_Parent :: v_destroy ();
+		forget_nozero (our data());
+	Manual_Parent :: v9_destroy ();
 }
 
 #define SEARCH_PAGE  0
@@ -400,14 +400,14 @@ void structManual :: v_createMenus () {
 	Editor_addCommand (this, U"File", U"Print manual...", 0, menu_cb_printRange);
 	Editor_addCommand (this, U"File", U"Save page as HTML file...", 0, menu_cb_writeOneToHtmlFile);
 	Editor_addCommand (this, U"File", U"Save manual to HTML folder...", 0, menu_cb_writeAllToHtmlFolder);
-	Editor_addCommand (this, U"File", U"Save manual to HTML directory...", praat_DEPRECATED_2020, menu_cb_writeAllToHtmlFolder);
+	Editor_addCommand (this, U"File", U"Save manual to HTML directory...", GuiMenu_DEPRECATED_2020, menu_cb_writeAllToHtmlFolder);
 	Editor_addCommand (this, U"File", U"-- close --", 0, nullptr);
 
 	Editor_addCommand (this, U"Go to", U"Search for page (list)...", 0, menu_cb_searchForPageList);
 }
 
-void structManual :: v_createHelpMenuItems (EditorMenu menu) {
-	Manual_Parent :: v_createHelpMenuItems (menu);
+void structManual :: v_createMenuItems_help (EditorMenu menu) {
+	Manual_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"Manual help", '?', menu_cb_help);
 }
 

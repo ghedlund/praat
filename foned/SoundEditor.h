@@ -18,36 +18,53 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "TimeSoundAnalysisEditor.h"
+#include "FunctionEditor.h"
+#include "LongSoundArea.h"
+#include "SoundAnalysisArea.h"
 
-Thing_define (SoundEditor, TimeSoundAnalysisEditor) {
-	GuiMenuItem cutButton, copyButton, pasteButton, zeroButton, reverseButton;
-	double maxBuffer;
+Thing_define (SoundEditor, FunctionEditor) {
+	DEFINE_FunctionArea (1, SoundArea, soundArea)
+	DEFINE_FunctionArea (2, SoundAnalysisArea, soundAnalysisArea)
 
-	void v_createMenus ()
+	void v1_dataChanged () override {
+		SoundEditor_Parent :: v1_dataChanged ();
+		Thing_cast (SampledXY, soundOrLongSound, our data());
+		our soundArea() -> functionChanged (soundOrLongSound);
+		our soundAnalysisArea() -> functionChanged (soundOrLongSound);
+	}
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
-		override;
-	void v_dataChanged ()
-		override;
-	void v_prepareDraw ()
-		override;
-	void v_distributeAreas ()
-		override;
-	void v_draw ()
-		override;
-	void v_play (double tmin, double tmax)
-		override;
-	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double xWC, double yWC)
-		override;
-	void v_highlightSelection (double left, double right, double bottom, double top)
-		override;
+	void v_distributeAreas () override {
+		if (our soundAnalysisArea() -> hasContentToShow ()) {
+			our soundArea() -> setGlobalYRange_fraction (0.5, 1.0);
+			our soundAnalysisArea() -> setGlobalYRange_fraction (0.0, 0.5);
+		} else {
+			our soundArea() -> setGlobalYRange_fraction (0.0, 1.0);
+			our soundAnalysisArea() -> setGlobalYRange_fraction (0.0, 0.0);
+		}
+	}
+	void v_draw () override {
+		FunctionArea_prepareCanvas (our soundArea().get());
+		if (our soundAnalysisArea() -> instancePref_pulses_show())
+			our soundAnalysisArea() -> v_draw_analysis_pulses ();
+		FunctionArea_drawInside (our soundArea().get());
+		if (our soundAnalysisArea() -> hasContentToShow ()) {
+			FunctionArea_prepareCanvas (our soundAnalysisArea().get());
+			our soundAnalysisArea() -> v_draw_analysis ();
+		}
+	}
+	void v_play (double startTime, double endTime) override {
+		SoundArea_play (our soundArea().get(), startTime, endTime);
+	}
+	void v_drawLegends () override {
+		const bool pulsesAreVisible = our soundAnalysisArea() -> hasPulsesToShow ();
+		FunctionArea_drawLegend (our soundArea().get(),
+			pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr, Melder_GREY,
+			FunctionArea_legend_WAVEFORM U" ##modifiable sound", DataGui_defaultForegroundColour (our soundArea().get())
+		);
+		SoundAnalysisArea_drawDefaultLegends (our soundAnalysisArea().get());
+	}
 };
-
-void SoundEditor_init (SoundEditor me, autoSoundArea soundArea,
-	conststring32 title,
-	SampledXY data
-);
 
 autoSoundEditor SoundEditor_create (
 	conststring32 title,

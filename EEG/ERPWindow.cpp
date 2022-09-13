@@ -20,7 +20,7 @@
 #include "EditorM.h"
 #include "Preferences.h"
 
-Thing_implement (ERPWindow, SoundEditor, 0);
+Thing_implement (ERPWindow, FunctionEditor, 0);
 
 #include "Prefs_define.h"
 #include "ERPWindow_prefs.h"
@@ -398,9 +398,8 @@ autoERPWindow ERPWindow_create (conststring32 title, ERP erp) {
 	Melder_assert (erp);
 	try {
 		autoERPWindow me = Thing_new (ERPWindow);
-		my data = erp;
-		my soundArea = ERPArea_create (me.get(), erp);
-		FunctionEditor_init (me.get(), title);
+		my erpArea() = ERPArea_create (true, nullptr, me.get());
+		FunctionEditor_init (me.get(), title, erp);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"ERP window not created.");

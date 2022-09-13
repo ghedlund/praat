@@ -23,7 +23,7 @@
 #include "Categories.h"
 
 Thing_define (CategoriesEditor, Editor) {
-	Categories categories() { return static_cast <Categories> (our data); }
+	Categories categories() { return static_cast <Categories> (our data()); }
 	
 	autoCommandHistory history;
 	integer position;
@@ -33,13 +33,11 @@ Thing_define (CategoriesEditor, Editor) {
 	GuiLabel outOfView;
 	GuiButton remove, insert, insertAtEnd, replace, moveUp, moveDown;
 
-	void v_destroy () noexcept
-		override;
 	void v_createChildren ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v_dataChanged ()
+	void v1_dataChanged ()
 		override;
 };
 

@@ -22,20 +22,19 @@
 #include "EEG.h"
 
 Thing_define (EEGArea, SoundArea) {
-	EEG eeg;
+	/*
+		Accessors.
+	*/
+	EEG borrowedEEG;
 
-	conststring32 v_getChannelName (integer /* channelNumber */)
-		override;
+	conststring32 v_getChannelName (integer channelNumber) override {
+		Melder_assert (our borrowedEEG);
+		return our borrowedEEG -> channelNames [channelNumber].get();
+	}
 
 	#include "EEGArea_prefs.h"
 };
-
-inline autoEEGArea EEGArea_create (FunctionEditor editor, Sound sound, EEG eeg) {
-	autoEEGArea me = Thing_new (EEGArea);
-	SoundArea_init (me.get(), editor, sound, false);
-	my eeg = eeg;
-	return me;
-}
+DEFINE_FunctionArea_create (EEGArea, Sound)
 
 /* End of file EEGArea.h */
 #endif

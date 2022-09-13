@@ -45,7 +45,7 @@
 
 Thing_implement (GraphicsScreen, Graphics, 0);
 
-void structGraphicsScreen :: v_destroy () noexcept {
+void structGraphicsScreen :: v9_destroy () noexcept {
 	#if cairo
 		if (d_cairoGraphicsContext) {
 			cairo_destroy (d_cairoGraphicsContext);
@@ -199,7 +199,7 @@ void structGraphicsScreen :: v_destroy () noexcept {
 		Melder_free (d_bits);
 	#endif
 	trace (U"destroying parent");
-	GraphicsScreen_Parent :: v_destroy ();
+	GraphicsScreen_Parent :: v9_destroy ();
 	trace (U"exit");
 }
 
@@ -344,8 +344,8 @@ void Graphics_endMovieFrame (Graphics any, double frameDuration) {
 		GraphicsScreen me = (GraphicsScreen) any;
 		Graphics_stopRecording (me);
 		my v_updateWs ();
-		GuiShell_drain (my d_drawingArea -> d_shell);
 		Melder_sleep (frameDuration);
+		GuiShell_drain (my d_drawingArea -> d_shell);
 	}
 }
 

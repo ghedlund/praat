@@ -18,97 +18,93 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "TimeSoundAnalysisEditor.h"
-#include "TextGrid.h"
-#include "SpellingChecker.h"
-#include "Preferences.h"
+#include "FunctionEditor.h"
+#include "TextGridArea.h"
+#include "LongSoundArea.h"
+#include "SoundAnalysisArea.h"
 
-#include "TextGridEditor_enums.h"
+Thing_define (TextGridEditor, FunctionEditor) {
+	DEFINE_FunctionArea (1, TextGridArea, textGridArea)
+	DEFINE_FunctionArea (2, SoundArea, soundArea)
+	DEFINE_FunctionArea (3, SoundAnalysisArea, soundAnalysisArea)
 
-Thing_define (TextGridEditor, TimeSoundAnalysisEditor) {
-	TextGrid textGrid() { return static_cast <TextGrid> (our data); }
+	TextGrid textGrid() { return static_cast <TextGrid> (our data()); }
 
-	SpellingChecker spellingChecker;
-	integer selectedTier;
-	bool suppressRedraw;
-	autostring32 findString;
-	GuiMenuItem extractSelectedTextGridPreserveTimesButton, extractSelectedTextGridTimeFromZeroButton;
-
-	double draggingTime;
-	autoBOOLVEC draggingTiers;
-	bool hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = false;
-
-	void v_info ()
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v_createChildren ()
-		override;
-	void v_createMenus ()
-		override;
-	void v_createHelpMenuItems (EditorMenu menu)
-		override;
-	void v_dataChanged ()
-		override;
-	void v_createMenuItems_file_extract (EditorMenu menu)
-		override;
-	void v_createMenuItems_file_write (EditorMenu menu)
-		override;
-	void v_createMenuItems_file_draw (EditorMenu menu)
-		override;
-	void v_prepareDraw ()
-		override;
-	void v_distributeAreas ()
-		override;
-	void v_draw ()
-		override;
-	bool v_hasSelectionViewer ()
-		override { return true; }
-	void v_drawSelectionViewer ()
-		override;
-	bool v_hasText ()
-		override { return true; }
-	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double xWC, double yWC)
-		override;
-	void v_clickSelectionViewer (double xWC, double yWC)
-		override;
-	void v_play (double tmin, double tmax)
-		override;
-	void v_updateText ()
-		override;
-	void v_prefs_addFields (EditorCommand cmd)
-		override;
-	void v_prefs_setValues (EditorCommand cmd)
-		override;
-	void v_prefs_getValues (EditorCommand cmd)
-		override;
+	void v1_dataChanged () override {
+		Melder_clipRight (& our textGridArea() -> selectedTier, our textGrid() -> tiers->size);   // crucial: before v_updateText (bug 2022-07-23)!
+		our structFunctionEditor :: v1_dataChanged ();
+		our textGridArea() -> functionChanged (our textGrid());
+		if (our soundArea()) {
+			our soundArea() -> functionChanged (nullptr);   // BUG: this function has not actually changed
+			our soundAnalysisArea() -> functionChanged (our soundArea() -> function());
+		}
+	}
+	void v_distributeAreas () override {
+		if (our soundArea()) {
+			const bool showAnalysis = our soundAnalysisArea() -> hasContentToShow();
+			const integer numberOfTiers = our textGrid() -> tiers->size;
+			const integer numberOfVisibleChannels =
+					Melder_clippedRight (our soundArea() -> soundOrLongSound() -> ny, 8_integer);
+			const double soundY = numberOfTiers / (2.0 * numberOfVisibleChannels +
+					numberOfTiers * ( showAnalysis ? 1.8 : 1.3 ));
+			our textGridArea() -> setGlobalYRange_fraction (0.0, soundY);
+			if (showAnalysis) {
+				const double soundY2 = 0.5 * (1.0 + soundY);
+				our soundAnalysisArea() -> setGlobalYRange_fraction (soundY, soundY2);
+				our soundArea() -> setGlobalYRange_fraction (soundY2, 1.0);
+			} else {
+				our soundAnalysisArea() -> setGlobalYRange_fraction (soundY, soundY);
+				our soundArea() -> setGlobalYRange_fraction (soundY, 1.0);
+			}
+		} else {
+			our textGridArea() -> setGlobalYRange_fraction (0.0, 1.0);
+		}
+	}
+	void v_draw () override {
+		if (our soundArea()) {
+			FunctionArea_prepareCanvas (our soundArea().get());
+			if (our soundAnalysisArea() -> instancePref_pulses_show())
+				our soundAnalysisArea() -> v_draw_analysis_pulses ();
+			FunctionArea_drawInside (our soundArea().get());
+			if (our soundAnalysisArea() -> hasContentToShow()) {
+				FunctionArea_prepareCanvas (our soundAnalysisArea().get());
+				our soundAnalysisArea() -> v_draw_analysis ();
+			}
+		}
+		FunctionArea_drawOne (our textGridArea().get());
+	}
+	bool v_hasText () override { return true; }
+	bool v_hasSelectionViewer () override { return true; }
+	void v_drawSelectionViewer () override {
+		TextGridArea_drawSelectionViewer (our textGridArea().get());
+	}
+	void v_clickSelectionViewer (double x_fraction, double y_fraction) override {
+		TextGridArea_clickSelectionViewer (our textGridArea().get(), x_fraction, y_fraction);
+	}
 	conststring32 v_selectionViewerName ()
 		override { return U"IPA chart"; }
-	void v_createMenuItems_view_timeDomain (EditorMenu menu)
-		override;
-	void v_highlightSelection (double left, double right, double bottom, double top)
-		override;
-	double v_getBottomOfSoundArea ()
-		override;
-	double v_getBottomOfSoundAndAnalysisArea ()
-		override;
-	void v_updateMenuItems_file ()
-		override;
-	void v_createMenuItems_pitch_picture (EditorMenu menu)
-		override;
+	void v_play (double startTime, double endTime) override {
+		if (our soundArea())
+			SoundArea_play (our soundArea().get(), startTime, endTime);
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our textGridArea().get(),
+			FunctionArea_legend_TEXTGRID U" ##modifiable TextGrid", DataGui_defaultForegroundColour (our textGridArea().get())
+		);
+		if (our soundArea()) {
+			const bool pulsesAreVisible = our soundAnalysisArea() -> hasPulsesToShow ();
+			FunctionArea_drawLegend (our soundArea().get(),
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound", DataGui_defaultForegroundColour (our soundArea().get()),
+				pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr, Melder_GREY
+			);
+			SoundAnalysisArea_drawDefaultLegends (our soundAnalysisArea().get());
+		}
+	}
 
 	#include "TextGridEditor_prefs.h"
-
-private:
-	/* only in v_mouseInWideDataView: */
-	bool anchorIsInWideSoundOrAnalysisPart = false;
-	bool anchorIsInWideTextGridPart = false;
-	double anchorTime = undefined;
-	integer clickedLeftBoundary = 0;
-	double leftDraggingBoundary = undefined, rightDraggingBoundary = undefined;   // initial dragging range
 };
-
-void TextGridEditor_init (TextGridEditor me, conststring32 title, TextGrid textGrid,
-	SpellingChecker spellingChecker, conststring32 callbackSocket
-);
 
 autoTextGridEditor TextGridEditor_create (conststring32 title, TextGrid grid,
 	SampledXY sound,   // either a Sound or a LongSound, or null

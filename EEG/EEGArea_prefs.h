@@ -18,7 +18,7 @@
 
 Prefs_begin (EEGArea)
 
-	InstancePrefs_overrideEnum    (EEGArea, scalingStrategy, 1, kSoundArea_scalingStrategy, DEFAULT)
+	InstancePrefs_overrideEnum    (EEGArea, scalingStrategy, 1, kSoundArea_scalingStrategy, BY_WINDOW_AND_CHANNEL)
 	InstancePrefs_overrideDouble  (EEGArea, scaling_height,  1, U"20e-6")
 	InstancePrefs_overrideDouble  (EEGArea, scaling_minimum, 1, U"-10e-6")
 	InstancePrefs_overrideDouble  (EEGArea, scaling_maximum, 1, U"10e-6")

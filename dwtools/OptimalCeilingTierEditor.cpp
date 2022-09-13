@@ -23,28 +23,27 @@ Thing_implement (OptimalCeilingTierEditor, RealTierEditor, 0);
 
 static void menu_cb_OptimalCeilingTierHelp (OptimalCeilingTierEditor, EDITOR_ARGS_DIRECT) { Melder_help (U"OptimalCeilingTier"); }
 
-void structOptimalCeilingTierEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	OptimalCeilingTierEditor_Parent :: v_createHelpMenuItems (menu);
+void structOptimalCeilingTierEditor :: v_createMenuItems_help (EditorMenu menu) {
+	OptimalCeilingTierEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"OptimalCeilingTier help", 0, menu_cb_OptimalCeilingTierHelp);
 }
 
 void structOptimalCeilingTierEditor :: v_play (double startTime, double endTime) {
-	if (our sound())
-		Sound_playPart (our sound(), startTime, endTime, theFunctionEditor_playCallback, this);
+	if (our soundArea())
+		Sound_playPart (our soundArea() -> sound(), startTime, endTime, theFunctionEditor_playCallback, this);
 	//else
 	//	OptimalCeilingTier_playPart (data, startTime, endTime, false);
 }
 
 autoOptimalCeilingTierEditor OptimalCeilingTierEditor_create (conststring32 title,
-	OptimalCeilingTier optimalCeilingTier, Sound sound)
+	OptimalCeilingTier optimalCeilingTier, Sound soundToCopy)
 {
 	try {
 		autoOptimalCeilingTierEditor me = Thing_new (OptimalCeilingTierEditor);
-		my data = optimalCeilingTier;
-		my realTierArea = OptimalCeilingTierArea_create (me.get(), optimalCeilingTier);
-		if (sound)
-			my soundArea = SoundArea_create (me.get(), sound, true);
-		FunctionEditor_init (me.get(), title);
+		my realTierArea() = OptimalCeilingTierArea_create (true, nullptr, me.get());
+		if (soundToCopy)
+			my soundArea() = SoundArea_create (false, soundToCopy, me.get());
+		FunctionEditor_init (me.get(), title, optimalCeilingTier);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"OptimalCeilingTier window not created.");

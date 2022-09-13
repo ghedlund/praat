@@ -2,7 +2,7 @@
 #define _Sound_h_
 /* Sound.h
  *
- * Copyright (C) 1992-2005,2006-2008,2010-2019,2021 Paul Boersma
+ * Copyright (C) 1992-2005,2006-2008,2010-2019,2021,2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include "praatlib.h"
 
 Thing_define (Sound, Vector) {
-	void v_info ()
+	void v1_info ()
 		override;
 	bool v_hasGetMatrix ()
 		override { return true; }

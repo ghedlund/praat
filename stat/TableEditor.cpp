@@ -33,12 +33,8 @@ Thing_implement (TableEditor, Editor, 0);
 
 /********** EDITOR METHODS **********/
 
-void structTableEditor :: v_destroy () noexcept {
-	TableEditor_Parent :: v_destroy ();
-}
-
-void structTableEditor :: v_info () {
-	our TableEditor_Parent :: v_info ();
+void structTableEditor :: v1_info () {
+	TableEditor_Parent :: v1_info ();
 	MelderInfo_writeLine (U"Table uses text styles: ", our instancePref_useTextStyles());
 	//MelderInfo_writeLine (U"Table font size: ", our p_fontSize);
 }
@@ -51,7 +47,7 @@ static void updateHorizontalScrollBar (TableEditor me) {
 	GuiScrollBar_set (my horizontalScrollBar, undefined, my table() -> numberOfColumns + 1, my leftColumn, undefined, undefined, undefined);
 }
 
-void structTableEditor :: v_dataChanged () {
+void structTableEditor :: v1_dataChanged () {
 	Melder_clipRight (& our topRow, our table() -> rows.size);
 	Melder_clipRight (& our leftColumn, our table() -> numberOfColumns);
 	updateVerticalScrollBar (this);
@@ -304,8 +300,8 @@ void structTableEditor :: v_createMenus () {
 	#endif
 }
 
-void structTableEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	TableEditor_Parent :: v_createHelpMenuItems (menu);
+void structTableEditor :: v_createMenuItems_help (EditorMenu menu) {
+	TableEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"TableEditor help", U'?', menu_cb_TableEditorHelp);
 }
 

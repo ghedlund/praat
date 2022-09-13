@@ -20,6 +20,7 @@
 #include "machine.h"
 #include "EditorM.h"
 #include "GuiP.h"
+#include "FunctionArea.h"
 
 Thing_implement_pureVirtual (FunctionEditor, Editor, 0);
 
@@ -346,16 +347,12 @@ static void drawBackgroundAndData (FunctionEditor me) {
 	Graphics_setColour (my graphics.get(), Melder_BLACK);
 
 	/*
-		To reduce flashing, give our descendants the opportunity to prepare their data.
-	*/
-	my v_prepareDraw ();
-
-	/*
 		Start of inner drawing.
 	*/
 	my v_distributeAreas ();
-	my viewDataAsWorldByFraction ();
+	//my viewDataAsWorldByFraction ();
 	my v_draw ();
+	my v_drawLegends ();
 
 	/*
 		Red dotted marker lines.
@@ -363,29 +360,19 @@ static void drawBackgroundAndData (FunctionEditor me) {
 	my viewDataAsWorldByFraction ();
 	Graphics_setColour (my graphics.get(), Melder_RED);
 	Graphics_setLineType (my graphics.get(), Graphics_DOTTED);
-	const double bottom = my v_getBottomOfSoundAndAnalysisArea ();
 	if (cursorIsVisible)
-		Graphics_line (my graphics.get(), my startSelection, bottom, my startSelection, 1.0);
+		Graphics_line (my graphics.get(), my startSelection, 0.0, my startSelection, 1.0);
 	if (startIsVisible)
-		Graphics_line (my graphics.get(), my startSelection, bottom, my startSelection, 1.0);
+		Graphics_line (my graphics.get(), my startSelection, 0.0, my startSelection, 1.0);
 	if (endIsVisible)
-		Graphics_line (my graphics.get(), my endSelection, bottom, my endSelection, 1.0);
+		Graphics_line (my graphics.get(), my endSelection, 0.0, my endSelection, 1.0);
 	Graphics_setColour (my graphics.get(), Melder_BLACK);
 	Graphics_setLineType (my graphics.get(), Graphics_DRAWN);
-
-	/*
-		Highlight selection.
-	*/
-	if (selectionIsNonempty && my startSelection < my endWindow && my endSelection > my startWindow) {
-		const double left = Melder_clippedLeft (my startWindow, my startSelection);
-		const double right = Melder_clippedRight (my endSelection, my endWindow);
-		my v_highlightSelection (left, right, 0.0, 1.0);
-	}
 }
 
 /********** METHODS **********/
 
-void structFunctionEditor :: v_destroy () noexcept {
+void structFunctionEditor :: v9_destroy () noexcept {
 	MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
 	if (our group) {   // undangle
 		integer i = 1;
@@ -397,12 +384,12 @@ void structFunctionEditor :: v_destroy () noexcept {
 		theGroupSize --;
 	}
 	if (Melder_debug == 55)
-		Melder_casual (Thing_messageNameAndAddress (this), U" v_destroy");
-	FunctionEditor_Parent :: v_destroy ();
+		Melder_casual (Thing_messageNameAndAddress (this), U" v9_destroy");
+	FunctionEditor_Parent :: v9_destroy ();
 }
 
-void structFunctionEditor :: v_info () {
-	FunctionEditor_Parent :: v_info ();
+void structFunctionEditor :: v1_info () {
+	FunctionEditor_Parent :: v1_info ();
 	MelderInfo_writeLine (U"Editor start: ", our tmin, U" ", v_format_units_long());
 	MelderInfo_writeLine (U"Editor end: ", our tmax, U" ", v_format_units_long());
 	MelderInfo_writeLine (U"Window start: ", our startWindow, U" ", v_format_units_long());
@@ -411,7 +398,21 @@ void structFunctionEditor :: v_info () {
 	MelderInfo_writeLine (U"Selection end: ", our endSelection, U" ", v_format_units_long());
 	MelderInfo_writeLine (U"Arrow scroll step: ", our instancePref_arrowScrollStep(), U" ", v_format_units_long());
 	MelderInfo_writeLine (U"Group: ", group ? U"yes" : U"no");
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v1_info ();
+	}
 }
+
+void structFunctionEditor :: v_windowChanged () {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_windowChanged ();
+	}
+}
+
 
 /********** FILE MENU **********/
 
@@ -427,52 +428,48 @@ static void gui_drawingarea_cb_resize (FunctionEditor me, GuiDrawingArea_ResizeE
 	my setClassPref_shellHeight (GuiShell_getShellHeight (my windowForm));
 }
 
+void structFunctionEditor :: v_prefs_addFields (EditorCommand cmd) {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_prefs_addFields (cmd);
+	}
+}
+void structFunctionEditor :: v_prefs_setValues (EditorCommand cmd) {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_prefs_setValues (cmd);
+	}
+}
+void structFunctionEditor :: v_prefs_getValues (EditorCommand cmd) {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_prefs_getValues (cmd);
+	}
+}
 static void menu_cb_preferences (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Preferences", nullptr)
-		BOOLEAN (synchronizeZoomAndScroll, U"Synchronize zoom and scroll", my default_synchronizedZoomAndScroll())
 		BOOLEAN (showSelectionViewer, Melder_cat (U"Show ", my v_selectionViewerName()), my default_showSelectionViewer())
-		POSITIVE (arrowScrollStep, Melder_cat (U"Arrow scroll step (", my v_format_units_short(), U")"), my default_arrowScrollStep())
 		my v_prefs_addFields (cmd);
 	EDITOR_OK
-		SET_BOOLEAN (synchronizeZoomAndScroll, my classPref_synchronizedZoomAndScroll())
 		SET_BOOLEAN (showSelectionViewer, my instancePref_showSelectionViewer())
-		SET_REAL (arrowScrollStep, my instancePref_arrowScrollStep())
 		my v_prefs_setValues (cmd);
 	EDITOR_DO
-		const bool oldSynchronizedZoomAndScroll = my classPref_synchronizedZoomAndScroll();
 		const bool oldShowSelectionViewer = my instancePref_showSelectionViewer();
-		my setClassPref_synchronizedZoomAndScroll (synchronizeZoomAndScroll);
 		my setInstancePref_showSelectionViewer (showSelectionViewer);
-		my setInstancePref_arrowScrollStep (arrowScrollStep);
 		if (my instancePref_showSelectionViewer() != oldShowSelectionViewer)
 			my updateGeometry (GuiControl_getWidth (my drawingArea), GuiControl_getHeight (my drawingArea));
-		if (! oldSynchronizedZoomAndScroll && my classPref_synchronizedZoomAndScroll())
-			updateGroup (me);
 		my v_prefs_getValues (cmd);
 		FunctionEditor_redraw (me);
 	EDITOR_END
 }
 
-static bool v_form_pictureSelection__drawSelectionTimes;
-static bool v_form_pictureSelection__drawSelectionHairs;
-void structFunctionEditor :: v_form_pictureSelection (EditorCommand cmd) {
-	UiForm_addBoolean (cmd -> d_uiform.get(), & v_form_pictureSelection__drawSelectionTimes, nullptr, U"Draw selection times", true);
-	UiForm_addBoolean (cmd -> d_uiform.get(), & v_form_pictureSelection__drawSelectionHairs, nullptr, U"Draw selection hairs", true);
-}
-void structFunctionEditor :: v_ok_pictureSelection (EditorCommand cmd) {
-	FunctionEditor me = (FunctionEditor) cmd -> d_editor;
-	SET_BOOLEAN (v_form_pictureSelection__drawSelectionTimes, my classPref_picture_drawSelectionTimes())
-	SET_BOOLEAN (v_form_pictureSelection__drawSelectionHairs, my classPref_picture_drawSelectionHairs())
-}
-void structFunctionEditor :: v_do_pictureSelection (EditorCommand cmd) {
-	FunctionEditor me = (FunctionEditor) cmd -> d_editor;
-	my setClassPref_picture_drawSelectionTimes (v_form_pictureSelection__drawSelectionTimes);
-	my setClassPref_picture_drawSelectionHairs (v_form_pictureSelection__drawSelectionHairs);
-}
 
-/********** QUERY MENU **********/
+#pragma mark - FuncEd Time query selection
 
-static void QUERY_EDITOR_FOR_REAL__getB (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_EDITOR_FOR_REAL__getStartOfSelection (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my startSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
@@ -482,211 +479,19 @@ static void QUERY_EDITOR_FOR_REAL__getCursor (FunctionEditor me, EDITOR_ARGS_DIR
 		const double result = 0.5 * (my startSelection + my endSelection);
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
-static void QUERY_EDITOR_FOR_REAL__getE (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_EDITOR_FOR_REAL__getEndOfSelection (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my endSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
-static void QUERY_EDITOR_FOR_REAL__getSelectionDuration (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_EDITOR_FOR_REAL__getLengthOfSelection (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my endSelection - my startSelection;
 	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
 }
 
-/********** VIEW MENU **********/
 
-static void menu_cb_zoom (FunctionEditor me, EDITOR_ARGS_FORM) {
-	EDITOR_FORM (U"Zoom", nullptr)
-		REAL (from, Melder_cat (U"From (", my v_format_units_short(), U")"), U"0.0")
-		REAL (to,   Melder_cat (U"To (", my v_format_units_short(), U")"),   U"1.0")
-	EDITOR_OK
-		SET_REAL (from, my startWindow)
-		SET_REAL (to,   my endWindow)
-	EDITOR_DO
-		Melder_require (to > from,
-			U"“to” should be greater than “from”.");
-		if (from < my tmin + 1e-12)
-			from = my tmin;
-		if (to > my tmax - 1e-12)
-			to = my tmax;
-		Melder_require (to > from,
-			U"“to” should be greater than “from”.");
-		my startWindow = from;
-		my endWindow = to;
-		my v_windowChanged ();
-		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-		my v_updateText ();
-		updateScrollBar (me);
-		FunctionEditor_redraw (me);
-		updateGroup (me);
-	EDITOR_END
-}
-
-static void do_showAll (FunctionEditor me) {
-	my startWindow = my tmin;
-	my endWindow = my tmax;
-	my v_windowChanged ();
-	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-	my v_updateText ();
-	updateScrollBar (me);
-	FunctionEditor_redraw (me);
-	if (my classPref_synchronizedZoomAndScroll())
-		updateGroup (me);
-}
-
-static void gui_button_cb_showAll (FunctionEditor me, GuiButtonEvent /* event */) {
-	do_showAll (me);
-}
-
-static void do_zoomIn (FunctionEditor me) {
-	const double shift = (my endWindow - my startWindow) / 4.0;
-	my startWindow += shift;
-	my endWindow -= shift;
-	my v_windowChanged ();
-	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-	my v_updateText ();
-	updateScrollBar (me);
-	FunctionEditor_redraw (me);
-	if (my classPref_synchronizedZoomAndScroll())
-		updateGroup (me);
-}
-
-static void gui_button_cb_zoomIn (FunctionEditor me, GuiButtonEvent /* event */) {
-	do_zoomIn (me);
-}
-
-static void do_zoomOut (FunctionEditor me) {
-	const double shift = (my endWindow - my startWindow) / 2.0;
-	MelderAudio_stopPlaying (MelderAudio_IMPLICIT);   // quickly, before window changes
-	my startWindow -= shift;
-	if (my startWindow < my tmin + 1e-12)
-		my startWindow = my tmin;
-	my endWindow += shift;
-	if (my endWindow > my tmax - 1e-12)
-		my endWindow = my tmax;
-	my v_windowChanged ();
-	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-	my v_updateText ();
-	updateScrollBar (me);
-	FunctionEditor_redraw (me);
-	if (my classPref_synchronizedZoomAndScroll())
-		updateGroup (me);
-}
-
-static void gui_button_cb_zoomOut (FunctionEditor me, GuiButtonEvent /*event*/) {
-	do_zoomOut (me);
-}
-
-static void do_zoomToSelection (FunctionEditor me) {
-	if (my endSelection > my startSelection) {
-		my startZoomHistory = my startWindow;   // remember for Zoom Back
-		my endZoomHistory = my endWindow;   // remember for Zoom Back
-		my startWindow = my startSelection;
-		my endWindow = my endSelection;
-		my v_windowChanged ();
-		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-		my v_updateText ();
-		updateScrollBar (me);
-		FunctionEditor_redraw (me);
-		if (my classPref_synchronizedZoomAndScroll())
-			updateGroup (me);
-	}
-}
-
-static void gui_button_cb_zoomToSelection (FunctionEditor me, GuiButtonEvent /* event */) {
-	do_zoomToSelection (me);
-}
-
-static void do_zoomBack (FunctionEditor me) {
-	if (my endZoomHistory > my startZoomHistory) {
-		my startWindow = my startZoomHistory;
-		my endWindow = my endZoomHistory;
-		my v_windowChanged ();
-		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-		my v_updateText ();
-		updateScrollBar (me);
-		FunctionEditor_redraw (me);
-		if (my classPref_synchronizedZoomAndScroll())
-			updateGroup (me);
-	}
-}
-
-static void gui_button_cb_zoomBack (FunctionEditor me, GuiButtonEvent /* event */) {
-	do_zoomBack (me);
-}
-
-static void menu_cb_showAll (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		do_showAll (me);
-	VOID_EDITOR_END
-}
-
-static void menu_cb_zoomIn (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		do_zoomIn (me);
-	VOID_EDITOR_END
-}
-
-static void menu_cb_zoomOut (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		do_zoomOut (me);
-	VOID_EDITOR_END
-}
-
-static void menu_cb_zoomToSelection (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		do_zoomToSelection (me);
-	VOID_EDITOR_END
-}
-
-static void menu_cb_zoomBack (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		do_zoomBack (me);
-	VOID_EDITOR_END
-}
-
-static void PLAY_DATA__play (FunctionEditor me, EDITOR_ARGS_FORM) {
-	EDITOR_FORM (U"Play", nullptr)
-		REAL (from, Melder_cat (U"From (", my v_format_units_short(), U")"), U"0.0")
-		REAL (to,   Melder_cat (U"To (", my v_format_units_short(), U")"),   U"1.0")
-	EDITOR_OK
-		SET_REAL (from, my startWindow)
-		SET_REAL (to,   my endWindow)
-	EDITOR_DO
-		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
-		my v_play (from, to);
-	EDITOR_END
-}
-
-static void PLAY_DATA__playOrStop (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	PLAY_DATA
-		if (MelderAudio_isPlaying) {
-			MelderAudio_stopPlaying (MelderAudio_EXPLICIT);
-		} else if (my startSelection < my endSelection) {
-			my v_play (my startSelection, my endSelection);
-		} else {
-			if (my startSelection == my endSelection && my startSelection > my startWindow && my startSelection < my endWindow)
-				my v_play (my startSelection, my endWindow);
-			else
-				my v_play (my startWindow, my endWindow);
-		}
-	PLAY_DATA_END
-}
-
-static void PLAY_DATA__playWindow (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	PLAY_DATA
-		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
-		my v_play (my startWindow, my endWindow);
-	PLAY_DATA_END
-}
-
-static void PLAY_DATA__interruptPlaying (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	PLAY_DATA
-		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
-	PLAY_DATA_END
-}
-
-/********** SELECT MENU **********/
+#pragma mark - FuncEd Time set selection
 
 static void menu_cb_select (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Select", nullptr)
@@ -712,7 +517,6 @@ static void menu_cb_select (FunctionEditor me, EDITOR_ARGS_FORM) {
 		updateGroup (me);
 	EDITOR_END
 }
-
 static void menu_cb_widenOrShrinkSelection (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Widen or shrink selection", nullptr)
 		POSITIVE (newWidthOfSelection, Melder_cat (U"New width of selection (", my v_format_units_short(), U")"), U"0.3")
@@ -754,7 +558,6 @@ static void menu_cb_widenOrShrinkSelection (FunctionEditor me, EDITOR_ARGS_FORM)
 		updateGroup (me);
 	EDITOR_END
 }
-
 static void menu_cb_moveCursorToStartOfSelection (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my endSelection = my startSelection;
@@ -764,7 +567,6 @@ static void menu_cb_moveCursorToStartOfSelection (FunctionEditor me, EDITOR_ARGS
 		updateGroup (me);
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveCursorToEndOfSelection (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my startSelection = my endSelection;
@@ -774,7 +576,6 @@ static void menu_cb_moveCursorToEndOfSelection (FunctionEditor me, EDITOR_ARGS_D
 		updateGroup (me);
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveCursorTo (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move cursor to", nullptr)
 		REAL (position, Melder_cat (U"Position (", my v_format_units_short(), U")"), U"0.0")
@@ -792,7 +593,6 @@ static void menu_cb_moveCursorTo (FunctionEditor me, EDITOR_ARGS_FORM) {
 		updateGroup (me);
 	EDITOR_END
 }
-
 static void menu_cb_moveCursorBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move cursor by", nullptr)
 		REAL (distance, Melder_cat (U"Distance (", my v_format_units_short(), U")"), U"0.05")
@@ -807,7 +607,6 @@ static void menu_cb_moveCursorBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 		updateGroup (me);
 	EDITOR_END
 }
-
 static void menu_cb_moveStartOfSelectionBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move start of selection by", nullptr)
 		REAL (distance, Melder_cat (U"Distance (", my v_format_units_short(), U")"), U"0.05")
@@ -822,7 +621,6 @@ static void menu_cb_moveStartOfSelectionBy (FunctionEditor me, EDITOR_ARGS_FORM)
 		updateGroup (me);
 	EDITOR_END
 }
-
 static void menu_cb_moveEndOfSelectionBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 	EDITOR_FORM (U"Move end of selection by", nullptr)
 		REAL (distance, Melder_cat (U"Distance (", my v_format_units_short(), U")"), U"0.05")
@@ -837,7 +635,6 @@ static void menu_cb_moveEndOfSelectionBy (FunctionEditor me, EDITOR_ARGS_FORM) {
 		updateGroup (me);
 	EDITOR_END
 }
-
 void FunctionEditor_shift (FunctionEditor me, double shift, bool needsUpdateGroup) {
 	const double windowLength = my endWindow - my startWindow;
 	MelderAudio_stopPlaying (MelderAudio_IMPLICIT);   // quickly, before window changes
@@ -861,21 +658,6 @@ void FunctionEditor_shift (FunctionEditor me, double shift, bool needsUpdateGrou
 	Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_marksChanged()
 	FunctionEditor_marksChanged (me, needsUpdateGroup);
 }
-
-static void menu_cb_pageUp (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_shift()
-		FunctionEditor_shift (me, -RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), true);
-	VOID_EDITOR_END
-}
-
-static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS_DIRECT) {
-	VOID_EDITOR
-		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_shift()
-		FunctionEditor_shift (me, +RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), true);
-	VOID_EDITOR_END
-}
-
 void FunctionEditor_scrollToView (FunctionEditor me, double t) {
 	if (t <= my startWindow) {
 		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_shift()
@@ -888,7 +670,15 @@ void FunctionEditor_scrollToView (FunctionEditor me, double t) {
 		FunctionEditor_marksChanged (me, true);
 	}
 }
-
+static void menu_cb_selectionStepSettings (FunctionEditor me, EDITOR_ARGS_FORM) {
+	EDITOR_FORM (U"Selection step settings", nullptr)
+		POSITIVE (arrowScrollStep, Melder_cat (U"Arrow scroll step (", my v_format_units_short(), U")"), my default_arrowScrollStep())
+	EDITOR_OK
+		SET_REAL (arrowScrollStep, my instancePref_arrowScrollStep())
+	EDITOR_DO
+		my setInstancePref_arrowScrollStep (arrowScrollStep);
+	EDITOR_END
+}
 static void menu_cb_selectEarlier (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my startSelection -= my instancePref_arrowScrollStep();
@@ -901,7 +691,6 @@ static void menu_cb_selectEarlier (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 		FunctionEditor_scrollToView (me, 0.5 * (my startSelection + my endSelection));
 	VOID_EDITOR_END
 }
-
 static void menu_cb_selectLater (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my startSelection += my instancePref_arrowScrollStep();
@@ -914,7 +703,6 @@ static void menu_cb_selectLater (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 		FunctionEditor_scrollToView (me, 0.5 * (my startSelection + my endSelection));
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveStartOfSelectionLeft (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my startSelection -= my instancePref_arrowScrollStep();
@@ -924,7 +712,6 @@ static void menu_cb_moveStartOfSelectionLeft (FunctionEditor me, EDITOR_ARGS_DIR
 		FunctionEditor_scrollToView (me, 0.5 * (my startSelection + my endSelection));
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveStartOfSelectionRight (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my startSelection += my instancePref_arrowScrollStep();
@@ -939,7 +726,6 @@ static void menu_cb_moveStartOfSelectionRight (FunctionEditor me, EDITOR_ARGS_DI
 		FunctionEditor_scrollToView (me, 0.5 * (my startSelection + my endSelection));
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveEndOfSelectionLeft (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my endSelection -= my instancePref_arrowScrollStep();
@@ -954,7 +740,6 @@ static void menu_cb_moveEndOfSelectionLeft (FunctionEditor me, EDITOR_ARGS_DIREC
 		FunctionEditor_scrollToView (me, 0.5 * (my startSelection + my endSelection));
 	VOID_EDITOR_END
 }
-
 static void menu_cb_moveEndOfSelectionRight (FunctionEditor me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR
 		my endSelection += my instancePref_arrowScrollStep();
@@ -965,7 +750,249 @@ static void menu_cb_moveEndOfSelectionRight (FunctionEditor me, EDITOR_ARGS_DIRE
 	VOID_EDITOR_END
 }
 
-/********** GUI CALLBACKS **********/
+
+#pragma mark - FuncEd Time query visible part
+
+static void QUERY_EDITOR_FOR_REAL__getStartOfVisiblePart (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+	QUERY_EDITOR_FOR_REAL
+		const double result = my startWindow;
+	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
+}
+static void QUERY_EDITOR_FOR_REAL__getEndOfVisiblePart (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+	QUERY_EDITOR_FOR_REAL
+		const double result = my endWindow;
+	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
+}
+static void QUERY_EDITOR_FOR_REAL__getLengthOfVisiblePart (FunctionEditor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+	QUERY_EDITOR_FOR_REAL
+		const double result = my endWindow - my startWindow;
+	QUERY_EDITOR_FOR_REAL_END (U" ", my v_format_units_long())
+}
+
+
+#pragma mark - FuncEd Time set visible part
+
+static void menu_cb_zoomAndScrollSettings (FunctionEditor me, EDITOR_ARGS_FORM) {
+	EDITOR_FORM (U"Zoom and scroll settings", nullptr)
+		BOOLEAN (synchronizeZoomAndScroll, U"Synchronize zoom and scroll", my default_synchronizedZoomAndScroll())
+	EDITOR_OK
+		SET_BOOLEAN (synchronizeZoomAndScroll, my classPref_synchronizedZoomAndScroll())
+	EDITOR_DO
+		const bool oldSynchronizedZoomAndScroll = my classPref_synchronizedZoomAndScroll();
+		my setClassPref_synchronizedZoomAndScroll (synchronizeZoomAndScroll);
+		if (! oldSynchronizedZoomAndScroll && my classPref_synchronizedZoomAndScroll())
+			updateGroup (me);
+		FunctionEditor_redraw (me);
+	EDITOR_END
+}
+static void menu_cb_zoom (FunctionEditor me, EDITOR_ARGS_FORM) {
+	EDITOR_FORM (U"Zoom", nullptr)
+		REAL (from, Melder_cat (U"From (", my v_format_units_short(), U")"), U"0.0")
+		REAL (to,   Melder_cat (U"To (", my v_format_units_short(), U")"),   U"1.0")
+	EDITOR_OK
+		SET_REAL (from, my startWindow)
+		SET_REAL (to,   my endWindow)
+	EDITOR_DO
+		Melder_require (to > from,
+			U"“to” should be greater than “from”.");
+		if (from < my tmin + 1e-12)
+			from = my tmin;
+		if (to > my tmax - 1e-12)
+			to = my tmax;
+		Melder_require (to > from,
+			U"“to” should be greater than “from”.");
+		my startWindow = from;
+		my endWindow = to;
+		my v_windowChanged ();
+		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+		my v_updateText ();
+		updateScrollBar (me);
+		FunctionEditor_redraw (me);
+		updateGroup (me);
+	EDITOR_END
+}
+static void do_showAll (FunctionEditor me) {
+	my startWindow = my tmin;
+	my endWindow = my tmax;
+	my v_windowChanged ();
+	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+	my v_updateText ();
+	updateScrollBar (me);
+	FunctionEditor_redraw (me);
+	if (my classPref_synchronizedZoomAndScroll())
+		updateGroup (me);
+}
+static void gui_button_cb_showAll (FunctionEditor me, GuiButtonEvent /* event */) {
+	do_showAll (me);
+}
+static void do_zoomIn (FunctionEditor me) {
+	const double shift = (my endWindow - my startWindow) / 4.0;
+	my startWindow += shift;
+	my endWindow -= shift;
+	my v_windowChanged ();
+	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+	my v_updateText ();
+	updateScrollBar (me);
+	FunctionEditor_redraw (me);
+	if (my classPref_synchronizedZoomAndScroll())
+		updateGroup (me);
+}
+static void gui_button_cb_zoomIn (FunctionEditor me, GuiButtonEvent /* event */) {
+	do_zoomIn (me);
+}
+static void do_zoomOut (FunctionEditor me) {
+	const double shift = (my endWindow - my startWindow) / 2.0;
+	//MelderAudio_stopPlaying (MelderAudio_IMPLICIT);   // quickly, before window changes; ppgb 2022-06-25: why was this here?
+	my startWindow -= shift;
+	if (my startWindow < my tmin + 1e-12)
+		my startWindow = my tmin;
+	my endWindow += shift;
+	if (my endWindow > my tmax - 1e-12)
+		my endWindow = my tmax;
+	my v_windowChanged ();
+	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+	my v_updateText ();
+	updateScrollBar (me);
+	FunctionEditor_redraw (me);
+	if (my classPref_synchronizedZoomAndScroll())
+		updateGroup (me);
+}
+
+static void gui_button_cb_zoomOut (FunctionEditor me, GuiButtonEvent /*event*/) {
+	do_zoomOut (me);
+}
+static void do_zoomToSelection (FunctionEditor me) {
+	if (my endSelection > my startSelection) {
+		my startZoomHistory = my startWindow;   // remember for Zoom Back
+		my endZoomHistory = my endWindow;   // remember for Zoom Back
+		my startWindow = my startSelection;
+		my endWindow = my endSelection;
+		my v_windowChanged ();
+		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+		my v_updateText ();
+		updateScrollBar (me);
+		FunctionEditor_redraw (me);
+		if (my classPref_synchronizedZoomAndScroll())
+			updateGroup (me);
+	}
+}
+static void gui_button_cb_zoomToSelection (FunctionEditor me, GuiButtonEvent /* event */) {
+	do_zoomToSelection (me);
+}
+static void do_zoomBack (FunctionEditor me) {
+	if (my endZoomHistory > my startZoomHistory) {
+		my startWindow = my startZoomHistory;
+		my endWindow = my endZoomHistory;
+		my v_windowChanged ();
+		Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
+		my v_updateText ();
+		updateScrollBar (me);
+		FunctionEditor_redraw (me);
+		if (my classPref_synchronizedZoomAndScroll())
+			updateGroup (me);
+	}
+}
+static void gui_button_cb_zoomBack (FunctionEditor me, GuiButtonEvent /* event */) {
+	do_zoomBack (me);
+}
+static void menu_cb_showAll (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		do_showAll (me);
+	VOID_EDITOR_END
+}
+static void menu_cb_zoomIn (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		do_zoomIn (me);
+	VOID_EDITOR_END
+}
+static void menu_cb_zoomOut (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		do_zoomOut (me);
+	VOID_EDITOR_END
+}
+static void menu_cb_zoomToSelection (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		do_zoomToSelection (me);
+	VOID_EDITOR_END
+}
+static void menu_cb_zoomBack (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		do_zoomBack (me);
+	VOID_EDITOR_END
+}
+static void menu_cb_pageUp (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_shift()
+		FunctionEditor_shift (me, -RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), true);
+	VOID_EDITOR_END
+}
+static void menu_cb_pageDown (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	VOID_EDITOR
+		Melder_assert (isdefined (my startSelection));   // precondition of FunctionEditor_shift()
+		FunctionEditor_shift (me, +RELATIVE_PAGE_INCREMENT * (my endWindow - my startWindow), true);
+	VOID_EDITOR_END
+}
+
+
+#pragma mark - FunctionEditor View/Audio
+
+static void PLAY_DATA__play (FunctionEditor me, EDITOR_ARGS_FORM) {
+	EDITOR_FORM (U"Play", nullptr)
+		REAL (from, Melder_cat (U"From (", my v_format_units_short(), U")"), U"0.0")
+		REAL (to,   Melder_cat (U"To (", my v_format_units_short(), U")"),   U"1.0")
+	EDITOR_OK
+		SET_REAL (from, my startWindow)
+		SET_REAL (to,   my endWindow)
+	EDITOR_DO
+		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
+		my v_play (from, to);
+	EDITOR_END
+}
+static void PLAY_DATA__playOrStop (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	PLAY_DATA
+		if (MelderAudio_isPlaying) {
+			MelderAudio_stopPlaying (MelderAudio_EXPLICIT);
+		} else if (my startSelection < my endSelection) {
+			my v_play (my startSelection, my endSelection);
+		} else {
+			if (my startSelection == my endSelection && my startSelection > my startWindow && my startSelection < my endWindow)
+				my v_play (my startSelection, my endWindow);
+			else
+				my v_play (my startWindow, my endWindow);
+		}
+	PLAY_DATA_END
+}
+static void PLAY_DATA__playWindow (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	PLAY_DATA
+		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
+		my v_play (my startWindow, my endWindow);
+	PLAY_DATA_END
+}
+static void PLAY_DATA__interruptPlaying (FunctionEditor me, EDITOR_ARGS_DIRECT) {
+	PLAY_DATA
+		MelderAudio_stopPlaying (MelderAudio_IMPLICIT);
+	PLAY_DATA_END
+}
+
+
+#pragma mark - FunctionEditor View all
+
+void structFunctionEditor :: v_createMenuItems_play (EditorMenu menu) {
+	EditorMenu_addCommand (menu, U"-- play --", 0, nullptr);
+	EditorMenu_addCommand (menu, U"Audio:", 0, nullptr);
+	EditorMenu_addCommand (menu, U"Play...", 0, PLAY_DATA__play);
+	EditorMenu_addCommand (menu, U"Play or stop", GuiMenu_TAB, PLAY_DATA__playOrStop);
+	EditorMenu_addCommand (menu, U"Play window", GuiMenu_SHIFT | GuiMenu_TAB, PLAY_DATA__playWindow);
+	EditorMenu_addCommand (menu, U"Interrupt playing", GuiMenu_ESCAPE, PLAY_DATA__interruptPlaying);
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_createMenuItems_play (menu);
+	}
+}
+
+
+#pragma mark - FunctionEditor GUI callbacks
 
 static void gui_cb_scroll (FunctionEditor me, GuiScrollBarEvent event) {
 	if (! my graphics)
@@ -1097,80 +1124,121 @@ static void HELP__intro (FunctionEditor /* me */, EDITOR_ARGS_DIRECT) {
 	HELP (U"Intro")
 }
 
-void structFunctionEditor :: v_createMenuItems_file (EditorMenu menu) {
-	FunctionEditor_Parent :: v_createMenuItems_file (menu);
-	EditorMenu_addCommand (menu, U"Preferences...", 0, menu_cb_preferences);
-	EditorMenu_addCommand (menu, U"-- after preferences --", 0, nullptr);
+void structFunctionEditor :: v_updateText () {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_updateText ();
+	}
 }
 
-void structFunctionEditor :: v_createMenuItems_view_timeDomain (EditorMenu menu) {
-	EditorMenu_addCommand (menu, v_format_domain (), GuiMenu_INSENSITIVE, menu_cb_zoom /* dummy */);
-	EditorMenu_addCommand (menu, U"Zoom...", 0, menu_cb_zoom);
-	EditorMenu_addCommand (menu, U"Show all", 'A', menu_cb_showAll);
-	EditorMenu_addCommand (menu, U"Zoom in", 'I', menu_cb_zoomIn);
-	EditorMenu_addCommand (menu, U"Zoom out", 'O', menu_cb_zoomOut);
-	EditorMenu_addCommand (menu, U"Zoom to selection", 'N', menu_cb_zoomToSelection);
-	EditorMenu_addCommand (menu, U"Zoom back", 'B', menu_cb_zoomBack);
-	EditorMenu_addCommand (menu, U"Scroll page back", GuiMenu_PAGE_UP, menu_cb_pageUp);
-	EditorMenu_addCommand (menu, U"Scroll page forward", GuiMenu_PAGE_DOWN, menu_cb_pageDown);
+void structFunctionEditor :: v_createMenuItems_prefs (EditorMenu menu) {
+	FunctionEditor_Parent :: v_createMenuItems_prefs (menu);
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_createMenuItems_prefs (menu);
+	}
 }
 
-void structFunctionEditor :: v_createMenuItems_view_audio (EditorMenu menu) {
-	EditorMenu_addCommand (menu, U"-- play --", 0, nullptr);
-	EditorMenu_addCommand (menu, U"Audio:", GuiMenu_INSENSITIVE, PLAY_DATA__play /* dummy */);
-	EditorMenu_addCommand (menu, U"Play...", 0, PLAY_DATA__play);
-	EditorMenu_addCommand (menu, U"Play or stop", GuiMenu_TAB, PLAY_DATA__playOrStop);
-	EditorMenu_addCommand (menu, U"Play window", GuiMenu_SHIFT | GuiMenu_TAB, PLAY_DATA__playWindow);
-	EditorMenu_addCommand (menu, U"Interrupt playing", GuiMenu_ESCAPE, PLAY_DATA__interruptPlaying);
+void structFunctionEditor :: v_createMenuItems_save (EditorMenu menu) {
+	FunctionEditor_Parent :: v_createMenuItems_save (menu);
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_createMenuItems_save (menu);
+	}
 }
 
-void structFunctionEditor :: v_createMenuItems_view (EditorMenu menu) {
-	v_createMenuItems_view_timeDomain (menu);
-	v_createMenuItems_view_audio (menu);
-}
-
-void structFunctionEditor :: v_createMenuItems_query (EditorMenu menu) {
-	FunctionEditor_Parent :: v_createMenuItems_query (menu);
-	EditorMenu_addCommand (menu, U"-- query selection --", 0, nullptr);
-	EditorMenu_addCommand (menu, U"Get start of selection", 0, QUERY_EDITOR_FOR_REAL__getB);
-	EditorMenu_addCommand (menu, U"Get begin of selection", Editor_HIDDEN, QUERY_EDITOR_FOR_REAL__getB);
-	EditorMenu_addCommand (menu, U"Get cursor", GuiMenu_F6, QUERY_EDITOR_FOR_REAL__getCursor);
-	EditorMenu_addCommand (menu, U"Get end of selection", 0, QUERY_EDITOR_FOR_REAL__getE);
-	EditorMenu_addCommand (menu, U"Get selection length", 0, QUERY_EDITOR_FOR_REAL__getSelectionDuration);
+void structFunctionEditor :: v_createMenuItems_edit (EditorMenu menu) {
+	FunctionEditor_Parent :: v_createMenuItems_edit (menu);
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_createMenuItems_edit (menu);
+	}
 }
 
 void structFunctionEditor :: v_createMenus () {
 	FunctionEditor_Parent :: v_createMenus ();
-	EditorMenu menu;
 
-	menu = Editor_addMenu (this, U"View", 0);
-	v_createMenuItems_view (menu);
+	EditorMenu domainMenu = Editor_addMenu (this, v_format_domain (), 0);   // Time or Frequency
 
-	Editor_addMenu (this, U"Select", 0);
-	Editor_addCommand (this, U"Select", U"Select...", 0, menu_cb_select);
-	Editor_addCommand (this, U"Select", U"Widen or shrink selection...", 0, menu_cb_widenOrShrinkSelection);
-	Editor_addCommand (this, U"Select", U"Move cursor to start of selection", 0, menu_cb_moveCursorToStartOfSelection);
-	Editor_addCommand (this, U"Select", U"Move cursor to begin of selection", Editor_HIDDEN, menu_cb_moveCursorToStartOfSelection);
-	Editor_addCommand (this, U"Select", U"Move cursor to end of selection", 0, menu_cb_moveCursorToEndOfSelection);
-	Editor_addCommand (this, U"Select", U"Move cursor to...", 0, menu_cb_moveCursorTo);
-	Editor_addCommand (this, U"Select", U"Move cursor by...", 0, menu_cb_moveCursorBy);
-	Editor_addCommand (this, U"Select", U"Move start of selection by...", 0, menu_cb_moveStartOfSelectionBy);
-	Editor_addCommand (this, U"Select", U"Move begin of selection by...", Editor_HIDDEN, menu_cb_moveStartOfSelectionBy);
-	Editor_addCommand (this, U"Select", U"Move end of selection by...", 0, menu_cb_moveEndOfSelectionBy);
-	/*Editor_addCommand (this, U"Select", U"Move cursor back by half a second", motif_, menu_cb_moveCursorBy);*/
-	Editor_addCommand (this, U"Select", U"Select earlier", GuiMenu_UP_ARROW, menu_cb_selectEarlier);
-	Editor_addCommand (this, U"Select", U"Select later", GuiMenu_DOWN_ARROW, menu_cb_selectLater);
-	Editor_addCommand (this, U"Select", U"Move start of selection left", GuiMenu_SHIFT | GuiMenu_UP_ARROW, menu_cb_moveStartOfSelectionLeft);
-	Editor_addCommand (this, U"Select", U"Move begin of selection left", Editor_HIDDEN, menu_cb_moveStartOfSelectionLeft);
-	Editor_addCommand (this, U"Select", U"Move start of selection right", GuiMenu_SHIFT | GuiMenu_DOWN_ARROW, menu_cb_moveStartOfSelectionRight);
-	Editor_addCommand (this, U"Select", U"Move begin of selection right", Editor_HIDDEN, menu_cb_moveStartOfSelectionRight);
-	Editor_addCommand (this, U"Select", U"Move end of selection left", GuiMenu_COMMAND | GuiMenu_UP_ARROW, menu_cb_moveEndOfSelectionLeft);
-	Editor_addCommand (this, U"Select", U"Move end of selection right", GuiMenu_COMMAND | GuiMenu_DOWN_ARROW, menu_cb_moveEndOfSelectionRight);
+	EditorMenu_addCommand (domainMenu, U"- Query visible part:", 0, nullptr);
+	EditorMenu_addCommand (domainMenu, U"Get start of visible part", 0, QUERY_EDITOR_FOR_REAL__getStartOfVisiblePart);
+	EditorMenu_addCommand (domainMenu, U"Get end of visible part", 0, QUERY_EDITOR_FOR_REAL__getEndOfVisiblePart);
+	EditorMenu_addCommand (domainMenu, U"Get length of visible part", 0, QUERY_EDITOR_FOR_REAL__getLengthOfVisiblePart);
+
+	EditorMenu_addCommand (domainMenu, U"- Set visible part:", 0, nullptr);
+	EditorMenu_addCommand (domainMenu, U"Zoom and scroll settings...", 0, menu_cb_zoomAndScrollSettings);
+	EditorMenu_addCommand (domainMenu, U"Zoom...", 0, menu_cb_zoom);
+	EditorMenu_addCommand (domainMenu, U"Show all", 'A', menu_cb_showAll);
+	EditorMenu_addCommand (domainMenu, U"Zoom in", 'I', menu_cb_zoomIn);
+	EditorMenu_addCommand (domainMenu, U"Zoom out", 'O', menu_cb_zoomOut);
+	EditorMenu_addCommand (domainMenu, U"Zoom to selection", 'N', menu_cb_zoomToSelection);
+	EditorMenu_addCommand (domainMenu, U"Zoom back", 'B', menu_cb_zoomBack);
+	EditorMenu_addCommand (domainMenu, U"Scroll page back", GuiMenu_PAGE_UP, menu_cb_pageUp);
+	EditorMenu_addCommand (domainMenu, U"Scroll page forward", GuiMenu_PAGE_DOWN, menu_cb_pageDown);
+
+	EditorMenu_addCommand (domainMenu, U"- Query selection:", 0, nullptr);
+	EditorMenu_addCommand (domainMenu, U"Get start of selection || Get begin of selection", 0, QUERY_EDITOR_FOR_REAL__getStartOfSelection);
+	EditorMenu_addCommand (domainMenu, U"Get cursor", GuiMenu_F6, QUERY_EDITOR_FOR_REAL__getCursor);
+	EditorMenu_addCommand (domainMenu, U"Get end of selection", 0, QUERY_EDITOR_FOR_REAL__getEndOfSelection);
+	EditorMenu_addCommand (domainMenu, U"Get length of selection || Get selection length", 0, QUERY_EDITOR_FOR_REAL__getLengthOfSelection);
+
+	EditorMenu_addCommand (domainMenu, U"- Set selection:", 0, nullptr);
+	EditorMenu_addCommand (domainMenu, U"Select...", 0, menu_cb_select);
+	EditorMenu_addCommand (domainMenu, U"Widen or shrink selection...", 0, menu_cb_widenOrShrinkSelection);
+	EditorMenu_addCommand (domainMenu, U"Move cursor to start of selection", 0, menu_cb_moveCursorToStartOfSelection);
+	EditorMenu_addCommand (domainMenu, U"Move cursor to begin of selection", Editor_HIDDEN, menu_cb_moveCursorToStartOfSelection);
+	EditorMenu_addCommand (domainMenu, U"Move cursor to end of selection", 0, menu_cb_moveCursorToEndOfSelection);
+	EditorMenu_addCommand (domainMenu, U"Move cursor to...", 0, menu_cb_moveCursorTo);
+	EditorMenu_addCommand (domainMenu, U"Move cursor by...", 0, menu_cb_moveCursorBy);
+	EditorMenu_addCommand (domainMenu, U"Move start of selection by...", 0, menu_cb_moveStartOfSelectionBy);
+	EditorMenu_addCommand (domainMenu, U"Move begin of selection by...", Editor_HIDDEN, menu_cb_moveStartOfSelectionBy);
+	EditorMenu_addCommand (domainMenu, U"Move end of selection by...", 0, menu_cb_moveEndOfSelectionBy);
+	EditorMenu_addCommand (domainMenu, U"Selection step settings...", 0, menu_cb_selectionStepSettings);
+	EditorMenu_addCommand (domainMenu, U"Select earlier", GuiMenu_UP_ARROW, menu_cb_selectEarlier);
+	EditorMenu_addCommand (domainMenu, U"Select later", GuiMenu_DOWN_ARROW, menu_cb_selectLater);
+	EditorMenu_addCommand (domainMenu, U"Move start of selection left", GuiMenu_SHIFT | GuiMenu_UP_ARROW, menu_cb_moveStartOfSelectionLeft);
+	EditorMenu_addCommand (domainMenu, U"Move begin of selection left", Editor_HIDDEN, menu_cb_moveStartOfSelectionLeft);
+	EditorMenu_addCommand (domainMenu, U"Move start of selection right", GuiMenu_SHIFT | GuiMenu_DOWN_ARROW, menu_cb_moveStartOfSelectionRight);
+	EditorMenu_addCommand (domainMenu, U"Move begin of selection right", Editor_HIDDEN, menu_cb_moveStartOfSelectionRight);
+	EditorMenu_addCommand (domainMenu, U"Move end of selection left", GuiMenu_COMMAND | GuiMenu_UP_ARROW, menu_cb_moveEndOfSelectionLeft);
+	EditorMenu_addCommand (domainMenu, U"Move end of selection right", GuiMenu_COMMAND | GuiMenu_DOWN_ARROW, menu_cb_moveEndOfSelectionRight);
+
+	if (our v_hasPlayMenu ()) {
+		our playMenu = Editor_addMenu (this, U"Play", 0);
+		v_createMenuItems_play (our playMenu);
+	}
+
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_createMenus ();
+	}
 }
 
-void structFunctionEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	FunctionEditor_Parent :: v_createHelpMenuItems (menu);
+void structFunctionEditor :: v_updateMenuItems () {
+	FunctionEditor_Parent :: v_updateMenuItems ();
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			area -> v_updateMenuItems ();
+	}
+}
+
+void structFunctionEditor :: v_createMenuItems_help (EditorMenu menu) {
+	FunctionEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"Praat Intro", 0, HELP__intro);
+}
+
+void structFunctionEditor :: v_draw () {
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+		if (area)
+			FunctionArea_drawOne (area);
+	}
 }
 
 static void gui_drawingarea_cb_expose (FunctionEditor me, GuiDrawingArea_ExposeEvent /* event */) {
@@ -1260,59 +1328,98 @@ static void gui_drawingarea_cb_expose (FunctionEditor me, GuiDrawingArea_ExposeE
 		else
 			my v_drawSelectionViewer ();
 	}
+
+	/*
+		Not really drawing, but until further notice we believe that updating the menu items
+		(i.e. making them sensitive or insensitive) could be done as often as redrawing).
+	*/
+	my v_updateMenuItems ();
 }
 
-bool structFunctionEditor :: v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double mouseTime, double /* mouseY_fraction */) {
+bool FunctionEditor_defaultMouseInWideDataView (FunctionEditor me, GuiDrawingArea_MouseEvent event, double mouseTime) {
+	my viewDataAsWorldByFraction ();
 	Melder_assert (isdefined (mouseTime));
-	Melder_assert (our startSelection <= our endSelection);
-	Melder_clip (our startWindow, & mouseTime, our endWindow);   // WYSIWYG
+	Melder_assert (my startSelection <= my endSelection);
+	Melder_clip (my startWindow, & mouseTime, my endWindow);   // WYSIWYG
 	if (event -> isClick()) {
 		/*
 			Ignore any click that occurs during a drag,
 			such as might occur when the user has both a mouse and a trackpad.
 		*/
-		if (isdefined (our anchorTime))
+		if (isdefined (my anchorTime))
 			return false;
-		const double selectedMiddleTime = 0.5 * (our startSelection + our endSelection);
+		const double selectedMiddleTime = 0.5 * (my startSelection + my endSelection);
 		const bool theyWantToExtendTheCurrentSelectionAtTheLeft =
 				(event -> shiftKeyPressed && mouseTime < selectedMiddleTime) || event -> isLeftBottomFunctionKeyPressed();
 		const bool theyWantToExtendTheCurrentSelectionAtTheRight =
 				(event -> shiftKeyPressed && mouseTime >= selectedMiddleTime) || event -> isRightBottomFunctionKeyPressed();
 		if (theyWantToExtendTheCurrentSelectionAtTheLeft) {
-			our startSelection = mouseTime;
-			our anchorTime = our endSelection;
+			my startSelection = mouseTime;
+			my anchorTime = my endSelection;
 		} else if (theyWantToExtendTheCurrentSelectionAtTheRight) {
-			our endSelection = mouseTime;
-			our anchorTime = our startSelection;
+			my endSelection = mouseTime;
+			my anchorTime = my startSelection;
 		} else {
-			our startSelection = mouseTime;
-			our endSelection = mouseTime;
-			our anchorTime = mouseTime;
+			my startSelection = mouseTime;
+			my endSelection = mouseTime;
+			my anchorTime = mouseTime;
 		}
-		Melder_sort (& our startSelection, & our endSelection);
-		Melder_assert (isdefined (our anchorTime));
+		Melder_sort (& my startSelection, & my endSelection);
+		Melder_assert (isdefined (my anchorTime));
 	} else if (event -> isDrag() || event -> isDrop()) {
 		/*
 			Ignore any drag or drop that happens after a descendant preempted the above click handling.
 		*/
-		if (isundef (our anchorTime))
+		if (isundef (my anchorTime))
 			return false;
-		if (! our hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
-			const double distanceToAnchor_mm = fabs (Graphics_dxWCtoMM (our graphics.get(), mouseTime - our anchorTime));
+		if (! my hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
+			const double distanceToAnchor_mm = fabs (Graphics_dxWCtoMM (my graphics.get(), mouseTime - my anchorTime));
 			constexpr double vicinityRadius_mm = 1.0;
 			if (distanceToAnchor_mm > vicinityRadius_mm)
-				our hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = true;
+				my hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = true;
 		}
-		if (hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
-			our startSelection = std::min (our anchorTime, mouseTime);
-			our endSelection = std::max (our anchorTime, mouseTime);
+		if (my hasBeenDraggedBeyondVicinityRadiusAtLeastOnce) {
+			my startSelection = std::min (my anchorTime, mouseTime);
+			my endSelection = std::max (my anchorTime, mouseTime);
 		}
 		if (event -> isDrop()) {
-			our anchorTime = undefined;
-			our hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = false;
+			my anchorTime = undefined;
+			my hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = false;
 		}
 	}
 	return true;
+}
+
+bool structFunctionEditor :: v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double globalY_fraction) {
+	bool result = false;
+	if (event -> isClick ())
+		for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+			FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+			if (area)
+				area -> isClickAnchor = area -> y_fraction_globalIsInside (globalY_fraction);
+		}
+	{// scope
+		integer iarea = 1;
+		for (; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+			FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+			if (area && area -> isClickAnchor) {
+				const double localY_fraction = area -> y_fraction_globalToLocal (globalY_fraction);
+				FunctionArea_setViewport (area);   // for Graphics_dxWCtoMM and the like
+				result = area -> v_mouse (event, x_world, localY_fraction);
+				break;
+			}
+		}
+		if (iarea > FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS)
+			result = FunctionEditor_defaultMouseInWideDataView (this, event, x_world);
+	}
+	if (event -> isDrop()) {
+		for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+			FunctionArea area = static_cast <FunctionArea> (our functionAreas [iarea].get());
+			if (area)
+				area -> isClickAnchor = false;
+		}
+	}
+	return result;
 }
 
 void structFunctionEditor :: v_clickSelectionViewer (double /* x_fraction */, double /* y_fraction */) {
@@ -1450,7 +1557,8 @@ void structFunctionEditor :: v_createChildren () {
 	GuiDrawingArea_setSwipable (our drawingArea, our scrollBar, nullptr);
 }
 
-void structFunctionEditor :: v_dataChanged () {
+void structFunctionEditor :: v1_dataChanged () {
+	Melder_assert (our function());
 	Melder_assert (Thing_isa (our function(), classFunction));
 	our tmin = our function() -> xmin;
  	our tmax = our function() -> xmax;
@@ -1503,13 +1611,9 @@ int theFunctionEditor_playCallback (FunctionEditor me, int phase, double startTi
 	return my v_playCallback (phase, startTime, endTime, currentTime);
 }
 
-void structFunctionEditor :: v_highlightSelection (double left, double right, double bottom, double top) {
-	Graphics_highlight (our graphics.get(), left, right, bottom, top);
-}
-
-void FunctionEditor_init (FunctionEditor me, conststring32 title) {
-	Melder_assert (my data);
-	Thing_cast (Function, function, my data);
+void FunctionEditor_init (FunctionEditor me, conststring32 title, Function data) {
+	Melder_assert (data);
+	Thing_cast (Function, function, data);
 
 	if (Melder_debug == 55)
 		Melder_casual (Thing_messageNameAndAddress (me), U" init");
@@ -1520,6 +1624,23 @@ void FunctionEditor_init (FunctionEditor me, conststring32 title) {
 	my startWindow = my tmin;
 	my endWindow = my tmax;
 	my startSelection = my endSelection = 0.5 * (my tmin + my tmax);
+	double maximumInitialLengthOfWindow = undefined;
+	for (integer iarea = 1; iarea <= FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS; iarea ++) {
+		FunctionArea area = static_cast <FunctionArea> (my functionAreas [iarea].get());
+		if (area) {
+			const double areaMaximumInitialLengthOfWindow = area -> maximumInitialLengthOfWindow();
+			if (isdefined (areaMaximumInitialLengthOfWindow) && ! (areaMaximumInitialLengthOfWindow >= maximumInitialLengthOfWindow))   // NaN-safe
+				maximumInitialLengthOfWindow = areaMaximumInitialLengthOfWindow;
+		}
+	}
+	if (isdefined (maximumInitialLengthOfWindow)) {
+		if (my endWindow - my startWindow > maximumInitialLengthOfWindow) {
+			my endWindow = my startWindow + maximumInitialLengthOfWindow;
+			if (my startWindow == my tmin)
+				my startSelection = my endSelection = 0.5 * (my startWindow + my endWindow);
+		}
+	}
+
 	#if motif
 		Melder_assert (XtWindow (my drawingArea -> d_widget));
 	#endif
@@ -1529,10 +1650,12 @@ void FunctionEditor_init (FunctionEditor me, conststring32 title) {
 	my updateGeometry (GuiControl_getWidth (my drawingArea), GuiControl_getHeight (my drawingArea));
 
 	Melder_assert (isdefined (my startSelection));   // precondition of v_updateText()
-	my v_updateText ();
+	//my v_updateText ();   // BUG: superfluous because of Editor_dataChanged below? and too early if function pointers not yet set?
 	if (group_equalDomain (my tmin, my tmax))
 		gui_checkbutton_cb_group (me, nullptr);   // BUG: nullptr
-	my enableUpdates = true;
+	my enableUpdates = true;   // BUG: explain why still needed
+
+	Editor_dataChanged (me);   // only to self, not to the other editors; BUG: should be in Editor_init?
 }
 
 void FunctionEditor_marksChanged (FunctionEditor me, bool needsUpdateGroup) {
@@ -1561,7 +1684,7 @@ void FunctionEditor_enableUpdates (FunctionEditor me, bool enable) {
 void FunctionEditor_ungroup (Daata data) {
 	for (integer ieditor = 1; ieditor <= THE_MAXIMUM_GROUP_SIZE; ieditor ++) {
 		const FunctionEditor me = theGroupMembers [ieditor];
-		if (me && my group && my data == data) {   // BUG: this may not be precise enough, in case an editor is editing multiple objects
+		if (me && my group && my data() == data) {   // BUG: this may not be precise enough, in case an editor is editing multiple objects
 			my group = false;
 			GuiCheckButton_setValue (my groupButton, false);
 			theGroupMembers [ieditor] = nullptr;

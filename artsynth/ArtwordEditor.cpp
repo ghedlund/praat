@@ -21,10 +21,6 @@
 
 Thing_implement (ArtwordEditor, Editor, 0);
 
-void structArtwordEditor :: v_destroy () noexcept {
-	ArtwordEditor_Parent :: v_destroy ();
-}
-
 static void updateList (ArtwordEditor me) {
 	ArtwordData a = & my artword -> data [(int) my muscle];
 	GuiList_deleteAllItems (my list);
@@ -99,7 +95,7 @@ static void gui_drawingarea_cb_mouse (ArtwordEditor me, GuiDrawingArea_MouseEven
 	GuiText_setString (my value, Melder_fixed (yWC, 6));
 }
 
-void structArtwordEditor :: v_dataChanged () {
+void structArtwordEditor :: v1_dataChanged () {
 	updateList (this);
 	Graphics_updateWs (graphics.get());
 }

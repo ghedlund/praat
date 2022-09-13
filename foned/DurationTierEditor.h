@@ -23,18 +23,19 @@
 #include "Sound.h"
 
 Thing_define (DurationTierEditor, RealTierEditor) {
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 	void v_play (double fromTime, double toTime)
 		override;
-	conststring32 v_quantityText ()
-		override { return U"Relative duration"; }
-	conststring32 v_setRangeTitle ()
-		override { return U"Set duration range..."; }
-	conststring32 v_minimumLabelText ()
-		override { return U"Minimum duration"; }
-	conststring32 v_maximumLabelText ()
-		override { return U"Maximum duration"; }
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable DurationTier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+		if (our soundArea())
+			FunctionArea_drawLegend (our soundArea().get(),
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound", DataGui_defaultForegroundColour (our soundArea().get())
+			);
+	}
 };
 
 autoDurationTierEditor DurationTierEditor_create (conststring32 title,

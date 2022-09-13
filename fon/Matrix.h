@@ -102,7 +102,7 @@ PRAAT_LIB_EXPORT autoMatrix Matrix_createSimple (integer numberOfRows, integer n
 
 /* An implemented method
 
-	void structMatrix :: v_writeText (MelderFile file);
+	void structMatrix :: v1_writeText (MelderFile file);
 		writes a Matrix as text to `file`.
 		A sample of the format follows:
 			0 5000 1 2   ! xmin xmax ymin ymax

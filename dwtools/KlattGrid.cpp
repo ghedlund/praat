@@ -111,8 +111,6 @@ conststring32 KlattGrid_getFormantName (kKlattGridFormantType formantType) {
 	return result;
 }
 
-static const conststring32 formant_names [] = { U"", U"oral ", U"nasal ", U"frication ", U"tracheal ", U"nasal anti", U"tracheal anti", U"delta "};
-
 #define KlattGrid_OPENPHASE_DEFAULT 0.7
 #define KlattGrid_POWER1_DEFAULT 3
 #define KlattGrid_POWER2_DEFAULT (KlattGrid_POWER1_DEFAULT+1)
@@ -635,8 +633,8 @@ autoPhonationGridPlayOptions PhonationGridPlayOptions_create () {
 
 Thing_implement (PhonationGrid, Function, 0);
 
-void structPhonationGrid :: v_info () {
-	structDaata :: v_info ();
+void structPhonationGrid :: v1_info () {
+	structDaata :: v1_info ();
 	conststring32 in1 = U"  ", in2 = U"    ";
 	MelderInfo_writeLine (in1, U"Time domain:");
 	MelderInfo_writeLine (in2, U"Start time:     ", xmin, U" seconds");
@@ -1264,8 +1262,8 @@ static void FormantGrid_info (FormantGrid me, OrderedOf<structIntensityTier>* am
 	}
 }
 
-void structVocalTractGrid :: v_info () {
-	our structDaata :: v_info ();
+void structVocalTractGrid :: v1_info () {
+	our structDaata :: v1_info ();
 	const conststring32 in1 = U"  ", in2 = U"    ", in3 = U"      ";
 	MelderInfo_writeLine (in1, U"Time domain:");
 	MelderInfo_writeLine (in2, U"Start time:     ", our xmin, U" seconds");
@@ -1746,8 +1744,8 @@ autoCouplingGridPlayOptions CouplingGridPlayOptions_create () {
 
 Thing_implement (CouplingGrid, Function, 0);
 
-void structCouplingGrid :: v_info () {
-	structDaata :: v_info ();
+void structCouplingGrid :: v1_info () {
+	structDaata :: v1_info ();
 	conststring32 in1 = U"  ", in2 = U"    ", in3 = U"      ";
 	MelderInfo_writeLine (in1, U"Time domain:");
 	MelderInfo_writeLine (in2, U"Start time:     ", xmin, U" seconds");
@@ -1838,8 +1836,8 @@ autoFricationGridPlayOptions FricationGridPlayOptions_create () {
 
 /************************ FricationGrid (& Sound) *********************************************/
 
-void structFricationGrid :: v_info () {
-	structDaata :: v_info ();
+void structFricationGrid :: v1_info () {
+	structDaata :: v1_info ();
 	const static char32 *in1 = U"  ", *in2 = U"    ", *in3 = U"      ";
 	MelderInfo_writeLine (in1, U"Time domain:");
 	MelderInfo_writeLine (in2, U"Start time:     ", xmin, U" seconds");
@@ -2059,20 +2057,20 @@ void KlattGrid_setDefaultPlayOptions (KlattGrid me) {
 
 Thing_implement (KlattGrid, Function, 0);
 
-void structKlattGrid :: v_info () {
-	structDaata :: v_info ();
+void structKlattGrid :: v1_info () {
+	structDaata :: v1_info ();
 	MelderInfo_writeLine (U"Time domain:");
 	MelderInfo_writeLine (U"   Start time:     ", xmin, U" seconds");
 	MelderInfo_writeLine (U"   End time:       ", xmax, U" seconds");
 	MelderInfo_writeLine (U"   Total duration: ", xmax - xmin, U" seconds");
 	MelderInfo_writeLine (U"\n--- PhonationGrid ---\n");
-	phonation -> v_info ();
+	our phonation -> v1_info ();
 	MelderInfo_writeLine (U"\n--- VocalTractGrid ---\n");
-	vocalTract -> v_info ();
+	our vocalTract -> v1_info ();
 	MelderInfo_writeLine (U"\n--- CouplingGrid ---\n");
-	coupling -> v_info ();
+	our coupling -> v1_info ();
 	MelderInfo_writeLine (U"\n--- FricationGrid ---\n");
-	frication -> v_info ();
+	our frication -> v1_info ();
 }
 
 void KlattGrid_setNames (KlattGrid me) {

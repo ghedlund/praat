@@ -26,9 +26,36 @@ Thing_define (RealTierArea, FunctionArea) {
 
 	virtual double v_minimumLegalY () { return undefined; }
 	virtual double v_maximumLegalY () { return undefined; }
+
+	double ymin, ymax, ycursor = 1.0;   // BUG: this should be in a cache
+public:   // BUG: should be "protected" (now public because it is sometimes used as a message)
+	virtual void v_updateScaling () {
+		/*
+			Computes ymin, ymax and ycursor on the basis of the data.
+		*/
+		Melder_assert (isdefined (our instancePref_dataFreeMinimum()));
+		Melder_assert (isdefined (our instancePref_dataFreeMaximum()));
+		our ymin = our instancePref_dataFreeMinimum();
+		our ymax = our instancePref_dataFreeMaximum();
+		if (our realTier() && our realTier() -> points.size > 0) {
+			Melder_assert (! (our v_maximumLegalY() < our v_minimumLegalY()));   // NaN-safe
+			const double minimumValue = Melder_clipped (our v_minimumLegalY(), RealTier_getMinimumValue (our realTier()), our v_maximumLegalY());
+			const double maximumValue = Melder_clipped (our v_minimumLegalY(), RealTier_getMaximumValue (our realTier()), our v_maximumLegalY());
+			Melder_clipRight (& our ymin, minimumValue);
+			Melder_clipLeft (maximumValue, & our ymax);
+		}
+		if (our ycursor <= our ymin || our ycursor >= our ymax)
+			our ycursor = 0.382 * our ymin + 0.618 * our ymax;
+	}
+protected:
+	void v_computeAuxiliaryData () override {
+		our RealTierArea_Parent :: v_computeAuxiliaryData ();
+		our v_updateScaling ();
+	}
+
+public:
 	virtual conststring32 v_rightTickUnits () { return U""; }
 
-	double ymin, ymax, ycursor;
 	double anchorTime = undefined, anchorY;
 	bool anchorIsInFreePart, anchorIsNearPoint;   // only in cb_mouse
 	bool draggingSelection;
@@ -36,9 +63,21 @@ Thing_define (RealTierArea, FunctionArea) {
 	integer firstSelected, lastSelected;
 
 	void viewRealTierAsWorldByWorld () const {
-		our setViewport ();
+		FunctionArea_setViewport (this);
 		Graphics_setWindow (our graphics(), our startWindow(), our endWindow(), our ymin, our ymax);
 	}
+	void v_drawInside ()
+		override;
+	bool v_mouse (GuiDrawingArea_MouseEvent event, double x_world, double localY_fraction)
+		override;
+	void v_createMenus ()
+		override;
+
+	virtual conststring32 v_menuTitle () { return U"RealTier"; }
+	virtual conststring32 v_quantityText () { return U"Y"; }   // normally includes units
+	virtual conststring32 v_setRangeTitle () { return U"Set range..."; }
+	virtual conststring32 v_minimumLabelText () { return U"Minimum"; }   // normally includes units
+	virtual conststring32 v_maximumLabelText () { return U"Maximum"; }   // normally includes units
 
 	#include "RealTierArea_prefs.h"
 };
@@ -49,27 +88,7 @@ void RealTierArea_removePoints (RealTierArea me);
 
 void RealTierArea_addPointAtCursor (RealTierArea me);
 
-void RealTierArea_updateScaling (RealTierArea me);
-
-void RealTierArea_draw (RealTierArea me);
-
-void RealTierArea_drawWhileDragging (RealTierArea me);
-
-bool RealTierArea_mouse (RealTierArea me, GuiDrawingArea_MouseEvent event, double x_world, double y_fraction);
-
-inline void RealTierArea_init (RealTierArea me, FunctionEditor editor, RealTier realTier = nullptr, bool makeCopy = false) {
-	FunctionArea_init (me, editor, realTier, makeCopy);
-	Melder_assert (isdefined (my instancePref_dataFreeMinimum()));
-	Melder_assert (isdefined (my instancePref_dataFreeMaximum()));
-	RealTierArea_updateScaling (me);
-	my ycursor = 0.382 * my ymin + 0.618 * my ymax;
-}
-
-inline autoRealTierArea RealTierArea_create (FunctionEditor editor, RealTier realTier) {
-	autoRealTierArea me = Thing_new (RealTierArea);
-	RealTierArea_init (me.get(), editor, realTier);
-	return me;
-}
+DEFINE_FunctionArea_create (RealTierArea, RealTier)
 
 /* End of file RealTierArea.h */
 #endif

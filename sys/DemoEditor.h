@@ -29,9 +29,9 @@ Thing_define (DemoEditor, Editor) {
 	char32 key;
 	bool waitingForInput, userWantsToClose, fullScreen;
 
-	void v_destroy () noexcept
+	void v9_destroy () noexcept
 		override;
-	void v_info ()
+	void v1_info ()
 		override;
 	void v_goAway ()
 		override;

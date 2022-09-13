@@ -18,48 +18,44 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "TimeSoundEditor.h"
+#include "FunctionEditor.h"
 #include "RealTierArea.h"
+#include "SoundArea.h"
 
-Thing_define (RealTierEditor, TimeSoundEditor) {
-	autoRealTierArea realTierArea;
+Thing_define (RealTierEditor, FunctionEditor) {
+	DEFINE_FunctionArea (1, RealTierArea, realTierArea)
+	DEFINE_FunctionArea (2, SoundArea, soundArea)
 
-	/*
-		mouse state
-	*/
-	bool clickedInWideRealTierArea = false;
-
-	void v_createMenus ()
-		override;
-	void v_dataChanged ()
-		override;
-	void v_distributeAreas ()
-		override;
-	void v_draw ()
-		override;
-	bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double y_fraction)
-		override;
-	void v_play (double tmin, double tmax)
-		override;
-	void v_createMenuItems_view (EditorMenu menu)
-		override;
-
-	virtual conststring32 v_quantityText () { return U"Y"; }   // normally includes units
-	virtual conststring32 v_setRangeTitle () { return U"Set range..."; }
-	virtual conststring32 v_minimumLabelText () { return U"Minimum"; }   // normally includes units
-	virtual conststring32 v_maximumLabelText () { return U"Maximum"; }   // normally includes units
+	void v1_dataChanged () override {
+		our RealTierEditor_Parent :: v1_dataChanged ();
+		our realTierArea() -> functionChanged (static_cast <RealTier> (our data()));
+		if (our soundArea())
+			our soundArea() -> functionChanged (nullptr);   // BUG: the copy probably doesn't change
+	}
+	void v_distributeAreas () override {
+		if (our soundArea()) {
+			our realTierArea() -> setGlobalYRange_fraction (0.0, 0.618);
+			our soundArea() -> setGlobalYRange_fraction (0.618, 1.0);
+		} else {
+			our realTierArea() -> setGlobalYRange_fraction (0.0, 1.0);
+		}
+	}
+	void v_play (double startTime, double endTime) override {
+		if (our soundArea())
+			Sound_playPart (our soundArea() -> sound(), startTime, endTime, theFunctionEditor_playCallback, this);
+	}
+	void v_drawLegends () override {
+		FunctionArea_drawLegend (our realTierArea().get(),
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable RealTier", DataGui_defaultForegroundColour (our realTierArea().get())
+		);
+		if (our soundArea())
+			FunctionArea_drawLegend (our soundArea().get(),
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound", DataGui_defaultForegroundColour (our soundArea().get())
+			);
+	}
 };
 
-void RealTierEditor_updateScaling (RealTierEditor me);
-/*
-	Computes the ymin and ymax values on the basis of the data.
-	Call after every change in the data.
-*/
-
-autoRealTierEditor RealTierEditor_create (conststring32 title, RealTier tier, Sound sound);
-/*
-	`sound` may be null
-*/
+autoRealTierEditor RealTierEditor_create (conststring32 title, RealTier tier, Sound optionalSoundToCopy);
 
 /* End of file RealTierEditor.h */
 #endif

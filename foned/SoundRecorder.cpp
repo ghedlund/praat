@@ -234,7 +234,7 @@ static void stopRecording (SoundRecorder me) {
 	}
 }
 
-void structSoundRecorder :: v_destroy () noexcept {
+void structSoundRecorder :: v9_destroy () noexcept {
 	stopRecording (this);   // must occur before freeing our buffer
 	MelderAudio_stopPlaying (MelderAudio_IMPLICIT);   // must also occur before freeing our buffer
 	#if cocoa
@@ -265,7 +265,7 @@ void structSoundRecorder :: v_destroy () noexcept {
 				close (our fd);
 		#endif
 	}
-	our SoundRecorder_Parent :: v_destroy ();
+	our SoundRecorder_Parent :: v9_destroy ();
 }
 
 static void showMaximum (SoundRecorder me, int channel, double maximum) {
@@ -500,6 +500,12 @@ static WORKPROC_RETURN workProc (WORKPROC_ARGS) {
 				Melder_clipLeft (0_integer, & my firstSample);
 				GuiScale_setValue (my progressScale, 1000.0 * ((double) my lastSample / (double) my nmax));
 				Graphics_updateWs (my graphics.get());
+			} else {
+				#if defined (_WIN32)
+					if (my inputUsesPortAudio) {
+						Pa_Sleep (10);
+					}
+				#endif
 			}
 		}
 	} catch (MelderError) {
@@ -1008,8 +1014,8 @@ void structSoundRecorder :: v_createMenus () {
 		Editor_addCommand (this, U"Meter", U"Centre of gravity ~ intensity", GuiMenu_RADIO_NEXT, menu_cb_centreOfGravityVersusIntensity);
 }
 
-void structSoundRecorder :: v_createHelpMenuItems (EditorMenu menu) {
-	SoundRecorder_Parent :: v_createHelpMenuItems (menu);
+void structSoundRecorder :: v_createMenuItems_help (EditorMenu menu) {
+	SoundRecorder_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"SoundRecorder help", '?', menu_cb_SoundRecorder_help);
 }
 

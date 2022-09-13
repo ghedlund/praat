@@ -22,17 +22,23 @@
 #include "AmplitudeTier.h"
 
 Thing_define (AmplitudeTierArea, RealTierArea) {
+	conststring32 v_menuTitle ()
+		override { return U"AmplitudeTier"; }
 	conststring32 v_rightTickUnits ()
 		override { return U" Pa"; }
+	conststring32 v_quantityText ()
+		override { return U"Sound pressure (Pa)"; }
+	conststring32 v_setRangeTitle ()
+		override { return U"Set amplitude range..."; }
+	conststring32 v_minimumLabelText ()
+		override { return U"Minimum amplitude (Pa)"; }
+	conststring32 v_maximumLabelText ()
+		override { return U"Maximum amplitude (Pa)"; }
 
 	#include "AmplitudeTierArea_prefs.h"
 };
 
-inline autoAmplitudeTierArea AmplitudeTierArea_create (FunctionEditor editor, AmplitudeTier amplitudeTier) {
-	autoAmplitudeTierArea me = Thing_new (AmplitudeTierArea);
-	RealTierArea_init (me.get(), editor, amplitudeTier);
-	return me;
-}
+DEFINE_FunctionArea_create (AmplitudeTierArea, AmplitudeTier)
 
 /* End of file AmplitudeTierArea.h */
 #endif

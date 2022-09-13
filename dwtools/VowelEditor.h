@@ -18,11 +18,6 @@
  * along with this work. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- djmw 20070130 First
- djmw 20110306 Latest modification.
-*/
-
 #include "RealTier.h"
 #include "Table.h"
 #include "Editor.h"
@@ -51,19 +46,17 @@ Thing_define (VowelEditor, Editor) {
 	GuiText f0TextField, f0SlopeTextField, durationTextField, extendTextField;
 	GuiLabel startInfo, endInfo;
 
-	void v_destroy () noexcept
-		override;
 	bool v_scriptable ()
 		override { return false; }
 	void v_createChildren ()
 		override;
 	void v_createMenus ()
 		override;
-	void v_createHelpMenuItems (EditorMenu menu)
+	void v_createMenuItems_help (EditorMenu menu)
 		override;
 
 	#include "VowelEditor_prefs.h"
-	void v_repairPreferences () override;
+	void v9_repairPreferences () override;
 
 	/* only in cb_mouse: */
 	double anchorTime;

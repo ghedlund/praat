@@ -27,12 +27,16 @@ struct FunctionEditor_picture {
 	bool garnish;
 };
 
+constexpr integer FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS = 5;
+
 Thing_define (FunctionEditor, Editor) {
 	/*
 		Inherited attributes:
 			data: must be a Function.
 	*/
-	Function function() { return static_cast <Function> (our data); }
+	Function function() { return static_cast <Function> (our data()); }
+
+	autoDataGui functionAreas [1 + FunctionEditor_MAXIMUM_NUMBER_OF_FUNCTION_AREAS];
 
 	/*
 		Subclasses may change the following attributes,
@@ -131,33 +135,51 @@ Thing_define (FunctionEditor, Editor) {
 	double marker [1 + 3], playCursor, startZoomHistory, endZoomHistory;
 	int numberOfMarkers;
 
-	void v_destroy () noexcept
+	void v9_destroy () noexcept
 		override;
-	void v_info ()
+	void v1_info ()
 		override;
+
+	bool v_hasPlayMenu () override { return true; }
 	void v_createMenus ()
 		override;
-	void v_createMenuItems_file (EditorMenu)
+	void v_createMenuItems_prefs (EditorMenu)
 		override;
-	void v_createMenuItems_query (EditorMenu)
+	void v_createMenuItems_save (EditorMenu)
+		override;
+	void v_createMenuItems_edit (EditorMenu)
+		override;
+	void v_createMenuItems_play (EditorMenu)
 		override;
 	void v_createChildren ()
 		override;
-	void v_createHelpMenuItems (EditorMenu)
+	void v_createMenuItems_help (EditorMenu)
 		override;
-	void v_dataChanged ()
+	void v_updateMenuItems ()
+		override;
+	void v_prefs_addFields (EditorCommand)
+		override;
+	void v_prefs_setValues (EditorCommand)
+		override;
+	void v_prefs_getValues (EditorCommand)
+		override;
+
+	void v1_dataChanged ()
 		override;
 
 	virtual void v_distributeAreas () { }
-	virtual void v_draw () = 0;
-	virtual void v_windowChanged () { }
+	virtual void v_draw ();
+	virtual void v_windowChanged ();
+		/*
+			Behaviour of structFunctionEditor::v_windowChanged ():
+				dispatches to a function area.
+		*/
 	virtual bool v_hasSelectionViewer () { return false; }
 	virtual void v_drawSelectionViewer () { }
 	virtual void v_drawRealTimeSelectionViewer (double /* time */) { }
-	virtual void v_prepareDraw () { }   // for less flashing
 	virtual conststring32 v_domainName () { return U"time"; }
 	virtual conststring32 v_selectionViewerName () { return U"selection viewer"; }
-	virtual conststring32 v_format_domain () { return U"Time domain:"; }
+	virtual conststring32 v_format_domain () { return U"Time"; }
 	virtual const char *v_format_short () { return u8"%.3f"; }
 	virtual const char *v_format_long () { return u8"%f"; }
 	virtual conststring32 v_format_units_long () { return U"seconds"; }
@@ -168,38 +190,23 @@ Thing_define (FunctionEditor, Editor) {
 	virtual int v_fixedPrecision_long () { return 6; }
 	virtual bool v_hasText () { return false; }
 	virtual void v_play (double /* startTime */, double /* endTime */) { }
-	virtual bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double y_fraction);
+	virtual bool v_mouseInWideDataView (GuiDrawingArea_MouseEvent event, double x_world, double globalY_fraction);
 		/*
 			Message: "they clicked in the data part of the window, or in the left or right margin."
 			'event' is the mouse event, with still relevant info on phase and modifier keys;
 			'x_world' is the time (or another world unit);
-			'y_fraction' is a value between 0.0 (bottom) and 1.0 (top);
+			'globalY_fraction' is a value between 0.0 (bottom) and 1.0 (top);
 			Behaviour of structFunctionEditor::v_mouseInWideDataView ():
-				moves the cursor to 'x_world', drags to create a selection, or extends the selection.
+				dispatches to a function area, or otherwise calls FunctionEditor_defaultMouseInWideDataView().
 		*/
 	virtual void v_clickSelectionViewer (double x_fraction, double y_fraction);
 	virtual int v_playCallback (int phase, double startTime, double endTime, double currentTime);
-	virtual void v_updateText () { }
-	virtual void v_prefs_addFields (EditorCommand) { }
-	virtual void v_prefs_setValues (EditorCommand) { }
-	virtual void v_prefs_getValues (EditorCommand) { }
-	virtual void v_createMenuItems_file_draw (EditorMenu) { }
-	virtual void v_createMenuItems_file_extract (EditorMenu) { }
-	virtual void v_createMenuItems_file_write (EditorMenu) { }
-	virtual void v_createMenuItems_view (EditorMenu);
-	virtual void v_createMenuItems_view_timeDomain (EditorMenu);
-	virtual void v_createMenuItems_view_audio (EditorMenu);
-	virtual void v_highlightSelection (double left, double right, double bottom, double top);
-	virtual double v_getBottomOfSoundArea () { return 0.0; }
-	virtual double v_getBottomOfSoundAndAnalysisArea () { return 0.0; }
-	virtual void v_form_pictureSelection (EditorCommand);
-	virtual void v_ok_pictureSelection (EditorCommand);
-	virtual void v_do_pictureSelection (EditorCommand);
+	virtual void v_updateText ();
+	virtual void v_drawLegends () { }
 
     #include "FunctionEditor_prefs.h"
 
-private:
-	/* only in v_mouseInWideDataView: */
+public:
 	double anchorTime = undefined;
 	bool hasBeenDraggedBeyondVicinityRadiusAtLeastOnce = false;
 };
@@ -209,7 +216,7 @@ int theFunctionEditor_playCallback (FunctionEditor me, int phase, double startTi
 #define FunctionEditor_UPDATE_NEEDED  true
 #define FunctionEditor_NO_UPDATE_NEEDED  false
 
-void FunctionEditor_init (FunctionEditor me, conststring32 title);
+void FunctionEditor_init (FunctionEditor me, conststring32 title, Function data);
 /*
 	Function:
 		creates an Editor with a drawing area, a scroll bar and some buttons.
@@ -300,6 +307,12 @@ void FunctionEditor_drawHorizontalHair (FunctionEditor me, double yWC, conststri
 void FunctionEditor_drawGridLine (FunctionEditor me, double yWC);
 
 void FunctionEditor_garnish (FunctionEditor me);   // optionally selection times and selection hairs
+
+bool FunctionEditor_defaultMouseInWideDataView (FunctionEditor me, GuiDrawingArea_MouseEvent event, double x_world);
+/*
+	Behaviour:
+		moves the cursor to 'x_world', drags to create a selection, or extends the selection.
+*/
 
 /* End of file FunctionEditor.h */
 #endif

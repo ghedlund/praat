@@ -30,7 +30,7 @@ oo_DEFINE_CLASS (Function, Daata)
 	#endif
 
 	#if oo_DECLARING
-		void v_info ()
+		void v1_info ()
 			override;
 		bool v_hasGetXmin ()
 			override { return true; }

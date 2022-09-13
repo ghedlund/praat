@@ -25,27 +25,26 @@ static void HELP_IntensityTierHelp (IntensityTierEditor, EDITOR_ARGS_DIRECT) {
 	HELP (U"IntensityTier")
 }
 
-void structIntensityTierEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	IntensityTierEditor_Parent :: v_createHelpMenuItems (menu);
+void structIntensityTierEditor :: v_createMenuItems_help (EditorMenu menu) {
+	IntensityTierEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"IntensityTier help", 0, HELP_IntensityTierHelp);
 }
 
 void structIntensityTierEditor :: v_play (double startTime, double endTime) {
-	if (our sound()) {
-		Sound_playPart (our sound(), startTime, endTime, theFunctionEditor_playCallback, this);
+	if (our soundArea()) {
+		Sound_playPart (our soundArea() -> sound(), startTime, endTime, theFunctionEditor_playCallback, this);
 	} else {
 		//IntensityTier_playPart (our data, startTime, endTime, false);
 	}
 }
 
-autoIntensityTierEditor IntensityTierEditor_create (conststring32 title, IntensityTier intensityTier, Sound sound) {
+autoIntensityTierEditor IntensityTierEditor_create (conststring32 title, IntensityTier intensityTier, Sound soundToCopy) {
 	try {
 		autoIntensityTierEditor me = Thing_new (IntensityTierEditor);
-		my data = intensityTier;
-		my realTierArea = IntensityTierArea_create (me.get(), intensityTier);
-		if (sound)
-			my soundArea = SoundArea_create (me.get(), sound, true);
-		FunctionEditor_init (me.get(), title);
+		my realTierArea() = IntensityTierArea_create (true, nullptr, me.get());
+		if (soundToCopy)
+			my soundArea() = SoundArea_create (false, soundToCopy, me.get());
+		FunctionEditor_init (me.get(), title, intensityTier);
 		return me;
 	} catch (MelderError) {
 		Melder_throw (U"IntensityTier window not created.");

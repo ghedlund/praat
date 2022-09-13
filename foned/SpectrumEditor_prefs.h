@@ -23,9 +23,6 @@ Prefs_begin (SpectrumEditor)
 	ClassPrefs_overrideInt        (SpectrumEditor, shellHeight,     1, U"440")
 	InstancePrefs_overrideDouble  (SpectrumEditor, arrowScrollStep, 1, U"100.0")
 
-	InstancePrefs_addDouble       (SpectrumEditor, bandSmoothing,   1, U"100.0")
-	InstancePrefs_addDouble       (SpectrumEditor, dynamicRange,    1, U"60.0")
-
 Prefs_end (SpectrumEditor)
 
 /* End of file SpectrumEditor_prefs.h */

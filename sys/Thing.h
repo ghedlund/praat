@@ -52,6 +52,7 @@ struct structClassInfo {
 
 #define Thing_declare(klas) \
 	typedef struct struct##klas *klas; \
+	typedef const struct struct##klas *const##klas; \
 	typedef autoSomeThing <struct##klas> auto##klas; \
 	extern struct structClassInfo theClassInfo_##klas; \
 	extern ClassInfo class##klas
@@ -74,7 +75,8 @@ struct structClassInfo {
 	Thing has no parent class, so instead of using the Thing_define macro
 	we write out the stuff that does exist.
 */
-typedef struct structThing *Thing;
+typedef struct structThing *Thing;   // we need an explicit "struct" here, because this is a forward declaration
+typedef const struct structThing *constThing;
 extern ClassInfo classThing;
 extern struct structClassInfo theClassInfo_Thing;
 struct structThing {
@@ -92,23 +94,36 @@ struct structThing {
 	*/
 	virtual ~structThing () noexcept { }
 
-	virtual void v_destroy () noexcept { }
+	virtual void v9_destroy () noexcept { }
 		/*
-			derived::v_destroy calls base::v_destroy at end
+			This method should destroy all members that are not destroyed automatically
+			(any autoThing is destroyed automatically), and to remove dangling links to self.
+			Destroying *all* members means that we have to destroy all members that the
+			derived class has added, as well as all members of the base class,
+			and so on recursively; v9_destroy therefore has to call the inherited v9_destroy.
+			The convention is to call the parent's v9_destroy at our end, i.e. to chain up;
+			this makes sense because the destruction of an added member might depend
+			on the presence of a member from the base class.
+			Thus, v9_destroy is called recursively up the inheritance hierarchy,
+			and this is implemented by calling the parent's v9_destroy at the end,
+			i.e. at position "9" (hence the name).
 		*/
-	virtual void v_info ();
+	virtual void v1_info ();
 		/*
 			Implement as follows: call a set of MelderInfo_writeXXX describing your data.
 
-			Thing::v_info writes object id, object name, and date;
-			derived::v_info often calls base::v_info at start and then writes information on the new data,
+			Thing::v1_info writes object id, object name, and date;
+			derived::v1_info often calls base::v1_info at start
+			and then writes information on the new data (i.e., it chains down),
 			but a few ancestors can be skipped if their data have new meanings.
 		*/
-	virtual void v_assertInvariants () { }
+	virtual void v1_assertInvariants () { }
 		/*
-			derived::v_assertInvariants typically calls base::v_assertInvariants at start
+			derived::v1_assertInvariants typically calls base::v1_assertInvariants at start
 		*/
-	void assertInvariants () { our v_assertInvariants (); }
+	friend void Thing_assertInvariants (Thing me) {
+		my v1_assertInvariants ();
+	}
 	virtual void v_checkConstraints () { }
 		/*
 			derived::v_checkConstraints typically calls base::v_checkConstraints at start
@@ -117,13 +132,23 @@ struct structThing {
 		/*
 			derived::v_nameChanged may call base::v_nameChanged at start, middle or end
 		*/
-	virtual void v_copyPreferencesToInstance () { }
+protected:
+	/*
+		The following two functions look like they belong in DataGui instead of in Thing,
+		but their content is automated via a macro that includes "override",
+		and some of that overridden content already appears in DataGui,
+		so we introduce these two functions here.
+	*/
+	virtual void v1_copyPreferencesToInstance () { }
 		/*
-			derived::v_copyPreferencesToInstance calls base::v_copyPreferencesToInstance at start
+			derived::v1_copyPreferencesToInstance calls base::v1_copyPreferencesToInstance at *start*,
+			because specifications at derived level have to override those of the base level
 		*/
-	virtual void v_repairPreferences () { }
+	virtual void v9_repairPreferences () { }
 		/*
-			derived::v_repairPreferences may call base::v_repairPreferences at start
+			derived::v9_repairPreferences may call base::v9_repairPreferences at *end*,
+			because restrictions at base level may be laxer than restrictions at derived level
+			(preferences will be overridden only if their current value violates a restriction)
 		*/
 };
 
@@ -200,7 +225,7 @@ Thing _Thing_dummyObject (ClassInfo classInfo);
 
 PRAAT_LIB_EXPORT conststring32 Thing_getName (Thing me);
 /* Return a pointer to your internal name (which can be null). */
-conststring32 Thing_messageName (Thing me);
+conststring32 Thing_messageName (constThing me);
 conststring32 Thing_messageNameAndAddress (Thing me);   // for debugging
 
 PRAAT_LIB_EXPORT void Thing_setName (Thing me, conststring32 name /* cattable */);

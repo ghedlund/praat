@@ -22,20 +22,28 @@
 #include "DurationTier.h"
 
 Thing_define (DurationTierArea, RealTierArea) {
+	DurationTier durationTier() { return static_cast <DurationTier> (our function()); }
+
+	conststring32 v_menuTitle ()
+		override { return U"DurationTier"; }
 	double v_minimumLegalY ()
 		override { return 0.0; }
 	conststring32 v_rightTickUnits ()
 		override { return U""; }
+	conststring32 v_quantityText ()
+		override { return U"Relative duration"; }
+	conststring32 v_setRangeTitle ()
+		override { return U"Set duration range..."; }
+	conststring32 v_minimumLabelText ()
+		override { return U"Minimum duration"; }
+	conststring32 v_maximumLabelText ()
+		override { return U"Maximum duration"; }
 
 	#include "DurationTierArea_prefs.h"
-	void v_repairPreferences () override;
+	void v9_repairPreferences () override;
 };
 
-inline autoDurationTierArea DurationTierArea_create (FunctionEditor editor, DurationTier durationTier) {
-	autoDurationTierArea me = Thing_new (DurationTierArea);
-	RealTierArea_init (me.get(), editor, durationTier);
-	return me;
-}
+DEFINE_FunctionArea_create (DurationTierArea, DurationTier)
 
 /* End of file DurationTierArea.h */
 #endif

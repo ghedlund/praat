@@ -285,16 +285,10 @@ Thing_define (CategoriesEditorCommand, Command) {
 		override {};
 	void v_undo ()
 		override {};
-	void v_destroy () noexcept
-		override;
 };
 
 
 Thing_implement (CategoriesEditorCommand, Command, 0);
-
-void structCategoriesEditorCommand :: v_destroy () noexcept {
-	CategoriesEditorCommand_Parent :: v_destroy ();
-}
 
 static void CategoriesEditorCommand_init (CategoriesEditorCommand me, conststring32 name, Thing boss,
 	integer /*nCategories*/, integer nSelected) 
@@ -598,12 +592,8 @@ static void gui_button_cb_redo (CategoriesEditor me, GuiButtonEvent /* event */)
 
 #pragma mark - Editor methods
 
-void structCategoriesEditor :: v_destroy () noexcept {
-	CategoriesEditor_Parent :: v_destroy ();
-}
-
-void structCategoriesEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	CategoriesEditor_Parent :: v_createHelpMenuItems (menu);
+void structCategoriesEditor :: v_createMenuItems_help (EditorMenu menu) {
+	CategoriesEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"CategoriesEditor help", '?', menu_cb_help);
 }
 
@@ -674,7 +664,7 @@ void structCategoriesEditor :: v_createChildren () {
 	outOfView = GuiLabel_createShown (our windowForm, left, right, top, bottom, U"", 0);
 }
 
-void structCategoriesEditor :: v_dataChanged () {
+void structCategoriesEditor :: v1_dataChanged () {
 	autoINTVEC select;
 	update (this, 0, 0, select.get(), 0);
 	updateWidgets (this);

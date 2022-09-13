@@ -22,17 +22,23 @@
 #include "OptimalCeilingTier.h"
 
 Thing_define (OptimalCeilingTierArea, RealTierArea) {
+	conststring32 v_menuTitle ()
+		override { return U"OptimalCeilingTier"; }
 	conststring32 v_rightTickUnits ()
 		override { return U" Hz"; }
+	conststring32 v_quantityText ()
+		override { return U"Frequency (Hz)"; }
+	conststring32 v_setRangeTitle ()
+		override { return U"Set frequency range..."; }
+	conststring32 v_minimumLabelText ()
+		override { return U"Minimum frequency (Hz)"; }
+	conststring32 v_maximumLabelText ()
+		override { return U"Maximum frequency (Hz)"; }
 
 	#include "OptimalCeilingTierArea_prefs.h"
 };
 
-inline autoOptimalCeilingTierArea OptimalCeilingTierArea_create (FunctionEditor editor, OptimalCeilingTier optimalCeilingTier) {
-	autoOptimalCeilingTierArea me = Thing_new (OptimalCeilingTierArea);
-	RealTierArea_init (me.get(), editor, optimalCeilingTier);
-	return me;
-}
+DEFINE_FunctionArea_create (OptimalCeilingTierArea, OptimalCeilingTier)
 
 /* End of file OptimalCeilingTierArea.h */
 #endif

@@ -1182,14 +1182,9 @@ static void updateWidgets (void *void_me) {
 	(void) me;
 }
 
-void structVowelEditor :: v_destroy () noexcept {
-	VowelEditor_Parent :: v_destroy ();
-}
-
 void structVowelEditor :: v_createMenus () {
 	VowelEditor_Parent :: v_createMenus ();
 
-	Editor_addMenu (this, U"View", 0);
 	Editor_addCommand (this, U"File", U"Preferences...", 0, menu_cb_prefs);
 	Editor_addCommand (this, U"File", U"-- publish data --", 0, nullptr);
 	Editor_addCommand (this, U"File", U"Publish Sound", 0,
@@ -1205,6 +1200,7 @@ void structVowelEditor :: v_createMenus () {
 	Editor_addCommand (this, U"File", U"-- drawing --", 0, nullptr);
 	Editor_addCommand (this, U"File", U"Draw trajectory...", 0, menu_cb_drawTrajectory);
 	Editor_addCommand (this, U"File", U"-- scripting --", 0, nullptr);
+
 	Editor_addCommand (this, U"Edit", U"-- f0 --", 0, nullptr);
 	Editor_addCommand (this, U"Edit", U"Set f0...", 0, menu_cb_setF0);
 	Editor_addCommand (this, U"Edit", U"Set F3 & F4...", Editor_HIDDEN, menu_cb_setF3F4);
@@ -1214,7 +1210,11 @@ void structVowelEditor :: v_createMenus () {
 	Editor_addCommand (this, U"Edit", U"New trajectory...", 0, menu_cb_newTrajectory);
 	Editor_addCommand (this, U"Edit", U"Extend trajectory...", 0, menu_cb_extendTrajectory);
 	Editor_addCommand (this, U"Edit", U"Shift trajectory...", 0, menu_cb_shiftTrajectory);
+
+	Editor_addMenu (this, U"Query", 0);
 	Editor_addCommand (this, U"Query", U"Trajectory info", 0, menu_cb_trajectoryInfo);
+
+	Editor_addMenu (this, U"View", 0);
 	Editor_addCommand (this, U"View", U"F1 & F2 range...", 0, menu_cb_ranges_f1f2);
 	Editor_addCommand (this, U"View", U"--show vowel marks--", 0, nullptr);
 	Editor_addCommand (this, U"View", U"Show one vowel mark...", Editor_HIDDEN, menu_cb_showOneVowelMark);
@@ -1226,8 +1226,8 @@ void structVowelEditor :: v_createMenus () {
 	Editor_addCommand (this, U"View", U"Trajectory time marks every...", 0, menu_cb_trajectoryTimeMarksEvery);
 }
 
-void structVowelEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	VowelEditor_Parent :: v_createHelpMenuItems (menu);
+void structVowelEditor :: v_createMenuItems_help (EditorMenu menu) {
+	VowelEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"VowelEditor help", '?', menu_cb_help);
 }
 
@@ -1313,7 +1313,7 @@ void structVowelEditor :: v_createChildren ()
 	our height = GuiControl_getHeight (drawingArea);
 }
 
-void structVowelEditor :: v_repairPreferences () {
+void structVowelEditor :: v9_repairPreferences () {
 	if (! (our instancePref_window_f1min() < our instancePref_window_f1max())) {   // NaN-safe test
 		our setInstancePref_window_f1min (Melder_atof (our default_window_f1min()));
 		our setInstancePref_window_f1max (Melder_atof (our default_window_f1max()));
@@ -1348,6 +1348,7 @@ void structVowelEditor :: v_repairPreferences () {
 		our setInstancePref_grid_df1 (Melder_atof (our default_grid_df1()));
 	if (! (our instancePref_grid_df2() > 0.0))   // NaN-safe test
 		our setInstancePref_grid_df2 (Melder_atof (our default_grid_df2()));
+	VowelEditor_Parent :: v9_repairPreferences ();
 }
 
 autoVowelEditor VowelEditor_create (conststring32 title) {

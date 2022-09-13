@@ -572,10 +572,8 @@ void praat_uvafon_FFNet_init () {
 	praat_addMenuCommand (U"Objects", U"New", U"Advanced", nullptr, 1, nullptr);
 	praat_addMenuCommand (U"Objects", U"New", U"Create FFNet (linear outputs)...", nullptr, 2, 
 			CREATE_ONE__FFNet_create_linearOutputs);
-	praat_addMenuCommand (U"Objects", U"New", U"Create PatternList...", nullptr, 2, 
-			CREATE_ONE__PatternList_create);
-	praat_addMenuCommand (U"Objects", U"New", U"Create Pattern...", nullptr, praat_DEPTH_2 | praat_DEPRECATED_2015,
-			CREATE_ONE__PatternList_create);
+	praat_addMenuCommand (U"Objects", U"New", U"Create PatternList... || Create Pattern...",
+			nullptr, 2, CREATE_ONE__PatternList_create);   // alternative GuiMenu_DEPRECATED_2015
 	praat_addMenuCommand (U"Objects", U"New", U"Create Categories...", nullptr, 2, 
 			CREATE_ONE__Categories_create);
 
@@ -586,7 +584,7 @@ void praat_uvafon_FFNet_init () {
 			GRAPHICS_EACH__FFNet_drawTopology);
 	praat_addAction1 (classFFNet, 0, U"Draw weights...", nullptr, 1, 
 			GRAPHICS_EACH__FFNet_drawWeights);
-	praat_addAction1 (classFFNet, 0, U"Draw weights to layer...", nullptr, praat_DEPTH_1 | praat_HIDDEN,
+	praat_addAction1 (classFFNet, 0, U"Draw weights to layer...", nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN,
 			GRAPHICS_EACH__FFNet_drawWeightsToLayer);
 	praat_addAction1 (classFFNet, 0, U"Draw cost history...", nullptr, 1, 
 			GRAPHICS_EACH__FFNet_drawCostHistory);
@@ -629,7 +627,7 @@ void praat_uvafon_FFNet_init () {
 	praat_addAction1 (classFFNet, 0, EXTRACT_BUTTON, nullptr, 0, nullptr);
 	praat_addAction1 (classFFNet, 0, U"Extract weights...", nullptr, 1, 
 			NEW_FFNet_extractWeights);
-	praat_addAction1 (classFFNet, 0, U"Weights to Matrix...", nullptr, praat_DEPTH_1 | praat_HIDDEN, 
+	praat_addAction1 (classFFNet, 0, U"Weights to Matrix...", nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN, 
 			NEW_FFNet_weightsToMatrix);
 	praat_addAction1 (classFFNet, 0, U"& PatternList: Classify?", nullptr, 0, 
 			HINT__hint_FFNet_PatternList_classify);

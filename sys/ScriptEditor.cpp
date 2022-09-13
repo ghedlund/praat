@@ -1,6 +1,6 @@
 /* ScriptEditor.cpp
  *
- * Copyright (C) 1997-2005,2007-2018,2020,2021 Paul Boersma
+ * Copyright (C) 1997-2005,2007-2018,2020-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,10 +34,10 @@ bool ScriptEditors_dirty () {
 	return false;
 }
 
-void structScriptEditor :: v_destroy () noexcept {
+void structScriptEditor :: v9_destroy () noexcept {
 	our argsDialog.reset();   // don't delay till delete
 	theReferencesToAllOpenScriptEditors. undangleItem (this);
-	ScriptEditor_Parent :: v_destroy ();
+	ScriptEditor_Parent :: v9_destroy ();
 }
 
 void structScriptEditor :: v_nameChanged () {
@@ -314,8 +314,8 @@ void structScriptEditor :: v_createMenus () {
 	Editor_addCommand (this, U"Run", U"Run selection", 'T', menu_cb_runSelection);
 }
 
-void structScriptEditor :: v_createHelpMenuItems (EditorMenu menu) {
-	ScriptEditor_Parent :: v_createHelpMenuItems (menu);
+void structScriptEditor :: v_createMenuItems_help (EditorMenu menu) {
+	ScriptEditor_Parent :: v_createMenuItems_help (menu);
 	EditorMenu_addCommand (menu, U"About ScriptEditor", '?', menu_cb_AboutScriptEditor);
 	EditorMenu_addCommand (menu, U"Scripting tutorial", 0, menu_cb_ScriptingTutorial);
 	EditorMenu_addCommand (menu, U"Scripting examples", 0, menu_cb_ScriptingExamples);

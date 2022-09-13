@@ -27,14 +27,14 @@ static DemoEditor theReferenceToTheOnlyDemoEditor;
 
 /***** DemoEditor methods *****/
 
-void structDemoEditor :: v_destroy () noexcept {
+void structDemoEditor :: v9_destroy () noexcept {
 	Melder_free (praatPicture);
 	theReferenceToTheOnlyDemoEditor = nullptr;
-	DemoEditor_Parent :: v_destroy ();
+	DemoEditor_Parent :: v9_destroy ();
 }
 
-void structDemoEditor :: v_info () {
-	DemoEditor_Parent :: v_info ();
+void structDemoEditor :: v1_info () {
+	DemoEditor_Parent :: v1_info ();
 	MelderInfo_writeLine (U"Colour: ", MelderColour_name (((PraatPicture) praatPicture) -> colour));
 	MelderInfo_writeLine (U"Font: ", kGraphics_font_getText (((PraatPicture) praatPicture) -> font));
 	MelderInfo_writeLine (U"Font size: ", ((PraatPicture) praatPicture) -> fontSize);
@@ -185,6 +185,9 @@ int Demo_show () {
 	autoDemoOpen demo;
 	GuiThing_show (theReferenceToTheOnlyDemoEditor -> windowForm);
 	Graphics_updateWs (theReferenceToTheOnlyDemoEditor -> graphics.get());
+	#if defined (macintosh)
+		Melder_sleep (0.02);   // because GuiShell_drain is not guaranteed to drain if called within 16 ms from previous
+	#endif
 	GuiShell_drain (theReferenceToTheOnlyDemoEditor -> windowForm);
 	return 1;
 }

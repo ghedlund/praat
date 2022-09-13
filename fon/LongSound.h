@@ -51,11 +51,11 @@ Thing_define (LongSound, SampledXY) {
 	double *compressedFloats [2];
 	int16 *compressedShorts;
 
-	void v_destroy () noexcept
+	void v9_destroy () noexcept
 		override;
-	void v_info ()
+	void v1_info ()
 		override;
-	void v_copy (Daata data_to)
+	void v1_copy (Daata data_to) const
 		override;
 	bool v_writable ()
 		override { return false; }
@@ -74,8 +74,7 @@ PRAAT_LIB_EXPORT bool LongSound_haveWindow (LongSound me, double tmin, double tm
 
 PRAAT_LIB_EXPORT void LongSound_getWindowExtrema (LongSound me, double tmin, double tmax, integer channel, double *minimum, double *maximum);
 
-void LongSound_playPart (LongSound me, double tmin, double tmax,
-	Sound_PlayCallback callback, Thing boss);
+void LongSound_playPart (LongSound me, double startTime, double endTime, Sound_PlayCallback playCallback, Thing playBoss);
 
 PRAAT_LIB_EXPORT void LongSound_savePartAsAudioFile (LongSound me, int audioFileType, double tmin, double tmax, MelderFile file, int numberOfBitsPerSamplePoint);
 PRAAT_LIB_EXPORT void LongSound_saveChannelAsAudioFile (LongSound me, int audioFileType, integer channel, MelderFile file);
