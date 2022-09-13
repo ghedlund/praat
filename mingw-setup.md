@@ -2,7 +2,7 @@
 
 The following packages are required:
 
-```sudo apt-get install build-essential mingw-64```
+```sudo apt-get install build-essential mingw-w64```
 
 You will also need the 64-bit version of the `GdiPlus.dll` file from a 64-bit version of Windows.
 
