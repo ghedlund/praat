@@ -14,7 +14,7 @@ include makefile.defs
 
 # Makes the Praat executable in the source directory.
 all: all-external all-self
-	$(LINK) -shared -o $(LIBRARY) sys/praat_version.o jpraat/jpraat.o main/main_Praat.o $(MAIN_ICON) fon/libfon.a \
+	$(LINK) -shared -o $(LIBRARY) sys/praat_version.o sys/sendpraat.o jpraat/jpraat.o main/main_Praat.o $(MAIN_ICON) fon/libfon.a \
 		artsynth/libartsynth.a FFNet/libFFNet.a \
 		gram/libgram.a EEG/libEEG.a \
 		LPC/libLPC.a dwtools/libdwtools.a \
@@ -45,6 +45,7 @@ all-self:
 	$(MAKE) -C kar
 	$(MAKE) -C melder
 	$(MAKE) -C sys
+	$(MAKE) -C sys sendpraat.o
 	$(MAKE) -C dwsys
 	$(MAKE) -C stat
 	$(MAKE) -C fon
