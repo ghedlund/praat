@@ -44,6 +44,7 @@ all-self:
 	$(MAKE) -C kar
 	$(MAKE) -C melder
 	$(MAKE) -C sys
+	$(MAKE) -C sys sendpraat.o
 	$(MAKE) -C dwsys
 	$(MAKE) -C stat
 	$(MAKE) -C fon
