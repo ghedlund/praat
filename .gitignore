@@ -37,3 +37,7 @@ libpraat.dylib
 .idea
 Makefile-libjpraat
 target/
+darwin/
+*.dylib
+*.dll
+*.jar
