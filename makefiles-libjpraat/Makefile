@@ -76,6 +76,7 @@ clean-self:
 	$(MAKE) -C kar clean
 	$(MAKE) -C melder clean
 	$(MAKE) -C sys clean
+	rm sys/sendpraat.o
 	$(MAKE) -C dwsys clean
 	$(MAKE) -C stat clean
 	$(MAKE) -C fon clean
