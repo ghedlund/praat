@@ -42,7 +42,7 @@ Thing_implement (CategoriesEditor, Editor, 0);
 
 static const conststring32 CategoriesEditor_EMPTYLABEL = U"(empty)";
 
-static void menu_cb_help (CategoriesEditor /* me */, EDITOR_ARGS_DIRECT) {
+static void menu_cb_help (CategoriesEditor /* me */, EDITOR_ARGS) {
 	Melder_help (U"CategoriesEditor");
 }
 
@@ -664,7 +664,7 @@ void structCategoriesEditor :: v_createChildren () {
 	outOfView = GuiLabel_createShown (our windowForm, left, right, top, bottom, U"", 0);
 }
 
-void structCategoriesEditor :: v1_dataChanged () {
+void structCategoriesEditor :: v1_dataChanged (Editor /* sender */) {
 	autoINTVEC select;
 	update (this, 0, 0, select.get(), 0);
 	updateWidgets (this);

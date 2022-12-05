@@ -2372,7 +2372,8 @@ DO
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_filtered")
 }
 
-FORM (CONVERT_EACH_TO_ONE__Electroglottogram_getClosedGlottisIntervals, U"Electroglottogram: To IntervalTier", U"") {
+FORM (CONVERT_EACH_TO_ONE__Electroglottogram_to_TextGrid_closedGlottis, U"Electroglottogram: To TextGrid (closed glottis)",
+	U"Electroglottogram: To TextGrid (closed glottis)...") {
 	POSITIVE (pitchFloor, U"Pitch floor (Hz)", U"75.0")
 	POSITIVE (pitchCeiling, U"Pitch ceiling (Hz)", U"500.0")
 	POSITIVE (closingThreshold, U"Closing threshold", U"0.30")
@@ -2382,7 +2383,7 @@ DO
 	Melder_require (closingThreshold < 1.0,
 		U"The closing threshold should be smaller than 1.");
 	CONVERT_EACH_TO_ONE (Electroglottogram)
-		autoIntervalTier result = Electroglottogram_getClosedGlottisIntervals (me, pitchFloor, pitchCeiling, 
+		autoTextGrid result = Electroglottogram_to_TextGrid_closedGlottis (me, pitchFloor, pitchCeiling, 
 			closingThreshold, peakThresholdFraction
 		);
 	CONVERT_EACH_TO_ONE_END (my name.get())
@@ -2465,31 +2466,37 @@ DO
 	QUERY_ONE_FOR_STRING_END
 }
 
-FORM (QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndexFromItemIndex, U"StringsIndex: Get item index", nullptr) {
+FORM (QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndexFromItemIndex, U"StringsIndex: Get class index from item index", nullptr) {
 	NATURAL (itemIndex, U"Item index", U"1")
 	OK
 DO
-	QUERY_ONE_FOR_INTEGER (Index)
+	QUERY_ONE_FOR_INTEGER (StringsIndex)
 		const integer result = Index_getClassIndexFromItemIndex (me, itemIndex);
 	QUERY_ONE_FOR_INTEGER_END (U" (class index)")
 }
 
-FORM (QUERY_ONE_FOR_INTEGER__Index_getIndex, U"Index: Get item index", nullptr) {
+FORM (QUERY_ONE_FOR_INTEGER__Index_getIndex, U"StringsIndex: Get item index", nullptr) {
 	NATURAL (itemIndex, U"Item index", U"1")
 	OK
 DO
-	QUERY_ONE_FOR_INTEGER (Index)
+	QUERY_ONE_FOR_INTEGER (StringsIndex)
 		const integer result = Index_getClassIndexFromItemIndex (me, itemIndex);
 	QUERY_ONE_FOR_INTEGER_END (U" (class index)")
 }
 
-FORM (QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndex, U"StringsIndex: Get class index from calss label", nullptr) {
+FORM (QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndex, U"StringsIndex: Get class index from class label", nullptr) {
 	WORD (klasLabel, U"Class label", U"label")
 	OK
 DO
 	QUERY_ONE_FOR_INTEGER (StringsIndex)
 		const integer result = StringsIndex_getClassIndexFromClassLabel (me, klasLabel);
 	QUERY_ONE_FOR_INTEGER_END (U" (class index)")
+}
+
+DIRECT (QUERY_ONE_FOR_STRING_ARRAY__StringsIndex_listAllClasses) {
+	QUERY_ONE_FOR_STRING_ARRAY (StringsIndex)
+		autoSTRVEC result = StringsIndex_listAllClasses (me);
+	QUERY_ONE_FOR_STRING_ARRAY_END
 }
 
 FORM (CONVERT_EACH_TO_ONE__Index_extractPart, U"Index: Extract part", U"Index: Extract part...") {
@@ -3449,7 +3456,8 @@ DO
 		const integer factorColumn = Table_getColumnIndexFromColumnLabel (me, factor_string);
 		const integer dataColumn = Table_getColumnIndexFromColumnLabel (me, dataColumn_string);
 		autoTable means, meansDiff, meansDiffProbabilities;
-		autoTable anova = Table_getOneWayAnalysisOfVarianceF (me, dataColumn, factorColumn, &means, &meansDiff, & meansDiffProbabilities);
+		autoTable anova = Table_getOneWayAnalysisOfVarianceF (me, dataColumn, factorColumn, & means,
+			& meansDiff, & meansDiffProbabilities);
 		MelderInfo_open ();
 		MelderInfo_writeLine (U"One-way analysis of \"", dataColumn_string, U"\" by \"", factor_string, U"\".\n");
 		Table_printAsAnovaTable (anova.get());
@@ -3518,7 +3526,7 @@ FORM (CONVERT_EACH_TO_ONE__Table_to_StringsIndex_column, U"Table: To StringsInde
 DO
 	CONVERT_EACH_TO_ONE (Table)
 		const integer icol = Table_getColumnIndexFromColumnLabel (me, columnLabel);
-		autoStringsIndex result = Table_to_StringsIndex_column (me, icol);
+		autoStringsIndex result = Table_to_StringsIndex_column (me, icol, kStrings_sorting::NUMBER_AWARE);
 	CONVERT_EACH_TO_ONE_END (my name.get(), U"_", columnLabel)
 }
 
@@ -4721,14 +4729,11 @@ DIRECT (HELP__Permutation_help) {
 FORM (CREATE_ONE__Permutation_create, U"Create Permutation", U"Create Permutation...") {
 	WORD (name, U"Name", U"p")
 	NATURAL (numberOfElements, U"Number of elements", U"10")
-	BOOLEAN (identity, U"Identity Permutation", true)
+	BOOLEAN (identity, U"Identity Permutation", false)
 	OK
 DO
 	CREATE_ONE
-		autoPermutation result = Permutation_create (numberOfElements);
-		if (! identity) {
-			Permutation_permuteRandomly_inplace (result.get(), 0, 0);
-		}
+		autoPermutation result = Permutation_create (numberOfElements, identity);
 	CREATE_ONE_END (name)
 }
 
@@ -4895,6 +4900,14 @@ DIRECT (COMBINE_ALL_TO_ONE__Permutations_multiply) {
 	COMBINE_ALL_TO_ONE_END (U"mul_", list.size);
 }
 
+FORM (CONVERT_TWO_TO_ONE__Permutation_permutePartByOther, U"Permutation: Permute part by other", U"Permutation: Permute part...") {
+	NATURAL (startPos, U"Start index", U"1")
+	OK
+DO
+	CONVERT_TWO_TO_ONE (Permutation)
+		autoPermutation result = Permutation_permutePartByOther (me, startPos, you);
+	CONVERT_TWO_TO_ONE_END (U"")
+}
 DIRECT (MODIFY_Permutations_next) {
 	MODIFY_EACH (Permutation)
 		Permutation_next_inplace (me);
@@ -5683,7 +5696,7 @@ DO
 			me, U": there is no channel ", channel, U". Sound has only ", my ny, U" channel",
 				(my ny > 1 ? U"s." : U"."));
         autoSound thee = Sound_extractChannel (me, channel);
-        Sound_play (thee.get(), 0, 0);
+        Sound_play (thee.get(), nullptr, nullptr);
     PLAY_EACH_END
 }
 
@@ -6836,12 +6849,30 @@ DIRECT (CONVERT_TWO_TO_ONE__Strings_to_EditDistanceTable) {
 	CONVERT_TWO_TO_ONE_END (my name.get(), U"_", your name.get())
 }
 
-FORM (CONVERT_EACH_TO_ONE__Strings_to_Permutation, U"Strings: To Permutation", U"Strings: To Permutation...") {
+FORM (CONVERT_EACH_TO_ONE__Strings_to_StringsIndex, U"Strings: To StringsIndex", nullptr) {
+	OPTIONMENU_ENUM (kStrings_sorting, sorting, U"Sorting method", kStrings_sorting::DEFAULT)
+	OK
+DO
+	CONVERT_EACH_TO_ONE (Strings)
+		autoStringsIndex result = Strings_to_StringsIndex (me, sorting);
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
+FORM (CONVERT_EACH_TO_ONE__Strings_to_Permutation_old, U"Strings: To Permutation", U"Strings: To Permutation...") {
 	BOOLEAN (sort, U"Sort", true)
 	OK
 DO
 	CONVERT_EACH_TO_ONE (Strings)
-		autoPermutation result = Strings_to_Permutation (me, sort);
+		autoPermutation result = Strings_to_Permutation (me, (sort ? kStrings_sorting::ALPHABETICAL : kStrings_sorting::NONE));
+	CONVERT_EACH_TO_ONE_END (my name.get())
+}
+
+FORM (CONVERT_EACH_TO_ONE__Strings_to_Permutation, U"Strings: To Permutation", U"Strings: To Permutation...") {
+	OPTIONMENU_ENUM (kStrings_sorting, sortingMethod, U"Sorting", kStrings_sorting::DEFAULT)
+	OK
+DO_ALTERNATIVE (CONVERT_EACH_TO_ONE__Strings_to_Permutation_old)	
+	CONVERT_EACH_TO_ONE (Strings)
+		autoPermutation result = Strings_to_Permutation (me, sortingMethod);
 	CONVERT_EACH_TO_ONE_END (my name.get())
 }
 
@@ -7071,7 +7102,7 @@ FORM (GRAPHICS_EACH__Table_LineGraphWhere, U"Table: Line graph where", U"Table: 
 	SENTENCE (yColumn_string, U"Vertical column", U"")
 	REAL (ymin, U"left Vertical range", U"0.0")
 	REAL (ymax, U"right Vertical range", U"0.0 (= auto)")
-	SENTENCE (xColumn_string, U"Horizonal column", U"")
+	SENTENCE (xColumn_string, U"Horizontal column (optional)", U"")
 	REAL (xmin, U"left Horizontal range", U"0.0")
 	REAL (xmax, U"right Horizontal range", U"0.0 (= auto)")
 	WORD (text, U"Text", U"+")
@@ -7083,7 +7114,7 @@ FORM (GRAPHICS_EACH__Table_LineGraphWhere, U"Table: Line graph where", U"Table: 
 DO
 	GRAPHICS_EACH (Table)
 		const integer ycolumn = Table_getColumnIndexFromColumnLabel (me, yColumn_string);
-		const integer xcolumn = Table_findColumnIndexFromColumnLabel (me, xColumn_string);
+		const integer xcolumn = str32equ (xColumn_string, U"") ? 0 : Table_getColumnIndexFromColumnLabel (me, xColumn_string);
 		Table_lineGraphWhere (me, GRAPHICS, xcolumn, xmin, xmax, ycolumn, ymin, ymax, text, angle, garnish, condition, interpreter);
 	GRAPHICS_EACH_END
 }
@@ -8184,6 +8215,20 @@ DIRECT (HELP__TextGridNavigator_help) {
 	HELP (U"TextGridNavigator")
 }
 
+FORM (CREATE_ONE__TextGridNavigator_createSimple, U"TextGridNavigator: Create simple", U"") {
+	WORD (name, U"Name", U"navigator")
+	LABEL (U"Domain")
+	REAL (xmin, U"Xmin", U"0.0")
+	REAL (xmax, U"Xmax", U"5.0")
+	NATURAL (tierNumber, U"Tier number", U"1")
+	STRINGARRAY_LINES (4, topicLabels, U"Topic labels", { U"i", U"u", U"e", U"o", U"\\as" })
+	OK
+DO
+	CREATE_ONE
+		autoTextGridNavigator result = TextGridNavigator_createSimple (xmin, xmax, tierNumber, topicLabels);
+	CREATE_ONE_END (name)
+}
+
 FORM (MODIFY_EACH__TextGridNavigator_findNextAfterTime, U"TextGridNavigator: Find next after time", nullptr) {
 	REAL (time, U"Time (s)", U"-1.0")
 	OK
@@ -8628,15 +8673,6 @@ static void praat_Eigen_draw_init (ClassInfo klas) {
 			GRAPHICS_EACH__Eigen_drawEigenvector);
 }
 
-static void praat_Index_init (ClassInfo klas) {
-	praat_addAction1 (klas, 1, U"Get number of classes", nullptr, 0,
-		QUERY_ONE_FOR_INTEGER__Index_getNumberOfClasses);
-	praat_addAction1 (klas, 1, U"To Permutation...", nullptr, 0, 
-			CONVERT_EACH_TO_ONE__Index_to_Permutation);
-	praat_addAction1 (klas, 1, U"Extract part...", nullptr, 0, 
-			CONVERT_EACH_TO_ONE__Index_extractPart);
-}
-
 static void praat_BandFilterSpectrogram_draw_init (ClassInfo klas);
 static void praat_BandFilterSpectrogram_draw_init (ClassInfo klas) {
 	praat_addAction1 (klas, 0, U"Draw -", nullptr, 0, nullptr);
@@ -8950,6 +8986,8 @@ void praat_David_init () {
 			CREATE_ONE__Sound_createAsShepardTone);
 	praat_addMenuCommand (U"Objects", U"New", U"Create Sound from VowelEditor...", U"Create Sound as Shepard tone...", GuiMenu_DEPTH_1 | GuiMenu_NO_API,
 			CREATION_WINDOW__VowelEditor_create);
+	praat_addMenuCommand (U"Objects", U"New", U"Create TextGridNavigator...", U"Create Corpus...", GuiMenu_HIDDEN,
+			CREATE_ONE__TextGridNavigator_createSimple);
 	praat_addMenuCommand (U"Objects", U"New", U"Text-to-speech synthesis", U"Create Vocal Tract from phone...", 0, nullptr);
 	praat_addMenuCommand (U"Objects", U"New", U"Create SpeechSynthesizer...", U"Text-to-speech synthesis", 1,
 			CREATE_ONE__SpeechSynthesizer_create);
@@ -9522,8 +9560,8 @@ void praat_David_init () {
 
 	praat_addAction1 (classElectroglottogram, 0, U"High-pass filter...", nullptr, 0, 
 			CONVERT_EACH_TO_ONE__Electroglottogram_highPassFilter);
-	praat_addAction1 (classElectroglottogram, 0, U"Get closed glottis intervals...", nullptr, 0,
-			CONVERT_EACH_TO_ONE__Electroglottogram_getClosedGlottisIntervals);
+	praat_addAction1 (classElectroglottogram, 0, U"To TextGrid (closed glottis)... || Get closed glottis intervals...", nullptr, 0,
+			CONVERT_EACH_TO_ONE__Electroglottogram_to_TextGrid_closedGlottis);
 	praat_addAction1 (classElectroglottogram, 0, U"To AmplitudeTier (levels)...", nullptr, 0, 
 			CONVERT_EACH_TO_ONE__Electroglottogram_to_AmplitudeTier_levels);
 	praat_addAction1 (classElectroglottogram, 0, U"Derivative...", nullptr, 0, 
@@ -9533,20 +9571,28 @@ void praat_David_init () {
 	praat_addAction1 (classElectroglottogram, 0, U"To Sound", nullptr, 0, 
 			CONVERT_EACH_TO_ONE__Electroglottogram_to_Sound);
 	
-	praat_Index_init (classStringsIndex);
 	praat_addAction1 (classIndex, 0, U"Index help", nullptr, 0, HELP__Index_help);
-	praat_addAction1 (classStringsIndex, 1, U"Get class label...", nullptr, 0, 
-			QUERY_ONE_FOR_STRING__StringsIndex_getClassLabelFromClassIndex);
-	praat_addAction1 (classStringsIndex, 1, U"Get class index...", nullptr, 0, 
-		QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndex);
-	praat_addAction1 (classStringsIndex, 1, U"Get label...", nullptr, 0, 
-			QUERY_ONE_FOR_STRING__StringsIndex_getItemLabelFromItemIndex);
-	praat_addAction1 (classStringsIndex, 1, U"Get class index from item index...", nullptr, 0,
-		QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndexFromItemIndex);
-	praat_addAction1 (classIndex, 1, U"Get index...", nullptr, 0, 
-		QUERY_ONE_FOR_INTEGER__Index_getIndex);
+	praat_addAction1 (classStringsIndex, 0, U"Query -", nullptr, 0, nullptr);
+		praat_addAction1 (classStringsIndex, 1, U"Get number of classes", nullptr, 1,
+				QUERY_ONE_FOR_INTEGER__Index_getNumberOfClasses);
+		praat_addAction1 (classStringsIndex, 1, U"Get class label...", nullptr, 1, 
+				QUERY_ONE_FOR_STRING__StringsIndex_getClassLabelFromClassIndex);
+		praat_addAction1 (classStringsIndex, 1, U"Get class index...", nullptr, 1, 
+				QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndex);
+		praat_addAction1 (classStringsIndex, 1, U"Get item label...", nullptr, 1, 
+				QUERY_ONE_FOR_STRING__StringsIndex_getItemLabelFromItemIndex);
+		praat_addAction1 (classStringsIndex, 1, U"Get class index from item index...", nullptr, 1,
+				QUERY_ONE_FOR_INTEGER__StringsIndex_getClassIndexFromItemIndex);
+		praat_addAction1 (classStringsIndex, 1, U"Get index...", nullptr, 1, 
+				QUERY_ONE_FOR_INTEGER__Index_getIndex);
+		praat_addAction1 (classStringsIndex, 1, U"List all classes", nullptr, 1,
+				QUERY_ONE_FOR_STRING_ARRAY__StringsIndex_listAllClasses);
 	praat_addAction1 (classStringsIndex, 1, U"To Strings", nullptr, 0,
 			CONVERT_EACH_TO_ONE__StringsIndex_to_Strings);
+	praat_addAction1 (classStringsIndex, 1, U"To Permutation...", nullptr, 0, 
+			CONVERT_EACH_TO_ONE__Index_to_Permutation);
+	praat_addAction1 (classStringsIndex, 1, U"Extract part...", nullptr, 0, 
+			CONVERT_EACH_TO_ONE__Index_extractPart);
 
 	praat_addAction1 (classEigen, 0, U"Eigen help", nullptr, 0,
 			HELP__Eigen_help);
@@ -9987,6 +10033,8 @@ void praat_David_init () {
 			nullptr, 0, CONVERT_EACH_TO_ONE__Permutation_invert);
 	praat_addAction1 (classPermutation, 0, U"Multiply",
 			nullptr, 0, COMBINE_ALL_TO_ONE__Permutations_multiply);
+	praat_addAction1 (classPermutation, 2, U"Permute part...",
+			nullptr, 0, CONVERT_TWO_TO_ONE__Permutation_permutePartByOther);
 
 	praat_addAction1 (classPitch, 2, U"To DTW...", U"To PointProcess",
 			GuiMenu_HIDDEN, CONVERT_TWO_TO_ONE__Pitches_to_DTW);
@@ -10281,7 +10329,8 @@ void praat_David_init () {
 			CONVERT_EACH_TO_ONE__Strings_to_Permutation);
 	praat_addAction1 (classStrings, 2, U"To EditDistanceTable", U"To Distributions", 0, 
 			CONVERT_TWO_TO_ONE__Strings_to_EditDistanceTable);
-
+	praat_addAction1 (classStrings, 0, U"To StringsIndex...", U"To Permutation...", GuiMenu_HIDDEN, 		
+			CONVERT_EACH_TO_ONE__Strings_to_StringsIndex);
 	praat_addAction1 (classSVD, 0, U"SVD help", nullptr, 0, 
 			HELP__SVD_help);
 	praat_addAction1 (classSVD, 0, U"Query -", nullptr, 0, nullptr);
@@ -10530,50 +10579,51 @@ void praat_David_init () {
 			MODIFY_EACH__TextGridNavigator_findPreviousBeforeTime);
 	
 	praat_addAction1 (classTextGridNavigator, 0, U"Query -", nullptr, 0, nullptr);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get start time...", nullptr, 1, 
+		praat_TimeFunction_query_init (classTextGridNavigator); 
+		praat_addAction1 (classTextGridNavigator, 1, U"Get start time...", nullptr, 1, 
 			QUERY_ONE_FOR_REAL__TextGridNavigator_getStartTime);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get label...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"Get label...", nullptr, 1, 
 			QUERY_ONE_FOR_STRING__TextGridNavigator_getLabel);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get end time...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"Get end time...", nullptr, 1, 
 			QUERY_ONE_FOR_REAL__TextGridNavigator_getEndTime);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get index...", nullptr, 1, 
-		QUERY_ONE_FOR_INTEGER__TextGridNavigator_getIndex);
-	praat_addAction1 (classTextGridNavigator, 1, U"-- number of matches --", nullptr, 1, nullptr);
-	praat_addAction1 (classTextGridNavigator, 1, U"List indices...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"Get index...", nullptr, 1, 
+			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getIndex);
+		praat_addAction1 (classTextGridNavigator, 1, U"-- number of matches --", nullptr, 1, nullptr);
+		praat_addAction1 (classTextGridNavigator, 1, U"List indices...", nullptr, 1, 
 			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listIndices);
-	praat_addAction1 (classTextGridNavigator, 1, U"List start times...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"List start times...", nullptr, 1, 
 			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listStartTimes);
-	praat_addAction1 (classTextGridNavigator, 1, U"List labels...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"List labels...", nullptr, 1, 
 			QUERY_ONE_FOR_STRING_ARRAY__TextGridNavigator_listLabels);
-	praat_addAction1 (classTextGridNavigator, 1, U"List end times...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"List end times...", nullptr, 1, 
 			QUERY_ONE_FOR_REAL_VECTOR__TextGridNavigator_listEndTimes);
-	praat_addAction1 (classTextGridNavigator, 1, U"List domains...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 1, U"List domains...", nullptr, 1, 
 			QUERY_ONE_FOR_MATRIX__TextGridNavigator_listDomains);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get number of matches", nullptr, 1, 
-		QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfMatches);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get number of Topic matches...", nullptr, 1, 
-		QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfTopicMatches);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get number of Before matches...", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfBeforeMatches);
-	praat_addAction1 (classTextGridNavigator, 1, U"Get number of After matches...", nullptr, 1,
-		QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfAfterMatches);
+		praat_addAction1 (classTextGridNavigator, 1, U"Get number of matches", nullptr, 1, 
+			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfMatches);
+		praat_addAction1 (classTextGridNavigator, 1, U"Get number of Topic matches...", nullptr, 1, 
+			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfTopicMatches);
+		praat_addAction1 (classTextGridNavigator, 1, U"Get number of Before matches...", nullptr, 1,
+			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfBeforeMatches);
+		praat_addAction1 (classTextGridNavigator, 1, U"Get number of After matches...", nullptr, 1,
+			QUERY_ONE_FOR_INTEGER__TextGridNavigator_getNumberOfAfterMatches);
 	praat_addAction1 (classTextGridNavigator, 0, U"Modify -", nullptr, 0, nullptr);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify Topic match criterion...", nullptr, 1,
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify Topic match criterion...", nullptr, 1,
 			MODIFY_EACH__TextGridNavigator_modifyTopicCriterion);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify Before match criterion...", nullptr, 1,
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify Before match criterion...", nullptr, 1,
 			MODIFY_EACH__TextGridNavigator_modifyBeforeCriterion);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify After match criterion...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify After match criterion...", nullptr, 1, 
 			MODIFY_EACH__TextGridNavigator_modifyAfterCriterion);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify combination criterion...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify combination criterion...", nullptr, 1, 
 			MODIFY_EACH__TextGridNavigator_modifyCombinationCriterion);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain...", nullptr, 1, 
 			MODIFY_EACH__TextGridNavigator_modifyMatchDomain);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain alignment...", nullptr, 1,
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify match domain alignment...", nullptr, 1,
 			MODIFY_EACH__TextGridNavigator_modifyMatchDomainAlignment);
-	praat_addAction1 (classTextGridNavigator, 0, U"-- search range extensions --", nullptr, 1, nullptr);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify Before range...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 0, U"-- search range extensions --", nullptr, 1, nullptr);
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify Before range...", nullptr, 1, 
 			MODIFY_EACH__TextGridNavigator_modifyBeforeRange);
-	praat_addAction1 (classTextGridNavigator, 0, U"Modify After range...", nullptr, 1, 
+		praat_addAction1 (classTextGridNavigator, 0, U"Modify After range...", nullptr, 1, 
 			MODIFY_EACH__TextGridNavigator_modifyAfterRange);
 	
 	praat_addAction2 (classTextGridNavigator, 1, classNavigationContext, 1, U"Replace navigation context...", nullptr, 0,

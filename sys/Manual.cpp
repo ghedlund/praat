@@ -38,7 +38,7 @@ static const conststring32 month [] =
 	{ U"", U"January", U"February", U"March", U"April", U"May", U"June",
 	  U"July", U"August", U"September", U"October", U"November", U"December" };
 
-static void menu_cb_writeOneToHtmlFile (Manual me, EDITOR_ARGS_FORM) {
+static void menu_cb_writeOneToHtmlFile (Manual me, EDITOR_ARGS) {
 	EDITOR_FORM_SAVE (U"Save as HTML file", nullptr)
 		autoMelderString buffer;
 		MelderString_copy (& buffer, my manPages() -> pages.at [my visiblePageNumber] -> title.get());
@@ -55,7 +55,7 @@ static void menu_cb_writeOneToHtmlFile (Manual me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void menu_cb_writeAllToHtmlFolder (Manual me, EDITOR_ARGS_FORM) {
+static void menu_cb_writeAllToHtmlFolder (Manual me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Save all pages as HTML files", nullptr)
 		FOLDER (folder, U"Folder", U"")
 	EDITOR_OK
@@ -65,7 +65,7 @@ static void menu_cb_writeAllToHtmlFolder (Manual me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void menu_cb_searchForPageList (Manual me, EDITOR_ARGS_FORM) {
+static void menu_cb_searchForPageList (Manual me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Search for page", nullptr)
 		static ManPages manPages;   // BUG: why?
 		static constSTRVEC pages;
@@ -132,7 +132,7 @@ void structManual :: v_draw () {
 		bool goAhead = true;
 		if (page -> paragraphs.size > 0) {
 			conststring32 text = page -> paragraphs [page -> paragraphs.size]. text;
-			if (! text || text [0] == U'\0' || text [str32len (text) - 1] != U':') {
+			if (! text || text [0] == U'\0' || text [Melder_length (text) - 1] != U':') {
 				if (our printing && our suppressLinksHither)
 					goAhead = false;
 				else
@@ -196,7 +196,7 @@ static void print (void *void_me, Graphics graphics) {
 	my printPagesStartingWith = nullptr;
 }
 
-static void menu_cb_printRange (Manual me, EDITOR_ARGS_FORM) {
+static void menu_cb_printRange (Manual me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Print range", nullptr)
 		SENTENCE (leftOrInsideHeader, U"Left or inside header", U"")
 		SENTENCE (middleHeader, U"Middle header", U"")
@@ -264,7 +264,7 @@ static double searchToken (ManPages me, integer ipage, conststring32 token) {
 			ptoken = str32str (buffer.string, token);
 			if (ptoken) {
 				goodness += 10.0;   // ten points for every paragraph with a match!
-				if (str32str (ptoken + str32len (token), token))
+				if (str32str (ptoken + Melder_length (token), token))
 					goodness += 1.0;   // one point for every second occurrence in a paragraph!
 			}
 		}
@@ -392,7 +392,7 @@ void structManual :: v_createChildren () {
 	our searchText = GuiText_createShown (our windowForm, 274+69 + STRING_SPACING, 452 + STRING_SPACING - 2, y, y + Gui_TEXTFIELD_HEIGHT, 0);
 }
 
-static void menu_cb_help (Manual me, EDITOR_ARGS_DIRECT) { HyperPage_goToPage (me, U"Manual"); }
+static void menu_cb_help (Manual me, EDITOR_ARGS) { HyperPage_goToPage (me, U"Manual"); }
 
 void structManual :: v_createMenus () {
 	Manual_Parent :: v_createMenus ();
@@ -491,8 +491,8 @@ autoManual Manual_create (conststring32 title, ManPages manPages, bool ownManPag
 		char32 windowTitle [101];
 		if (manPages -> pages.at [1] -> title [0] == U'-') {
 			Melder_sprint (windowTitle,101, & manPages -> pages.at [1] -> title [1]);
-			if (windowTitle [str32len (windowTitle) - 1] == U'-')
-				windowTitle [str32len (windowTitle) - 1] = U'\0';
+			if (windowTitle [Melder_length (windowTitle) - 1] == U'-')
+				windowTitle [Melder_length (windowTitle) - 1] = U'\0';
 		} else {
 			Melder_sprint (windowTitle,101, U"Praat Manual");
 		}

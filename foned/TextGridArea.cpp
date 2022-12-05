@@ -143,7 +143,7 @@ static void insertBoundaryOrPoint (TextGridArea me, integer itier, double t1, do
 			*/
 			integer left, right;
 			autostring32 text = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & left, & right);
-			const bool wholeTextIsSelected = ( right - left == str32len (text.get()) );
+			const bool wholeTextIsSelected = ( right - left == Melder_length (text.get()) );
 			rightNewInterval = TextInterval_create (t2, interval -> xmax, text.get() + right);
 			text [right] = U'\0';
 			midNewInterval = TextInterval_create (t1, t2, text.get() + left);
@@ -324,7 +324,7 @@ static void do_drawIntervalTier (TextGridArea me, IntervalTier tier, integer iti
 		*/
 		if (startInterval >= my startWindow() && startInterval <= my endWindow() && iinterval > 1) {
 			const bool boundaryIsSelected = ( my selectedTier == itier && startInterval == my startSelection() );
-			Graphics_setColour (my graphics(), boundaryIsSelected ? Melder_RED : DataGui_defaultForegroundColour (me));
+			Graphics_setColour (my graphics(), DataGui_defaultForegroundColour (me, boundaryIsSelected));
 			Graphics_setLineWidth (my graphics(), platformUsesAntiAliasing ? 6.0 : 5.0);
 			Graphics_line (my graphics(), startInterval, 0.0, startInterval, 1.0);
 
@@ -345,7 +345,7 @@ static void do_drawIntervalTier (TextGridArea me, IntervalTier tier, integer iti
 		if (interval -> text && endInterval >= my startWindow() && startInterval <= my endWindow()) {
 			const double t1 = std::max (my startWindow(), startInterval);
 			const double t2 = std::min (my endWindow(), endInterval);
-			Graphics_setColour (my graphics(), intervalIsSelected ? Melder_RED : Melder_BLACK);
+			Graphics_setColour (my graphics(), DataGui_defaultForegroundColour (me, intervalIsSelected));
 			Graphics_textRect (my graphics(), t1, t2, 0.0, 1.0, interval -> text.get());
 			Graphics_setColour (my graphics(), Melder_BLACK);
 		}
@@ -386,7 +386,7 @@ static void do_drawTextTier (TextGridArea me, TextTier tier, integer itier) {
 			Graphics_line (my graphics(), my startSelection(), 0.0, my startSelection(), 1.0);
 			Graphics_setLineWidth (my graphics(), 1.0);
 			if (my editable()) {
-				Graphics_setColour (my graphics(), Melder_BLUE);
+				Graphics_setColour (my graphics(), DataGuiColour_EDITABLE);
 				Graphics_circle_mm (my graphics(), my startSelection(), 1.0 - dy, 3.0);
 			}
 		}
@@ -398,7 +398,7 @@ static void do_drawTextTier (TextGridArea me, TextTier tier, integer itier) {
 		const double t = point -> number;
 		if (t >= my startWindow() && t <= my endWindow()) {
 			const bool pointIsSelected = ( itier == my selectedTier && t == my startSelection() );
-			Graphics_setColour (my graphics(), pointIsSelected ? Melder_RED : DataGui_defaultForegroundColour (me));
+			Graphics_setColour (my graphics(), DataGui_defaultForegroundColour (me, pointIsSelected));
 			Graphics_setLineWidth (my graphics(), platformUsesAntiAliasing ? 6.0 : 5.0);
 			Graphics_line (my graphics(), t, 0.0, t, 0.2);
 			Graphics_line (my graphics(), t, 0.8, t, 1);
@@ -407,8 +407,12 @@ static void do_drawTextTier (TextGridArea me, TextTier tier, integer itier) {
 			/*
 				Wipe out the cursor where the text is going to be.
 			*/
-			Graphics_setColour (my graphics(), Melder_WHITE);
-			Graphics_line (my graphics(), t, 0.2, t, 0.8);
+			if (my startSelection() == t || my endSelection() == t) {
+				Graphics_setLineWidth (my graphics(), 1.0);
+				Graphics_setColour (my graphics(), DataGuiColour_AREA_BACKGROUND);
+				Graphics_line (my graphics(), t, 0.2, t, 0.8);
+				Graphics_setLineWidth (my graphics(), 1.0);
+			}
 
 			/*
 				Show alignment with cursor.
@@ -420,7 +424,7 @@ static void do_drawTextTier (TextGridArea me, TextTier tier, integer itier) {
 				Graphics_line (my graphics(), t, 0.8, t, 1.0);
 				Graphics_setLineWidth (my graphics(), 1.0);
 			}
-			Graphics_setColour (my graphics(), pointIsSelected ? Melder_RED : Melder_BLUE);
+			Graphics_setColour (my graphics(), DataGui_defaultForegroundColour (me, pointIsSelected));
 			if (point -> mark)
 				Graphics_text (my graphics(), t, 0.5, point -> mark.get());
 		}
@@ -451,7 +455,7 @@ void structTextGridArea :: v_drawInside () {
 		/*
 			Show the number and the name of the tier.
 		*/
-		Graphics_setColour (our graphics(), tierIsSelected ? Melder_RED : Melder_BLACK);
+		Graphics_setColour (our graphics(), DataGui_defaultForegroundColour (this, tierIsSelected));
 		Graphics_setFont (our graphics(), oldFont);
 		Graphics_setFontSize (our graphics(), 14);
 		Graphics_setTextAlignment (our graphics(), Graphics_RIGHT, Graphics_HALF);
@@ -852,7 +856,7 @@ bool structTextGridArea :: v_mouse (GuiDrawingArea_MouseEvent event, double x_wo
 
 #pragma mark - TextGridArea File/Save
 
-static void menu_cb_SaveWholeTextGridAsTextFile (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_SaveWholeTextGridAsTextFile (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM_SAVE (U"Save whole TextGrid as text file", nullptr)
 		Melder_sprint (defaultName,300, my textGrid() -> name.get(), U".TextGrid");
 	EDITOR_DO_SAVE
@@ -863,7 +867,7 @@ void structTextGridArea :: v_createMenuItems_save (EditorMenu menu) {
 	FunctionAreaMenu_addCommand (menu, U"- Save TextGrid to disk:", 0, nullptr, this);
 	FunctionAreaMenu_addCommand (menu,
 		U"Save whole TextGrid as text file... || Save TextGrid as text file... || Write TextGrid to text file...",
-		'S', menu_cb_SaveWholeTextGridAsTextFile, this
+		'S' | GuiMenu_DEPTH_1, menu_cb_SaveWholeTextGridAsTextFile, this
 	);
 }
 
@@ -871,27 +875,27 @@ void structTextGridArea :: v_createMenuItems_save (EditorMenu menu) {
 #pragma mark - TextGridArea Edit menu
 
 #ifndef macintosh
-static void menu_cb_Cut (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_Cut (TextGridArea me, EDITOR_ARGS) {
 	GuiText_cut (my functionEditor() -> textArea);
 }
-static void menu_cb_Copy (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_Copy (TextGridArea me, EDITOR_ARGS) {
 	GuiText_copy (my functionEditor() -> textArea);
 }
-static void menu_cb_Paste (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_Paste (TextGridArea me, EDITOR_ARGS) {
 	GuiText_paste (my functionEditor() -> textArea);
 }
-static void menu_cb_Erase (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_Erase (TextGridArea me, EDITOR_ARGS) {
 	GuiText_remove (my functionEditor() -> textArea);
 }
 #endif
 
-static void menu_cb_ConvertToBackslashTrigraphs (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_ConvertToBackslashTrigraphs (TextGridArea me, EDITOR_ARGS) {
 	FunctionArea_save (me, U"Convert to Backslash Trigraphs");
 	TextGrid_convertToBackslashTrigraphs (my textGrid());
 	Melder_assert (isdefined (my startSelection()));   // precondition of FunctionEditor_updateText()
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_ConvertToUnicode (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_ConvertToUnicode (TextGridArea me, EDITOR_ARGS) {
 	FunctionArea_save (me, U"Convert to Unicode");
 	TextGrid_convertToUnicode (my textGrid());
 	Melder_assert (isdefined (my startSelection()));   // precondition of FunctionEditor_updateText()
@@ -914,7 +918,7 @@ static void findInTier (TextGridArea me) {
 					FunctionEditor_scrollToView (my functionEditor(), my startSelection());
 					if (my editable ())
 						GuiText_setSelection (my functionEditor() -> textArea,
-							position - text, position - text + str32len (my findString.get()));
+							position - text, position - text + Melder_length (my findString.get()));
 					return;
 				}
 			}
@@ -936,7 +940,7 @@ static void findInTier (TextGridArea me) {
 					FunctionEditor_scrollToView (my functionEditor(), point -> number);
 					if (my editable ())
 						GuiText_setSelection (my functionEditor() -> textArea,
-							position - text, position - text + str32len (my findString.get()));
+							position - text, position - text + Melder_length (my findString.get()));
 					return;
 				}
 			}
@@ -954,7 +958,7 @@ static void do_find (TextGridArea me) {
 			const char32 * const position = str32str (& label [right], my findString.get());   // CRLF BUG?
 			if (position)
 				GuiText_setSelection (my functionEditor() -> textArea,
-					position - label.get(), position - label.get() + str32len (my findString.get()));
+					position - label.get(), position - label.get() + Melder_length (my findString.get()));
 			else
 				findInTier (me);
 		} else
@@ -962,7 +966,7 @@ static void do_find (TextGridArea me) {
 	}
 }
 
-static void menu_cb_Find (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_Find (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Find text", nullptr)
 		TEXTFIELD (findString, U"Text", U"", 3)
 	EDITOR_OK
@@ -971,7 +975,7 @@ static void menu_cb_Find (TextGridArea me, EDITOR_ARGS_FORM) {
 		do_find (me);
 	EDITOR_END
 }
-static void menu_cb_FindAgain (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_FindAgain (TextGridArea me, EDITOR_ARGS) {
 	do_find (me);
 }
 void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
@@ -979,13 +983,13 @@ void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 		if (our editable()) {
 			FunctionAreaMenu_addCommand (menu, U"-- cut copy paste --", 0, nullptr, this);
 			FunctionAreaMenu_addCommand (menu, U"Cut text", 'X', menu_cb_Cut, this);
-			FunctionAreaMenu_addCommand (menu, U"Cut", Editor_HIDDEN, menu_cb_Cut, this);
+			FunctionAreaMenu_addCommand (menu, U"Cut", GuiMenu_HIDDEN, menu_cb_Cut, this);
 			FunctionAreaMenu_addCommand (menu, U"Copy text", 'C', menu_cb_Copy, this);
-			FunctionAreaMenu_addCommand (menu, U"Copy", Editor_HIDDEN, menu_cb_Copy, this);
+			FunctionAreaMenu_addCommand (menu, U"Copy", GuiMenu_HIDDEN, menu_cb_Copy, this);
 			FunctionAreaMenu_addCommand (menu, U"Paste text", 'V', menu_cb_Paste, this);
-			FunctionAreaMenu_addCommand (menu, U"Paste", Editor_HIDDEN, menu_cb_Paste, this);
+			FunctionAreaMenu_addCommand (menu, U"Paste", GuiMenu_HIDDEN, menu_cb_Paste, this);
 			FunctionAreaMenu_addCommand (menu, U"Erase text", 0, menu_cb_Erase, this);
-			FunctionAreaMenu_addCommand (menu, U"Erase", Editor_HIDDEN, menu_cb_Erase, this);
+			FunctionAreaMenu_addCommand (menu, U"Erase", GuiMenu_HIDDEN, menu_cb_Erase, this);
 		}
 	#endif
 	FunctionAreaMenu_addCommand (menu, U"-- search --", 0, nullptr, this);
@@ -996,7 +1000,7 @@ void structTextGridArea :: v_createMenuItems_edit (EditorMenu menu) {
 
 #pragma mark - TextGridArea Query
 
-static void QUERY_DATA_FOR_REAL__GetStartingPointOfInterval (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__GetStartingPointOfInterval (TextGridArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		checkTierSelection (me, U"query the starting point of an interval");
 		const Function anyTier = my textGrid() -> tiers->at [my selectedTier];
@@ -1009,7 +1013,7 @@ static void QUERY_DATA_FOR_REAL__GetStartingPointOfInterval (TextGridArea me, ED
 	QUERY_DATA_FOR_REAL_END (U" seconds")
 }
 
-static void QUERY_DATA_FOR_REAL__GetEndPointOfInterval (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__GetEndPointOfInterval (TextGridArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		checkTierSelection (me, U"query the end point of an interval");
 		const Function anyTier = my textGrid() -> tiers->at [my selectedTier];
@@ -1022,7 +1026,7 @@ static void QUERY_DATA_FOR_REAL__GetEndPointOfInterval (TextGridArea me, EDITOR_
 	QUERY_DATA_FOR_REAL_END (U" seconds")
 }
 
-static void QUERY_DATA_FOR_STRING__GetLabelOfInterval (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_STRING__GetLabelOfInterval (TextGridArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_STRING
 		checkTierSelection (me, U"query the label of an interval");
 		const Function anyTier = my textGrid() -> tiers->at [my selectedTier];
@@ -1074,7 +1078,7 @@ static void gui_text_cb_changed (TextGridArea me, GuiTextEvent /* event */) {
 
 #pragma mark - TextGridArea TextGrid/Prefs
 
-static void menu_cb_TextGridPreferences (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_TextGridPreferences (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"TextGrid preferences", nullptr)
 		POSITIVE (fontSize, U"Font size (points)", my default_fontSize())
 		OPTIONMENU_ENUM (kGraphics_horizontalAlignment, textAlignmentInIntervals,
@@ -1131,10 +1135,10 @@ static void do_selectAdjacentTier (TextGridArea me, bool previous) {
 		FunctionEditor_marksChanged (my functionEditor(), true);
 	}
 }
-static void menu_cb_SelectPreviousTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_SelectPreviousTier (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentTier (me, true);
 }
-static void menu_cb_SelectNextTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_SelectNextTier (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentTier (me, false);
 }
 static void do_selectAdjacentInterval (TextGridArea me, bool previous, bool shift) {
@@ -1200,23 +1204,23 @@ static void do_selectAdjacentInterval (TextGridArea me, bool previous, bool shif
 		}
 	}
 }
-static void menu_cb_SelectPreviousInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_SelectPreviousInterval (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentInterval (me, true, false);
 }
-static void menu_cb_SelectNextInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_SelectNextInterval (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentInterval (me, false, false);
 }
-static void menu_cb_ExtendSelectPreviousInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_ExtendSelectPreviousInterval (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentInterval (me, true, true);
 }
-static void menu_cb_ExtendSelectNextInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_ExtendSelectNextInterval (TextGridArea me, EDITOR_ARGS) {
 	do_selectAdjacentInterval (me, false, true);
 }
 
 
 #pragma mark - TextGridArea Draw
 
-static void menu_cb_DrawVisibleTextGrid (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_DrawVisibleTextGrid (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible TextGrid", nullptr)
 		my v_form_pictureWindow (cmd);
 		my v_form_pictureMargins (cmd);
@@ -1232,14 +1236,14 @@ static void menu_cb_DrawVisibleTextGrid (TextGridArea me, EDITOR_ARGS_FORM) {
 		my v_do_pictureMargins (cmd);
 		my v_do_pictureSelection (cmd);
 		my setClassPref_picture_garnish (garnish);
-		Editor_openPraatPicture (my functionEditor());
-		TextGrid_Sound_draw (my textGrid(), nullptr, my functionEditor() -> pictureGraphics,
+		DataGui_openPraatPicture (me);
+		TextGrid_Sound_draw (my textGrid(), nullptr, my pictureGraphics(),
 				my startWindow(), my endWindow(), true, my instancePref_useTextStyles(), garnish);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
-static void menu_cb_DrawVisibleSoundAndTextGrid (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_DrawVisibleSoundAndTextGrid (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible sound and TextGrid", nullptr)
 		my v_form_pictureWindow (cmd);
 		my v_form_pictureMargins (cmd);
@@ -1255,7 +1259,7 @@ static void menu_cb_DrawVisibleSoundAndTextGrid (TextGridArea me, EDITOR_ARGS_FO
 		my v_do_pictureMargins (cmd);
 		my v_do_pictureSelection (cmd);
 		my setClassPref_picture_garnish (garnish);
-		Editor_openPraatPicture (my functionEditor());
+		DataGui_openPraatPicture (me);
 		{// scope
 			autoSound sound = (
 				my borrowedSoundArea -> longSound() ?
@@ -1264,14 +1268,14 @@ static void menu_cb_DrawVisibleSoundAndTextGrid (TextGridArea me, EDITOR_ARGS_FO
 				:	Sound_extractPart (my borrowedSoundArea -> sound(),
 							my startWindow(), my endWindow(), kSound_windowShape::RECTANGULAR, 1.0, true)
 			);
-			TextGrid_Sound_draw (my textGrid(), sound.get(), my functionEditor() -> pictureGraphics,
+			TextGrid_Sound_draw (my textGrid(), sound.get(), my pictureGraphics(),
 					my startWindow(), my endWindow(), true, my instancePref_useTextStyles(), garnish);
 		}
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
-static void menu_cb_DrawTextGridAndPitch (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_DrawTextGridAndPitch (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw TextGrid and Pitch separately", nullptr)
 		my v_form_pictureWindow (cmd);
 		LABEL (U"TextGrid:")
@@ -1296,7 +1300,7 @@ static void menu_cb_DrawTextGridAndPitch (TextGridArea me, EDITOR_ARGS_FORM) {
 		my v_do_pictureSelection (cmd);
 		my setClassPref_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisiblePitch (my borrowedSoundAnalysisArea);
-		Editor_openPraatPicture (my functionEditor());
+		DataGui_openPraatPicture (me);
 		const double pitchFloor_hidden = Function_convertStandardToSpecialUnit (my borrowedSoundAnalysisArea -> d_pitch.get(),
 				my borrowedSoundAnalysisArea -> instancePref_pitch_floor(), Pitch_LEVEL_FREQUENCY, (int) my borrowedSoundAnalysisArea -> instancePref_pitch_unit());
 		const double pitchCeiling_hidden = Function_convertStandardToSpecialUnit (my borrowedSoundAnalysisArea -> d_pitch.get(),
@@ -1307,26 +1311,26 @@ static void menu_cb_DrawTextGridAndPitch (TextGridArea me, EDITOR_ARGS_FORM) {
 				pitchCeiling_hidden, Pitch_LEVEL_FREQUENCY, (int) my borrowedSoundAnalysisArea -> instancePref_pitch_unit());
 		const double pitchViewFrom_overt = ( my borrowedSoundAnalysisArea -> instancePref_pitch_viewFrom() < my borrowedSoundAnalysisArea -> instancePref_pitch_viewTo() ? my borrowedSoundAnalysisArea -> instancePref_pitch_viewFrom() : pitchFloor_overt );
 		const double pitchViewTo_overt = ( my borrowedSoundAnalysisArea -> instancePref_pitch_viewFrom() < my borrowedSoundAnalysisArea -> instancePref_pitch_viewTo() ? my borrowedSoundAnalysisArea -> instancePref_pitch_viewTo() : pitchCeiling_overt );
-		TextGrid_Pitch_drawSeparately (my textGrid(), my borrowedSoundAnalysisArea -> d_pitch.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(),
+		TextGrid_Pitch_drawSeparately (my textGrid(), my borrowedSoundAnalysisArea -> d_pitch.get(), my pictureGraphics(), my startWindow(), my endWindow(),
 			pitchViewFrom_overt, pitchViewTo_overt, showBoundariesAndPoints, my instancePref_useTextStyles(), garnish,
 			speckle, my borrowedSoundAnalysisArea -> instancePref_pitch_unit()
 		);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
 
 #pragma mark - TextGridArea Extract
 
-static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes (TextGridArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		if (my endSelection() <= my startSelection())
 			Melder_throw (U"No selection.");
 		autoTextGrid result = TextGrid_extractPart (my textGrid(), my startSelection(), my endSelection(), true);
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
-static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero (TextGridArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		if (my endSelection() <= my startSelection())
 			Melder_throw (U"No selection.");
@@ -1337,7 +1341,7 @@ static void CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero (TextGridA
 
 #pragma mark - TextGridArea Interval menu
 
-static void menu_cb_AlignInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_AlignInterval (TextGridArea me, EDITOR_ARGS) {
 	checkTierSelection (me, U"align words");
 	const AnyTier tier = static_cast <AnyTier> (my textGrid() -> tiers->at [my selectedTier]);
 	if (tier -> classInfo != classIntervalTier)
@@ -1355,7 +1359,7 @@ static void menu_cb_AlignInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
 	}
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_AlignmentSettings (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_AlignmentSettings (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Alignment settings", nullptr)
 		OPTIONMENU (language, U"Language", (int) Strings_findString (espeakdata_languages_names.get(), U"English (Great Britain)"))
 		for (integer i = 1; i <= espeakdata_languages_names -> numberOfStrings; i ++) {
@@ -1392,18 +1396,18 @@ static void do_insertIntervalOnTier (TextGridArea me, int itier) {
 		Melder_throw (U"Interval not inserted.");
 	}
 }
-static void menu_cb_InsertIntervalOnTier1 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 1); }
-static void menu_cb_InsertIntervalOnTier2 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 2); }
-static void menu_cb_InsertIntervalOnTier3 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 3); }
-static void menu_cb_InsertIntervalOnTier4 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 4); }
-static void menu_cb_InsertIntervalOnTier5 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 5); }
-static void menu_cb_InsertIntervalOnTier6 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 6); }
-static void menu_cb_InsertIntervalOnTier7 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 7); }
-static void menu_cb_InsertIntervalOnTier8 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertIntervalOnTier (me, 8); }
+static void menu_cb_InsertIntervalOnTier1 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 1); }
+static void menu_cb_InsertIntervalOnTier2 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 2); }
+static void menu_cb_InsertIntervalOnTier3 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 3); }
+static void menu_cb_InsertIntervalOnTier4 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 4); }
+static void menu_cb_InsertIntervalOnTier5 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 5); }
+static void menu_cb_InsertIntervalOnTier6 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 6); }
+static void menu_cb_InsertIntervalOnTier7 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 7); }
+static void menu_cb_InsertIntervalOnTier8 (TextGridArea me, EDITOR_ARGS) { do_insertIntervalOnTier (me, 8); }
 
 #pragma mark - TextGridArea Boundary menu
 
-static void menu_cb_RemovePointOrBoundary (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_RemovePointOrBoundary (TextGridArea me, EDITOR_ARGS) {
 	checkTierSelection (me, U"remove a point or boundary");
 	const Function anyTier = my textGrid() -> tiers->at [my selectedTier];
 	if (anyTier -> classInfo == classIntervalTier) {
@@ -1468,13 +1472,13 @@ static void do_movePointOrBoundary (TextGridArea me, int where) {
 	}
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_MoveToB (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_MoveToB (TextGridArea me, EDITOR_ARGS) {
 	do_movePointOrBoundary (me, 1);
 }
-static void menu_cb_MoveToE (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_MoveToE (TextGridArea me, EDITOR_ARGS) {
 	do_movePointOrBoundary (me, 2);
 }
-static void menu_cb_MoveToZero (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_MoveToZero (TextGridArea me, EDITOR_ARGS) {
 	do_movePointOrBoundary (me, 0);
 }
 static void do_insertOnTier (TextGridArea me, integer itier) {
@@ -1490,19 +1494,19 @@ static void do_insertOnTier (TextGridArea me, integer itier) {
 		Melder_throw (U"Boundary or point not inserted.");
 	}
 }
-static void menu_cb_InsertOnSelectedTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_InsertOnSelectedTier (TextGridArea me, EDITOR_ARGS) {
 	do_insertOnTier (me, my selectedTier);
 }
-static void menu_cb_InsertOnTier1 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 1); }
-static void menu_cb_InsertOnTier2 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 2); }
-static void menu_cb_InsertOnTier3 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 3); }
-static void menu_cb_InsertOnTier4 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 4); }
-static void menu_cb_InsertOnTier5 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 5); }
-static void menu_cb_InsertOnTier6 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 6); }
-static void menu_cb_InsertOnTier7 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 7); }
-static void menu_cb_InsertOnTier8 (TextGridArea me, EDITOR_ARGS_DIRECT) { do_insertOnTier (me, 8); }
+static void menu_cb_InsertOnTier1 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 1); }
+static void menu_cb_InsertOnTier2 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 2); }
+static void menu_cb_InsertOnTier3 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 3); }
+static void menu_cb_InsertOnTier4 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 4); }
+static void menu_cb_InsertOnTier5 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 5); }
+static void menu_cb_InsertOnTier6 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 6); }
+static void menu_cb_InsertOnTier7 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 7); }
+static void menu_cb_InsertOnTier8 (TextGridArea me, EDITOR_ARGS) { do_insertOnTier (me, 8); }
 
-static void menu_cb_InsertOnAllTiers (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_InsertOnAllTiers (TextGridArea me, EDITOR_ARGS) {
 	const integer saveTier = my selectedTier;
 	for (integer itier = 1; itier <= my textGrid() -> tiers->size; itier ++)
 		do_insertOnTier (me, itier);
@@ -1512,7 +1516,7 @@ static void menu_cb_InsertOnAllTiers (TextGridArea me, EDITOR_ARGS_DIRECT) {
 
 #pragma mark - TextGridArea Tier menu
 
-static void menu_cb_RenameTier (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_RenameTier (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Rename tier", nullptr)
 		SENTENCE (newName, U"New name", U"");
 	EDITOR_OK
@@ -1530,7 +1534,7 @@ static void menu_cb_RenameTier (TextGridArea me, EDITOR_ARGS_FORM) {
 		FunctionArea_broadcastDataChanged (me);
 	EDITOR_END
 }
-static void CONVERT_DATA_TO_ONE__PublishTier (TextGridArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__PublishTier (TextGridArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		checkTierSelection (me, U"publish a tier");
 		const Function tier = my textGrid() -> tiers->at [my selectedTier];
@@ -1538,7 +1542,7 @@ static void CONVERT_DATA_TO_ONE__PublishTier (TextGridArea me, EDITOR_ARGS_DIREC
 		TextGrid_addTier_copy (result.get(), tier);
 	CONVERT_DATA_TO_ONE_END (tier -> name.get())
 }
-static void menu_cb_RemoveAllTextFromTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_RemoveAllTextFromTier (TextGridArea me, EDITOR_ARGS) {
 	checkTierSelection (me, U"remove all text from a tier");
 	IntervalTier intervalTier;
 	TextTier textTier;
@@ -1552,7 +1556,7 @@ static void menu_cb_RemoveAllTextFromTier (TextGridArea me, EDITOR_ARGS_DIRECT) 
 
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_RemoveTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_RemoveTier (TextGridArea me, EDITOR_ARGS) {
 	if (my textGrid() -> tiers->size <= 1)
 		Melder_throw (U"Sorry, I refuse to remove the last tier.");
 	checkTierSelection (me, U"remove a tier");
@@ -1563,7 +1567,7 @@ static void menu_cb_RemoveTier (TextGridArea me, EDITOR_ARGS_DIRECT) {
 	//my textGridArea -> selectedTier = 1; TRY OUT 2022-07-23
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_AddIntervalTier (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_AddIntervalTier (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Add interval tier", nullptr)
 		NATURAL (position, U"Position", U"1 (= at top)")
 		SENTENCE (name, U"Name", U"")
@@ -1584,7 +1588,7 @@ static void menu_cb_AddIntervalTier (TextGridArea me, EDITOR_ARGS_FORM) {
 		FunctionArea_broadcastDataChanged (me);
 	EDITOR_END
 }
-static void menu_cb_AddPointTier (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_AddPointTier (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Add point tier", nullptr)
 		NATURAL (position, U"Position", U"1 (= at top)")
 		SENTENCE (name, U"Name", U"");
@@ -1605,7 +1609,7 @@ static void menu_cb_AddPointTier (TextGridArea me, EDITOR_ARGS_FORM) {
 		FunctionArea_broadcastDataChanged (me);
 	EDITOR_END
 }
-static void menu_cb_DuplicateTier (TextGridArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_DuplicateTier (TextGridArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Duplicate tier", nullptr)
 		NATURAL (position, U"Position", U"1 (= at top)")
 		SENTENCE (name, U"Name", U"")
@@ -1651,7 +1655,7 @@ static void checkSpellingInTier (TextGridArea me) {
 					Melder_assert (isdefined (my startSelection()));   // precondition of FunctionEditor_scrollToView()
 					FunctionEditor_scrollToView (my functionEditor(), my startSelection());
 					GuiText_setSelection (my functionEditor() -> textArea,
-							position, position + str32len (notAllowed));
+							position, position + Melder_length (notAllowed));
 					return;
 				}
 			}
@@ -1672,7 +1676,7 @@ static void checkSpellingInTier (TextGridArea me) {
 					my setSelection (point -> number, point -> number);
 					Melder_assert (isdefined (my startSelection()));   // precondition of FunctionEditor_scrollToView()
 					FunctionEditor_scrollToView (my functionEditor(), point -> number);
-					GuiText_setSelection (my functionEditor() -> textArea, position, position + str32len (notAllowed));
+					GuiText_setSelection (my functionEditor() -> textArea, position, position + Melder_length (notAllowed));
 					return;
 				}
 			}
@@ -1682,7 +1686,7 @@ static void checkSpellingInTier (TextGridArea me) {
 			Melder_beep ();
 	}
 }
-static void menu_cb_CheckSpelling (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_CheckSpelling (TextGridArea me, EDITOR_ARGS) {
 	if (my spellingChecker) {
 		integer left, right;
 		autostring32 label = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & left, & right);
@@ -1690,12 +1694,12 @@ static void menu_cb_CheckSpelling (TextGridArea me, EDITOR_ARGS_DIRECT) {
 		conststring32 notAllowed = SpellingChecker_nextNotAllowedWord (my spellingChecker, label.get(), & position);
 		if (notAllowed)
 			GuiText_setSelection (my functionEditor() -> textArea,
-					position, position + str32len (notAllowed));
+					position, position + Melder_length (notAllowed));
 		else
 			checkSpellingInTier (me);
 	}
 }
-static void menu_cb_CheckSpellingInInterval (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_CheckSpellingInInterval (TextGridArea me, EDITOR_ARGS) {
 	if (my spellingChecker) {
 		integer left, right;
 		autostring32 label = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & left, & right);
@@ -1703,10 +1707,10 @@ static void menu_cb_CheckSpellingInInterval (TextGridArea me, EDITOR_ARGS_DIRECT
 		conststring32 notAllowed = SpellingChecker_nextNotAllowedWord (my spellingChecker, label.get(), & position);
 		if (notAllowed)
 			GuiText_setSelection (my functionEditor() -> textArea,
-					position, position + str32len (notAllowed));
+					position, position + Melder_length (notAllowed));
 	}
 }
-static void menu_cb_AddToUserDictionary (TextGridArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_AddToUserDictionary (TextGridArea me, EDITOR_ARGS) {
 	if (my spellingChecker) {
 		const autostring32 word = GuiText_getSelection (my functionEditor() -> textArea);
 		SpellingChecker_addNewWord (my spellingChecker, word.get());
@@ -1730,34 +1734,38 @@ void structTextGridArea :: v_createMenus () {
 	}
 
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Select by TextGrid:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous tier", GuiMenu_OPTION | GuiMenu_UP_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous tier", GuiMenu_OPTION | GuiMenu_UP_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_SelectPreviousTier, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Select next tier", GuiMenu_OPTION | GuiMenu_DOWN_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Select next tier", GuiMenu_OPTION | GuiMenu_DOWN_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_SelectNextTier, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous interval", GuiMenu_OPTION | GuiMenu_LEFT_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Select previous interval", GuiMenu_OPTION | GuiMenu_LEFT_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_SelectPreviousInterval, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Select next interval", GuiMenu_OPTION | GuiMenu_RIGHT_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Select next interval", GuiMenu_OPTION | GuiMenu_RIGHT_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_SelectNextInterval, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Extend-select left", GuiMenu_SHIFT | GuiMenu_OPTION | GuiMenu_LEFT_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Extend-select left", GuiMenu_SHIFT | GuiMenu_OPTION | GuiMenu_LEFT_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_ExtendSelectPreviousInterval, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Extend-select right", GuiMenu_SHIFT | GuiMenu_OPTION | GuiMenu_RIGHT_ARROW,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Extend-select right", GuiMenu_SHIFT | GuiMenu_OPTION | GuiMenu_RIGHT_ARROW | GuiMenu_DEPTH_1,
 			menu_cb_ExtendSelectNextInterval, this);
 
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Draw TextGrid to picture window:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible TextGrid...", 0,
+	FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible TextGrid...", 1,
 			menu_cb_DrawVisibleTextGrid, this);
 	if (our borrowedSoundArea)
-		FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible sound and TextGrid...", 0,
+		FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible sound and TextGrid...", 1,
 				menu_cb_DrawVisibleSoundAndTextGrid, this);
 	if (our borrowedSoundAnalysisArea)
-		FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible pitch contour and TextGrid...", 0,
+		FunctionAreaMenu_addCommand (textGridMenu, U"Draw visible pitch contour and TextGrid...", 1,
 				menu_cb_DrawTextGridAndPitch, this);
 
 	FunctionAreaMenu_addCommand (textGridMenu, U"- Extract TextGrid to objects window:", 0, nullptr, this);
-	our extractSelectedTextGridPreserveTimesButton = FunctionAreaMenu_addCommand (textGridMenu, U"Extract selected TextGrid (preserve times)", 0,
-			CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes, this);
-	our extractSelectedTextGridTimeFromZeroButton = FunctionAreaMenu_addCommand (textGridMenu, U"Extract selected TextGrid (time from 0)", 0,
-			CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero, this);
+	our extractSelectedTextGridPreserveTimesButton = FunctionAreaMenu_addCommand (textGridMenu,
+		U"Extract selected TextGrid (preserve times)",
+		1, CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_preserveTimes, this
+	);
+	our extractSelectedTextGridTimeFromZeroButton = FunctionAreaMenu_addCommand (textGridMenu,
+		U"Extract selected TextGrid (time from 0)",
+		1, CONVERT_DATA_TO_ONE__ExtractSelectedTextGrid_timeFromZero, this
+	);
 
 	EditorMenu intervalMenu = Editor_addMenu (our functionEditor(), U"Interval", 0);
 	if (our editable()) {
@@ -1769,30 +1777,30 @@ void structTextGridArea :: v_createMenus () {
 			FunctionAreaMenu_addCommand (intervalMenu, U"-- after align --", 0, nullptr, this);
 		}
 		FunctionAreaMenu_addCommand (intervalMenu, U"New interval:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 1", GuiMenu_COMMAND | '1',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 1", GuiMenu_COMMAND | '1' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier1, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 2", GuiMenu_COMMAND | '2',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 2", GuiMenu_COMMAND | '2' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier2, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 3", GuiMenu_COMMAND | '3',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 3", GuiMenu_COMMAND | '3' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier3, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 4", GuiMenu_COMMAND | '4',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 4", GuiMenu_COMMAND | '4' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier4, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 5", GuiMenu_COMMAND | '5',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 5", GuiMenu_COMMAND | '5' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier5, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 6", GuiMenu_COMMAND | '6',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 6", GuiMenu_COMMAND | '6' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier6, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 7", GuiMenu_COMMAND | '7',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 7", GuiMenu_COMMAND | '7' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier7, this);
-		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 8", GuiMenu_COMMAND | '8',
+		FunctionAreaMenu_addCommand (intervalMenu, U"Add interval on tier 8", GuiMenu_COMMAND | '8' | GuiMenu_DEPTH_1,
 				menu_cb_InsertIntervalOnTier8, this);
 	}
 
 	FunctionAreaMenu_addCommand (intervalMenu, U"- Query interval:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (intervalMenu, U"Get starting point of interval", 0,
+	FunctionAreaMenu_addCommand (intervalMenu, U"Get starting point of interval", 1,
 			QUERY_DATA_FOR_REAL__GetStartingPointOfInterval, this);
-	FunctionAreaMenu_addCommand (intervalMenu, U"Get end point of interval", 0,
+	FunctionAreaMenu_addCommand (intervalMenu, U"Get end point of interval", 1,
 			QUERY_DATA_FOR_REAL__GetEndPointOfInterval, this);
-	FunctionAreaMenu_addCommand (intervalMenu, U"Get label of interval", 0,
+	FunctionAreaMenu_addCommand (intervalMenu, U"Get label of interval", 1,
 			QUERY_DATA_FOR_STRING__GetLabelOfInterval, this);
 
 	EditorMenu boundaryMenu = Editor_addMenu (our functionEditor(), U"Boundary", 0);
@@ -1800,54 +1808,54 @@ void structTextGridArea :: v_createMenus () {
 	FunctionAreaMenu_addCommand (boundaryMenu, U"Move to E", 0, menu_cb_MoveToE, this);*/
 	if (our editable()) {
 		FunctionAreaMenu_addCommand (boundaryMenu, U"New boundary or point:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on selected tier", GuiMenu_ENTER,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on selected tier", GuiMenu_ENTER | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnSelectedTier, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 1", GuiMenu_COMMAND | GuiMenu_F1,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 1", GuiMenu_COMMAND | GuiMenu_F1 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier1, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 2", GuiMenu_COMMAND | GuiMenu_F2,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 2", GuiMenu_COMMAND | GuiMenu_F2 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier2, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 3", GuiMenu_COMMAND | GuiMenu_F3,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 3", GuiMenu_COMMAND | GuiMenu_F3 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier3, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 4", GuiMenu_COMMAND | GuiMenu_F4,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 4", GuiMenu_COMMAND | GuiMenu_F4 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier4, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 5", GuiMenu_COMMAND | GuiMenu_F5,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 5", GuiMenu_COMMAND | GuiMenu_F5 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier5, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 6", GuiMenu_COMMAND | GuiMenu_F6,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 6", GuiMenu_COMMAND | GuiMenu_F6 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier6, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 7", GuiMenu_COMMAND | GuiMenu_F7,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 7", GuiMenu_COMMAND | GuiMenu_F7 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier7, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 8", GuiMenu_COMMAND | GuiMenu_F8,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on tier 8", GuiMenu_COMMAND | GuiMenu_F8 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnTier8, this);
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on all tiers", GuiMenu_COMMAND | GuiMenu_F9,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Add on all tiers", GuiMenu_COMMAND | GuiMenu_F9 | GuiMenu_DEPTH_1,
 				menu_cb_InsertOnAllTiers, this);
 		FunctionAreaMenu_addCommand (boundaryMenu, U"- Modify boundary or point:", 0, nullptr, this);
 		if (our borrowedSoundArea && ! Thing_isa (our borrowedSoundArea, classLongSoundArea)) {
-			FunctionAreaMenu_addCommand (boundaryMenu, U"Move to nearest zero crossing", 0,
+			FunctionAreaMenu_addCommand (boundaryMenu, U"Move to nearest zero crossing", 1,
 					menu_cb_MoveToZero, this);
 		}
-		FunctionAreaMenu_addCommand (boundaryMenu, U"Remove", GuiMenu_OPTION | GuiMenu_BACKSPACE,
+		FunctionAreaMenu_addCommand (boundaryMenu, U"Remove", GuiMenu_OPTION | GuiMenu_BACKSPACE | GuiMenu_DEPTH_1,
 				menu_cb_RemovePointOrBoundary, this);
 	}
 
 	EditorMenu tierMenu = Editor_addMenu (our functionEditor(), U"Tier", 0);
 	if (our editable()) {
 		FunctionAreaMenu_addCommand (tierMenu, U"New tier:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Add interval tier...", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Add interval tier...", 1,
 				menu_cb_AddIntervalTier, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Add point tier...", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Add point tier...", 1,
 				menu_cb_AddPointTier, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Duplicate tier...", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Duplicate tier...", 1,
 				menu_cb_DuplicateTier, this);
 		FunctionAreaMenu_addCommand (tierMenu, U"- Modify tier:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Rename tier...", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Rename tier...", 1,
 				menu_cb_RenameTier, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Remove all text from tier", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Remove all text from tier", 1,
 				menu_cb_RemoveAllTextFromTier, this);
-		FunctionAreaMenu_addCommand (tierMenu, U"Remove entire tier", 0,
+		FunctionAreaMenu_addCommand (tierMenu, U"Remove entire tier", 1,
 				menu_cb_RemoveTier, this);
 	}
 	FunctionAreaMenu_addCommand (tierMenu, U"- Extract to list of objects:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (tierMenu, U"Extract entire selected tier", 0,
+	FunctionAreaMenu_addCommand (tierMenu, U"Extract entire selected tier", 1,
 			CONVERT_DATA_TO_ONE__PublishTier, this);
 
 	if (our functionEditor() -> textArea)
@@ -1902,7 +1910,7 @@ void structTextGridArea :: v_updateText () {
 		our suppressRedraw = true;   // prevent valueChangedCallback from redrawing
 		trace (U"setting new text ", newText);
 		GuiText_setString (our functionEditor() -> textArea, newText);
-		const integer cursor = str32len (newText);   // at end
+		const integer cursor = Melder_length (newText);   // at end
 		GuiText_setSelection (our functionEditor() -> textArea, cursor, cursor);
 		our suppressRedraw = false;
 	}
@@ -1952,7 +1960,7 @@ void TextGridArea_clickSelectionViewer (TextGridArea me, double x_fraction, doub
 	if (columnNumber < 1 || columnNumber > 10)
 		return;
 	conststring32 character = characters [rowNumber-1] [columnNumber-1];
-	character += str32len (character) - 1;
+	character += Melder_length (character) - 1;
 	if (my functionEditor() -> textArea) {
 		integer first = 0, last = 0;
 		autostring32 oldText = GuiText_getStringAndSelectionPosition (my functionEditor() -> textArea, & first, & last);

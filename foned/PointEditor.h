@@ -27,8 +27,8 @@ Thing_define (PointEditor, FunctionEditor) {
 	DEFINE_FunctionArea (1, PointArea, pointArea)
 	DEFINE_FunctionArea (2, SoundArea, soundArea)
 
-	void v1_dataChanged () override {
-		PointEditor_Parent :: v1_dataChanged ();
+	void v1_dataChanged (Editor sender) override {
+		PointEditor_Parent :: v1_dataChanged (sender);
 		our pointArea() -> functionChanged (static_cast <PointProcess> (our data()));
 		if (our soundArea())
 			our soundArea() -> functionChanged (nullptr);
@@ -50,7 +50,7 @@ Thing_define (PointEditor, FunctionEditor) {
 		if (our soundArea())
 			Sound_playPart (our soundArea() -> sound(), startTime, endTime, theFunctionEditor_playCallback, this);
 		else
-			PointProcess_playPart (our pointArea() -> pointProcess(), startTime, endTime);   // BUG: why no callback?
+			PointProcess_playPart (our pointArea() -> pointProcess(), startTime, endTime, theFunctionEditor_playCallback, this);
 	}
 };
 

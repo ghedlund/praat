@@ -27,10 +27,10 @@
 #include "KlattGridEditors.h"
 #include "EditorM.h"
 
-static void KlattGrid_Editor_defaultPlay (KlattGrid me, double tmin, double tmax) {
+static void KlattGrid_Editor_defaultPlay (KlattGrid me, FunctionEditor editor, double tmin, double tmax) {
 	my options -> xmin = tmin;
-	my options-> xmax = tmax;
-	KlattGrid_playSpecial (me);
+	my options -> xmax = tmax;
+	KlattGrid_playSpecial (me, theFunctionEditor_playCallback, editor);
 }
 
 
@@ -38,7 +38,7 @@ static void KlattGrid_Editor_defaultPlay (KlattGrid me, double tmin, double tmax
 
 Thing_implement (KlattGrid_RealTierEditor, RealTierEditor, 0);
 
-static void menu_cb_KlattGridHelp (KlattGrid_RealTierEditor, EDITOR_ARGS_DIRECT) {
+static void menu_cb_KlattGridHelp (KlattGrid_RealTierEditor, EDITOR_ARGS) {
 	Melder_help (U"KlattGrid");
 }
 
@@ -48,7 +48,7 @@ void structKlattGrid_RealTierEditor :: v_createMenuItems_help (EditorMenu menu) 
 }
 
 void structKlattGrid_RealTierEditor :: v_play (double startTime, double endTime) {
-	KlattGrid_Editor_defaultPlay (our klattgrid(), startTime, endTime);
+	KlattGrid_Editor_defaultPlay (our klattgrid(), this, startTime, endTime);
 }
 
 
@@ -56,7 +56,7 @@ void structKlattGrid_RealTierEditor :: v_play (double startTime, double endTime)
 
 Thing_implement (KlattGrid_IntensityTierEditor, KlattGrid_RealTierEditor, 0);
 
-static void menu_cb_IntensityTierHelp (KlattGrid_IntensityTierEditor, EDITOR_ARGS_DIRECT) {
+static void menu_cb_IntensityTierHelp (KlattGrid_IntensityTierEditor, EDITOR_ARGS) {
 	Melder_help (U"IntensityTier");
 }
 
@@ -78,11 +78,11 @@ Thing_implement (KlattGrid_PitchTierArea, PitchTierArea, 0);
 
 Thing_implement (KlattGrid_PitchTierEditor, KlattGrid_RealTierEditor, 0);
 
-static void menu_cb_KlattGrid_PitchTierEditorHelp (KlattGrid_PitchTierEditor, EDITOR_ARGS_DIRECT) {
+static void menu_cb_KlattGrid_PitchTierEditorHelp (KlattGrid_PitchTierEditor, EDITOR_ARGS) {
 	Melder_help (U"PitchTierEditor");
 }
 
-static void menu_cb_PitchTierHelp (KlattGrid_PitchTierEditor, EDITOR_ARGS_DIRECT) {
+static void menu_cb_PitchTierHelp (KlattGrid_PitchTierEditor, EDITOR_ARGS) {
 	Melder_help (U"PitchTier");
 }
 
@@ -404,7 +404,7 @@ static bool FormantGrid_isEmpty (FormantGrid me) {
 }
 
 void structKlattGrid_FormantGridEditor :: v_play (double startTime, double endTime) {
-	KlattGrid_Editor_defaultPlay (static_cast <KlattGrid> (our data()), startTime, endTime);
+	KlattGrid_Editor_defaultPlay (static_cast <KlattGrid> (our data()), this, startTime, endTime);
 }
 
 autoKlattGrid_FormantGridEditor KlattGrid_FormantGridEditor_create (conststring32 title, KlattGrid klattgrid, kKlattGridFormantType formantType) {

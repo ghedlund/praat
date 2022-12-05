@@ -71,13 +71,28 @@ static GuiMenuItem DataGuiMenu_addCommand_ (EditorMenu me, conststring32 itemTit
 			itemTitle += 2;
 		}
 	}
-	thy itemTitle = Melder_dup (itemTitle);   // after the potential shift by 2
+	const int depth = (flags & GuiMenu_DEPTH_3) >> 16;   // the maximum depth in editor windows is 3
+	thy itemTitle = Melder_dup (itemTitle);
+	if (depth > 0) {
+		/*
+			bikeshed choices for indented menu items
+		*/
+		[[maybe_unused]] constexpr conststring32 space = U"      ";   // minimalist
+		[[maybe_unused]] constexpr conststring32 fourDots = U"\u205E   ";   // not evenly dispersed
+		[[maybe_unused]] constexpr conststring32 twoDots = U"\u205A   ";   // dispersion OKish
+		[[maybe_unused]] constexpr conststring32 oneDot = U"·   ";   // dispersion good, not too prominent, not really thin
+		[[maybe_unused]] constexpr conststring32 hyphenationPoint = U"\u2027   ";   // xx
+		[[maybe_unused]] constexpr conststring32 pipe = U"|   ";   // not long enough, prominent
+		[[maybe_unused]] constexpr conststring32 boxDrawingLightVertical = U"\u2502   ";   // not long enough, prominent
+		[[maybe_unused]] constexpr conststring32 boxDrawingLightQuadrupleDashVertical = U"\u250A   ";   // not long enough, but nicely thin
+		itemTitle = Melder_cat (space, itemTitle);
+	}
 	if (! commandCallback)
 		flags |= GuiMenu_INSENSITIVE;
 	thy itemWidget =
 		titleIsHeader ? GuiMenu_addItem (my menuWidget, itemTitle, flags, nullptr, nullptr) :
 		! commandCallback ? GuiMenu_addSeparator (my menuWidget) :
-		flags & Editor_HIDDEN ? nullptr :
+		flags & GuiMenu_HIDDEN ? nullptr :
 		GuiMenu_addItem (my menuWidget, itemTitle, flags, commonCallback, thee.get())
 	;   // DANGLE BUG: me can be killed by Collection_addItem(), but EditorCommand::destroy doesn't remove the item
 	thy commandCallback = commandCallback;
@@ -88,11 +103,11 @@ static GuiMenuItem DataGuiMenu_addCommand_ (EditorMenu me, conststring32 itemTit
 GuiMenuItem DataGuiMenu_addCommand (EditorMenu me, conststring32 itemTitle /* cattable */, uint32 flags,
 	DataGuiCommandCallback commandCallback, DataGui optionalSender)
 {
+	if (flags < 3)   // the maximum depth in editor windows is 3
+		flags *= GuiMenu_DEPTH_1;   // turn 1..3 into GuiMenu_DEPTH_1..GuiMenu_DEPTH_3, because the flags are ORed below
 	const char32 *pSeparator = str32str (itemTitle, U" || ");
 	if (! pSeparator)
 		return DataGuiMenu_addCommand_ (me, itemTitle, flags, commandCallback, optionalSender);
-	if (flags < 8)
-		flags *= GuiMenu_DEPTH_1;   // turn 1..7 into GuiMenu_DEPTH_1..GuiMenu_DEPTH_7, because the flags are ORed below
 	integer positionOfSeparator = pSeparator - itemTitle;
 	static MelderString string;
 	MelderString_copy (& string, itemTitle);
@@ -148,7 +163,7 @@ GuiMenuItem Editor_addCommand (Editor me, conststring32 menuTitle, conststring32
 static void Editor_scriptCallback (Editor me, EditorCommand cmd, UiForm /* sendingForm */,
 	integer /* narg */, Stackel /* args */, conststring32 /* sendingString */, Interpreter /* interpreter */)
 {
-	DO_RunTheScriptFromAnyAddedEditorCommand (me, cmd -> script.get());
+	praat_executeScriptFromEditorCommand (me, cmd, cmd -> script.get());
 }
 
 static EditorMenu findMenu (Editor me, conststring32 menuTitle) {
@@ -203,7 +218,10 @@ GuiMenuItem Editor_addCommandScript (Editor me, conststring32 menuTitle, constst
 			if (! warningGiven) {
 				warningGiven = true;
 				Melder_warning (U"The menu \"", menuTitle, U"\" no longer exists. The command \"", itemTitle,
-						U"\" has been installed in the menu \"", alternativeMenuTitle, U"\" instead. You could consider updating the script \"", script, U"\".");
+					U"\" has been installed in the menu \"", alternativeMenuTitle, U"\" instead. "
+					U"You could consider updating the script that installed \"", script, U"\", "
+					U"which is either the buttons file or a plug-in."
+				);
 			}
 			return menuItem;
 		} // else issue the original warning
@@ -212,7 +230,7 @@ GuiMenuItem Editor_addCommandScript (Editor me, conststring32 menuTitle, constst
 		U"Menu \"", menuTitle, U"\" does not exist.\n"
 		U"Command \"", itemTitle, U"\" not inserted in menu \"", menuTitle, U"\".\n"
 		U"To fix this, go to Praat->Preferences->Buttons->Editors, and remove the script from this menu.\n"
-		U"You may want to install the script in a different menu."
+		U"You may then want to install the script in a different menu."
 	);
 	return nullptr;
 }
@@ -326,7 +344,7 @@ void structEditor :: v_restoreData () {
 		Thing_swap (our data(), our previousData.get());
 }
 
-static void menu_cb_sendBackToCallingProgram (Editor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_sendBackToCallingProgram (Editor me, EDITOR_ARGS) {
 	if (my data()) {
 		structMelderFile file { };
 		MelderDir_getFile (& Melder_preferencesFolder, U"praat_backToCaller.Data", & file);
@@ -336,15 +354,22 @@ static void menu_cb_sendBackToCallingProgram (Editor me, EDITOR_ARGS_DIRECT) {
 	my v_goAway ();
 }
 
-static void menu_cb_close (Editor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_close (Editor me, EDITOR_ARGS) {
 	my v_goAway ();
+	if (optionalInterpreter && optionalInterpreter -> optionalEditor == me)
+		optionalInterpreter -> optionalEditor = nullptr;
 }
 
-static void menu_cb_undo (Editor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_undo (Editor me, EDITOR_ARGS) {
 	my v_restoreData ();
-	if (str32nequ (my undoText, U"Undo", 4)) my undoText [0] = U'R', my undoText [1] = U'e';
-	else if (str32nequ (my undoText, U"Redo", 4)) my undoText [0] = U'U', my undoText [1] = U'n';
-	else str32cpy (my undoText, U"Undo?");
+	if (str32nequ (my undoText, U"Undo", 4)) {
+		my undoText [0] = U'R';
+		my undoText [1] = U'e';
+	} else if (str32nequ (my undoText, U"Redo", 4)) {
+		my undoText [0] = U'U';
+		my undoText [1] = U'n';
+	} else
+		str32cpy (my undoText, U"Undo?");
 	#if gtk
 		gtk_label_set_label (GTK_LABEL (gtk_bin_get_child (GTK_BIN (my undoButton -> d_widget))), Melder_peek32to8 (my undoText));
 	#elif motif
@@ -356,16 +381,16 @@ static void menu_cb_undo (Editor me, EDITOR_ARGS_DIRECT) {
 	Editor_broadcastDataChanged (me);
 }
 
-static void menu_cb_searchManual (Editor /* me */, EDITOR_ARGS_DIRECT) {
+static void menu_cb_searchManual (Editor /* me */, EDITOR_ARGS) {
 	Melder_search ();
 }
 
-static void menu_cb_newScript (Editor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_newScript (Editor me, EDITOR_ARGS) {
 	autoScriptEditor scriptEditor = ScriptEditor_createFromText (me, nullptr);
 	scriptEditor.releaseToUser();
 }
 
-static void menu_cb_openScript (Editor me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_openScript (Editor me, EDITOR_ARGS) {
 	autoScriptEditor scriptEditor = ScriptEditor_createFromText (me, nullptr);
 	TextEditor_showOpen (scriptEditor.get());
 	scriptEditor.releaseToUser();
@@ -376,13 +401,13 @@ void structEditor :: v_createMenuItems_edit (EditorMenu menu) {
 		our undoButton = EditorMenu_addCommand (menu, U"Cannot undo", GuiMenu_INSENSITIVE + 'Z', menu_cb_undo);
 }
 
-static void INFO_EDITOR__settingsReport (Editor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_EDITOR__settingsReport (Editor me, EDITOR_ARGS) {
 	INFO_EDITOR
 		Thing_info (me);
 	INFO_EDITOR_END
 }
 
-static void INFO_DATA__info (Editor me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__info (Editor me, EDITOR_ARGS) {
 	INFO_DATA
 		if (my data())
 			Thing_info (my data());
@@ -483,7 +508,8 @@ void Editor_init (Editor me, int x, int y, int width, int height, conststring32 
 		top += Machine_getTitleBarHeight ();
 		bottom += Machine_getTitleBarHeight ();
 	#endif
-	my windowForm = GuiWindow_create (left, top, width, height, 450, 350, title, gui_window_cb_goAway, me, my v_canFullScreen () ? GuiWindow_FULLSCREEN : 0);
+	my windowForm = GuiWindow_create (left, top, width, height, 450, 350, title,
+			gui_window_cb_goAway, me, my v_canFullScreen () ? GuiWindow_FULLSCREEN : 0);
 	Thing_setName (me, title);
 
 	/*
@@ -498,8 +524,7 @@ void Editor_init (Editor me, int x, int y, int width, int height, conststring32 
 	if (my v_hasMenuBar ()) {
 		my fileMenu = Editor_addMenu (me, U"File", 0);
 		if (my v_canReportSettings ()) {
-			EditorMenu_addCommand (my fileMenu, U"Editor info", 0, INFO_EDITOR__settingsReport);
-			EditorMenu_addCommand (my fileMenu, U"Settings report", Editor_HIDDEN, INFO_EDITOR__settingsReport);
+			EditorMenu_addCommand (my fileMenu, U"Editor info || Settings report", 0, INFO_EDITOR__settingsReport);
 			if (my data())
 				EditorMenu_addCommand (my fileMenu, Melder_cat (Thing_className (my data()), U" info"), 0, INFO_DATA__info);
 		}
@@ -539,27 +564,6 @@ void Editor_save (Editor me, conststring32 cattableText) {
 	#elif cocoa
 		[(GuiCocoaMenuItem *) my undoButton -> d_widget   setTitle: (NSString *) Melder_peek32toCfstring (my undoText)];
 	#endif
-}
-
-void Editor_openPraatPicture (Editor me) {
-	my pictureGraphics = praat_picture_editor_open (my instancePref_picture_eraseFirst());
-}
-void Editor_closePraatPicture (Editor me) {
-	if (my data() && my classPref_picture_writeNameAtTop() != kDataGui_writeNameAtTop::NO_) {
-		Graphics_setNumberSignIsBold (my pictureGraphics, false);
-		Graphics_setPercentSignIsItalic (my pictureGraphics, false);
-		Graphics_setCircumflexIsSuperscript (my pictureGraphics, false);
-		Graphics_setUnderscoreIsSubscript (my pictureGraphics, false);
-		Graphics_textTop (my pictureGraphics,
-			my classPref_picture_writeNameAtTop() == kDataGui_writeNameAtTop::FAR_,
-			my data() -> name.get()
-		);
-		Graphics_setNumberSignIsBold (my pictureGraphics, true);
-		Graphics_setPercentSignIsItalic (my pictureGraphics, true);
-		Graphics_setCircumflexIsSuperscript (my pictureGraphics, true);
-		Graphics_setUnderscoreIsSubscript (my pictureGraphics, true);
-	}
-	praat_picture_editor_close ();
 }
 
 /* End of file Editor.cpp */

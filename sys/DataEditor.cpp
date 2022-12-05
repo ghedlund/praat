@@ -82,17 +82,21 @@ static void update (DataSubEditor me) {
 static Data_Description DataSubEditor_findNumberUse (DataSubEditor me, conststring32 number) {
 	Data_Description structDescription, result;
 	char32 string [100];
-	if (my classInfo == classMatrixEditor) return nullptr;   // no structs inside
+	if (my classInfo == classMatrixEditor)
+		return nullptr;   // no structs inside
 	if (my classInfo == classVectorEditor) {
-		if (my d_description -> type != structwa) return nullptr;   // no structs inside
+		if (my d_description -> type != structwa)
+			return nullptr;   // no structs inside
 		structDescription = * (Data_Description *) my d_description -> tagType;
 	} else { /* StructEditor or ClassEditor or DataEditor. */
 		structDescription = my d_description;
 	}
 	Melder_sprint (string,100, number);
-	if ((result = Data_Description_findNumberUse (structDescription, string)) != nullptr) return result;
+	if ((result = Data_Description_findNumberUse (structDescription, string)) != nullptr)
+		return result;
 	Melder_sprint (string,100, number, U" - 1");
-	if ((result = Data_Description_findNumberUse (structDescription, string)) != nullptr) return result;
+	if ((result = Data_Description_findNumberUse (structDescription, string)) != nullptr)
+		return result;
 	return nullptr;
 }
 
@@ -119,12 +123,11 @@ static void gui_button_cb_change (DataSubEditor me, GuiButtonEvent /* event */) 
 					signed char oldValue = * (signed char *) my d_fieldData [irow]. address, newValue = (signed char) Melder_atoi (text.get());
 					if (newValue != oldValue) {
 						Data_Description numberUse = DataSubEditor_findNumberUse (me, my d_fieldData [irow]. description -> name);
-						if (numberUse) {
+						if (numberUse)
 							Melder_flushError (U"Changing field \"", strip_d (my d_fieldData [irow]. description -> name),
 								U"\" would damage the array \"", strip_d (numberUse -> name), U"\".");
-						} else {
+						else
 							* (signed char *) my d_fieldData [irow]. address = newValue;
-						}
 					}
 				} break;
 				case int16wa: {
@@ -132,46 +135,53 @@ static void gui_button_cb_change (DataSubEditor me, GuiButtonEvent /* event */) 
 					int64 newValue = Melder_atoi (text.get());
 					if (newValue != oldValue) {
 						Data_Description numberUse = DataSubEditor_findNumberUse (me, my d_fieldData [irow]. description -> name);
-						if (numberUse) {
+						if (numberUse)
 							Melder_flushError (U"Changing field \"", strip_d (my d_fieldData [irow]. description -> name),
 								U"\" would damage the array \"", strip_d (numberUse -> name), U"\".");
-						} else if (newValue < INT16_MIN || newValue > INT16_MAX) {
+						else if (newValue < INT16_MIN || newValue > INT16_MAX)
 							Melder_flushError (U"Field \"", strip_d (my d_fieldData [irow]. description -> name),
 								U"\" can have no values less than ", INT16_MIN, U" or greater than ", INT16_MAX, U".");
-						} else {
+						else
 							* (int16 *) my d_fieldData [irow]. address = (int16) newValue;   // guarded conversion
-						}
 					}
 				} break;
 				case intwa: {
 					int oldValue = * (int *) my d_fieldData [irow]. address, newValue = (int) Melder_atoi (text.get());
 					if (newValue != oldValue) {
 						Data_Description numberUse = DataSubEditor_findNumberUse (me, my d_fieldData [irow]. description -> name);
-						if (numberUse) {
+						if (numberUse)
 							Melder_flushError (U"Changing field \"", strip_d (my d_fieldData [irow]. description -> name),
 								U"\" would damage the array \"", strip_d (numberUse -> name), U"\".");
-						} else {
+						else
 							* (int *) my d_fieldData [irow]. address = newValue;
-						}
 					}
 				} break;
 				case integerwa: {
 					integer oldValue = * (integer *) my d_fieldData [irow]. address, newValue = Melder_atoi (text.get());
 					if (newValue != oldValue) {
 						Data_Description numberUse = DataSubEditor_findNumberUse (me, my d_fieldData [irow]. description -> name);
-						if (numberUse) {
+						if (numberUse)
 							Melder_flushError (U"Changing field \"", strip_d (my d_fieldData [irow]. description -> name),
 								U"\" would damage the array \"", strip_d (numberUse -> name), U"\".");
-						} else {
+						else
 							* (integer *) my d_fieldData [irow]. address = newValue;
-						}
 					}
 				} break;
-				case ubytewa: { * (unsigned char *) my d_fieldData [irow]. address = (uint8) Melder_atoi (text.get()); } break;
-				case uintwa: { * (unsigned int *) my d_fieldData [irow]. address = (uint32) Melder_atoi (text.get()); } break;
-				case uintegerwa: { * (uinteger *) my d_fieldData [irow]. address = (uinteger) Melder_atoi (text.get()); } break;
-				case floatwa: { * (double *) my d_fieldData [irow]. address = Melder_atof (text.get()); } break;
-				case doublewa: { * (double *) my d_fieldData [irow]. address = Melder_atof (text.get()); } break;
+				case ubytewa: {
+					* (unsigned char *) my d_fieldData [irow]. address = (uint8) Melder_atoi (text.get());
+				} break;
+				case uintwa: {
+					* (unsigned int *) my d_fieldData [irow]. address = (uint32) Melder_atoi (text.get());
+				} break;
+				case uintegerwa: {
+					* (uinteger *) my d_fieldData [irow]. address = (uinteger) Melder_atoi (text.get());
+				} break;
+				case floatwa: {
+					* (double *) my d_fieldData [irow]. address = Melder_atof (text.get());
+				} break;
+				case doublewa: {
+					* (double *) my d_fieldData [irow]. address = Melder_atof (text.get());
+				} break;
 				case complexwa: { dcomplex *x = (dcomplex *) my d_fieldData [irow]. address;
 					double re, im;
 					sscanf (Melder_peek32to8 (text.get()), "%lf + %lf i", & re, & im);
@@ -179,39 +189,41 @@ static void gui_button_cb_change (DataSubEditor me, GuiButtonEvent /* event */) 
 					x -> imag (im);
 				} break;
 				case enumwa: {
-					if (str32len (text.get()) < 3) goto error;
-					text [str32len (text.get()) - 1] = U'\0';   // remove trailing ">"
+					if (Melder_length (text.get()) < 3)
+						goto error;
+					text [Melder_length (text.get()) - 1] = U'\0';   // remove trailing ">"
 					int value = ((int (*) (conststring32)) (my d_fieldData [irow]. description -> tagType)) (text.get() + 1);   // skip leading "<"
-					if (value < 0) goto error;
+					if (value < 0)
+						goto error;
 					* (signed char *) my d_fieldData [irow]. address = (signed char) value;
 				} break;
 				case lenumwa: {
-					if (str32len (text.get()) < 3) goto error;
-					text [str32len (text.get()) - 1] = U'\0';   // remove trailing ">"
+					if (Melder_length (text.get()) < 3)
+						goto error;
+					text [Melder_length (text.get()) - 1] = U'\0';   // remove trailing ">"
 					int value = ((int (*) (conststring32)) (my d_fieldData [irow]. description -> tagType)) (text.get() + 1);   // skip leading "<"
-					if (value < 0) goto error;
+					if (value < 0)
+						goto error;
 					* (signed short *) my d_fieldData [irow]. address = (signed short) value;
 				} break;
 				case booleanwa: {
 					bool value;
-					if (str32nequ (text.get(), U"<true>", 6)) {
+					if (str32nequ (text.get(), U"<true>", 6))
 						value = true;
-					} else if (str32nequ (text.get(), U"<false>", 7)) {
+					else if (str32nequ (text.get(), U"<false>", 7))
 						value = false;
-					} else {
+					else
 						goto error;
-					}
 					* (bool *) my d_fieldData [irow]. address = value;
 				} break;
 				case questionwa: {
 					bool value;
-					if (str32nequ (text.get(), U"<yes>", 5)) {
+					if (str32nequ (text.get(), U"<yes>", 5))
 						value = true;
-					} else if (str32nequ (text.get(), U"<no>", 4)) {
+					else if (str32nequ (text.get(), U"<no>", 4))
 						value = false;
-					} else {
+					else
 						goto error;
-					}
 					* (bool *) my d_fieldData [irow]. address = value;
 				} break;
 				case stringwa:
@@ -229,11 +241,15 @@ static void gui_button_cb_change (DataSubEditor me, GuiButtonEvent /* event */) 
 		1. The owner (creator) of our root DataEditor: so that she can notify other editors, if any.
 		2. All our sibling DataSubEditors.
 	*/
+	Melder_assert (my root);
 	Editor_broadcastDataChanged (my root);
+	Melder_assert (my root);
 	update (me);
+	Melder_assert (my root);
 	for (int isub = 1; isub <= my root -> children.size; isub ++) {
 		DataSubEditor subeditor = my root -> children.at [isub];
-		if (subeditor != me) update (subeditor);
+		if (subeditor != me)
+			update (subeditor);
 	}
 	return;
 error:
@@ -332,7 +348,7 @@ void structDataSubEditor :: v_createChildren () {
 	}
 }
 
-static void menu_cb_help (DataSubEditor, EDITOR_ARGS_DIRECT) { Melder_help (U"Inspect"); }
+static void menu_cb_help (DataSubEditor, EDITOR_ARGS) { Melder_help (U"Inspect"); }
 
 void structDataSubEditor :: v_createMenuItems_help (EditorMenu menu) {
 	DataSubEditor_Parent :: v_createMenuItems_help (menu);
@@ -837,9 +853,11 @@ void structDataEditor :: v9_destroy () noexcept {
 	DataEditor_Parent :: v9_destroy ();
 }
 
-void structDataEditor :: v1_dataChanged () {
+void structDataEditor :: v1_dataChanged (Editor sender) {
+	if (this == sender)
+		return;
 	/*
-		Someone else changed our data.
+		Someone *else* changed our data.
 		We know that the top-level data is still accessible,
 		so we update the top-level window to show the change:
 	*/

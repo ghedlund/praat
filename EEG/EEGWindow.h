@@ -40,8 +40,8 @@ Thing_define (EEGWindow, FunctionEditor) {
 	}
 	conststring32 v_selectionViewerName ()
 		override { return U"IPA chart"; }
-	void v1_dataChanged () override {
-		our EEGWindow_Parent :: v1_dataChanged ();
+	void v1_dataChanged (Editor sender) override {
+		our EEGWindow_Parent :: v1_dataChanged (sender);
 		our eegArea() -> functionChanged (our eeg() -> sound.get());
 		our eegAnalysisArea() -> functionChanged (our eeg() -> sound.get());
 		our textGridArea() -> functionChanged (our eeg() -> textgrid.get());
@@ -67,10 +67,12 @@ Thing_define (EEGWindow, FunctionEditor) {
 		override;
 	void v_drawLegends () override {
 		FunctionArea_drawLegend (our textGridArea().get(),
-			FunctionArea_legend_TEXTGRID U" ##modifiable TextGrid", DataGui_defaultForegroundColour (our textGridArea().get())
+			FunctionArea_legend_TEXTGRID U" ##modifiable TextGrid",
+			DataGui_defaultForegroundColour (our textGridArea().get(), false)
 		);
 		FunctionArea_drawLegend (our eegArea().get(),
-			FunctionArea_legend_WAVEFORM U" %%non-modifiable EEG-internal sound", DataGui_defaultForegroundColour (our eegArea().get())
+			FunctionArea_legend_WAVEFORM U" %%non-modifiable EEG-internal sound",
+			DataGui_defaultForegroundColour (our eegArea().get(), false)
 		);
 		SoundAnalysisArea_drawDefaultLegends (our eegAnalysisArea().get());
 	}

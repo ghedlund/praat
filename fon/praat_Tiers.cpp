@@ -890,7 +890,7 @@ DIRECT (HELP_PitchTier_help) {
 
 DIRECT (PLAY_PitchTier_hum) {
 	PLAY_EACH (PitchTier)
-		PitchTier_hum (me);
+		PitchTier_hum (me, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
@@ -908,13 +908,13 @@ DO
 
 DIRECT (PLAY_PitchTier_play) {
 	PLAY_EACH (PitchTier)
-		PitchTier_play (me);
+		PitchTier_play (me, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
 DIRECT (PLAY_PitchTier_playSine) {
 	PLAY_EACH (PitchTier)
-		PitchTier_playPart_sine (me, 0.0, 0.0);
+		PitchTier_playPart_sine (me, 0.0, 0.0, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
@@ -1267,7 +1267,7 @@ DIRECT (HELP_PointProcess_help) {
 
 DIRECT (PLAY_PointProcess_hum) {
 	PLAY_EACH (PointProcess)
-		PointProcess_hum (me, my xmin, my xmax);
+		PointProcess_hum (me, my xmin, my xmax, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
@@ -1279,7 +1279,7 @@ DIRECT (NEW1_PointProcesses_intersection) {
 
 DIRECT (PLAY_PointProcess_play) {
 	PLAY_EACH (PointProcess)
-		PointProcess_play (me);
+		PointProcess_play (me, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
@@ -2086,11 +2086,11 @@ praat_addAction1 (classIntensityTier, 0, U"Convert", nullptr, 0, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"To TextGrid...",
 				nullptr, 1, NEW_PointProcess_to_TextGrid);
 		praat_addAction1 (classPointProcess, 0, U"-- to single tier --",
-				nullptr, 1, nullptr);
+				nullptr, GuiMenu_HIDDEN | GuiMenu_DEPTH_1, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"To TextTier",
-				nullptr, 1, NEW_PointProcess_to_TextTier);
+				nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN, NEW_PointProcess_to_TextTier);
 		praat_addAction1 (classPointProcess, 0, U"To IntervalTier",
-				nullptr, 1, NEW_PointProcess_to_IntervalTier);
+				nullptr, GuiMenu_DEPTH_1 | GuiMenu_HIDDEN, NEW_PointProcess_to_IntervalTier);
 	praat_addAction1 (classPointProcess, 0, U"Analyse -",
 			nullptr, 0, nullptr);
 		praat_addAction1 (classPointProcess, 0, U"To PitchTier...",

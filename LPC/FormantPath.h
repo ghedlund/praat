@@ -52,15 +52,24 @@ autoMatrix FormantPath_to_Matrix_qSums (FormantPath me, integer numberOfTracks);
 autoMatrix FormantPath_to_Matrix_transition (FormantPath me, integer numberOfTracks, bool maximumCosts);
 autoMatrix FormantPath_to_Matrix_stress (FormantPath me, double windowLength, constINTVEC const& parameters, double powerf);
 
-autoVEC FormantPath_getStressOfCandidates (FormantPath me, double tmin, double tmax, integer fromFormant, integer toFormant, constINTVEC const& parameters, double powerf);
+double FormantPath_getStressOfCandidate (FormantPath me, double tmin, double tmax, integer fromFormant, integer toFormant,
+	constINTVEC const& parameters, double powerf, integer candidate);
 
-autoINTVEC FormantPath_getOptimumPath (FormantPath me, double qWeight, double frequencyChangeWeight, double stressWeight, double ceilingChangeWeight,
-	double intensityModulationStepSize, double windowLength, constINTVEC const& parameters, double powerf, autoMatrix *out_delta
-);
+autoVEC FormantPath_getStressOfCandidates (FormantPath me, double tmin, double tmax, integer fromFormant, integer toFormant,
+	constINTVEC const& parameters, double powerf);
 
-void FormantPath_pathFinder (FormantPath me, double qWeight, double frequencyChangeWeight, double stressWeight, double ceilingChangeWeight,
-	double intensityModulationStepSize, double windowLength, constINTVEC const& parameters, double powerf
-);
+double FormantPath_getOptimalCeiling (FormantPath me, double tmin, double tmax, constINTVEC const& parameters, double powerf);
+
+autoINTVEC FormantPath_getOptimumPath (FormantPath me, double qWeight, double frequencyChangeWeight, double stressWeight,
+	double ceilingChangeWeight,	double intensityModulationStepSize, double windowLength, constINTVEC const& parameters,
+	double powerf, autoMatrix *out_delta);
+
+void FormantPath_setPath (FormantPath me, double tmin, double tmax, integer selectedCandidate);
+void FormantPath_setOptimalPath (FormantPath me, double tmin, double tmax, constINTVEC const& parameters, double powerf);
+
+void FormantPath_pathFinder (FormantPath me, double qWeight, double frequencyChangeWeight, double stressWeight, 
+	double ceilingChangeWeight, double intensityModulationStepSize, double windowLength, constINTVEC const& parameters,
+	double powerf);
 
 autoFormantPath Sound_to_FormantPath_any (Sound me, kLPC_Analysis lpcType, double timeStep, double maximumNumberOfFormants,
 	double formantCeiling, double analysisWidth, double preemphasisFrequency, double ceilingExtensionFraction,
@@ -74,11 +83,6 @@ static inline autoFormantPath Sound_to_FormantPath_burg (Sound me, double timeSt
 	return Sound_to_FormantPath_any (me, kLPC_Analysis::BURG, timeStep, maximumNumberOfFormants,
 			formantCeiling, analysisWidth, preemphasisFrequency, ceilingExtensionFraction, numberOfStepsToACeiling, 1e-6, 1e-6, 1.5, 1e-6, 5, nullptr);
 }
-
-void FormantPath_getGridDimensions (FormantPath me, integer *out_nrow, integer *out_ncol);
-/*
-	Get dimensions of a grid to layout n elements (nrow*ncol >= n).
-*/
 
 void FormantPath_drawAsGrid (FormantPath me, Graphics g, double tmin, double tmax, double fmax, 
 	integer fromFormant, integer toFormant, bool showBandwidths, MelderColour oddNumberedFormants, MelderColour evenNumberedFormants,

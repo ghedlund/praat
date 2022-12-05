@@ -1,6 +1,6 @@
 /* Formula.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,7 +161,7 @@ enum { NO_SYMBOL_,
 		DEMO_SHIFT_KEY_PRESSED_, DEMO_COMMAND_KEY_PRESSED_, DEMO_OPTION_KEY_PRESSED_,
 		ZERO_VEC_, ZERO_MAT_,
 		LINEAR_VEC_, LINEAR_MAT_, TO_VEC_, FROM_TO_VEC_, FROM_TO_BY_VEC_, FROM_TO_COUNT_VEC_, BETWEEN_BY_VEC_, BETWEEN_COUNT_VEC_,
-		SORT_VEC_, SHUFFLE_VEC_,
+		SORT_VEC_, SORT_STRVEC_, SORT_NUMBER_AWARE_STRVEC_, SHUFFLE_VEC_, SHUFFLE_STRVEC_,
 		RANDOM_UNIFORM_VEC_, RANDOM_UNIFORM_MAT_,
 		RANDOM_INTEGER_VEC_, RANDOM_INTEGER_MAT_,
 		RANDOM_GAUSS_VEC_, RANDOM_GAUSS_MAT_,
@@ -171,8 +171,9 @@ enum { NO_SYMBOL_,
 		SIZE_, NUMBER_OF_ROWS_, NUMBER_OF_COLUMNS_, COMBINE_VEC_, EDITOR_,
 		RANDOM__INITIALIZE_WITH_SEED_UNSAFELY_BUT_PREDICTABLY_, RANDOM__INITIALIZE_SAFELY_AND_UNPREDICTABLY_,
 		HASH_, HEX_STR_, UNHEX_STR_,
-		EMPTY_STRVEC_, READ_LINES_FROM_FILE_STRVEC_, FILE_NAMES_STRVEC_, FOLDER_NAMES_STRVEC_, SPLIT_BY_WHITESPACE_STRVEC_,
-	#define HIGH_FUNCTION_N  SPLIT_BY_WHITESPACE_STRVEC_
+		EMPTY_STRVEC_, READ_LINES_FROM_FILE_STRVEC_, FILE_NAMES_STRVEC_, FOLDER_NAMES_STRVEC_,
+		SPLIT_BY_WHITESPACE_STRVEC_, SPLIT_BY_STRVEC_,
+	#define HIGH_FUNCTION_N  SPLIT_BY_STRVEC_
 
 	/* String functions. */
 	#define LOW_STRING_FUNCTION  LOW_FUNCTION_STR1
@@ -298,7 +299,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"demoShiftKeyPressed", U"demoCommandKeyPressed", U"demoOptionKeyPressed",
 	U"zero#", U"zero##",
 	U"linear#", U"linear##", U"to#", U"from_to#", U"from_to_by#", U"from_to_count#", U"between_by#", U"between_count#",
-	U"sort#", U"shuffle#",
+	U"sort#", U"sort$#", U"sort_numberAware$#", U"shuffle#", U"shuffle$#",
 	U"randomUniform#", U"randomUniform##",
 	U"randomInteger#", U"randomInteger##",
 	U"randomGauss#", U"randomGauss##",
@@ -307,7 +308,7 @@ static const conststring32 Formula_instructionNames [1 + highestSymbol] = { U"",
 	U"size", U"numberOfRows", U"numberOfColumns", U"combine#", U"editor",
 	U"random_initializeWithSeedUnsafelyButPredictably", U"random_initializeSafelyAndUnpredictably",
 	U"hash", U"hex$", U"unhex$",
-	U"empty$#", U"readLinesFromFile$#", U"fileNames$#", U"folderNames$#", U"splitByWhitespace$#",
+	U"empty$#", U"readLinesFromFile$#", U"fileNames$#", U"folderNames$#", U"splitByWhitespace$#", U"splitBy$#",
 
 	U"length", U"number", U"fileReadable", U"tryToWriteFile", U"tryToAppendFile", U"deleteFile",
 	U"createFolder", U"createDirectory", U"setWorkingDirectory", U"variableExists",
@@ -2821,7 +2822,7 @@ static void do_add () {
 		/*
 			result$ = x$ + y$
 		*/
-		const integer length1 = str32len (x->getString()), length2 = str32len (y->getString());
+		const integer length1 = Melder_length (x->getString()), length2 = Melder_length (y->getString());
 		autostring32 result (length1 + length2);
 		str32cpy (result.get(), x->getString());
 		str32cpy (result.get() + length1, y->getString());
@@ -2945,7 +2946,9 @@ static void do_sub () {
 		}
 	}
 	if (x->which == Stackel_STRING && y->which == Stackel_STRING) {
-		const integer length1 = str32len (x->getString()), length2 = str32len (y->getString()), newlength = length1 - length2;
+		const integer length1 = Melder_length (x->getString());
+		const integer length2 = Melder_length (y->getString());
+		const integer newlength = length1 - length2;
 		autostring32 result;
 		if (newlength >= 0 && str32nequ (x->getString() + newlength, y->getString(), length2)) {
 			result = autostring32 (newlength);
@@ -3790,12 +3793,12 @@ static void do_do () {
 	if (stack [0]. which != Stackel_STRING)
 		Melder_throw (U"The first argument of the function \"do\" should be a string, namely a menu command, and not ", stack [0]. whichText(), U".");
 	conststring32 command = stack [0]. getString();
-	if (theCurrentPraatObjects == & theForegroundPraatObjects && praatP. editor != nullptr) {
+	if (theCurrentPraatObjects == & theForegroundPraatObjects && theInterpreter -> optionalEditor) {
 		autoMelderString valueString;
 		MelderString_appendCharacter (& valueString, 1);   // TODO: check whether this is needed at all, or is just MelderString_empty enough?
 		autoMelderDivertInfo divert (& valueString);
 		autostring32 command2 = Melder_dup (command);   // allow the menu command to reuse the stack (?)
-		Editor_doMenuCommand (praatP. editor, command2.get(), numberOfArguments, & stack [0], nullptr, theInterpreter);
+		Editor_doMenuCommand (theInterpreter -> optionalEditor, command2.get(), numberOfArguments, & stack [0], nullptr, theInterpreter);
 		pushNumber (Melder_atof (valueString.string));
 		return;
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects &&
@@ -3886,12 +3889,12 @@ static void do_do_STR () {
 	if (stack [0]. which != Stackel_STRING)
 		Melder_throw (U"The first argument of the function \"do$\" should be a string, namely a menu command, and not ", stack [0]. whichText(), U".");
 	conststring32 command = stack [0]. getString();
-	if (theCurrentPraatObjects == & theForegroundPraatObjects && praatP. editor != nullptr) {
+	if (theCurrentPraatObjects == & theForegroundPraatObjects && theInterpreter -> optionalEditor) {
 		static MelderString info;
 		MelderString_empty (& info);
 		autoMelderDivertInfo divert (& info);
 		autostring32 command2 = Melder_dup (command);
-		Editor_doMenuCommand (praatP. editor, command2.get(), numberOfArguments, & stack [0], nullptr, theInterpreter);
+		Editor_doMenuCommand (theInterpreter -> optionalEditor, command2.get(), numberOfArguments, & stack [0], nullptr, theInterpreter);
 		pushString (Melder_dup (info.string));
 		return;
 	} else if (theCurrentPraatObjects != & theForegroundPraatObjects &&
@@ -4107,7 +4110,9 @@ static void do_pauseScript () {
 							i == arg->stringArray.size ? U"" : U" ");
 			}
 		}
-		UiPause_begin (theCurrentPraatApplication -> topShell, U"stop or continue", theInterpreter);
+		const Editor optionalEditor = theInterpreter -> optionalEditor;
+		const GuiWindow parentShell = ( optionalEditor ? optionalEditor -> windowForm : theCurrentPraatApplication -> topShell );
+		UiPause_begin (parentShell, optionalEditor, U"stop or continue", theInterpreter);
 		UiPause_comment (numberOfArguments == 0 ? U"..." : buffer.string);
 		UiPause_end (1, 1, 0, U"Continue", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, theInterpreter);
 	}
@@ -4532,6 +4537,39 @@ static void do_between_count_VEC () {
 	autoVEC result = between_count_VEC (from->number, to->number, Melder_iround (count->number));
 	pushNumericVector (result.move());
 }
+static void do_sort_VEC () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	Melder_require (narg->number == 1,
+		U"The function \"sort#\" requires one argument, namely a vector.");
+	const Stackel vec = pop;
+	Melder_require (vec->which == Stackel_NUMERIC_VECTOR,
+		U"The argument of the function \"sort#\" should be a numeric vector, not ", vec->whichText(), U".");
+	autoVEC result = sort_VEC (vec->numericVector);
+	pushNumericVector (result.move());
+}
+static void do_sort_STRVEC () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	Melder_require (narg->number == 1,
+		U"The function \"sort$#\" requires one argument, namely a string array.");
+	const Stackel strvec = pop;
+	Melder_require (strvec->which == Stackel_STRING_ARRAY,
+		U"The argument of the function \"sort$#\" should be a string array, not ", strvec->whichText(), U".");
+	autoSTRVEC result = sort_STRVEC (strvec->stringArray);
+	pushStringVector (result.move());
+}
+static void do_sort_numberAware_STRVEC () {
+	const Stackel narg = pop;
+	Melder_assert (narg->which == Stackel_NUMBER);
+	Melder_require (narg->number == 1,
+		U"The function \"sort_numberAware$#\" requires one argument, namely a string array.");
+	const Stackel strvec = pop;
+	Melder_require (strvec->which == Stackel_STRING_ARRAY,
+		U"The argument of the function \"sort_numberAware$#\" should be a string array, not ", strvec->whichText(), U".");
+	autoSTRVEC result = sort_numberAware_STRVEC (strvec->stringArray);
+	pushStringVector (result.move());
+}
 static void do_shuffle_VEC () {
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
@@ -4543,16 +4581,16 @@ static void do_shuffle_VEC () {
 	autoVEC result = shuffle_VEC (vec->numericVector);
 	pushNumericVector (result.move());
 }
-static void do_sort_VEC () {
+static void do_shuffle_STRVEC () {
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
 	Melder_require (narg->number == 1,
-		U"The function \"sort#\" requires one argument, namely a vector.");
-	const Stackel vec = pop;
-	Melder_require (vec->which == Stackel_NUMERIC_VECTOR,
-		U"The argument of the function \"sort#\" should be a numeric vector, not ", vec->whichText(), U".");
-	autoVEC result = sort_VEC (vec->numericVector);
-	pushNumericVector (result.move());
+		U"The function \"shuffle$#\" requires one argument, namely a string array.");
+	const Stackel strvec = pop;
+	Melder_require (strvec->which == Stackel_STRING_ARRAY,
+		U"The argument of the function \"shuffle$#\" should be a string array, not ", strvec->whichText(), U".");
+	autoSTRVEC result = shuffle_STRVEC (strvec->stringArray);
+	pushStringVector (result.move());
 }
 static void do_peaks_MAT () {
 	const Stackel narg = pop;
@@ -4659,17 +4697,20 @@ static void do_editor () {
 	const Stackel narg = pop;
 	Melder_assert (narg->which == Stackel_NUMBER);
 	if (narg->number == 0) {
+		/*
+			No editor mentioned, so switch back to an already existing editor.
+		*/
 		if (theInterpreter && theInterpreter -> editorClass) {
-			praatP. editor = praat_findEditorFromString (theInterpreter -> environmentName.get());
+			theInterpreter -> optionalEditor = praat_findEditorFromString (theInterpreter -> environmentName.get());
 		} else {
 			Melder_throw (U"The function \"editor\" requires an argument when called from outside an editor.");
 		}
 	} else if (narg->number == 1) {
 		const Stackel editor = pop;
 		if (editor->which == Stackel_STRING) {
-			praatP. editor = praat_findEditorFromString (editor->getString());
+			theInterpreter -> optionalEditor = praat_findEditorFromString (editor->getString());
 		} else if (editor->which == Stackel_NUMBER) {
-			praatP. editor = praat_findEditorById (Melder_iround (editor->number));
+			theInterpreter -> optionalEditor = praat_findEditorById (Melder_iround (editor->number));
 		} else {
 			Melder_throw (U"The function \"editor\" requires a numeric or string argument, not ", editor->whichText(), U".");
 		}
@@ -4829,11 +4870,24 @@ static void do_splitByWhitespace_STRVEC () {
 	const Stackel narg = pop;
 	Melder_assert (narg -> which == Stackel_NUMBER);
 	Melder_require (narg->number == 1,
-		U"The function \"splitByWhitespace$#\" requires one argument, namely the file pattern.");
+		U"The function \"splitByWhitespace$#\" requires one argument, namely the string to split.");
 	const Stackel string = pop;
 	Melder_require (string->which == Stackel_STRING,
 		U"The argument of the function \"splitByWhitespace$#\" should be a string, not ", string->whichText(), U".");
 	autoSTRVEC result = splitByWhitespace_STRVEC (string->getString());
+	pushStringVector (result.move());
+}
+static void do_splitBy_STRVEC () {
+	const Stackel narg = pop;
+	Melder_assert (narg -> which == Stackel_NUMBER);
+	Melder_require (narg->number == 2,
+		U"The function \"splitBy$#\" requires two arguments, namely the the string to split and the separator.");
+	const Stackel separator = pop, string = pop;
+	Melder_require (string->which == Stackel_STRING,
+		U"The first argument of the function \"splitBy$#\" should be a string, not ", string->whichText(), U".");
+	Melder_require (separator->which == Stackel_STRING,
+		U"The second argument of the function \"splitBy$#\" (the separator) should be a string, not ", string->whichText(), U".");
+	autoSTRVEC result = splitBy_STRVEC (string->getString(), separator->getString());
 	pushStringVector (result.move());
 }
 static void do_numericVectorElement () {
@@ -4945,7 +4999,7 @@ static void do_indexedStringVariable () {
 static void do_length () {
 	const Stackel s = pop;
 	if (s->which == Stackel_STRING) {
-		double result = str32len (s->getString());
+		const double result = NUMlength (s->getString());
 		pushNumber (result);
 	} else {
 		Melder_throw (U"The function \"length\" requires a string, not ", s->whichText(), U".");
@@ -5080,7 +5134,7 @@ static void do_mid_STR () {
 static void do_unicodeToBackslashTrigraphs_STR () {
 	const Stackel s = pop;
 	if (s->which == Stackel_STRING) {
-		const integer length = str32len (s->getString());
+		const integer length = Melder_length (s->getString());
 		autostring32 trigraphs (3 * length);
 		Longchar_genericize (s->getString(), trigraphs.get());
 		pushString (trigraphs.move());
@@ -5091,7 +5145,7 @@ static void do_unicodeToBackslashTrigraphs_STR () {
 static void do_backslashTrigraphsToUnicode_STR () {
 	const Stackel s = pop;
 	if (s->which == Stackel_STRING) {
-		const integer length = str32len (s->getString());
+		const integer length = Melder_length (s->getString());
 		autostring32 unicode (length);
 		Longchar_nativize (s->getString(), unicode.get(), false);   // noexcept
 		pushString (unicode.move());
@@ -5127,7 +5181,7 @@ static void do_rindex () {
 	if (whole->which == Stackel_STRING && part->which == Stackel_STRING) {
 		char32 *lastSubstring = str32str (whole->getString(), part->getString());
 		if (part->getString() [0] == U'\0') {
-			const integer result = str32len (whole->getString());
+			const integer result = Melder_length (whole->getString());
 			pushNumber (result);
 		} else if (lastSubstring) {
 			for (;;) {
@@ -5208,7 +5262,7 @@ static void do_extractNumber () {
 			pushNumber (undefined);
 		} else {
 			/* Skip the prompt. */
-			substring += str32len (t->getString());
+			substring += Melder_length (t->getString());
 			/* Skip white space. */
 			while (Melder_isHorizontalOrVerticalSpace (*substring)) substring ++;
 			if (substring [0] == U'\0' || str32nequ (substring, U"--undefined--", 13)) {
@@ -5253,7 +5307,7 @@ static void do_extractText_STR (bool singleWord) {
 		} else {
 			integer length;
 			/* Skip the prompt. */
-			substring += str32len (t->getString());
+			substring += Melder_length (t->getString());
 			if (singleWord) {
 				/* Skip white space. */
 				while (Melder_isHorizontalOrVerticalSpace (*substring)) substring ++;
@@ -6234,7 +6288,9 @@ static void do_beginPauseForm () {
 	if (n->number == 1) {
 		const Stackel title = pop;
 		if (title->which == Stackel_STRING) {
-			UiPause_begin (theCurrentPraatApplication -> topShell, title->getString(), theInterpreter);
+			const Editor optionalEditor = theInterpreter -> optionalEditor;
+			const GuiWindow parentShell = ( optionalEditor ? optionalEditor -> windowForm : theCurrentPraatApplication -> topShell );
+			UiPause_begin (parentShell, optionalEditor, title->getString(), theInterpreter);
 		} else {
 			Melder_throw (U"The function \"beginPauseForm\" requires a string (the title), not ", title->whichText(), U".");
 		}
@@ -7454,7 +7510,10 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case BETWEEN_BY_VEC_: { do_between_by_VEC ();
 } break; case BETWEEN_COUNT_VEC_: { do_between_count_VEC ();
 } break; case SORT_VEC_: { do_sort_VEC ();
+} break; case SORT_STRVEC_: { do_sort_STRVEC ();
+} break; case SORT_NUMBER_AWARE_STRVEC_: { do_sort_numberAware_STRVEC ();
 } break; case SHUFFLE_VEC_: { do_shuffle_VEC ();
+} break; case SHUFFLE_STRVEC_: { do_shuffle_STRVEC ();
 } break; case RANDOM_UNIFORM_VEC_: { do_function_VECdd_d (NUMrandomUniform);
 } break; case RANDOM_UNIFORM_MAT_: { do_function_MATdd_d (NUMrandomUniform);
 } break; case RANDOM_INTEGER_VEC_: { do_function_VECll_l (NUMrandomInteger);
@@ -7481,6 +7540,7 @@ CASE_NUM_WITH_TENSORS (LOG10_, do_log10)
 } break; case FILE_NAMES_STRVEC_: { do_fileNames_STRVEC ();
 } break; case FOLDER_NAMES_STRVEC_: { do_folderNames_STRVEC ();
 } break; case SPLIT_BY_WHITESPACE_STRVEC_: { do_splitByWhitespace_STRVEC ();
+} break; case SPLIT_BY_STRVEC_: { do_splitBy_STRVEC ();
 /********** String functions: **********/
 } break; case LENGTH_: { do_length ();
 } break; case STRING_TO_NUMBER_: { do_number ();

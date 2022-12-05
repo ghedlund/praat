@@ -63,8 +63,7 @@ autoCollection Collection_Permutation_permuteItems (Collection me, Permutation h
 
 void Collection_permuteItems_inplace (Collection me) {
 	try {
-		autoPermutation p = Permutation_create (my size);
-		Permutation_permuteRandomly_inplace (p.get(), 0, 0);
+		autoPermutation p = Permutation_create (my size, false);
 		Collection_Permutation_permuteItems_inplace (me, p.get());
 	} catch (MelderError) {
 		Melder_throw (me, U": items not permuted inplace.");
@@ -73,8 +72,7 @@ void Collection_permuteItems_inplace (Collection me) {
 
 autoCollection Collection_permuteItems (Collection me) {
 	try {
-		autoPermutation p = Permutation_create (my size);
-		Permutation_permuteRandomly_inplace (p.get(), 0, 0);
+		autoPermutation p = Permutation_create (my size, false);
 		autoCollection thee = Collection_Permutation_permuteItems (me, p.get());
 		return thee;
 	} catch (MelderError) {
@@ -105,7 +103,8 @@ autoStringList OrderedOfString_joinItems (StringList me, StringList thee) {
 
 		for (integer i = 1; i <= my size; i ++) {
 			const SimpleString hisCategory = his at [i], thyCategory = thy at [i];
-			const integer hisLength = str32len (hisCategory -> string.get()), thyLength = str32len (thyCategory -> string.get());
+			const integer hisLength = Melder_length (hisCategory -> string.get());
+			const integer thyLength = Melder_length (thyCategory -> string.get());
 			hisCategory -> string. resize (hisLength + thyLength);
 			str32cpy (& hisCategory -> string [hisLength], thyCategory -> string.get());
 		}

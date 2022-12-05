@@ -1,6 +1,6 @@
 /* Graphics_text.cpp
  *
- * Copyright (C) 1992-2021 Paul Boersma, 2013 Tom Naughton, 2017 David Weenink
+ * Copyright (C) 1992-2022 Paul Boersma, 2013 Tom Naughton, 2017 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,12 +369,18 @@ static void charSize (Graphics anyGraphics, _Graphics_widechar *lc) {
 		GraphicsPostscript me = static_cast <GraphicsPostscript> (anyGraphics);
 		const int normalSize = (int) ((double) my fontSize * (double) my resolution / 72.0);
 		Longchar_Info info = lc -> karInfo;
-		const int font = info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
-				info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
-				info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS : lc -> font.integer_;
-		const int style = lc -> style == Graphics_ITALIC ? Graphics_ITALIC :
+		const int font =
+			info -> alphabet == Longchar_SYMBOL ? kGraphics_font_SYMBOL :
+			info -> alphabet == Longchar_PHONETIC ? kGraphics_font_IPATIMES :
+			info -> alphabet == Longchar_DINGBATS ? kGraphics_font_DINGBATS :
+			lc -> font.integer_
+		;
+		const int style =
+			lc -> style == Graphics_ITALIC ? Graphics_ITALIC :
 			lc -> style == Graphics_BOLD || lc -> link ? Graphics_BOLD :
-			lc -> style == Graphics_BOLD_ITALIC ? Graphics_BOLD_ITALIC : 0;
+			lc -> style == Graphics_BOLD_ITALIC ? Graphics_BOLD_ITALIC :
+			0
+		;
 		if (! my fontInfos [font] [style]) {
 			const char *fontInfo, *secondaryFontInfo = nullptr, *tertiaryFontInfo = nullptr;
 			if (font == (int) kGraphics_font::COURIER) {
@@ -753,7 +759,7 @@ static void charDraw (Graphics anyGraphics, int xDC, int yDC, _Graphics_widechar
 				Rectangle (dc, 0, top, width, bottom);
 				SelectFont (dc, fonts [(int) my resolutionNumber] [font] [lc -> size] [lc -> style]);
 				SetTextColor (dc, my d_winForegroundColour);
-				TextOutW (dc, 0, baseline, codesW, str16len ((conststring16) codesW));
+				TextOutW (dc, 0, baseline, codesW, Melder16_length ((conststring16) codesW));
 				BitBlt (my d_gdiGraphicsContext, xDC, yDC - ascent, width, bottom - top, dc, 0, top, SRCINVERT);
 				return;
 			}
@@ -765,7 +771,7 @@ static void charDraw (Graphics anyGraphics, int xDC, int yDC, _Graphics_widechar
 				SetTextColor (my d_gdiGraphicsContext, my d_winForegroundColour);
 			SelectFont (my d_gdiGraphicsContext, fonts [(int) my resolutionNumber] [font] [lc -> size] [lc -> style]);
 			if (my textRotation == 0.0) {
-				TextOutW (my d_gdiGraphicsContext, xDC, yDC, codesW, str16len ((const char16 *) codesW));
+				TextOutW (my d_gdiGraphicsContext, xDC, yDC, codesW, Melder16_length ((const char16 *) codesW));
 			} else {
 				int restore = SaveDC (my d_gdiGraphicsContext);
 				SetGraphicsMode (my d_gdiGraphicsContext, GM_ADVANCED);
@@ -774,7 +780,7 @@ static void charDraw (Graphics anyGraphics, int xDC, int yDC, _Graphics_widechar
 				ModifyWorldTransform (my d_gdiGraphicsContext, & rotate, MWT_RIGHTMULTIPLY);
 				XFORM translate = { 1.0, 0.0, 0.0, 1.0, (float) xDC, (float) yDC };
 				ModifyWorldTransform (my d_gdiGraphicsContext, & translate, MWT_RIGHTMULTIPLY);
-				TextOutW (my d_gdiGraphicsContext, 0, 0, codesW, str16len ((const char16 *) codesW));
+				TextOutW (my d_gdiGraphicsContext, 0, 0, codesW, Melder16_length ((const char16 *) codesW));
 				RestoreDC (my d_gdiGraphicsContext, restore);
 			}
 			if (lc -> link)
@@ -803,11 +809,11 @@ static void charDraw (Graphics anyGraphics, int xDC, int yDC, _Graphics_widechar
 			const char16 *codes16 = Melder_peek32to16 (codes);
 			#if 1
 				CFStringRef s = CFStringCreateWithBytes (nullptr,
-					(const UInt8 *) codes16, str16len (codes16) * 2,
+					(const UInt8 *) codes16, Melder16_length (codes16) * 2,
 					kCFStringEncodingUTF16LE, false);
 				integer length = CFStringGetLength (s);
 			#else
-				NSString *s = [[NSString alloc]   initWithBytes: codes16   length: str16len (codes16) * 2   encoding: NSUTF16LittleEndianStringEncoding];
+				NSString *s = [[NSString alloc]   initWithBytes: codes16   length: Melder16_length (codes16) * 2   encoding: NSUTF16LittleEndianStringEncoding];
 				integer length = [s length];
 			#endif
 
@@ -871,7 +877,7 @@ static char32 *charCodes;
 static int initBuffer (conststring32 txt) {
 	try {
 		constexpr integer maximumNumberOfReplacementCharactersPerCharacter = 2;
-		integer sizeNeeded = maximumNumberOfReplacementCharactersPerCharacter * str32len (txt) + 1;
+		integer sizeNeeded = maximumNumberOfReplacementCharactersPerCharacter * Melder_length (txt) + 1;
 		if (sizeNeeded > bufferSize) {
 			sizeNeeded += sizeNeeded / 2 + 100;
 			Melder_free (theWidechar);
@@ -921,7 +927,7 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 			*/
 			Longchar_Info info = lc -> karInfo;
 			Melder_assert (info);
-			int font = chooseFont (me, lc);
+			const int font = chooseFont (me, lc);
 			lc -> font.string = nullptr;   // this erases font.integer_!
 
 			/*
@@ -930,9 +936,9 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 			int style = lc -> style;
 			Melder_assert (style >= 0 && style <= Graphics_BOLD_ITALIC);
 
-			int normalSize = my fontSize * my resolution / 72.0;
-			int smallSize = (3 * normalSize + 2) / 4;
-			int size = ( lc -> size < 100 ? smallSize : normalSize );
+			const int normalSize = my fontSize * my resolution / 72.0;
+			const int smallSize = (3 * normalSize + 2) / 4;
+			const int size = ( lc -> size < 100 ? smallSize : normalSize );
 			lc -> size = size;
 			lc -> baseline *= 0.01 * normalSize;
 			lc -> code = lc -> kar;
@@ -990,8 +996,8 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 					Melder_assert (logicalRect.x == 0);
 					g_object_unref (layout);
 				#elif quartz
-					const char16 *codes16 = Melder_peek32to16 (charCodes);
-					int64 length = str16len (codes16);
+					const conststring16 codes16 = Melder_peek32to16 (charCodes);
+					const integer length = Melder16_length (codes16);
 
 					NSString *s = [[NSString alloc]
 						initWithBytes: codes16
@@ -1007,8 +1013,8 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 					CFAttributedStringSetAttribute (cfstring, textRange, kCTFontAttributeName, theScreenFonts [lc -> font.integer_] [lc -> size] [lc -> style]);
 
 					/*
-					 * Measure.
-					 */
+						Measure.
+					*/
 
 					// Create a path to render text in
 					CGMutablePathRef path = CGPathCreateMutable ();
@@ -1045,12 +1051,12 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 	#endif
 	}
 	/*
-	 * Each character has been garnished with information about the character's width.
-	 * Make a correction for systems that make slanted characters overlap the character box to their right.
-	 * We must do this after the previous loop, because we query the size of the *next* character.
-	 *
-	 * Keep this in SYNC with psTextWidth.
-	 */
+		Each character has been garnished with information about the character's width.
+		Make a correction for systems that make slanted characters overlap the character box to their right.
+		We must do this after the previous loop, because we query the size of the *next* character.
+
+		Keep this in SYNC with psTextWidth.
+	*/
 	for (_Graphics_widechar *character = string; character -> kar > U'\t'; character ++) {
 		if ((character -> style & Graphics_ITALIC) != 0) {
 			_Graphics_widechar *nextCharacter = character + 1;
@@ -1069,8 +1075,8 @@ static void charSizes (Graphics me, _Graphics_widechar string [], bool measureEa
 }
 
 /*
- * The routine textWidth determines the fractional width of a text, in device coordinates.
- */
+	The function textWidth() determines the fractional width of a text, in device coordinates.
+*/
 static double textWidth (_Graphics_widechar string []) {
 	double width = 0.0;
 	for (_Graphics_widechar *character = string; character -> kar > U'\t'; character ++)
@@ -1082,8 +1088,8 @@ static void drawOneCell (Graphics me, int xDC, int yDC, _Graphics_widechar lc []
 	int nchars = 0;
 	const double width = textWidth (lc);
 	/*
-	 * We must continue even if width is zero (for adjusting textY).
-	 */
+		We must continue even if width is zero (for adjusting textY).
+	*/
 	_Graphics_widechar *plc, *lastlc;
 	bool inLink = false;
 	double dx, dy;
@@ -1118,12 +1124,12 @@ static void drawOneCell (Graphics me, int xDC, int yDC, _Graphics_widechar lc []
 			charCodes [nchars ++] = plc -> code;   // buffer...
 			x += plc -> width;
 			/*
-			 * We can draw stretches of characters:
-			 * they have different styles, baselines, sizes, or fonts,
-			 * or if there is a break between them,
-			 * or if we cannot rotate multiple characters,
-			 * which is the case on bitmap printers.
-			 */
+				We can draw stretches of characters:
+				they have different styles, baselines, sizes, or fonts,
+				or if there is a break between them,
+				or if we cannot rotate multiple characters,
+				which is the case on bitmap printers.
+			*/
 			if (next->kar < U' ' || next->style != plc->style ||
 				next->baseline != plc->baseline || next->size != plc->size ||
 				next->font.integer_ != plc->font.integer_ || next->font.string != plc->font.string ||
@@ -1145,8 +1151,8 @@ static void drawOneCell (Graphics me, int xDC, int yDC, _Graphics_widechar lc []
 		lastlc = lc;
 		if (my wrapWidth != 0.0) {
 			/*
-			 * Replace some spaces with new-line symbols.
-			 */
+				Replace some spaces with new-line symbols.
+			*/
 			int xmax = xDC + my wrapWidth * my scaleX;
 			for (plc = lc; plc -> kar >= U' '; plc ++) {
 				x += plc -> width;
@@ -1662,16 +1668,15 @@ void Graphics_textRect (Graphics me, double x1, double x2, double y1, double y2,
 void Graphics_text (Graphics me, double xWC, double yWC, conststring32 txt) {
 	if (my recording) {
 		const conststring8 txt_utf8 = Melder_peek32to8 (txt);
-		const int length = strlen (txt_utf8) / sizeof (double) + 1;   // TODO: integer overflow
+		const integer length = Melder8_length (txt_utf8) / (integer) sizeof (double) + 1;
 		op (TEXT, 3 + length); put (xWC); put (yWC); sput (txt_utf8, length)
 	} else {
 		if (my wrapWidth == 0.0 && str32chr (txt, U'\n') && my textRotation == 0.0) {
 			const double lineSpacingWC = (1.2/72.0) * my fontSize * my resolution / fabs (my scaleY);
 			integer numberOfLines = 1;
-			for (const char32 *p = & txt [0]; *p != U'\0'; p ++) {
+			for (const char32 *p = & txt [0]; *p != U'\0'; p ++)
 				if (*p == U'\n')
 					numberOfLines ++;
-			}
 			yWC += (
 				my verticalTextAlignment == Graphics_TOP ?
 					0.0

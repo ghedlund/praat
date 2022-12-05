@@ -32,9 +32,9 @@ Thing_define (TextGridEditor, FunctionEditor) {
 
 	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v1_dataChanged () override {
+	void v1_dataChanged (Editor sender) override {
 		Melder_clipRight (& our textGridArea() -> selectedTier, our textGrid() -> tiers->size);   // crucial: before v_updateText (bug 2022-07-23)!
-		our structFunctionEditor :: v1_dataChanged ();
+		our structFunctionEditor :: v1_dataChanged (sender);
 		our textGridArea() -> functionChanged (our textGrid());
 		if (our soundArea()) {
 			our soundArea() -> functionChanged (nullptr);   // BUG: this function has not actually changed
@@ -80,6 +80,10 @@ Thing_define (TextGridEditor, FunctionEditor) {
 	void v_drawSelectionViewer () override {
 		TextGridArea_drawSelectionViewer (our textGridArea().get());
 	}
+	void v_drawRealTimeSelectionViewer (double /* time */) override {
+		TextGridArea_drawSelectionViewer (our textGridArea().get()); // avoid discontinuity during play
+	}
+
 	void v_clickSelectionViewer (double x_fraction, double y_fraction) override {
 		TextGridArea_clickSelectionViewer (our textGridArea().get(), x_fraction, y_fraction);
 	}
@@ -91,13 +95,16 @@ Thing_define (TextGridEditor, FunctionEditor) {
 	}
 	void v_drawLegends () override {
 		FunctionArea_drawLegend (our textGridArea().get(),
-			FunctionArea_legend_TEXTGRID U" ##modifiable TextGrid", DataGui_defaultForegroundColour (our textGridArea().get())
+			FunctionArea_legend_TEXTGRID U" ##modifiable TextGrid",
+			DataGui_defaultForegroundColour (our textGridArea().get(), false)
 		);
 		if (our soundArea()) {
 			const bool pulsesAreVisible = our soundAnalysisArea() -> hasPulsesToShow ();
 			FunctionArea_drawLegend (our soundArea().get(),
-				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound", DataGui_defaultForegroundColour (our soundArea().get()),
-				pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr, Melder_GREY
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound",
+				DataGui_defaultForegroundColour (our soundArea().get(), false),
+				pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr,
+				Melder_GREY
 			);
 			SoundAnalysisArea_drawDefaultLegends (our soundAnalysisArea().get());
 		}

@@ -224,13 +224,13 @@ int structButtonEditor :: v_goToPage (conststring32 title) {
 			}
 			if (action -> script) {
 				try {
-					DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, action -> script.get(), nullptr, nullptr, false, nullptr);
+					DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, action -> script.get(), nullptr, nullptr, false, nullptr, nullptr);
 				} catch (MelderError) {
 					Melder_flushError (U"Command not executed.");
 				}
 			} else {
 				try {
-					action -> callback (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr);
+					action -> callback (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr, nullptr);
 				} catch (MelderError) {
 					Melder_flushError (U"Command not executed.");
 				}
@@ -248,13 +248,13 @@ int structButtonEditor :: v_goToPage (conststring32 title) {
 			}
 			if (menuCommand -> script) {
 				try {
-					DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, menuCommand -> script.get(), nullptr, nullptr, false, nullptr);
+					DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, menuCommand -> script.get(), nullptr, nullptr, false, nullptr, nullptr);
 				} catch (MelderError) {
 					Melder_flushError (U"Command not executed.");
 				}
 			} else {
 				try {
-					menuCommand -> callback (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr);
+					menuCommand -> callback (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr, nullptr);
 				} catch (MelderError) {
 					Melder_flushError (U"Command not executed.");
 				}
@@ -319,7 +319,7 @@ void structButtonEditor :: v_createChildren () {
 	GuiRadioGroup_end ();
 }
 
-static void menu_cb_ButtonEditorHelp (ButtonEditor /* me */, EDITOR_ARGS_DIRECT) { Melder_help (U"ButtonEditor"); }
+static void menu_cb_ButtonEditorHelp (ButtonEditor /* me */, EDITOR_ARGS) { Melder_help (U"ButtonEditor"); }
 
 void structButtonEditor :: v_createMenuItems_help (EditorMenu menu) {
 	ButtonEditor_Parent :: v_createMenuItems_help (menu);

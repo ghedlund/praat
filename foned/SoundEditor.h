@@ -26,8 +26,8 @@ Thing_define (SoundEditor, FunctionEditor) {
 	DEFINE_FunctionArea (1, SoundArea, soundArea)
 	DEFINE_FunctionArea (2, SoundAnalysisArea, soundAnalysisArea)
 
-	void v1_dataChanged () override {
-		SoundEditor_Parent :: v1_dataChanged ();
+	void v1_dataChanged (Editor sender) override {
+		SoundEditor_Parent :: v1_dataChanged (sender);
 		Thing_cast (SampledXY, soundOrLongSound, our data());
 		our soundArea() -> functionChanged (soundOrLongSound);
 		our soundAnalysisArea() -> functionChanged (soundOrLongSound);
@@ -59,8 +59,10 @@ Thing_define (SoundEditor, FunctionEditor) {
 	void v_drawLegends () override {
 		const bool pulsesAreVisible = our soundAnalysisArea() -> hasPulsesToShow ();
 		FunctionArea_drawLegend (our soundArea().get(),
-			pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr, Melder_GREY,
-			FunctionArea_legend_WAVEFORM U" ##modifiable sound", DataGui_defaultForegroundColour (our soundArea().get())
+			pulsesAreVisible ? FunctionArea_legend_POLES U" %%derived pulses" : nullptr,
+			Melder_GREY,
+			FunctionArea_legend_WAVEFORM U" ##modifiable sound",
+			DataGui_defaultForegroundColour (our soundArea().get(), false)
 		);
 		SoundAnalysisArea_drawDefaultLegends (our soundAnalysisArea().get());
 	}

@@ -27,8 +27,8 @@ Thing_define (PitchTierEditor, FunctionEditor) {
 	DEFINE_FunctionArea (1, PitchTierArea, pitchTierArea)
 	DEFINE_FunctionArea (2, SoundArea, soundArea)
 
-	void v1_dataChanged () override {
-		our PitchTierEditor_Parent :: v1_dataChanged ();
+	void v1_dataChanged (Editor sender) override {
+		our PitchTierEditor_Parent :: v1_dataChanged (sender);
 		our pitchTierArea() -> functionChanged (static_cast <PitchTier> (our data()));
 		if (our soundArea())
 			our soundArea() -> functionChanged (nullptr);   // BUG: the copy probably doesn't change
@@ -47,15 +47,17 @@ Thing_define (PitchTierEditor, FunctionEditor) {
 		if (our soundArea())
 			Sound_playPart (our soundArea() -> sound(), startTime, endTime, theFunctionEditor_playCallback, this);
 		else
-			PitchTier_playPart (our pitchTierArea() -> pitchTier(), startTime, endTime, false);   // BUG: why no callback?
+			PitchTier_playPart (our pitchTierArea() -> pitchTier(), startTime, endTime, false, theFunctionEditor_playCallback, this);
 	}
 	void v_drawLegends () override {
 		FunctionArea_drawLegend (our pitchTierArea().get(),
-			FunctionArea_legend_LINES_SPECKLES U" ##modifiable PitchTier", DataGui_defaultForegroundColour (our pitchTierArea().get())
+			FunctionArea_legend_LINES_SPECKLES U" ##modifiable PitchTier",
+			DataGui_defaultForegroundColour (our pitchTierArea().get(), false)
 		);
 		if (our soundArea())
 			FunctionArea_drawLegend (our soundArea().get(),
-				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound", DataGui_defaultForegroundColour (our soundArea().get())
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound",
+				DataGui_defaultForegroundColour (our soundArea().get(), false)
 			);
 	}
 };

@@ -89,7 +89,7 @@ void structRealTierArea :: v_drawInside () {
 	Graphics_setTextAlignment (our graphics(), Graphics_RIGHT, Graphics_HALF);
 	Graphics_text (our graphics(), our startWindow(), our ycursor,
 			Melder_float (Melder_half (our ycursor)), our v_rightTickUnits());
-	Graphics_setColour (our graphics(), Melder_BLUE);
+	Graphics_setColour (our graphics(), DataGuiColour_EDITABLE);
 	Graphics_setTextAlignment (our graphics(), Graphics_LEFT, Graphics_HALF);
 	Graphics_text (our graphics(), our endWindow(), our ymax,
 			Melder_float (Melder_half (our ymax)), our v_rightTickUnits());
@@ -111,7 +111,6 @@ void structRealTierArea :: v_drawInside () {
 		const double yright = RealTier_getValueAtTime (our realTier(), our endWindow());
 		Graphics_line (our graphics(), our startWindow(), yleft, our endWindow(), yright);
 	} else {
-		Graphics_setColour (our graphics(), Melder_BLUE);
 		for (integer ipoint = imin; ipoint <= imax; ipoint ++) {
 			RealPoint point = our realTier() -> points.at [ipoint];
 			const double t = point -> number, y = point -> value;
@@ -132,7 +131,7 @@ void structRealTierArea :: v_drawInside () {
 			RealPoint point = our realTier() -> points.at [ipoint];
 			const double t = point -> number, y = point -> value;
 			const bool pointIsSelected = ( ipoint >= ifirstSelected && ipoint <= ilastSelected );
-			Graphics_setColour (our graphics(), pointIsSelected ? Melder_RED : DataGui_defaultForegroundColour (this));
+			Graphics_setColour (our graphics(), DataGui_defaultForegroundColour (this, pointIsSelected));
 			Graphics_fillCircle_mm (our graphics(), t, y, 3.0);
 		}
 	}
@@ -250,17 +249,17 @@ bool structRealTierArea :: v_mouse (GuiDrawingArea_MouseEvent event, double x_wo
 
 #pragma mark - RealTierArea Modify
 
-static void menu_cb_removePoints (RealTierArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_removePoints (RealTierArea me, EDITOR_ARGS) {
 	FunctionArea_save (me, U"Remove point(s)");
 	RealTierArea_removePoints (me);
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_addPointAtCursor (RealTierArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_addPointAtCursor (RealTierArea me, EDITOR_ARGS) {
 	FunctionArea_save (me, U"Add point");
 	RealTierArea_addPointAtCursor (me);
 	FunctionArea_broadcastDataChanged (me);
 }
-static void menu_cb_addPointAt (RealTierArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_addPointAt (RealTierArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Add point", nullptr)
 		REAL (time, U"Time (s)", U"0.0")
 		REAL (desiredY, my v_quantityText (), U"0.0")
@@ -277,7 +276,7 @@ static void menu_cb_addPointAt (RealTierArea me, EDITOR_ARGS_FORM) {
 
 #pragma mark - RealTierArea View vertical
 
-static void menu_cb_setRange (RealTierArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_setRange (RealTierArea me, EDITOR_ARGS) {
 	EDITOR_FORM (my v_setRangeTitle (), nullptr)
 		REAL (ymin, my v_minimumLabelText (), my default_dataFreeMinimum())
 		REAL (ymax, my v_maximumLabelText (), my default_dataFreeMaximum())

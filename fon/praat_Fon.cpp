@@ -1698,7 +1698,7 @@ DIRECT (HELP_Pitch_help) {
 
 DIRECT (PLAY_Pitch_hum) {
 	PLAY_EACH (Pitch)
-		Pitch_hum (me, 0.0, 0.0);
+		Pitch_hum (me, 0.0, 0.0, nullptr, nullptr);
 	PLAY_EACH_END
 }
 
@@ -2602,8 +2602,9 @@ FORM (NEW1_Strings_createAsFileList, U"Create Strings as file list", U"Create St
 		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory, U"/*.wav");
 	#elif defined (_WIN32)
 	{
-		static int len = str32len (homeDirectory);
-		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory, len == 0 || homeDirectory [len - 1] != U'\\' ? U"\\" : U"", U"*.wav");
+		static integer len = Melder_length (homeDirectory);
+		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory,
+				len == 0 || homeDirectory [len - 1] != U'\\' ? U"\\" : U"", U"*.wav");
 	}
 	#else
 		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory, U"/*.wav");
@@ -2626,7 +2627,7 @@ FORM (NEW1_Strings_createAsFolderList, U"Create Strings as folder list", U"Creat
 		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory, U"/*");
 	#elif defined (_WIN32)
 	{
-		int len = str32len (homeDirectory);
+		const integer len = Melder_length (homeDirectory);
 		Melder_sprint (defaultPath,kMelder_MAXPATH+1, homeDirectory, len == 0 || homeDirectory [len - 1] != U'\\' ? U"\\" : U"");
 	}
 	#else
@@ -2877,7 +2878,7 @@ DO
 // MARK: - Help menu
 
 DIRECT (HELP_PraatIntro) { HELP (U"Intro") }
-DIRECT (HELP_ObjectWindow) { HELP (U"Object window") }
+DIRECT (HELP_ObjectWindow) { HELP (U"Objects window") }
 DIRECT (HELP_FrequentlyAskedQuestions) { HELP (U"FAQ (Frequently Asked Questions)") }
 DIRECT (HELP_TypesOfObjects) { HELP (U"Types of objects") }
 DIRECT (HELP_Editors) { HELP (U"Editors") }
@@ -3009,7 +3010,7 @@ void praat_uvafon_init () {
 
 	praat_addMenuCommand (U"Objects", U"ApplicationHelp", U"Praat Intro", nullptr, '?', HELP_PraatIntro);
 	#ifndef macintosh
-		praat_addMenuCommand (U"Objects", U"Help", U"Object window", nullptr, 0, HELP_ObjectWindow);
+		praat_addMenuCommand (U"Objects", U"Help", U"Objects window", nullptr, 0, HELP_ObjectWindow);
 	#endif
 	praat_addMenuCommand (U"Objects", U"ApplicationHelp", U"Frequently asked questions",
 			nullptr, 0, HELP_FrequentlyAskedQuestions);
@@ -3054,7 +3055,7 @@ void praat_uvafon_init () {
 #ifdef macintosh
 	praat_addMenuCommand (U"Objects", U"Help", U"Praat Intro",
 			nullptr, '?', HELP_PraatIntro);
-	praat_addMenuCommand (U"Objects", U"Help", U"Object window help",
+	praat_addMenuCommand (U"Objects", U"Help", U"Objects window help",
 			nullptr, 0, HELP_ObjectWindow);
 	praat_addMenuCommand (U"Objects", U"Help", U"-- manual --",
 			nullptr, 0, nullptr);

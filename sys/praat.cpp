@@ -299,8 +299,6 @@ static void removeAllReferencesToMoribundEditor (Editor editor) {
 		for (integer ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++)
 			if (theCurrentPraatObjects -> list [iobject]. editors [ieditor] == editor)
 				theCurrentPraatObjects -> list [iobject]. editors [ieditor] = nullptr;
-	if (praatP. editor == editor)
-		praatP. editor = nullptr;
 }
 
 /**
@@ -656,14 +654,15 @@ static void cb_Editor_dataChanged (Editor me) {
 			editingThisObject |= ( theCurrentPraatObjects -> list [iobject]. editors [ieditor] == me );
 		if (editingThisObject) {
 			/*
-				Notify all editors associated with this object,
-				*including myself*.
-				(last checked 2022-06-12)
+				Notify all editors associated with this object, *including myself*.
+				But the receiver will be able to check whether the notification comes from self or not;
+				e.g. the DataEditor will react differently on a message from outside than on a message from inside.
+				(last checked 2022-09-30)
 			*/
 			for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++) {
 				Editor otherEditor = theCurrentPraatObjects -> list [iobject]. editors [ieditor];
-				if (otherEditor /*&& otherEditor != me*/)
-					Editor_dataChanged (otherEditor);
+				if (otherEditor)
+					Editor_dataChanged (otherEditor, me);
 			}
 		}
 	}
@@ -814,7 +813,7 @@ void praat_dataChanged (Daata object) {
 		for (int ieditor = 0; ieditor < praat_MAXNUM_EDITORS; ieditor ++) {
 			Editor editor = EDITOR [ieditor];
 			if (editor) {
-				Editor_dataChanged (editor);
+				Editor_dataChanged (editor, nullptr);
 				if (duringError)
 					Melder_clearError ();   // accept only the original error, and not the extra ones generated in the editors
 			}
@@ -879,7 +878,7 @@ DO
 }
 
 static void gui_cb_quit (Thing /* me */) {
-	DO_Quit (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr);
+	DO_Quit (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr, nullptr);
 }
 
 void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
@@ -923,7 +922,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 			{// scope
 				autoPraatBackground background;
 				try {
-					praat_executeScriptFromFile (& messageFile, nullptr);
+					praat_executeScriptFromFile (& messageFile, nullptr, nullptr);
 				} catch (MelderError) {
 					Melder_flushError (praatP.title.get(), U": message not completely handled.");
 				}
@@ -937,7 +936,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 	static int cb_userMessage () {
 		autoPraatBackground background;
 		try {
-			praat_executeScriptFromFile (& messageFile, nullptr);
+			praat_executeScriptFromFile (& messageFile, nullptr, nullptr);
 		} catch (MelderError) {
 			Melder_flushError (praatP.title.get(), U": message not completely handled.");
 		}
@@ -992,7 +991,7 @@ void praat_dontUsePictureWindow () { praatP.dontUsePictureWindow = true; }
 		return 0;
 	}
 	static int cb_quitApplication () {
-		DO_Quit (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr);
+		DO_Quit (nullptr, 0, nullptr, nullptr, nullptr, nullptr, false, nullptr, nullptr);
 		return 0;
 	}
 #endif
@@ -1933,7 +1932,7 @@ static void executeStartUpFile (MelderDir startUpDirectory, conststring32 fileNa
 		if (! MelderFile_readable (& startUp))
 			return;   // it's OK if the file doesn't exist
 		try {
-			praat_executeScriptFromFile (& startUp, nullptr);
+			praat_executeScriptFromFile (& startUp, nullptr, nullptr);
 		} catch (MelderError) {
 			Melder_flushError (praatP.title.get(), U": start-up file ", & startUp, U" not completed.");
 		}
@@ -2039,7 +2038,7 @@ void praat_run () {
 				if (MelderFile_readable (& plugin)) {
 					Melder_backgrounding = true;
 					try {
-						praat_executeScriptFromFile (& plugin, nullptr);
+						praat_executeScriptFromFile (& plugin, nullptr, nullptr);
 					} catch (MelderError) {
 						Melder_flushError (praatP.title.get(), U": plugin ", & plugin, U" contains an error.");
 					}
@@ -2174,7 +2173,7 @@ void praat_run () {
 		Melder_assert ((uint32) dummy == 3000000000);
 	}
 	{
-		Melder_assert (str32len (U"hello") == 5);
+		Melder_assert (Melder_length (U"hello") == 5);
 		Melder_assert (str32ncmp (U"hellogoodbye", U"hellogee", 6) == 0);
 		Melder_assert (str32ncmp (U"hellogoodbye", U"hellogee", 7) > 0);
 		Melder_assert (str32str (U"hellogoodbye", U"ogo"));
@@ -2350,9 +2349,58 @@ void praat_run () {
 			}
 		} else {
 			try {
-				//Melder_casual (U"Script <<", theCurrentPraatApplication -> batchName.string, U">>");
+				#ifdef _WIN32
+					/*
+						Our WinMain app cannot be a true console app when run from the Console.
+
+						The following is what we expect from a console app:
+						1. After you enter `Praat.exe myScript.praat` into the Console,
+						   the Console should go to the next line, but show nothing else.
+						2. Any console output (i.e. output to stdout and stderr) should appear
+						   on this line and the next lines.
+						3. When Praat finishes, the Console should show the new prompt,
+						   like `C:\Users\Me\myFolder>`, on a new line.
+
+						Instead, if we do nothing special here, Praat will do the following in the Console:
+						1. After you enter `Praat.exe myScript.praat`, the Console will immediately
+						   present the `C:\Users\Me\myFolder>` prompt again. We know of no way
+						   to change this behaviour, short of compiling Praat as a console app.
+						2. Any console output (i.e. output to stdout and stderr) will appear
+						   immediately after the `C:\Users\Me\myFolder>` prompt.
+						3. When Praat finishes, the Console will show no new prompt, because
+						   it has already shown a prompt (too early). A new prompt will appear
+						   only once you type the Enter key.
+
+						The most important problem to repair is 3, because otherwise it will look
+						as if Praat has not finished. So in Chunk 2 we fake an Enter.
+
+						Problem 2 is repaired in Chunk 1 by sending a line to stderr (not stdout,
+						because the line break should not end up in a file if redirected).
+						The line that is sent should not be empty, because an empty line would suggest
+						that Praat has finished, so we send a visible comment with hashes ("##########").
+
+						Our output will still look different from a real console app because of the extra
+						prompt at the beginning (prepened to our comment) and perhaps the extra
+						empty line that will appear now at the end of the output.
+						(last checked 2022-10-12)
+
+						Chunk 1 (sending a comment to stderr):
+					*/
+					HWND optionalConsoleWindowHandle = GetConsoleWindow ();
+					if (optionalConsoleWindowHandle)
+						Melder_casual (U" ########## Running Praat script ", theCurrentPraatApplication -> batchName.string);
+				#endif
 				praat_executeScriptFromCommandLine (theCurrentPraatApplication -> batchName.string,
 						praatP.argc - praatP.argumentNumber, & praatP.argv [praatP.argumentNumber]);
+				#ifdef _WIN32
+					/*
+						Chunk 2 (faking an Enter):
+					*/
+					if (optionalConsoleWindowHandle)
+						PostMessage (optionalConsoleWindowHandle, WM_KEYDOWN, VK_RETURN, 0);
+
+					FreeConsole ();   // this may not do anything? (last checked 2022-10-12)
+				#endif
 				praat_exit (0);
 			} catch (MelderError) {
 				Melder_flushError (praatP.title.get(), U": script command <<",

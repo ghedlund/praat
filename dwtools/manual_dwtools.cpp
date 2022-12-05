@@ -940,7 +940,7 @@ NORMAL (U"First all row and column labels are changed according to the search "
 MAN_END
 
 MAN_BEGIN (U"Confusion: Get fraction correct", U"djmw", 20000225)
-INTRO (U"A @@query@ to ask the selected @Confusion matrix for the fraction of "
+INTRO (U"A @@Query submenu|query@ to ask the selected @Confusion matrix for the fraction of "
 	"correct classifications.")
 NORMAL (U"The \"fraction correct\" is defined as the quotient of the number "
 	"of correct classifications and the sum of the entries in the matrix.")
@@ -2408,7 +2408,7 @@ NORMAL (U"We take the first central difference, "
 NORMAL (U"The real derivative can be found by using the @@Electroglottogram: Derivative...|Derivative...@ method.")
 MAN_END
 
-MAN_BEGIN (U"Electroglottogram: Get closed glottis intervals...", U"djmw", 20190906)
+MAN_BEGIN (U"Electroglottogram: To TextGrid (closed glottis)...", U"djmw", 20221115)
 INTRO (U"Calculates the intervals where the glottis is closed from the selected @@Electroglottogram@.")
 ENTRY (U"Settings")
 TAG (U"##Pitch floor (Hz)#")
@@ -2523,7 +2523,7 @@ MAN_BEGIN (U"FilterBank: Draw frequency scales...", U"djmw", 20030901)
 MAN_END
 
 MAN_BEGIN (U"FilterBank: Get frequency in Hertz...", U"djmw", 20030901)
-INTRO (U"A @query to the selected FilterBank object.")
+INTRO (U"A @@Query submenu|query@ to the selected FilterBank object.")
 ENTRY (U"Return value")
 NORMAL (U"a frequency value in Hertz.")
 MAN_END
@@ -5147,7 +5147,8 @@ SCRIPT (5, 3,  U"h1h2 = Create H1H2 table (Esposito 2006)\n"
 MAN_END
 
 MAN_BEGIN (U"Table: Box plots where...", U"djmw", 20140509)
-INTRO (U"A command to draw @@box plot@s from the data in a column of the selected @Table object.")
+INTRO (U"A command to draw a @@box plot@s for each factor from the data in other column(s) of the selected @Table object, "
+	"where the factors will be sorted in @@natural sort order@.")
 ENTRY (U"Example")
 NORMAL (U"To draw separate box plots for the male, female and children F0 for the @@Peterson & Barney (1952)@ data: ")
 CODE (U"Create formant table (Peterson & Barney 1952)")

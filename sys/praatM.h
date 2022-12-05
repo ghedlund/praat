@@ -2,7 +2,7 @@
 #define _praatM_h_
 /* praatM.h
  *
- * Copyright (C) 1992-2021 Paul Boersma
+ * Copyright (C) 1992-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,15 +75,18 @@
  */
 
 #define FORM(proc,name,helpTitle)  \
-	extern "C" void proc (UiForm sendingForm, integer narg, Stackel args, conststring32 sendingString, Interpreter interpreter, conststring32 invokingButtonTitle, bool isModified, void *buttonClosure); \
-	void proc (UiForm _sendingForm_, integer _narg_, Stackel _args_, conststring32 _sendingString_, Interpreter interpreter, conststring32 _invokingButtonTitle_, bool _isModified_, void *_buttonClosure_) { \
-		integer IOBJECT = 0; \
-		(void) IOBJECT; \
-		UiField _radio_ = nullptr; \
-		(void) _radio_; \
+	extern "C" void proc (UiForm sendingForm, integer narg, Stackel args, conststring32 sendingString, \
+			Interpreter interpreter, conststring32 invokingButtonTitle, bool isModified, void *buttonClosure, Editor optionalEditor); \
+	void proc (UiForm _sendingForm_, integer _narg_, Stackel _args_, conststring32 _sendingString_, \
+			Interpreter interpreter, conststring32 _invokingButtonTitle_, bool _isModified_, void *_buttonClosure_, Editor _optionalEditor_) \
+	{ \
+		[[maybe_unused]] integer IOBJECT = 0; \
+		[[maybe_unused]] UiField _radio_ = nullptr; \
 		static autoUiForm _dia_; \
-		if (_dia_) goto _dia_inited_; \
-		_dia_ = UiForm_create (theCurrentPraatApplication -> topShell, name, proc, _buttonClosure_, _invokingButtonTitle_, helpTitle);
+		if (_dia_) \
+			goto _dia_inited_; \
+		_dia_ = UiForm_create (theCurrentPraatApplication -> topShell, _optionalEditor_, name, \
+				proc, _buttonClosure_, _invokingButtonTitle_, helpTitle);
 
 #define REAL(realVariable, labelText, defaultStringValue)  \
 		static double realVariable; \
@@ -210,9 +213,8 @@
 #define RADIO_ENUM(EnumeratedType, enumeratedVariable, labelText, defaultValue)  \
 		static enum EnumeratedType enumeratedVariable; \
 		{/* type checks */ \
-			enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
+			[[maybe_unused]] enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
 			_compilerTypeCheckDummy = enumeratedVariable; \
-			(void) _compilerTypeCheckDummy; \
 		} \
 		_radio_ = UiForm_addRadio (_dia_.get(), (int *) & enumeratedVariable, nullptr, U"" #enumeratedVariable, labelText, \
 			(int) defaultValue - (int) EnumeratedType::MIN + 1, (int) EnumeratedType::MIN); \
@@ -222,9 +224,8 @@
 #define OPTIONMENU_ENUM(EnumeratedType, enumeratedVariable, labelText, defaultValue)  \
 		static EnumeratedType enumeratedVariable; \
 		{/* type checks */ \
-			enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
+			[[maybe_unused]] enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
 			_compilerTypeCheckDummy = enumeratedVariable; \
-			(void) _compilerTypeCheckDummy; \
 		} \
 		_radio_ = UiForm_addOptionMenu (_dia_.get(), (int *) & enumeratedVariable, nullptr, U"" #enumeratedVariable, labelText, \
 			(int) defaultValue - (int) EnumeratedType::MIN + 1, (int) EnumeratedType::MIN); \
@@ -234,9 +235,8 @@
 #define OPTIONMENU_ENUMSTR(EnumeratedType, enumeratedVariableAsString, labelText, defaultValue)  \
 		static char32 *enumeratedVariableAsString; \
 		{/* type checks */ \
-			enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
+			[[maybe_unused]] enum EnumeratedType _compilerTypeCheckDummy = defaultValue; \
 			_compilerTypeCheckDummy = enumeratedVariable; \
-			(void) _compilerTypeCheckDummy; \
 		} \
 		_radio_ = UiForm_addOptionMenu (_dia_.get(), nullptr, & enumeratedVariableAsString, U"" #enumeratedVariableAsString, labelText, \
 			(int) defaultValue - (int) EnumeratedType::MIN + 1, (int) EnumeratedType::MIN); \
@@ -315,7 +315,7 @@
 				autostring32 _parkedError = Melder_dup_f (Melder_getError ()); \
 				Melder_clearError (); \
 				try { \
-					alternative (nullptr, _narg_, _args_, _sendingString_, interpreter, _invokingButtonTitle_, _isModified_, _buttonClosure_); \
+					alternative (nullptr, _narg_, _args_, _sendingString_, interpreter, _invokingButtonTitle_, _isModified_, _buttonClosure_, _optionalEditor_); \
 				} catch (MelderError) { \
 					Melder_clearError (); \
 					Melder_appendError (_parkedError.get()); \
@@ -345,27 +345,27 @@
 	}
 
 #define DIRECT(proc)  \
-	extern "C" void proc (UiForm, integer, Stackel, conststring32, Interpreter interpreter, conststring32, bool, void *); \
-	void proc (UiForm, integer, Stackel, conststring32, Interpreter interpreter, conststring32, bool, void *) { \
-		(void) interpreter; \
-		integer IOBJECT = 0; \
-		(void) IOBJECT; \
+	extern "C" void proc (UiForm, integer, Stackel, conststring32, Interpreter interpreter, conststring32, bool, void *, Editor); \
+	void proc (UiForm, integer, Stackel, conststring32, [[maybe_unused]] Interpreter interpreter, conststring32, bool, void *, Editor) { \
+		[[maybe_unused]] integer IOBJECT = 0; \
 		{ { \
 			try {
 
 #define FORM_READ(proc,title,help,allowMult)  \
-	extern "C" void proc (UiForm sendingForm, integer, structStackel args [], conststring32 sendingString, Interpreter interpreter, conststring32 invokingButtonTitle, bool, void *okClosure); \
-	void proc (UiForm _sendingForm_, integer _narg_, structStackel _args_ [], conststring32 _sendingString_, Interpreter interpreter, conststring32 _invokingButtonTitle_, bool, void *_okClosure_) { \
+	extern "C" void proc (UiForm sendingForm, integer, structStackel args [], conststring32 sendingString, \
+			Interpreter interpreter, conststring32 invokingButtonTitle, bool, void *okClosure, Editor optionalEditor); \
+	void proc (UiForm _sendingForm_, integer _narg_, structStackel _args_ [], conststring32 _sendingString_, \
+			Interpreter interpreter, conststring32 _invokingButtonTitle_, bool, void *_okClosure_, Editor _optionalEditor_) \
+	{ \
 		{ static autoUiForm _dia_; \
 		if (! _dia_) \
-			_dia_ = UiInfile_create (theCurrentPraatApplication -> topShell, title, proc, _okClosure_, _invokingButtonTitle_, help, allowMult); \
+			_dia_ = UiInfile_create (theCurrentPraatApplication -> topShell, _optionalEditor_, title, proc, _okClosure_, _invokingButtonTitle_, help, allowMult); \
 		if (_narg_ < 0) UiForm_info (_dia_.get(), _narg_); else if (! _args_ && ! _sendingForm_ && ! _sendingString_) { \
 			UiInfile_do (_dia_.get()); \
 		} else { \
 			try { \
 				MelderFile file; \
-				integer IOBJECT = 0; \
-				(void) IOBJECT; \
+				[[maybe_unused]] integer IOBJECT = 0; \
 				structMelderFile _file2 { };  /* don't move this into an inner scope, because the contents of a local variable don't persist into the outer scope */ \
 				if (_args_) { \
 					Melder_require (_narg_ == 1, \
@@ -382,18 +382,20 @@
 				}
 
 #define FORM_SAVE(proc,title,help,ext)  \
-	extern "C" void proc (UiForm sendingForm, integer, structStackel args [], conststring32 sendingString, Interpreter, conststring32 invokingButtonTitle, bool, void *okClosure); \
-	void proc (UiForm _sendingForm_, integer _narg_, Stackel _args_, conststring32 _sendingString_, Interpreter, conststring32 _invokingButtonTitle_, bool, void *_okClosure_) { \
+	extern "C" void proc (UiForm sendingForm, integer, structStackel args [], conststring32 sendingString, \
+			Interpreter, conststring32 invokingButtonTitle, bool, void *okClosure, Editor optionalEditor); \
+	void proc (UiForm _sendingForm_, integer _narg_, Stackel _args_, conststring32 _sendingString_, \
+			Interpreter, conststring32 _invokingButtonTitle_, bool, void *_okClosure_, Editor _optionalEditor_) \
+	{ \
 		{ static autoUiForm _dia_; \
 		if (! _dia_) \
-			_dia_ = UiOutfile_create (theCurrentPraatApplication -> topShell, title, proc, _okClosure_, _invokingButtonTitle_, help); \
+			_dia_ = UiOutfile_create (theCurrentPraatApplication -> topShell, _optionalEditor_, title, proc, _okClosure_, _invokingButtonTitle_, help); \
 		if (_narg_ < 0) UiForm_info (_dia_.get(), _narg_); else if (! _args_ && ! _sendingForm_ && ! _sendingString_) { \
 			praat_write_do (_dia_.get(), ext); \
 		} else { \
 			try { \
 				MelderFile file; \
-				integer IOBJECT = 0; \
-				(void) IOBJECT; \
+				[[maybe_unused]] integer IOBJECT = 0; \
 				structMelderFile _file2 { };  /* don't move this into an inner scope, because the contents of a local variable don't persist into the outer scope */ \
 				if (_args_) { \
 					Melder_require (_narg_ == 1, \

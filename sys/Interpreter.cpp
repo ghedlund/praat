@@ -1,6 +1,6 @@
 /* Interpreter.cpp
  *
- * Copyright (C) 1993-2021 Paul Boersma
+ * Copyright (C) 1993-2022 Paul Boersma
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,10 +112,12 @@ autoInterpreter Interpreter_create (conststring32 environmentName, ClassInfo edi
 	}
 }
 
-autoInterpreter Interpreter_createFromEnvironment (Editor editor) {
-	if (! editor)
+autoInterpreter Interpreter_createFromEnvironment (Editor optionalEditor) {
+	if (! optionalEditor)
 		return Interpreter_create (nullptr, nullptr);
-	return Interpreter_create (editor -> name.get(), editor -> classInfo);
+	autoInterpreter interpreter = Interpreter_create (optionalEditor -> name.get(), optionalEditor -> classInfo);
+	interpreter -> optionalEditor = optionalEditor;
+	return interpreter;   // BUG: collapse
 }
 
 void Melder_includeIncludeFiles (autostring32 *inout_text) {
@@ -165,9 +167,9 @@ void Melder_includeIncludeFiles (autostring32 *inout_text) {
 			/*
 				Construct the new text.
 			 */
-			headLength = (head - inout_text->get()) + str32len (head);
-			includeTextLength = str32len (includeText.get());
-			newLength = headLength + includeTextLength + 1 + str32len (tail);
+			headLength = (head - inout_text->get()) + Melder_length (head);
+			includeTextLength = Melder_length (includeText.get());
+			newLength = headLength + includeTextLength + 1 + Melder_length (tail);
 			autostring32 newText (newLength);
 			str32cpy (newText.get(), inout_text->get());
 			str32cpy (newText.get() + headLength, includeText.get());
@@ -357,11 +359,11 @@ integer Interpreter_readParameters (Interpreter me, mutablestring32 text) {
 	return npar;
 }
 
-autoUiForm Interpreter_createForm (Interpreter me, GuiWindow parent, conststring32 path,
-	void (*okCallback) (UiForm, integer, Stackel, conststring32, Interpreter, conststring32, bool, void *), void *okClosure,
+autoUiForm Interpreter_createForm (Interpreter me, GuiWindow parent, Editor optionalEditor, conststring32 path,
+	void (*okCallback) (UiForm, integer, Stackel, conststring32, Interpreter, conststring32, bool, void *, Editor), void *okClosure,
 	bool selectionOnly)
 {
-	autoUiForm form = UiForm_create (parent,
+	autoUiForm form = UiForm_create (parent, optionalEditor,
 		Melder_cat (selectionOnly ? U"Run script (selection only): " : U"Run script: ", my dialogTitle),
 		okCallback, okClosure, nullptr, nullptr);
 	UiField radio = nullptr;
@@ -451,8 +453,8 @@ autoUiForm Interpreter_createForm (Interpreter me, GuiWindow parent, conststring
 				p [-1] = U'\0';
 		}
 		p = my parameters [ipar];
-		if (*p != U'\0' && p [str32len (p) - 1] == U':')
-			p [str32len (p) - 1] = U'\0';
+		if (*p != U'\0' && p [Melder_length (p) - 1] == U':')
+			p [Melder_length (p) - 1] = U'\0';
 	}
 	UiForm_finish (form.get());
 	return form;
@@ -470,8 +472,8 @@ void Interpreter_getArgumentsFromDialog (Interpreter me, UiForm dialog) {
 				p [-1] = U'\0';
 		}
 		p = my parameters [ipar];
-		if (*p != U'\0' && p [str32len (p) - 1] == U':')
-			p [str32len (p) - 1] = U'\0';
+		if (*p != U'\0' && p [Melder_length (p) - 1] == U':')
+			p [Melder_length (p) - 1] = U'\0';
 		/*
 			Convert underscores to spaces.
 		*/
@@ -581,8 +583,8 @@ static void tidyUpParameterNames (Interpreter me, integer size) {
 				p [-1] = U'\0';
 		}
 		p = my parameters [ipar];
-		if (*p != U'\0' && p [str32len (p) - 1] == U':')
-			p [str32len (p) - 1] = U'\0';
+		if (*p != U'\0' && p [Melder_length (p) - 1] == U':')
+			p [Melder_length (p) - 1] = U'\0';
 	}
 }
 
@@ -639,7 +641,7 @@ static void convertBooleansAndChoicesToNumbersAndRelativeToAbsolutePaths (Interp
 
 void Interpreter_getArgumentsFromString (Interpreter me, conststring32 arguments) {
 	int size = my numberOfParameters;
-	integer length = str32len (arguments);
+	const integer length = Melder_length (arguments);
 	while (size >= 1 && my parameters [size] [0] == U'\0')
 		size --;   /* Ignore fields without a variable name (button, comment). */
 	tidyUpParameterNames (me, size);
@@ -1070,7 +1072,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 		}
 		p ++;   // step over parenthesis or colon
 	}
-	integer callLength = str32len (callName);
+	const integer callLength = Melder_length (callName);
 	integer iline = 1;
 	for (; iline <= lines.size; iline ++) {
 		if (! str32nequ (lines [iline], U"procedure ", 10))
@@ -1078,10 +1080,11 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 		char32 *q = lines [iline] + 10;
 		while (Melder_isHorizontalSpace (*q))
 			q ++;   // skip whitespace before procedure name
-		char32 *procName = q;
+		char32 * const procName = q;
 		while (Melder_staysWithinInk (*q) && *q != U'(' && *q != U':')
 			q ++;
-		if (q == procName) Melder_throw (U"Missing procedure name after 'procedure'.");
+		if (q == procName)
+			Melder_throw (U"Missing procedure name after 'procedure'.");
 		if (q - procName == callLength && str32nequ (procName, callName, callLength)) {
 			/*
 				We found the procedure definition.
@@ -1089,7 +1092,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 			if (++ my callDepth > Interpreter_MAX_CALL_DEPTH)
 				Melder_throw (U"Call depth greater than ", Interpreter_MAX_CALL_DEPTH, U".");
 			str32cpy (my procedureNames [my callDepth], callName);
-			bool parenthesisOrColonFound = ( *q == U'(' || *q == U':' );
+			const bool parenthesisOrColonFound = ( *q == U'(' || *q == U':' );
 			if (*q)
 				q ++;   // step over parenthesis or colon or first white space
 			if (! parenthesisOrColonFound) {
@@ -1157,7 +1160,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 					my callDepth --;
 					autostring32 value = Interpreter_stringExpression (me, argument.string);
 					my callDepth ++;
-					char32 save = *q;
+					const char32 save = *q;
 					*q = U'\0';
 					InterpreterVariable var = Interpreter_lookUpVariable (me, parameterName);
 					*q = save;
@@ -1169,7 +1172,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 						my callDepth --;
 						Interpreter_numericMatrixExpression (me, argument.string, & value, & owned);
 						my callDepth ++;
-						char32 save = *q;
+						const char32 save = *q;
 						*q = U'\0';
 						InterpreterVariable var = Interpreter_lookUpVariable (me, parameterName);
 						*q = save;
@@ -1180,7 +1183,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 						my callDepth --;
 						Interpreter_stringArrayExpression (me, argument.string, & value, & owned);
 						my callDepth ++;
-						char32 save = *q;
+						const char32 save = *q;
 						*q = U'\0';
 						InterpreterVariable var = Interpreter_lookUpVariable (me, parameterName);
 						*q = save;
@@ -1191,7 +1194,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 						my callDepth --;
 						Interpreter_numericVectorExpression (me, argument.string, & value, & owned);
 						my callDepth ++;
-						char32 save = *q;
+						const char32 save = *q;
 						*q = U'\0';
 						InterpreterVariable var = Interpreter_lookUpVariable (me, parameterName);
 						*q = save;
@@ -1202,7 +1205,7 @@ static void Interpreter_do_procedureCall (Interpreter me, char32 *command,
 					my callDepth --;
 					Interpreter_numericExpression (me, argument.string, & value);
 					my callDepth ++;
-					char32 save = *q;
+					const char32 save = *q;
 					*q = U'\0';
 					InterpreterVariable var = Interpreter_lookUpVariable (me, parameterName);
 					*q = save;
@@ -1237,7 +1240,7 @@ static void Interpreter_do_oldProcedureCall (Interpreter me, char32 *command,
 		Melder_throw (U"Missing procedure name after 'call'.");
 	bool hasArguments = ( *p != U'\0' );
 	*p = U'\0';   // close procedure name
-	integer callLength = str32len (callName);
+	const integer callLength = Melder_length (callName);
 	integer iline = 1;
 	for (; iline <= lines.size; iline ++) {
 		if (! str32nequ (lines [iline], U"procedure ", 10))
@@ -1663,13 +1666,6 @@ void Interpreter_run (Interpreter me, char32 *text) {
 		int callDepth = 0, chopped = 0, ipar;
 		my callDepth = 0;
 		/*
-			The "environment" is null if we are in the Praat shell, or an editor otherwise.
-		*/
-		if (my editorClass)
-			praatP. editor = praat_findEditorFromString (my environmentName.get());
-		else
-			praatP. editor = nullptr;
-		/*
 			Start.
 		*/
 		my running = true;
@@ -1690,7 +1686,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 			Remember line starts and labels.
 		*/
 		lines. resize (numberOfLines);
-		for (lineNumber = 1, command = text; lineNumber <= numberOfLines; lineNumber ++, command += str32len (command) + 1 + chopped) {
+		for (lineNumber = 1, command = text; lineNumber <= numberOfLines; lineNumber ++, command += Melder_length (command) + 1 + chopped) {
 			while (Melder_isHorizontalSpace (*command))
 				command ++;   // nbsp can occur for scripts copied from the manual
 			/*
@@ -1698,7 +1694,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 			*/
 			#if 0
 				chopped = 0;
-				int length = str32len (command);
+				const integer length = Melder_length (command);
 				while (length > 0) {
 					char kar = command [-- length];
 					if (! Melder_isHorizontalSpace (kar))
@@ -1728,7 +1724,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 			if (line [0] == U'.' && line [1] == U'.' && line [2] == U'.') {
 				char32 *previous = lines [lineNumber - 1];
 				MelderString_copy (& command2, line + 3);
-				MelderString_get (& command2, previous + str32len (previous));
+				MelderString_get (& command2, previous + Melder_length (previous));
 				static char32 emptyLine [] = { U'\0' };
 				lines [lineNumber] = emptyLine;
 			}
@@ -1843,12 +1839,12 @@ void Interpreter_run (Interpreter me, char32 *text) {
 						/*
 							Found a variable (p points to the left quote, q to the right quote). Substitute.
 						*/
-						integer headlen = p - command2.string;
+						const integer headlen = p - command2.string;
 						conststring32 string = ( var -> stringValue ? var -> stringValue.get() :
 								percent ? Melder_percent (var -> numericValue, precision) :
 								precision >= 0 ?  Melder_fixed (var -> numericValue, precision) :
 								Melder_double (var -> numericValue) );
-						integer arglen = str32len (string);
+						const integer arglen = Melder_length (string);
 						MelderString_ncopy (& buffer, command2.string, headlen);
 						MelderString_append (& buffer, string, q + 1);
 						MelderString_copy (& command2, buffer.string);   // This invalidates p!! (really bad bug 20070203)
@@ -2155,7 +2151,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 							if (space) {
 								double value;
 								*space = '\0';
-								Interpreter_numericExpression (me, command2.string + 6 + str32len (labelName), & value);
+								Interpreter_numericExpression (me, command2.string + 6 + Melder_length (labelName), & value);
 								if (value == 0.0)
 									dojump = false;
 							}
@@ -2571,7 +2567,8 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									if (! var)
 										Melder_throw (U"The string ", variableName, U" does not exist.\n"
 													  U"You can increment (+=) only existing strings.");
-									integer oldLength = str32len (var -> stringValue.get()), extraLength = str32len (stringValue.get());
+									const integer oldLength = Melder_length (var -> stringValue.get());
+									const integer extraLength = Melder_length (stringValue.get());
 									autostring32 newString = autostring32 (oldLength + extraLength, false);
 									str32cpy (newString.get(), var -> stringValue.get());
 									str32cpy (newString.get() + oldLength, stringValue.get());
@@ -2607,7 +2604,7 @@ void Interpreter_run (Interpreter me, char32 *text) {
 									/*
 										Statement like: values## = Get all values
 									*/
-									bool status = praat_executeCommand (me, p);
+									const bool status = praat_executeCommand (me, p);
 									InterpreterVariable var = Interpreter_lookUpVariable (me, matrixName.string);
 									if (! status)
 										var -> numericMatrixValue = autoMAT();   // anything can have happened, including an incorrect returnType

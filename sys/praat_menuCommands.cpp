@@ -72,7 +72,7 @@ static void do_menu (Praat_Command me, bool isModified) {
 	if (my callback == DO_RunTheScriptFromAnyAddedMenuCommand) {
 		UiHistory_write (U"\nrunScript: ");
 		try {
-			DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, my script.get(), nullptr, nullptr, false, nullptr);
+			DO_RunTheScriptFromAnyAddedMenuCommand (nullptr, 0, nullptr, my script.get(), nullptr, nullptr, false, nullptr, nullptr);
 		} catch (MelderError) {
 			Melder_flushError (U"Command \"", my title.get(), U"\" not executed.");
 		}
@@ -83,7 +83,7 @@ static void do_menu (Praat_Command me, bool isModified) {
 			UiHistory_write (my title.get());
 		}
 		try {
-			my callback (nullptr, 0, nullptr, nullptr, nullptr, my title.get(), isModified, nullptr);
+			my callback (nullptr, 0, nullptr, nullptr, nullptr, my title.get(), isModified, nullptr, nullptr);
 		} catch (MelderError) {
 			Melder_flushError (U"Command \"", my title.get(), U"\" not executed.");
 		}
@@ -111,7 +111,7 @@ static GuiMenuItem praat_addMenuCommand__ (conststring32 window, conststring32 m
 	conststring32 after, uint32 flags, UiCallback callback, conststring32 nameOfCallback)
 {
 	integer position;
-	int depth = flags, key = 0;
+	uint32 depth = flags, key = 0;
 	bool unhidable = false, hidden = false, noApi = false, forceApi = false;
 	int deprecationYear = 0;
 	uint32 guiFlags = 0;
@@ -271,7 +271,7 @@ void praat_addMenuCommandScript (conststring32 window, conststring32 menu, const
 		 * Determine the position of the new command.
 		 */
 		integer position;
-		if (str32len (after) && after [0] != U'*') {   // search for existing command with same selection
+		if (Melder_length (after) && after [0] != U'*') {   // search for existing command with same selection
 			integer found = lookUpMatchingMenuCommand (window, menu, after);
 			if (found) {
 				position = found + 1;   // after 'after'
@@ -471,14 +471,14 @@ int praat_doMenuCommand (conststring32 title, conststring32 arguments, Interpret
 			U"From a script you cannot directly call a menu command that calls another script. Use instead: \nrunScript: ",
 			scriptIsInPlugin ? U"preferencesDirectory$ + " : U"",
 			U"\"",
-			scriptIsInPlugin ? scriptPath + str32len (preferencesFolderPath) : scriptPath,
+			scriptIsInPlugin ? scriptPath + Melder_length (preferencesFolderPath) : scriptPath,
 			U"\"",
 			arguments && arguments [0] ? U", " : U"",
 			arguments && arguments [0] ? arguments : U"",
 			U"\n"
 		);
 	}
-	commandFound -> callback (nullptr, 0, nullptr, arguments, interpreter, title, false, nullptr);
+	commandFound -> callback (nullptr, 0, nullptr, arguments, interpreter, title, false, nullptr, nullptr);
 	return 1;
 }
 
@@ -504,13 +504,13 @@ int praat_doMenuCommand (conststring32 title, integer narg, Stackel args, Interp
 			U"From a script you cannot directly call a menu command that calls another script. Use instead: \nrunScript: ",
 			scriptIsInPlugin ? U"preferencesDirectory$ + " : U"",
 			U"\"",
-			scriptIsInPlugin ? scriptPath + str32len (preferencesFolderPath) : scriptPath,
+			scriptIsInPlugin ? scriptPath + Melder_length (preferencesFolderPath) : scriptPath,
 			U"\"",
 			narg > 0 ? U", ..." : U"",
 			U"\n"
 		);
 	}
-	commandFound -> callback (nullptr, narg, args, nullptr, interpreter, title, false, nullptr);
+	commandFound -> callback (nullptr, narg, args, nullptr, interpreter, title, false, nullptr, nullptr);
 	return 1;
 }
 
@@ -520,12 +520,11 @@ Praat_Command praat_getMenuCommand (integer i)
 	{ return i < 1 || i > theCommands.size ? nullptr : theCommands.at [i]; }
 
 void praat_addCommandsToEditor (Editor me) {
-	conststring32 windowName = my classInfo -> className;
+	conststring32 windowClassName = my classInfo -> className;
 	for (integer i = 1; i <= theCommands.size; i ++) {
 		Praat_Command command = theCommands.at [i];
-		if (str32equ (command -> window.get(), windowName)) {
+		if (str32equ (command -> window.get(), windowClassName))
 			Editor_addCommandScript (me, command -> menu.get(), command -> title.get(), 0, command -> script.get());
-		}
 	}
 }
 
@@ -588,7 +587,7 @@ void praat_menuCommands_writeC (bool isInHeaderFile, bool includeCreateAPI, bool
 			const bool isDirect = ! str32str (command -> title.get(), U"...");
 			if (isDirect) {
 			} else {
-				command -> callback (nullptr, -1, nullptr, nullptr, nullptr, nullptr, false, nullptr);
+				command -> callback (nullptr, -1, nullptr, nullptr, nullptr, nullptr, false, nullptr, nullptr);
 			}
 			if (commandHasFileNameArgument (command))
 				MelderInfo_writeLine (U"\tconst char *fileName");

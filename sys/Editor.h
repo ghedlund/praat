@@ -58,7 +58,6 @@ Thing_define (Editor, DataGui) {
 	OrderedOf<structEditorMenu> menus;
 	autoDaata previousData;   // the data that can be displayed and edited
 	char32 undoText [100];
-	Graphics pictureGraphics;
 	Editor_DataChangedCallback d_dataChangedCallback;
 	Editor_DestructionCallback d_destructionCallback;
 	Editor_PublicationCallback d_publicationCallback;
@@ -88,7 +87,7 @@ Thing_define (Editor, DataGui) {
 
 	virtual void v_createChildren () { }
 
-	virtual void v1_dataChanged () { }
+	virtual void v1_dataChanged (Editor /* sender */) { }
 	virtual void v_saveData ();
 	virtual void v_restoreData ();
 
@@ -104,7 +103,6 @@ GuiMenuItem EditorCommand_getItemWidget (EditorCommand me);
 EditorMenu Editor_addMenu (Editor me, conststring32 menuTitle, uint32 flags);
 GuiObject EditorMenu_getMenuWidget (EditorMenu me);
 
-#define Editor_HIDDEN  GuiMenu_HIDDEN
 GuiMenuItem Editor_addCommand (Editor me, conststring32 menuTitle, conststring32 itemTitle, uint32 flags, EditorCommandCallback commandCallback);
 GuiMenuItem Editor_addCommandScript (Editor me, conststring32 menuTitle, conststring32 itemTitle, uint32 flags,
 	conststring32 script);
@@ -120,13 +118,13 @@ inline void Editor_raise (Editor me)
 	{
 		GuiThing_show (my windowForm);
 	}
-inline void Editor_dataChanged (Editor me)
+inline void Editor_dataChanged (Editor me, Editor sender)
 	/*
-	 * Message: "your data has changed by an action from *outside* yourself,
-	 *    so you may e.g. like to redraw yourself."
-	 */
+		Message: "your data has changed by an action from inside *or* outside yourself,
+			so you may e.g. like to redraw yourself."
+	*/
 	{
-		my v1_dataChanged ();
+		my v1_dataChanged (sender);
 	}
 inline void Editor_setDataChangedCallback (Editor me, Editor_DataChangedCallback dataChangedCallback)
 	/*
@@ -231,15 +229,6 @@ autoUiForm UiInfile_createE (EditorCommand cmd, conststring32 title, conststring
 
 EditorCommand Editor_getMenuCommand (Editor me, conststring32 menuTitle, conststring32 itemTitle);
 void Editor_doMenuCommand (Editor me, conststring32 command, integer narg, Stackel args, conststring32 arguments, Interpreter interpreter);
-
-/*
- * The following two procedures are in praat_picture.cpp.
- * They allow editors to draw into the Picture window.
- */
-Graphics praat_picture_editor_open (bool eraseFirst);
-void praat_picture_editor_close ();
-void Editor_openPraatPicture (Editor me);
-void Editor_closePraatPicture (Editor me);
 
 #endif
 /* End of file Editor.h */

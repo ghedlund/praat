@@ -40,8 +40,8 @@ Thing_define (FormantPathEditor, FunctionEditor) {
 		override;
 	void v_createMenuItems_help (EditorMenu menu)
 		override;
-	void v1_dataChanged () override {
-		FormantPathEditor_Parent :: v1_dataChanged ();
+	void v1_dataChanged (Editor sender) override {
+		FormantPathEditor_Parent :: v1_dataChanged (sender);
 		if (our soundArea())
 			our soundArea() -> functionChanged (nullptr);
 		our formantPathArea() -> functionChanged (nullptr);
@@ -84,6 +84,9 @@ Thing_define (FormantPathEditor, FunctionEditor) {
 	bool v_hasSelectionViewer () override { return true; }
 	void v_drawSelectionViewer ()
 		override;
+	void v_drawRealTimeSelectionViewer (double /* time */) override {
+		v_drawSelectionViewer (); // avoid discontinuity during play
+	}
 	void v_clickSelectionViewer (double xWC, double yWC)
 		override;
 	void v_play (double startTime, double endTime)
@@ -94,16 +97,28 @@ Thing_define (FormantPathEditor, FunctionEditor) {
 	conststring32 v_selectionViewerName ()
 		override { return U"Formant candidates"; }
 	void v_drawLegends () override {
-		FunctionArea_drawLegend (our formantPathArea().get(),
-			FunctionArea_legend_SPECKLES U" ##modifiable FormantPath", Melder_RED
-		);
+		FormantPathArea you = our formantPathArea().get();
+		const bool showAnalyses = ( your endWindow() - your startWindow() <= your instancePref_longestAnalysis() );
+		if (showAnalyses)
+			FunctionArea_drawLegend (our formantPathArea().get(),
+				your instancePref_spectrogram_show() ? FunctionArea_legend_GREYS U" %%derived spectrogram" : U"",
+				1.2 * Melder_BLACK,
+				your instancePref_intensity_show() ? FunctionArea_legend_LINES U" %%derived intensity" : U"",
+				1.2 * Melder_GREEN,
+				your instancePref_pitch_show() ? FunctionArea_legend_LINES_SPECKLES U" %%derived pitch" : U"",
+				1.2 * Melder_BLUE,
+				FunctionArea_legend_SPECKLES U" ##modifiable FormantPath",
+				1.2 * Melder_RED
+			);
 		if (our soundArea())
-			FunctionArea_drawLegend (our soundArea().get(), FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound",
-				DataGui_defaultForegroundColour (our soundArea().get())
-		);
+			FunctionArea_drawLegend (our soundArea().get(),
+				FunctionArea_legend_WAVEFORM U" %%non-modifiable copy of sound",
+				DataGui_defaultForegroundColour (our soundArea().get(), false)
+			);
 		if (our textGridArea())
 			FunctionArea_drawLegend (our textGridArea().get(),
-				FunctionArea_legend_TEXTGRID U" %%non-modifiable copy of TextGrid", DataGui_defaultForegroundColour (our textGridArea().get())
+				FunctionArea_legend_TEXTGRID U" %%non-modifiable copy of TextGrid",
+				DataGui_defaultForegroundColour (our textGridArea().get(), false)
 			);
 	}
 

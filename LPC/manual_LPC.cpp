@@ -1,6 +1,6 @@
 /* manual_LPC.cpp
  *
- * Copyright (C) 1994-2021 David Weenink
+ * Copyright (C) 1994-2022 David Weenink
  *
  * This code is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 void manual_LPC (ManPages me);
 void manual_LPC (ManPages me)
 {
-MAN_BEGIN (U"Candidate modelling settings...", U"djmw", 20210813)
+MAN_BEGIN (U"Candidate modelling settings...", U"djmw", 20221129)
 INTRO (U"A command in the #Candidates menu of the @FormantPathEditor window.")
 TAG (U"##Coefficients by track#")
 DEFINITION (U"determines how many coefficients will be used in the modelling of a formant track. "
-	"The first number determines the number of coefficients that will be used for modeling formant 1 with a polynomial function."
-	"The second number determines the number of coefficients for the modelling of formant 2, and so on. " 
+
+"The second number determines the number of coefficients for the modelling of formant 2, and so on. " 
 	"For example, if you specify \"4 3 3\", the first three formants will be modelled. Formant 1 will be modelled with 4 "
 	"coefficients which means that a third order polynomial is used for modelling. Formant 2 and formant 3 are modelled with "
 	"3 coefficients which means that their tracks will be modelled as parabolas.")
@@ -59,22 +59,25 @@ TAG (U"##From coefficient#, ##To coefficient#")
 DEFINITION (U"the range of coefficients that will be represented.")
 MAN_END
 
-MAN_BEGIN (U"CC: To DTW...", U"djmw", 19960918)
-INTRO (U"You can choose this command after selecting 2 objects with cepstral "
-	"coefficients (two @MFCC's or @LFCC's). "
+MAN_BEGIN (U"CC: To DTW...", U"djmw", 20221114)
+INTRO (U"You can choose this command after selecting two objects with cepstral coefficients (two @MFCC's or @LFCC's). "
 	"With this command you perform dynamic time warping. ")
 ENTRY (U"Algorithm")
-NORMAL (U"First we calculate distances between cepstral coefficients: ")
-LIST_ITEM (U"The distance between frame %i (from me) and %j (from thee) is:")
-LIST_ITEM (U"    %wc \\.c %d1 + %wle \\.c %d2 + %wr \\.c %d3,")
-LIST_ITEM (U"    where %wc, %wle & %wr are user-supplied weights and")
-LIST_ITEM (U"      %d1 = \\su (%k=1..%nCoefficients; (%c__%ik_ - %c__%jk_)^2)")
-LIST_ITEM (U"      %d2 = (c__%i0_ - c__%j0_)^2")
-LIST_ITEM (U"      %d3 = \\su (%k=1..%nCoefficients; (%r__%ik_ - %r__%jk_)^2), with ")
-LIST_ITEM (U"      %r__%ik_ the regression coefficient of the cepstral coefficients "
-	"from the frames within a time span of %dtr seconds. "
-	"c__%ij_ is %j-th cepstral coefficient in frame %i. ")
-NORMAL (U"Next we find the optimal path through the distance matrix with a "
+NORMAL (U"First we calculate the distance matrix %D of all the distances between the cepstral frames of the two objects. "
+	"This matrix has %n__1_ rows, the number of frames in the first object, and %n__2_ columns, the number of frames "
+	"in the second object.")
+NORMAL (U"The elements of %D are the distances %d__%ij_ between frame %i (from the first object) and frame %j "
+	"(from the second one). The %d__%ij_ are composed of three parts:")
+EQUATION (U"%d__%ij_ = %w__1_ \\.c %d__1_ + %w__2_ \\.c %d__2_ + %w__3_ \\.c %d__3_,")
+NORMAL (U"where %w__1_, %w__2_ and %w__3_ are user-supplied weights and ")
+TAG (U"%d__1_ = \\su^^N^__%k=1_ (%c__%ik_ - %c__%jk_)^2), ")
+DEFINITION (U"the sum of the squared distances between the %N cepstral coefficients of the two frames. ")
+TAG (U"%d__2_ = (c__%i0_ - c__%j0_)^2")
+DEFINITION (U"the difference between the average 'power' of the two frames.")
+TAG (U"%d__3_ = \\su^^N^__%k=1_ (%r__%ik_ - %r__%jk_)^2), ")
+DEFINITION (U"in which %r__%ik_ is the regression coefficient of the cepstral coefficient %k, calculated "
+	"from the frames within a time span of %T seconds, the %%regression window length%, around the centre of frame %i.")
+NORMAL (U"After calculation of all the frame distances %d__%ij_, we find the optimal path through the distance matrix %D with a "
 	"Viterbi-algorithm.")
 MAN_END
 
@@ -89,7 +92,7 @@ NORMAL (U"where %z__%ji_ is the matrix element in row %j and column %i and "
 MAN_END
 
 MAN_BEGIN (U"Formant: List formant slope...", U"djmw", 20210813)
-INTRO (U"A command available in the ##Query# menu if you select a @@Formant@ object. The Info window will show the characteristics of the slope of the chosen interval as a vector with a number of values.")
+INTRO (U"A command available in the @@Query submenu@ if you select a @@Formant@ object. The Info window will show the characteristics of the slope of the chosen interval as a vector with a number of values.")
 ENTRY (U"Settings")
 TAG (U"##Formant number#,")
 DEFINITION (U"defines the formant whose slope characteristics you want.")

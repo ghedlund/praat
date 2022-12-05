@@ -164,7 +164,7 @@ Thing_define (FunctionEditor, Editor) {
 	void v_prefs_getValues (EditorCommand)
 		override;
 
-	void v1_dataChanged ()
+	void v1_dataChanged (Editor sender)
 		override;
 
 	virtual void v_distributeAreas () { }
@@ -305,8 +305,6 @@ void FunctionEditor_drawRangeMark (FunctionEditor me, double yWC, conststring32 
 void FunctionEditor_insertCursorFunctionValue (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units, double minimum, double maximum);
 void FunctionEditor_drawHorizontalHair (FunctionEditor me, double yWC, conststring32 yWC_string, conststring32 units);
 void FunctionEditor_drawGridLine (FunctionEditor me, double yWC);
-
-void FunctionEditor_garnish (FunctionEditor me);   // optionally selection times and selection hairs
 
 bool FunctionEditor_defaultMouseInWideDataView (FunctionEditor me, GuiDrawingArea_MouseEvent event, double x_world);
 /*

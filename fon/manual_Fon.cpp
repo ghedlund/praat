@@ -51,7 +51,7 @@ manual_formant_init (me);
 manual_annotation_init (me);
 
 MAN_BEGIN (U"Get high index from time...", U"ppgb", 20101230)
-INTRO (U"A @query to ask the selected tier object "
+INTRO (U"A @@Query submenu|query@ to ask the selected tier object "
 	"(@DurationTier, @IntensityTier, @PitchTier) "
 	"which point is nearest to, but no earlier than, the specified time.")
 ENTRY (U"Setting")
@@ -64,7 +64,7 @@ NORMAL (U"This query returns the index of the point with the lowest time greater
 MAN_END
 
 MAN_BEGIN (U"Get low index from time...", U"ppgb", 20101230)
-INTRO (U"A @query to ask the selected tier object "
+INTRO (U"A @@Query submenu|query@ to ask the selected tier object "
 	"(@DurationTier, @IntensityTier, @PitchTier) "
 	"which point is nearest to, but no later than, the specified time.")
 ENTRY (U"Setting")
@@ -77,7 +77,7 @@ NORMAL (U"This query returns the index of the point with the highest time less t
 MAN_END
 
 MAN_BEGIN (U"Get nearest index from time...", U"ppgb", 20101230)
-INTRO (U"A @query to ask the selected tier object "
+INTRO (U"A @@Query submenu|query@ to ask the selected tier object "
 	"(@DurationTier, @IntensityTier, @PitchTier) "
 	"which point is nearest to the specified time.")
 ENTRY (U"Setting")
@@ -319,7 +319,7 @@ NORMAL (U"The tier is modified so that it contains the new point. "
 MAN_END
 
 MAN_BEGIN (U"DurationTier: Get target duration...", U"ppgb", 20101228)
-INTRO (U"A @query to the selected @DurationTier for the target duration of a specified time range.")
+INTRO (U"A @@Query submenu|query@ to the selected @DurationTier for the target duration of a specified time range.")
 ENTRY (U"Settings")
 TAG (U"##From time (s)")
 TAG (U"##To time (s)")
@@ -401,7 +401,7 @@ NORMAL (U"See the @Formulas tutorial for examples and explanations.")
 MAN_END
 
 MAN_BEGIN (U"Excitation: Get loudness", U"ppgb", 19991016)
-INTRO (U"A @query to ask the selected @Excitation object for its loudness.")
+INTRO (U"A @@Query submenu|query@ to ask the selected @Excitation object for its loudness.")
 ENTRY (U"Return value")
 NORMAL (U"the loudness in sone units.")
 ENTRY (U"Algorithm")
@@ -487,7 +487,7 @@ INTRO (U"The way to select a frequency domain in the @SpectrumEditor. "
 MAN_END
 
 MAN_BEGIN (U"Get area...", U"ppgb", 20030216)
-INTRO (U"A @query to the selected tier object (@PitchTier, @IntensityTier, @DurationTier).")
+INTRO (U"A @@Query submenu|query@ to the selected tier object (@PitchTier, @IntensityTier, @DurationTier).")
 ENTRY (U"Return value")
 NORMAL (U"the area under the curve.")
 ENTRY (U"Settings")
@@ -509,7 +509,7 @@ NORMAL (U"An Intensity object represents an intensity contour at linearly spaced
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get maximum...", U"ppgb", 20200912)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the maximum value within the specified time domain, expressed in dB.")
 ENTRY (U"Settings")
@@ -523,7 +523,7 @@ DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sin
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get mean...", U"ppgb", 20041107)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the mean (in dB) of the intensity values of the frames within a specified time domain.")
 ENTRY (U"Settings")
@@ -550,7 +550,7 @@ NORMAL (U"After you do @@Sound: To Intensity...@, the mean intensity of the resu
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get minimum...", U"ppgb", 20200912)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the minimum value within a specified time domain, expressed in dB.")
 ENTRY (U"Settings")
@@ -564,7 +564,7 @@ DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sin
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get standard deviation...", U"ppgb", 20041107)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the standard deviation (in dB) of the intensity values of the frames within a specified time domain.")
 ENTRY (U"Settings")
@@ -581,7 +581,7 @@ NORMAL (U"where %n is the number of frames between %t__1_ and %t__2_. Note the \
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get time of maximum...", U"ppgb", 20200912)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the time (in seconds) associated with the maximum intensity within a specified time domain.")
 ENTRY (U"Settings")
@@ -595,7 +595,7 @@ DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sin
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get time of minimum...", U"ppgb", 20200912)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the time (in seconds) associated with the minimum intensity within a specified time domain.")
 ENTRY (U"Settings")
@@ -609,7 +609,7 @@ DEFINITION (U"the interpolation method (#none, #parabolic, #cubic, #sinc70, #sin
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get value at time...", U"ppgb", 20030916)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Return value")
 NORMAL (U"the intensity (in dB) at a specified time. If %time is outside the frames of the Intensity, the result is 0.")
 ENTRY (U"Settings")
@@ -622,7 +622,7 @@ DEFINITION (U"the interpolation method, see @@vector value interpolation@. "
 MAN_END
 
 MAN_BEGIN (U"Intensity: Get value in frame...", U"ppgb", 19991016)
-INTRO (U"A @query to the selected @Intensity object.")
+INTRO (U"A @@Query submenu|query@ to the selected @Intensity object.")
 ENTRY (U"Setting")
 TAG (U"##Frame number")
 DEFINITION (U"the frame whose value is to be looked up.")
@@ -801,24 +801,22 @@ LIST_ITEM (U"Page-down (in sound windows): Scroll page forward")
 LIST_ITEM (U"Escape: Interrupt playing")
 MAN_END
 
-MAN_BEGIN (U"Log files", U"ppgb", 20201230)
-INTRO (U"With some commands in the @Query menu of the @SoundEditor and @TextGridEditor, "
+MAN_BEGIN (U"Log files", U"ppgb", 20221202)
+INTRO (U"With some commands in the @@Analyses menu@ of the @SoundEditor and @TextGridEditor, "
 	"you can write combined information about times, pitch values, formants, and intensities "
-	"to the @@Info window@ and to a log file.")
+	"to the @@Info window@ and/or to a log file.")
 NORMAL (U"A log file is a text file on disk. It consists of a number of similar lines, "
-	"whose format you determine with the log settings in the Query menu.")
-NORMAL (U"Every time you press @@Keyboard shortcuts|F12@ (or choose ##Log 1# from the Query menu, "
-	"Praat writes a line to log file 1. If you press @@Keyboard shortcuts|Shift-F12@, Praat writes a line to log file 2.")
+	"whose format you determine with the log settings in the Analyses menu.")
+NORMAL (U"Every time you press @@Keyboard shortcuts|F12@ (or choose ##Log 1# from the Analysis menu), "
+	"Praat will write a line to the Info window and/or to log file 1. "
+	"If you press @@Keyboard shortcuts|Shift-F12@ (or choose ##Log 2# from the Analysis menu), "
+	"Praat will write a line to the Info window and/or to log file 2.")
 NORMAL (U"With the ##log settings# command window, you determine the following:")
-TAG (U"##Log 1 to Info window")
-DEFINITION (U"this determines whether your log line will be written to the Info window or not.")
-TAG (U"##Log 1 to log file")
-DEFINITION (U"this determines whether your log line will be written to the log file or not.")
+TAG (U"##Write log 1 to")
+DEFINITION (U"this determines whether your log line will be written to log file 1 only, to the Info window only, or to both.")
 TAG (U"##Log file 1")
-DEFINITION (U"the name of the log file. On Windows, this has to be a complete path name, such as "
-	"$$C:\\bsWINDOWS\\bsDESKTOP\\bsPitch Log.txt$. "
-	"On Unix and macOS, it can either be a complete path name, e.g. $$/home/mary/pitch_log$, "
-	"or a home-relative name such as $$~/Desktop/Pitch log$.")
+DEFINITION (U"the name of the log file. Click Browse to select a file to write to. "
+	"On most platforms you can also use a home-relative name such as $$~/Desktop/pitchLog.txt$.")
 TAG (U"##Log 1 format")
 DEFINITION (U"the format of the line that Praat will write. See below.")
 NORMAL (U"The same goes for log file 2.")
@@ -896,7 +894,7 @@ CODE (U"f21 = f2 - f1")
 CODE (U"appendInfoLine: vowel\\$ , \" \", fixed\\$  (f1, 0), \" \", fixed\\$  (f21, 0)")
 CODE (U"appendFileLine: \"~/Praat logs/Vowels and formants log\", vowel\\$ , tab\\$ , fixed\\$  (f1, 0), tab\\$ , fixed\\$  (f21, 0)")
 NORMAL (U"Beware of the following pitfall: because of the nature of scripts, you should not try to do this "
-	"when you have two editor windows with the same name. I cannot predict which of the two windows "
+	"when you have two editor windows with the same name. We cannot predict which of the two windows "
 	"will answer the #Get queries...")
 MAN_END
 
@@ -1448,7 +1446,7 @@ INTRO (U"A command to draw every selected @PointProcess into the @@Picture windo
 MAN_END
 
 MAN_BEGIN (U"PointProcess: Get high index...", U"ppgb", 20021212)
-INTRO (U"A @query to the selected @PointProcess object.")
+INTRO (U"A @@Query submenu|query@ to the selected @PointProcess object.")
 ENTRY (U"Return value")
 NORMAL (U"the index of the nearest point at or after the specified time, "
 	"0 if the point process contains no points, "
@@ -1459,7 +1457,7 @@ DEFINITION (U"the time from which a point is looked for, in seconds.")
 MAN_END
 
 MAN_BEGIN (U"PointProcess: Get interval...", U"ppgb", 20021212)
-INTRO (U"A @query to the selected @PointProcess object.")
+INTRO (U"A @@Query submenu|query@ to the selected @PointProcess object.")
 ENTRY (U"Return value")
 NORMAL (U"the duration of the interval around a specified time. "
 	"if the point process contains no points or if the specified time falls before the first point "
@@ -1472,8 +1470,8 @@ TAG (U"##Time (s)")
 DEFINITION (U"the time around which a point is looked for, in seconds.")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: Get jitter (local)...", U"ppgb", 20110302)
-INTRO (U"A command that becomes available in the #Query submenu when you select a @PointProcess object.")
+MAN_BEGIN (U"PointProcess: Get jitter (local)...", U"ppgb", 20221202)
+INTRO (U"A command that becomes available in the @@Query submenu@ when you select a @PointProcess object.")
 NORMAL (U"This command will write into the Info window "
 	"the %%local jitter%, which is the average absolute difference between consecutive intervals, "
 	"divided by the average interval (an interval is the time between two consecutive points).")
@@ -1538,8 +1536,8 @@ EQUATION (U"%jitter = %jitter(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 2, or between 0 and 200 percent.")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: Get jitter (local, absolute)...", U"ppgb", 20110220)
-INTRO (U"A command that becomes available in the #Query submenu when you select a @PointProcess object.")
+MAN_BEGIN (U"PointProcess: Get jitter (local, absolute)...", U"ppgb", 20221202)
+INTRO (U"A command that becomes available in the @@Query submenu@ when you select a @PointProcess object.")
 NORMAL (U"This command will write into the Info window "
 	"the %%absolute local jitter%, which is the average absolute difference between consecutive intervals, "
 	"in seconds (an interval is the time between two consecutive points).")
@@ -1589,8 +1587,8 @@ NORMAL (U"where %T__%i_ is the duration of the %%i%th interval and %N is the num
 	"(if %N ends up being less than 2, the result of the command is @undefined).")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: Get jitter (rap)...", U"ppgb", 20110302)
-INTRO (U"A command that becomes available in the #Query submenu when you select a @PointProcess object.")
+MAN_BEGIN (U"PointProcess: Get jitter (rap)...", U"ppgb", 20221202)
+INTRO (U"A command that becomes available in the @@Query submenu@ when you select a @PointProcess object.")
 NORMAL (U"This command will write into the Info window the %%Relative Average Perturbation% (RAP), "
 	"a jitter measure defined as the average absolute difference between an interval and the average of it and its two neighbours, "
 	"divided by the average interval (an interval is the time between two consecutive points).")
@@ -1651,8 +1649,8 @@ EQUATION (U"%RAP = %absAP(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 2, or between 0 and 200 percent.")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: Get jitter (ppq5)...", U"ppgb", 20110302)
-INTRO (U"A command that becomes available in the #Query submenu when you select a @PointProcess object.")
+MAN_BEGIN (U"PointProcess: Get jitter (ppq5)...", U"ppgb", 20221202)
+INTRO (U"A command that becomes available in the @@Query submenu@ when you select a @PointProcess object.")
 NORMAL (U"This command will write into the Info window the %%five-point Period Perturbation Quotient%, "
 	"a jitter measure defined as the average absolute difference between an interval and the average of it and its four closest neighbours, "
 	"divided by the average interval (an interval is the time between two consecutive points).")
@@ -1712,8 +1710,8 @@ EQUATION (U"%PPQ5 = %PPQ5(seconds) / %meanPeriod(seconds)")
 NORMAL (U"The result is a value between 0 and 4, or between 0 and 400 percent.")
 MAN_END
 
-MAN_BEGIN (U"PointProcess: Get jitter (ddp)...", U"ppgb", 20110302)
-INTRO (U"A command that becomes available in the #Query submenu when you select a @PointProcess object.")
+MAN_BEGIN (U"PointProcess: Get jitter (ddp)...", U"ppgb", 20221202)
+INTRO (U"A command that becomes available in the @@Query submenu@ when you select a @PointProcess object.")
 NORMAL (U"This command will write into the Info window the %%Difference of Differences of Periods%, "
 	"a jitter measure defined as the average absolute difference between the consecutives differences between consecutive intervals, "
 	"divided by the average interval (an interval is the time between two consecutive points).")
@@ -1779,7 +1777,7 @@ NORMAL (U"The result is exactly 3 times the @@PointProcess: Get jitter (rap)...|
 MAN_END
 
 MAN_BEGIN (U"PointProcess: Get low index...", U"ppgb", 20021212)
-INTRO (U"A @query to the selected @PointProcess object.")
+INTRO (U"A @@Query submenu|query@ to the selected @PointProcess object.")
 ENTRY (U"Return value")
 NORMAL (U"the index of the nearest point before or at the specified time, "
 	"or 0 if the point process contains no points or the specified time is before the first point.")
@@ -1789,7 +1787,7 @@ DEFINITION (U"the time from which a point is looked for, in seconds.")
 MAN_END
 
 MAN_BEGIN (U"PointProcess: Get nearest index...", U"ppgb", 20021212)
-INTRO (U"A @query to the selected @PointProcess object.")
+INTRO (U"A @@Query submenu|query@ to the selected @PointProcess object.")
 ENTRY (U"Return value")
 NORMAL (U"the index of the point nearest to the specified time, "
 	"or 0 if the point process contains no points.")

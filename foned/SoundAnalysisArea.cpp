@@ -360,10 +360,81 @@ void structSoundAnalysisArea :: v1_info () {
 		MelderInfo_writeLine (U"Pulses maximum period factor: ", our instancePref_pulses_maximumPeriodFactor());
 		MelderInfo_writeLine (U"Pulses maximum amplitude factor: ", our instancePref_pulses_maximumAmplitudeFactor());
 	}
+	const conststring32 logTargetTexts [3] = { U"log file only", U"Info window only", U"log file and Info window" };
+	const conststring32 log1TargetText = logTargetTexts [our instancePref_log1_toLogFile() + 2 * our instancePref_log1_toInfoWindow() - 1];
+	MelderInfo_writeLine (U"Log 1 target: ", log1TargetText);
+	MelderInfo_writeLine (U"Log 1 file: ", our instancePref_log1_fileName());
+	MelderInfo_writeLine (U"Log 1 format: ", our instancePref_log1_format());
+	const conststring32 log2TargetText = logTargetTexts [our instancePref_log2_toLogFile() + 2 * our instancePref_log2_toInfoWindow() - 1];
+	MelderInfo_writeLine (U"Log 2 target: ", log2TargetText);
+	MelderInfo_writeLine (U"Log 2 file: ", our instancePref_log2_fileName());
+	MelderInfo_writeLine (U"Log 2 format: ", our instancePref_log2_format());
+	MelderInfo_writeLine (U"Log 3 script: ", our instancePref_logScript3());
+	MelderInfo_writeLine (U"Log 4 script: ", our instancePref_logScript4());
 }
 
 
-#pragma mark - SoundAnalysisArea Query menu
+#pragma mark - SoundAnalysisArea Analysis settings menu
+
+static void menu_cb_showAnalyses (SoundAnalysisArea me, EDITOR_ARGS) {
+	EDITOR_FORM (U"Show analyses", nullptr)
+		BOOLEAN  (showSpectrogram, U"Show spectrogram",     my default_spectrogram_show ())
+		BOOLEAN  (showPitch,       U"Show pitch",           my default_pitch_show       ())
+		BOOLEAN  (showIntensity,   U"Show intensity",       my default_intensity_show   ())
+		BOOLEAN  (showFormants,    U"Show formants",        my default_formant_show     ())
+		BOOLEAN  (showPulses,      U"Show pulses",          my default_pulses_show      ())
+		POSITIVE (longestAnalysis, U"Longest analysis (s)", my default_longestAnalysis  ())
+	EDITOR_OK
+		SET_BOOLEAN (showSpectrogram, my instancePref_spectrogram_show())
+		SET_BOOLEAN (showPitch,       my instancePref_pitch_show())
+		SET_BOOLEAN (showIntensity,   my instancePref_intensity_show())
+		SET_BOOLEAN (showFormants,    my instancePref_formant_show())
+		SET_BOOLEAN (showPulses,      my instancePref_pulses_show())
+		SET_REAL    (longestAnalysis, my instancePref_longestAnalysis())
+	EDITOR_DO
+		my setInstancePref_spectrogram_show (showSpectrogram);
+		my setInstancePref_pitch_show       (showPitch);
+		my setInstancePref_intensity_show   (showIntensity);
+		my setInstancePref_formant_show     (showFormants);
+		my setInstancePref_pulses_show      (showPulses);
+		GuiMenuItem_check (my spectrogramToggle, showSpectrogram);
+		GuiMenuItem_check (my pitchToggle,       showPitch);
+		GuiMenuItem_check (my intensityToggle,   showIntensity);
+		GuiMenuItem_check (my formantToggle,     showFormants);
+		GuiMenuItem_check (my pulsesToggle,      showPulses);
+		my setInstancePref_longestAnalysis (longestAnalysis);
+		FunctionEditor_redraw (my functionEditor());
+	EDITOR_END
+}
+
+static void menu_cb_timeStepSettings (SoundAnalysisArea me, EDITOR_ARGS) {
+	EDITOR_FORM (U"Time step settings", U"Time step settings...")
+		OPTIONMENU_ENUM (kSoundAnalysisArea_timeStepStrategy, timeStepStrategy,
+				U"Time step strategy", my default_timeStepStrategy ())
+		LABEL (U"")
+		LABEL (U"If the time step strategy is \"fixed\":")
+		POSITIVE (fixedTimeStep, U"Fixed time step (s)", my default_fixedTimeStep ())
+		LABEL (U"")
+		LABEL (U"If the time step strategy is \"view-dependent\":")
+		NATURAL (numberOfTimeStepsPerView, U"Number of time steps per view", my default_numberOfTimeStepsPerView ())
+	EDITOR_OK
+		SET_ENUM (timeStepStrategy, kSoundAnalysisArea_timeStepStrategy, my instancePref_timeStepStrategy())
+		SET_REAL (fixedTimeStep, my instancePref_fixedTimeStep())
+		SET_INTEGER (numberOfTimeStepsPerView, my instancePref_numberOfTimeStepsPerView())
+	EDITOR_DO
+		my setInstancePref_timeStepStrategy (timeStepStrategy);
+		my setInstancePref_fixedTimeStep (fixedTimeStep);
+		my setInstancePref_numberOfTimeStepsPerView (numberOfTimeStepsPerView);
+		my d_pitch. reset();
+		my d_formant. reset();
+		my d_intensity. reset();
+		my d_pulses. reset();
+		FunctionEditor_redraw (my functionEditor());
+	EDITOR_END
+}
+
+
+#pragma mark - SoundAnalysisArea Analyses settings menu
 
 enum {
 	SoundAnalysisArea_PART_CURSOR = 1,
@@ -404,20 +475,20 @@ static int makeQueriable (SoundAnalysisArea me, bool allowCursor, double *tmin, 
 	return SoundAnalysisArea_PART_SELECTION;
 }
 
-static void menu_cb_logSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_logSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Log settings", U"Log files")
 		OPTIONMENU (writeLog1To, U"Write log 1 to", 3)
 			OPTION (U"log file only")
 			OPTION (U"Info window only")
 			OPTION (U"log file and Info window")
 		OUTFILE (logFile1,   U"Log file 1:",   my default_log1_fileName ())
-		OUTFILE (log1format, U"Log 1 format:", my default_log1_format   ())
+		TEXTFIELD (log1format, U"Log 1 format:", my default_log1_format (), 3)
 		OPTIONMENU (writeLog2To, U"Write log 2 to", 3)
 			OPTION (U"log file only")
 			OPTION (U"Info window only")
 			OPTION (U"log file and Info window")
 		OUTFILE (logFile2,   U"Log file 2:",   my default_log2_fileName ())
-		OUTFILE (log2format, U"Log 2 format:", my default_log2_format   ())
+		TEXTFIELD (log2format, U"Log 2 format:", my default_log2_format (), 3)
 		OUTFILE (logScript3, U"Log script 3:", my default_logScript3    ())
 		OUTFILE (logScript4, U"Log script 4:", my default_logScript4    ())
 	EDITOR_OK
@@ -443,7 +514,7 @@ static void menu_cb_logSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void menu_cb_deleteLogFile1 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_deleteLogFile1 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		structMelderFile file { };
 		Melder_pathToFile (my instancePref_log1_fileName(), & file);
@@ -451,7 +522,7 @@ static void menu_cb_deleteLogFile1 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_deleteLogFile2 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_deleteLogFile2 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		structMelderFile file { };
 		Melder_pathToFile (my instancePref_log2_fileName(), & file);
@@ -481,7 +552,8 @@ static void do_log (SoundAnalysisArea me, int which) {
 		/*
 			Found a right quote. Get potential variable name.
 		*/
-		for (r = p + 1, s = varName; q - r > 0; r ++, s ++) *s = *r;
+		for (r = p + 1, s = varName; q - r > 0; r ++, s ++)
+			*s = *r;
 		*s = U'\0';   // trailing null byte
 		colon = str32chr (varName, U':');
 		if (colon) {
@@ -501,7 +573,7 @@ static void do_log (SoundAnalysisArea me, int which) {
 		} else if (str32equ (varName, U"tab$")) {
 			stringValue = U"\t";
 		} else if (str32equ (varName, U"editor$")) {
-			stringValue = my name.get();
+			stringValue = my boss() -> name.get();
 		} else if (str32equ (varName, U"f0")) {
 			SoundAnalysisArea_haveVisiblePitch (me);
 			if (part == SoundAnalysisArea_PART_CURSOR)
@@ -530,20 +602,20 @@ static void do_log (SoundAnalysisArea me, int which) {
 			value = Matrix_getValueAtXY (my d_spectrogram.get(), tmin, my d_spectrogram_cursor);
 		}
 		if (isdefined (value)) {
-			integer varlen = (q - p) - 1, headlen = p - format;
+			const integer varlen = (q - p) - 1, headlen = p - format;
 			char32 formattedNumber [400];
 			if (precision >= 0)
 				Melder_sprint (formattedNumber,400, Melder_fixed (value, precision));
 			else
 				Melder_sprint (formattedNumber,400, value);
-			integer arglen = str32len (formattedNumber);
+			const integer arglen = Melder_length (formattedNumber);
 			static MelderString buffer;
 			MelderString_ncopy (& buffer, format, headlen);
 			MelderString_append (& buffer, formattedNumber, p + varlen + 2);
 			str32cpy (format, buffer.string);
 			p += arglen - 1;
 		} else if (stringValue) {
-			integer varlen = (q - p) - 1, headlen = p - format, arglen = str32len (stringValue);
+			const integer varlen = (q - p) - 1, headlen = p - format, arglen = Melder_length (stringValue);
 			static MelderString buffer;
 			MelderString_ncopy (& buffer, format, headlen);
 			MelderString_append (& buffer, stringValue, p + varlen + 2);
@@ -565,91 +637,31 @@ static void do_log (SoundAnalysisArea me, int which) {
 	}
 }
 
-static void menu_cb_log1 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_log1 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		do_log (me, 1);
 	VOID_EDITOR_END
 }
-static void menu_cb_log2 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_log2 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		do_log (me, 2);
 	VOID_EDITOR_END
 }
-static void menu_cb_logScript3 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_logScript3 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
-		DO_RunTheScriptFromAnyAddedEditorCommand (my functionEditor(), my instancePref_logScript3());
+		praat_executeScriptFromEditorCommand (my functionEditor(), cmd, my instancePref_logScript3());
 	VOID_EDITOR_END
 }
-static void menu_cb_logScript4 (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_logScript4 (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
-		DO_RunTheScriptFromAnyAddedEditorCommand (my functionEditor(), my instancePref_logScript4());
+		praat_executeScriptFromEditorCommand (my functionEditor(), cmd, my instancePref_logScript4());
 	VOID_EDITOR_END
-}
-
-
-#pragma mark - SoundAnalysisArea Settings menu
-
-static void menu_cb_showAnalyses (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
-	EDITOR_FORM (U"Show analyses", nullptr)
-		BOOLEAN  (showSpectrogram, U"Show spectrogram",     my default_spectrogram_show ())
-		BOOLEAN  (showPitch,       U"Show pitch",           my default_pitch_show       ())
-		BOOLEAN  (showIntensity,   U"Show intensity",       my default_intensity_show   ())
-		BOOLEAN  (showFormants,    U"Show formants",        my default_formant_show     ())
-		BOOLEAN  (showPulses,      U"Show pulses",          my default_pulses_show      ())
-		POSITIVE (longestAnalysis, U"Longest analysis (s)", my default_longestAnalysis  ())
-	EDITOR_OK
-		SET_BOOLEAN (showSpectrogram, my instancePref_spectrogram_show())
-		SET_BOOLEAN (showPitch,       my instancePref_pitch_show())
-		SET_BOOLEAN (showIntensity,   my instancePref_intensity_show())
-		SET_BOOLEAN (showFormants,    my instancePref_formant_show())
-		SET_BOOLEAN (showPulses,      my instancePref_pulses_show())
-		SET_REAL    (longestAnalysis, my instancePref_longestAnalysis())
-	EDITOR_DO
-		my setInstancePref_spectrogram_show (showSpectrogram);
-		my setInstancePref_pitch_show       (showPitch);
-		my setInstancePref_intensity_show   (showIntensity);
-		my setInstancePref_formant_show     (showFormants);
-		my setInstancePref_pulses_show      (showPulses);
-		GuiMenuItem_check (my spectrogramToggle, showSpectrogram);
-		GuiMenuItem_check (my pitchToggle,       showPitch);
-		GuiMenuItem_check (my intensityToggle,   showIntensity);
-		GuiMenuItem_check (my formantToggle,     showFormants);
-		GuiMenuItem_check (my pulsesToggle,      showPulses);
-		my setInstancePref_longestAnalysis (longestAnalysis);
-		FunctionEditor_redraw (my functionEditor());
-	EDITOR_END
-}
-
-static void menu_cb_timeStepSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
-	EDITOR_FORM (U"Time step settings", U"Time step settings...")
-		OPTIONMENU_ENUM (kSoundAnalysisArea_timeStepStrategy, timeStepStrategy,
-				U"Time step strategy", my default_timeStepStrategy ())
-		LABEL (U"")
-		LABEL (U"If the time step strategy is \"fixed\":")
-		POSITIVE (fixedTimeStep, U"Fixed time step (s)", my default_fixedTimeStep ())
-		LABEL (U"")
-		LABEL (U"If the time step strategy is \"view-dependent\":")
-		NATURAL (numberOfTimeStepsPerView, U"Number of time steps per view", my default_numberOfTimeStepsPerView ())
-	EDITOR_OK
-		SET_ENUM (timeStepStrategy, kSoundAnalysisArea_timeStepStrategy, my instancePref_timeStepStrategy())
-		SET_REAL (fixedTimeStep, my instancePref_fixedTimeStep())
-		SET_INTEGER (numberOfTimeStepsPerView, my instancePref_numberOfTimeStepsPerView())
-	EDITOR_DO
-		my setInstancePref_timeStepStrategy (timeStepStrategy);
-		my setInstancePref_fixedTimeStep (fixedTimeStep);
-		my setInstancePref_numberOfTimeStepsPerView (numberOfTimeStepsPerView);
-		my d_pitch. reset();
-		my d_formant. reset();
-		my d_intensity. reset();
-		my d_pulses. reset();
-		FunctionEditor_redraw (my functionEditor());
-	EDITOR_END
 }
 
 
 #pragma mark - SoundAnalysisArea Spectrogram menu
 
-static void menu_cb_showSpectrogram (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_showSpectrogram (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		my setInstancePref_spectrogram_show (! my instancePref_spectrogram_show());   // toggle
 		GuiMenuItem_check (my spectrogramToggle, my instancePref_spectrogram_show());   // in case we're called from a script
@@ -657,7 +669,7 @@ static void menu_cb_showSpectrogram (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Spectrogram settings", U"Intro 3.2. Configuring the spectrogram")
 		REAL     (viewFrom,     U"left View range (Hz)",  my default_spectrogram_viewFrom())
 		POSITIVE (viewTo,       U"right View range (Hz)", my default_spectrogram_viewTo())
@@ -700,7 +712,7 @@ static void menu_cb_spectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM)
 	EDITOR_END
 }
 
-static void menu_cb_advancedSpectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_advancedSpectrogramSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Advanced spectrogram settings", U"Advanced spectrogram settings...")
 		LABEL (U"Time and frequency resolutions:")
 		NATURAL (numberOfTimeSteps,      U"Number of time steps",      my default_spectrogram_timeSteps())
@@ -738,13 +750,13 @@ static void menu_cb_advancedSpectrogramSettings (SoundAnalysisArea me, EDITOR_AR
 	EDITOR_END
 }
 
-static void QUERY_EDITOR_FOR_REAL__getFrequency (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_EDITOR_FOR_REAL__getFrequency (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_EDITOR_FOR_REAL
 		const double result = my d_spectrogram_cursor;
 	QUERY_EDITOR_FOR_REAL_END (U" Hz")
 }
 
-static void QUERY_DATA_FOR_REAL__getSpectralPowerAtCursorCross (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getSpectralPowerAtCursorCross (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -755,7 +767,7 @@ static void QUERY_DATA_FOR_REAL__getSpectralPowerAtCursorCross (SoundAnalysisAre
 	QUERY_DATA_FOR_REAL_END (U" Pa2/Hz (at time = ", tmin, U" seconds and frequency = ", my d_spectrogram_cursor, U" Hz)");
 }
 
-static void menu_cb_moveFrequencyCursorTo (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_moveFrequencyCursorTo (SoundAnalysisArea me, EDITOR_ARGS) {
 	if (! my instancePref_spectrogram_show())
 		Melder_throw (U"No spectrogram is visible.\nFirst choose \"Show spectrogram\" from the Spectrogram menu.");
 	EDITOR_FORM (U"Move frequency cursor to", nullptr)
@@ -768,14 +780,14 @@ static void menu_cb_moveFrequencyCursorTo (SoundAnalysisArea me, EDITOR_ARGS_FOR
 	EDITOR_END
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisibleSpectrogram (me);
 		autoSpectrogram result = Data_copy (my d_spectrogram.get());
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void CONVERT_DATA_TO_ONE__ViewSpectralSlice (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ViewSpectralSlice (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		const double start = ( my startSelection() == my endSelection() ?
 			my instancePref_spectrogram_windowShape() == kSound_to_Spectrogram_windowShape::GAUSSIAN ? my startSelection() - my instancePref_spectrogram_windowLength() :
@@ -799,7 +811,7 @@ static void CONVERT_DATA_TO_ONE__ViewSpectralSlice (SoundAnalysisArea me, EDITOR
 			U"_", Melder_fixed (0.5 * (my startSelection() + my endSelection()), 3)))
 }
 
-static void menu_cb_paintVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_paintVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Paint visible spectrogram", nullptr)
 		my v_form_pictureWindow (cmd);   // BUG: isn't really virtual
 		my v_form_pictureMargins (cmd);
@@ -816,22 +828,22 @@ static void menu_cb_paintVisibleSpectrogram (SoundAnalysisArea me, EDITOR_ARGS_F
 		my v_do_pictureSelection (cmd);
 		my setInstancePref_spectrogram_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisibleSpectrogram (me);
-		Editor_openPraatPicture (my functionEditor());
-		Spectrogram_paint (my d_spectrogram.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(),
+		DataGui_openPraatPicture (me);
+		Spectrogram_paint (my d_spectrogram.get(), my pictureGraphics(), my startWindow(), my endWindow(),
 			my instancePref_spectrogram_viewFrom(), my instancePref_spectrogram_viewTo(),
 			my instancePref_spectrogram_maximum(), my instancePref_spectrogram_autoscaling(),
 			my instancePref_spectrogram_dynamicRange(), my instancePref_spectrogram_preemphasis(),
 			my instancePref_spectrogram_dynamicCompression(), garnish
 		);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
 
 #pragma mark - SoundAnalysisArea Pitch menu
 
-static void menu_cb_showPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_showPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		my setInstancePref_pitch_show (! my instancePref_pitch_show());   // toggle
 		GuiMenuItem_check (my pitchToggle, my instancePref_pitch_show());   // in case we're called from a script
@@ -839,7 +851,7 @@ static void menu_cb_showPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_pitchSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_pitchSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Pitch settings", U"Intro 4.2. Configuring the pitch contour")
 		POSITIVE (pitchFloor,   U"left Pitch range (Hz)",  my default_pitch_floor())
 		POSITIVE (pitchCeiling, U"right Pitch range (Hz)", my default_pitch_ceiling())
@@ -895,7 +907,7 @@ static void menu_cb_pitchSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void menu_cb_advancedPitchSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_advancedPitchSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Advanced pitch settings", U"Advanced pitch settings...")
 		LABEL   (U"Make view range different from analysis range:")
 		REAL    (viewFrom,                  U"left View range (units)",   my default_pitch_viewFrom                  ())
@@ -937,7 +949,7 @@ static void menu_cb_advancedPitchSettings (SoundAnalysisArea me, EDITOR_ARGS_FOR
 	EDITOR_END
 }
 
-static void INFO_DATA__pitchListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__pitchListing (SoundAnalysisArea me, EDITOR_ARGS) {
 	INFO_DATA
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -963,7 +975,7 @@ static void INFO_DATA__pitchListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WI
 	INFO_DATA_END
 }
 
-static void QUERY_DATA_FOR_REAL__getPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -982,7 +994,7 @@ static void QUERY_DATA_FOR_REAL__getPitch (SoundAnalysisArea me, EDITOR_ARGS_DIR
 	);
 }
 
-static void QUERY_DATA_FOR_REAL__getMinimumPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getMinimumPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, false, & tmin, & tmax);
@@ -993,7 +1005,7 @@ static void QUERY_DATA_FOR_REAL__getMinimumPitch (SoundAnalysisArea me, EDITOR_A
 			U" (minimum pitch ", SoundAnalysisArea_partString_locative (part), U")");
 }
 
-static void QUERY_DATA_FOR_REAL__getMaximumPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getMaximumPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, false, & tmin, & tmax);
@@ -1004,7 +1016,7 @@ static void QUERY_DATA_FOR_REAL__getMaximumPitch (SoundAnalysisArea me, EDITOR_A
 			U" (maximum pitch ", SoundAnalysisArea_partString_locative (part), U")");
 }
 
-static void menu_cb_moveCursorToMinimumPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_moveCursorToMinimumPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		SoundAnalysisArea_haveVisiblePitch (me);
 		if (my startSelection() == my endSelection()) {
@@ -1022,7 +1034,7 @@ static void menu_cb_moveCursorToMinimumPitch (SoundAnalysisArea me, EDITOR_ARGS_
 	VOID_EDITOR_END
 }
 
-static void menu_cb_moveCursorToMaximumPitch (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_moveCursorToMaximumPitch (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		SoundAnalysisArea_haveVisiblePitch (me);
 		if (my startSelection() == my endSelection()) {
@@ -1040,14 +1052,14 @@ static void menu_cb_moveCursorToMaximumPitch (SoundAnalysisArea me, EDITOR_ARGS_
 	VOID_EDITOR_END
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisiblePitch (me);
 		autoPitch result = Data_copy (my d_pitch.get());
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void menu_cb_drawVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_drawVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible pitch contour", nullptr)
 		my v_form_pictureWindow (cmd);
 		LABEL (U"Pitch:")
@@ -1068,7 +1080,7 @@ static void menu_cb_drawVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS_F
 		my v_do_pictureSelection (cmd);
 		my setInstancePref_pitch_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisiblePitch (me);
-		Editor_openPraatPicture (my functionEditor());
+		DataGui_openPraatPicture (me);
 		const double pitchFloor_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(),
 				my instancePref_pitch_floor(), Pitch_LEVEL_FREQUENCY, (int) my instancePref_pitch_unit());
 		const double pitchCeiling_hidden = Function_convertStandardToSpecialUnit (my d_pitch.get(),
@@ -1079,17 +1091,17 @@ static void menu_cb_drawVisiblePitchContour (SoundAnalysisArea me, EDITOR_ARGS_F
 				pitchCeiling_hidden, Pitch_LEVEL_FREQUENCY, (int) my instancePref_pitch_unit());
 		const double pitchViewFrom_overt = ( my instancePref_pitch_viewFrom() < my instancePref_pitch_viewTo() ? my instancePref_pitch_viewFrom() : pitchFloor_overt );
 		const double pitchViewTo_overt = ( my instancePref_pitch_viewFrom() < my instancePref_pitch_viewTo() ? my instancePref_pitch_viewTo() : pitchCeiling_overt );
-		Pitch_draw (my d_pitch.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(), pitchViewFrom_overt, pitchViewTo_overt,
+		Pitch_draw (my d_pitch.get(), my pictureGraphics(), my startWindow(), my endWindow(), pitchViewFrom_overt, pitchViewTo_overt,
 				garnish, speckle, my instancePref_pitch_unit());
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
 
 #pragma mark - SoundAnalysisArea Intensity menu
 
-static void menu_cb_showIntensity (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_showIntensity (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		my setInstancePref_intensity_show (! my instancePref_intensity_show());   // toggle
 		GuiMenuItem_check (my intensityToggle, my instancePref_intensity_show());   // in case we're called from a script
@@ -1097,7 +1109,7 @@ static void menu_cb_showIntensity (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_intensitySettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_intensitySettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Intensity settings", U"Intro 6.2. Configuring the intensity contour")
 		REAL (viewFrom, U"left View range (dB)",  my default_intensity_viewFrom ())
 		REAL (viewTo,   U"right View range (dB)", my default_intensity_viewTo   ())
@@ -1128,14 +1140,14 @@ static void menu_cb_intensitySettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractVisibleIntensityContour (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractVisibleIntensityContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisibleIntensity (me);
 		autoIntensity result = Data_copy (my d_intensity.get());
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void menu_cb_drawVisibleIntensityContour (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_drawVisibleIntensityContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible intensity contour", nullptr)
 		my v_form_pictureWindow (cmd);
 		my v_form_pictureMargins (cmd);
@@ -1152,15 +1164,15 @@ static void menu_cb_drawVisibleIntensityContour (SoundAnalysisArea me, EDITOR_AR
 		my v_do_pictureSelection (cmd);
 		my setInstancePref_intensity_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisibleIntensity (me);
-		Editor_openPraatPicture (my functionEditor());
-		Intensity_draw (my d_intensity.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(),
+		DataGui_openPraatPicture (me);
+		Intensity_draw (my d_intensity.get(), my pictureGraphics(), my startWindow(), my endWindow(),
 				my instancePref_intensity_viewFrom(), my instancePref_intensity_viewTo(), garnish);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
-static void INFO_DATA__intensityListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__intensityListing (SoundAnalysisArea me, EDITOR_ARGS) {
 	INFO_DATA
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -1183,7 +1195,7 @@ static void INFO_DATA__intensityListing (SoundAnalysisArea me, EDITOR_ARGS_DIREC
 	INFO_DATA_END
 }
 
-static void QUERY_DATA_FOR_REAL__getIntensity (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getIntensity (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -1200,7 +1212,7 @@ static void QUERY_DATA_FOR_REAL__getIntensity (SoundAnalysisArea me, EDITOR_ARGS
 	);
 }
 
-static void QUERY_DATA_FOR_REAL__getMinimumIntensity (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getMinimumIntensity (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, false, & tmin, & tmax);
@@ -1209,7 +1221,7 @@ static void QUERY_DATA_FOR_REAL__getMinimumIntensity (SoundAnalysisArea me, EDIT
 	QUERY_DATA_FOR_REAL_END (U" dB (minimum intensity ", SoundAnalysisArea_partString_locative (part), U")");
 }
 
-static void QUERY_DATA_FOR_REAL__getMaximumIntensity (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void QUERY_DATA_FOR_REAL__getMaximumIntensity (SoundAnalysisArea me, EDITOR_ARGS) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, false, & tmin, & tmax);
@@ -1221,7 +1233,7 @@ static void QUERY_DATA_FOR_REAL__getMaximumIntensity (SoundAnalysisArea me, EDIT
 
 #pragma mark - SoundAnalysisArea Formants menu
 
-static void menu_cb_showFormants (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_showFormants (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		my setInstancePref_formant_show (! my instancePref_formant_show());   // toggle
 		GuiMenuItem_check (my formantToggle, my instancePref_formant_show());   // in case we're called from a script
@@ -1229,7 +1241,7 @@ static void menu_cb_showFormants (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_formantSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_formantSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Formant settings", U"Intro 5.2. Configuring the formant contours")
 		POSITIVE (formantCeiling, U"Formant ceiling (Hz)",  my default_formant_ceiling          ())
 		POSITIVE (numberOfFormants, U"Number of formants",  my default_formant_numberOfFormants ())
@@ -1265,7 +1277,7 @@ static void menu_cb_formantSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
 	EDITOR_END
 }
 
-static void menu_cb_advancedFormantSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_advancedFormantSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Advanced formant settings", U"Advanced formant settings...")
 		RADIO_ENUM (kSoundAnalysisArea_formant_analysisMethod, method,
 				U"Method", my default_formant_method ())
@@ -1281,14 +1293,14 @@ static void menu_cb_advancedFormantSettings (SoundAnalysisArea me, EDITOR_ARGS_F
 	EDITOR_END
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractVisibleFormantContour (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractVisibleFormantContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisibleFormants (me);
 		autoFormant result = Data_copy (my d_formant.get());
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void menu_cb_drawVisibleFormantContour (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_drawVisibleFormantContour (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible formant contour", nullptr)
 		my v_form_pictureWindow (cmd);
 		my v_form_pictureMargins (cmd);
@@ -1305,17 +1317,17 @@ static void menu_cb_drawVisibleFormantContour (SoundAnalysisArea me, EDITOR_ARGS
 		my v_do_pictureSelection (cmd);
 		my setInstancePref_formant_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisibleFormants (me);
-		Editor_openPraatPicture (my functionEditor());
-		Formant_drawSpeckles (my d_formant.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(),
+		DataGui_openPraatPicture (me);
+		Formant_drawSpeckles (my d_formant.get(), my pictureGraphics(), my startWindow(), my endWindow(),
 			my instancePref_spectrogram_viewTo(), my instancePref_formant_dynamicRange(),
 			garnish
 		);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
-static void INFO_DATA__formantListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__formantListing (SoundAnalysisArea me, EDITOR_ARGS) {
 	INFO_DATA
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -1344,7 +1356,7 @@ static void INFO_DATA__formantListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_
 	INFO_DATA_END
 }
 
-static void do_getFormant (SoundAnalysisArea me, integer iformant, Interpreter interpreter) {
+static void do_getFormant (SoundAnalysisArea me, integer iformant, Interpreter optionalInterpreter) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -1358,7 +1370,7 @@ static void do_getFormant (SoundAnalysisArea me, integer iformant, Interpreter i
 		: Melder_cat (U" Hz (mean F", iformant, U" ", SoundAnalysisArea_partString_locative (part), U")")
 	)
 }
-static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter interpreter) {
+static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter optionalInterpreter) {
 	QUERY_DATA_FOR_REAL
 		double tmin, tmax;
 		const int part = makeQueriable (me, true, & tmin, & tmax);
@@ -1372,53 +1384,53 @@ static void do_getBandwidth (SoundAnalysisArea me, integer iformant, Interpreter
 		: Melder_cat ( U" Hz (B", iformant, U" in centre of ", SoundAnalysisArea_partString (part), U")")
 	)
 }
-static void QUERY_DATA_FOR_REAL__getFirstFormant (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getFormant (me, 1, interpreter);
+static void QUERY_DATA_FOR_REAL__getFirstFormant (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getFormant (me, 1, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getFirstBandwidth (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getBandwidth (me, 1, interpreter);
+static void QUERY_DATA_FOR_REAL__getFirstBandwidth (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getBandwidth (me, 1, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getSecondFormant (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getFormant (me, 2, interpreter);
+static void QUERY_DATA_FOR_REAL__getSecondFormant (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getFormant (me, 2, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getSecondBandwidth (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getBandwidth (me, 2, interpreter);
+static void QUERY_DATA_FOR_REAL__getSecondBandwidth (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getBandwidth (me, 2, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getThirdFormant (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getFormant (me, 3, interpreter);
+static void QUERY_DATA_FOR_REAL__getThirdFormant (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getFormant (me, 3, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getThirdBandwidth (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getBandwidth (me, 3, interpreter);
+static void QUERY_DATA_FOR_REAL__getThirdBandwidth (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getBandwidth (me, 3, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getFourthFormant (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getFormant (me, 4, interpreter);
+static void QUERY_DATA_FOR_REAL__getFourthFormant (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getFormant (me, 4, optionalInterpreter);
 }
-static void QUERY_DATA_FOR_REAL__getFourthBandwidth (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
-	do_getBandwidth (me, 4, interpreter);
+static void QUERY_DATA_FOR_REAL__getFourthBandwidth (SoundAnalysisArea me, EDITOR_ARGS) {
+	do_getBandwidth (me, 4, optionalInterpreter);
 }
 
-static void QUERY_DATA_FOR_REAL__getFormant (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void QUERY_DATA_FOR_REAL__getFormant (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Get formant", nullptr)
 		NATURAL (formantNumber, U"Formant number", U"5")
 	EDITOR_OK
 	EDITOR_DO
-		do_getFormant (me, formantNumber, interpreter);
+		do_getFormant (me, formantNumber, optionalInterpreter);
 	EDITOR_END
 }
 
-static void QUERY_DATA_FOR_REAL__getBandwidth (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void QUERY_DATA_FOR_REAL__getBandwidth (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Get bandwidth", nullptr)
 		NATURAL (formantNumber, U"Formant number", U"5")
 	EDITOR_OK
 	EDITOR_DO
-		do_getBandwidth (me, formantNumber, interpreter);
+		do_getBandwidth (me, formantNumber, optionalInterpreter);
 	EDITOR_END
 }
 
 
 #pragma mark - SoundAnalysisArea Pulses menu
 
-static void menu_cb_showPulses (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
+static void menu_cb_showPulses (SoundAnalysisArea me, EDITOR_ARGS) {
 	VOID_EDITOR
 		my setInstancePref_pulses_show (! my instancePref_pulses_show());   // toggle
 		GuiMenuItem_check (my pulsesToggle, my instancePref_pulses_show());   // in case we're called from a script
@@ -1426,7 +1438,7 @@ static void menu_cb_showPulses (SoundAnalysisArea me, EDITOR_ARGS_DIRECT) {
 	VOID_EDITOR_END
 }
 
-static void menu_cb_advancedPulsesSettings (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_advancedPulsesSettings (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Advanced pulses settings", U"Advanced pulses settings...")
 		POSITIVE (maximumPeriodFactor,    U"Maximum period factor",    my default_pulses_maximumPeriodFactor    ())
 		POSITIVE (maximumAmplitudeFactor, U"Maximum amplitude factor", my default_pulses_maximumAmplitudeFactor ())
@@ -1441,14 +1453,14 @@ static void menu_cb_advancedPulsesSettings (SoundAnalysisArea me, EDITOR_ARGS_FO
 	EDITOR_END
 }
 
-static void CONVERT_DATA_TO_ONE__ExtractVisiblePulses (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void CONVERT_DATA_TO_ONE__ExtractVisiblePulses (SoundAnalysisArea me, EDITOR_ARGS) {
 	CONVERT_DATA_TO_ONE
 		SoundAnalysisArea_haveVisiblePulses (me);
 		autoPointProcess result = Data_copy (my d_pulses.get());
 	CONVERT_DATA_TO_ONE_END (U"untitled")
 }
 
-static void menu_cb_drawVisiblePulses (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
+static void menu_cb_drawVisiblePulses (SoundAnalysisArea me, EDITOR_ARGS) {
 	EDITOR_FORM (U"Draw visible pulses", nullptr)
 		my v_form_pictureWindow (cmd);
 		my v_form_pictureMargins (cmd);
@@ -1465,14 +1477,14 @@ static void menu_cb_drawVisiblePulses (SoundAnalysisArea me, EDITOR_ARGS_FORM) {
 		my v_do_pictureSelection (cmd);
 		my setInstancePref_pulses_picture_garnish (garnish);
 		SoundAnalysisArea_haveVisiblePulses (me);
-		Editor_openPraatPicture (my functionEditor());
-		PointProcess_draw (my d_pulses.get(), my functionEditor() -> pictureGraphics, my startWindow(), my endWindow(), garnish);
-		FunctionEditor_garnish (my functionEditor());
-		Editor_closePraatPicture (my functionEditor());
+		DataGui_openPraatPicture (me);
+		PointProcess_draw (my d_pulses.get(), my pictureGraphics(), my startWindow(), my endWindow(), garnish);
+		FunctionArea_garnishPicture (me);
+		DataGui_closePraatPicture (me);
 	EDITOR_END
 }
 
-static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS) {
 	INFO_DATA
 		time_t today = time (nullptr);
 		double tmin, tmax;
@@ -1483,7 +1495,8 @@ static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WIT
 		MelderInfo_writeLine (U"-- Voice report for ", my name.get(), U" --\nDate: ", Melder_peek8to32 (ctime (& today)));
 		if (my instancePref_pitch_method() != kSoundAnalysisArea_pitch_analysisMethod::CROSS_CORRELATION)
 			MelderInfo_writeLine (U"WARNING: some of the following measurements may be imprecise.\n"
-				"For more precision, go to \"Pitch settings\" and choose \"Optimize for voice analysis\".\n");
+				"For more precision, go to \"Pitch settings\" and choose\n"
+				"the cross-correlation analysis method to optimize for voice research.\n");
 		MelderInfo_writeLine (U"Time range of ", SoundAnalysisArea_partString (part));
 		Sound_Pitch_PointProcess_voiceReport (sound.get(), my d_pitch.get(), my d_pulses.get(), tmin, tmax,
 			my instancePref_pitch_floor(), my instancePref_pitch_ceiling(),
@@ -1494,7 +1507,7 @@ static void INFO_DATA__voiceReport (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WIT
 	INFO_DATA_END
 }
 
-static void INFO_DATA__pulseListing (SoundAnalysisArea me, EDITOR_ARGS_DIRECT_WITH_OUTPUT) {
+static void INFO_DATA__pulseListing (SoundAnalysisArea me, EDITOR_ARGS) {
 	INFO_DATA
 		double tmin, tmax;
 		makeQueriable (me, false, & tmin, & tmax);
@@ -1553,38 +1566,41 @@ void structSoundAnalysisArea :: v_createMenuItems_formant (EditorMenu menu) {
 		GuiMenu_CHECKBUTTON | (instancePref_formant_show() ? GuiMenu_TOGGLE_ON : 0),
 		menu_cb_showFormants, this
 	);
-	FunctionAreaMenu_addCommand (menu, U"Formant settings...", 0,
-			menu_cb_formantSettings, this);
-	FunctionAreaMenu_addCommand (menu, U"Advanced formant settings...", 0,
-			menu_cb_advancedFormantSettings, this);
+	FunctionAreaMenu_addCommand (menu, U"Formant settings...",
+			0, menu_cb_formantSettings, this);
+	FunctionAreaMenu_addCommand (menu, U"Advanced formant settings...",
+			0, menu_cb_advancedFormantSettings, this);
+
 	FunctionAreaMenu_addCommand (menu, U"- Query formants:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Formant listing", 0,
+	FunctionAreaMenu_addCommand (menu, U"Formant listing", 1,
 			INFO_DATA__formantListing, this);
-	FunctionAreaMenu_addCommand (menu, U"Get first formant", GuiMenu_F1,
+	FunctionAreaMenu_addCommand (menu, U"Get first formant", GuiMenu_F1 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getFirstFormant, this);
-	FunctionAreaMenu_addCommand (menu, U"Get first bandwidth", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get first bandwidth", 1,
 			QUERY_DATA_FOR_REAL__getFirstBandwidth, this);
-	FunctionAreaMenu_addCommand (menu, U"Get second formant", GuiMenu_F2,
+	FunctionAreaMenu_addCommand (menu, U"Get second formant", GuiMenu_F2 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getSecondFormant, this);
-	FunctionAreaMenu_addCommand (menu, U"Get second bandwidth", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get second bandwidth", 1,
 			QUERY_DATA_FOR_REAL__getSecondBandwidth, this);
-	FunctionAreaMenu_addCommand (menu, U"Get third formant", GuiMenu_F3,
+	FunctionAreaMenu_addCommand (menu, U"Get third formant", GuiMenu_F3 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getThirdFormant, this);
-	FunctionAreaMenu_addCommand (menu, U"Get third bandwidth", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get third bandwidth", 1,
 			QUERY_DATA_FOR_REAL__getThirdBandwidth, this);
-	FunctionAreaMenu_addCommand (menu, U"Get fourth formant", GuiMenu_F4,
+	FunctionAreaMenu_addCommand (menu, U"Get fourth formant", GuiMenu_F4 | GuiMenu_DEPTH_1,
 			QUERY_DATA_FOR_REAL__getFourthFormant, this);
-	FunctionAreaMenu_addCommand (menu, U"Get fourth bandwidth", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get fourth bandwidth", 1,
 			QUERY_DATA_FOR_REAL__getFourthBandwidth, this);
-	FunctionAreaMenu_addCommand (menu, U"Get formant...", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get formant...", 1,
 			QUERY_DATA_FOR_REAL__getFormant, this);
-	FunctionAreaMenu_addCommand (menu, U"Get bandwidth...", 0,
+	FunctionAreaMenu_addCommand (menu, U"Get bandwidth...", 1,
 			QUERY_DATA_FOR_REAL__getBandwidth, this);
+
 	FunctionAreaMenu_addCommand (menu, U"- Draw formants to picture window:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Draw visible formant contour...", 0,
+	FunctionAreaMenu_addCommand (menu, U"Draw visible formant contour...", 1,
 			menu_cb_drawVisibleFormantContour, this);
+
 	FunctionAreaMenu_addCommand (menu, U"- Extract formants to objects window:", 0, nullptr, this);
-	FunctionAreaMenu_addCommand (menu, U"Extract visible formant contour", 0,
+	FunctionAreaMenu_addCommand (menu, U"Extract visible formant contour", 1,
 			CONVERT_DATA_TO_ONE__ExtractVisibleFormantContour, this);
 }
 
@@ -1612,20 +1628,20 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Advanced spectrogram settings...", 0,
 				menu_cb_advancedSpectrogramSettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query spectrogram:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Get frequency at frequency cursor", 0,
+		FunctionAreaMenu_addCommand (menu, U"Get frequency at frequency cursor", 1,
 				QUERY_EDITOR_FOR_REAL__getFrequency, this);
-		FunctionAreaMenu_addCommand (menu, U"Get spectral power at cursor cross", GuiMenu_F7,
+		FunctionAreaMenu_addCommand (menu, U"Get spectral power at cursor cross", GuiMenu_F7 | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getSpectralPowerAtCursorCross, this);
 		FunctionAreaMenu_addCommand (menu, U"- Select frequency:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Move frequency cursor to...", 0,
+		FunctionAreaMenu_addCommand (menu, U"Move frequency cursor to...", 1,
 				menu_cb_moveFrequencyCursorTo, this);
 		FunctionAreaMenu_addCommand (menu, U"- Draw spectogram to picture window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Paint visible spectrogram...", 0,
+		FunctionAreaMenu_addCommand (menu, U"Paint visible spectrogram...", 1,
 				menu_cb_paintVisibleSpectrogram, this);
 		FunctionAreaMenu_addCommand (menu, U"- Extract to objects window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Extract visible spectrogram", 0,
+		FunctionAreaMenu_addCommand (menu, U"Extract visible spectrogram", 1,
 				CONVERT_DATA_TO_ONE__ExtractVisibleSpectrogram, this);
-		FunctionAreaMenu_addCommand (menu, U"View spectral slice", 'L',
+		FunctionAreaMenu_addCommand (menu, U"View spectral slice", 'L' | GuiMenu_DEPTH_1,
 				CONVERT_DATA_TO_ONE__ViewSpectralSlice, this);
 	}
 
@@ -1640,24 +1656,24 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Advanced pitch settings...", 0,
 				menu_cb_advancedPitchSettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query pitch:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Pitch listing", 0,
+		FunctionAreaMenu_addCommand (menu, U"Pitch listing", 1,
 				INFO_DATA__pitchListing, this);
-		FunctionAreaMenu_addCommand (menu, U"Get pitch", GuiMenu_F5,
+		FunctionAreaMenu_addCommand (menu, U"Get pitch", GuiMenu_F5 | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getPitch, this);
-		FunctionAreaMenu_addCommand (menu, U"Get minimum pitch", GuiMenu_F5 | GuiMenu_COMMAND,
+		FunctionAreaMenu_addCommand (menu, U"Get minimum pitch", GuiMenu_F5 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMinimumPitch, this);
-		FunctionAreaMenu_addCommand (menu, U"Get maximum pitch", GuiMenu_F5 | GuiMenu_SHIFT,
+		FunctionAreaMenu_addCommand (menu, U"Get maximum pitch", GuiMenu_F5 | GuiMenu_SHIFT | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMaximumPitch, this);
 		FunctionAreaMenu_addCommand (menu, U"- Select by pitch:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Move cursor to minimum pitch", GuiMenu_SHIFT | 'L',
+		FunctionAreaMenu_addCommand (menu, U"Move cursor to minimum pitch", GuiMenu_SHIFT | 'L' | GuiMenu_DEPTH_1,
 				menu_cb_moveCursorToMinimumPitch, this);
-		FunctionAreaMenu_addCommand (menu, U"Move cursor to maximum pitch", GuiMenu_SHIFT | 'H',
+		FunctionAreaMenu_addCommand (menu, U"Move cursor to maximum pitch", GuiMenu_SHIFT | 'H' | GuiMenu_DEPTH_1,
 				menu_cb_moveCursorToMaximumPitch, this);
 		FunctionAreaMenu_addCommand (menu, U"- Draw pitch to picture window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Draw visible pitch contour...", 0,
+		FunctionAreaMenu_addCommand (menu, U"Draw visible pitch contour...", 1,
 				menu_cb_drawVisiblePitchContour, this);
 		FunctionAreaMenu_addCommand (menu, U"- Extract pitch to objects window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Extract visible pitch contour", 0,
+		FunctionAreaMenu_addCommand (menu, U"Extract visible pitch contour", 1,
 				CONVERT_DATA_TO_ONE__ExtractVisiblePitchContour, this);
 	}
 
@@ -1670,19 +1686,19 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Intensity settings...", 0,
 				menu_cb_intensitySettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query intensity:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Intensity listing", 0,
+		FunctionAreaMenu_addCommand (menu, U"Intensity listing", 1,
 				INFO_DATA__intensityListing, this);
-		FunctionAreaMenu_addCommand (menu, U"Get intensity", GuiMenu_F8,
+		FunctionAreaMenu_addCommand (menu, U"Get intensity", GuiMenu_F8 | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getIntensity, this);
-		FunctionAreaMenu_addCommand (menu, U"Get minimum intensity", GuiMenu_F8 | GuiMenu_COMMAND,
+		FunctionAreaMenu_addCommand (menu, U"Get minimum intensity", GuiMenu_F8 | GuiMenu_COMMAND | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMinimumIntensity, this);
-		FunctionAreaMenu_addCommand (menu, U"Get maximum intensity", GuiMenu_F8 | GuiMenu_SHIFT,
+		FunctionAreaMenu_addCommand (menu, U"Get maximum intensity", GuiMenu_F8 | GuiMenu_SHIFT | GuiMenu_DEPTH_1,
 				QUERY_DATA_FOR_REAL__getMaximumIntensity, this);
 		FunctionAreaMenu_addCommand (menu, U"- Draw intensity to picture window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Draw visible intensity contour...", 0,
+		FunctionAreaMenu_addCommand (menu, U"Draw visible intensity contour...", 1,
 				menu_cb_drawVisibleIntensityContour, this);
 		FunctionAreaMenu_addCommand (menu, U"- Extract intensity to objects window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Extract visible intensity contour", 0,
+		FunctionAreaMenu_addCommand (menu, U"Extract visible intensity contour", 1,
 				CONVERT_DATA_TO_ONE__ExtractVisibleIntensityContour, this);
 	}
 	if (our v_hasFormants ()) {
@@ -1699,9 +1715,9 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Advanced pulses settings...", 0,
 				menu_cb_advancedPulsesSettings, this);
 		FunctionAreaMenu_addCommand (menu, U"- Query pulses:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Voice report", 0,
+		FunctionAreaMenu_addCommand (menu, U"Voice report", 1,
 				INFO_DATA__voiceReport, this);
-		FunctionAreaMenu_addCommand (menu, U"Pulse listing", 0,
+		FunctionAreaMenu_addCommand (menu, U"Pulse listing", 1,
 				INFO_DATA__pulseListing, this);
 		/*
 		FunctionAreaMenu_addCommand (menu, U"Get jitter (local)", 0, cb_getJitter_local, this);
@@ -1717,10 +1733,10 @@ void structSoundAnalysisArea :: v_createMenus () {
 		FunctionAreaMenu_addCommand (menu, U"Get shimmer (dda)", 0, cb_getShimmer_dda, this);
 		*/
 		FunctionAreaMenu_addCommand (menu, U"- Draw pulses to picture window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Draw visible pulses...", 0,
+		FunctionAreaMenu_addCommand (menu, U"Draw visible pulses...", 1,
 				menu_cb_drawVisiblePulses, this);
 		FunctionAreaMenu_addCommand (menu, U"- Extract pulses to objects window:", 0, nullptr, this);
-		FunctionAreaMenu_addCommand (menu, U"Extract visible pulses", 0,
+		FunctionAreaMenu_addCommand (menu, U"Extract visible pulses", 1,
 				CONVERT_DATA_TO_ONE__ExtractVisiblePulses, this);
 	}
 }
@@ -1825,7 +1841,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 	if (my instancePref_pitch_show()) {
 		double pitchCursor_overt = undefined, pitchCursor_hidden = undefined;
 		Graphics_setWindow (my graphics(), my startWindow(), my endWindow(), pitchViewFrom_hidden, pitchViewTo_hidden);
-		Graphics_setColour (my graphics(), Melder_BLUE);
+		Graphics_setColour (my graphics(), 1.2 * Melder_BLUE);
 		if (my d_pitch) {
 			if (my startSelection() == my endSelection())
 				pitchCursor_hidden = Pitch_getValueAtTime (my d_pitch.get(), my startSelection(), my instancePref_pitch_unit(), 1);
@@ -1833,20 +1849,22 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 				pitchCursor_hidden = Pitch_getMean (my d_pitch.get(), my startSelection(), my endSelection(), my instancePref_pitch_unit());
 			pitchCursor_overt = Function_convertToNonlogarithmic (my d_pitch.get(), pitchCursor_hidden, Pitch_LEVEL_FREQUENCY, (int) my instancePref_pitch_unit());
 			if (isdefined (pitchCursor_hidden)) {
+				Graphics_setColour (my graphics(), MelderColour (0.6, 0.0, 0.4));
 				Graphics_setTextAlignment (my graphics(), Graphics_LEFT, Graphics_HALF);
 				Graphics_text (my graphics(), my endWindow(), pitchCursor_hidden,
 					Melder_float (Melder_half (pitchCursor_overt)), U" ",
 					Function_getUnitText (my d_pitch.get(), Pitch_LEVEL_FREQUENCY, (int) my instancePref_pitch_unit(), Function_UNIT_TEXT_SHORT | Function_UNIT_TEXT_GRAPHICAL)
 				);
+				Graphics_setColour (my graphics(), 1.2 * Melder_BLUE);
 			}
-			if (isundef (pitchCursor_hidden) || Graphics_dyWCtoMM (my graphics(), pitchCursor_hidden - pitchViewFrom_hidden) > 5.0) {
+			if (isundef (pitchCursor_hidden) || Graphics_dyWCtoMM (my graphics(), pitchCursor_hidden - pitchViewFrom_hidden) > 4.0) {
 				Graphics_setTextAlignment (my graphics(), Graphics_LEFT, Graphics_HALF);
 				Graphics_text (my graphics(), my endWindow(), pitchViewFrom_hidden - Graphics_dyMMtoWC (my graphics(), 0.5),
 					Melder_float (Melder_half (pitchViewFrom_overt)), U" ",
 					Function_getUnitText (my d_pitch.get(), Pitch_LEVEL_FREQUENCY, (int) my instancePref_pitch_unit(), Function_UNIT_TEXT_SHORT | Function_UNIT_TEXT_GRAPHICAL)
 				);
 			}
-			if (isundef (pitchCursor_hidden) || Graphics_dyWCtoMM (my graphics(), pitchViewTo_hidden - pitchCursor_hidden) > 5.0) {
+			if (isundef (pitchCursor_hidden) || Graphics_dyWCtoMM (my graphics(), pitchViewTo_hidden - pitchCursor_hidden) > 4.0) {
 				Graphics_setTextAlignment (my graphics(), Graphics_LEFT, Graphics_HALF);
 				Graphics_text (my graphics(), my endWindow(), pitchViewTo_hidden,
 					Melder_float (Melder_half (pitchViewTo_overt)), U" ",
@@ -1869,17 +1887,17 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 		int vert;
 		double y;
 		if (! my instancePref_pitch_show()) {
-			textColour = Melder_GREEN;
+			textColour = 1.2 * Melder_GREEN;
 			hor = Graphics_LEFT;
 			vert = Graphics_HALF;
 			y = my endWindow();
 		} else if (! my instancePref_spectrogram_show() && ! my instancePref_formant_show()) {
-			textColour = Melder_GREEN;
+			textColour = 1.2 * Melder_GREEN;
 			hor = Graphics_RIGHT;
 			vert = Graphics_HALF;
 			y = my startWindow();
 		} else {
-			textColour = ( my instancePref_spectrogram_show() ? Melder_LIME : Melder_GREEN );
+			textColour = ( my instancePref_spectrogram_show() ? Melder_LIME : 1.2 * Melder_GREEN );
 			hor = Graphics_RIGHT;
 			vert = -1;
 			y = my endWindow();
@@ -1924,7 +1942,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 			Range marks.
 		*/
 		Graphics_setLineType (my graphics(), Graphics_DRAWN);
-		Graphics_setColour (my graphics(), Melder_BLACK);
+		Graphics_setColour (my graphics(), DataGuiColour_NONEDITABLE);
 		if (! frequencyCursorVisible || Graphics_dyWCtoMM (my graphics(), my d_spectrogram_cursor - my instancePref_spectrogram_viewFrom()) > 5.0) {
 			Graphics_setTextAlignment (my graphics(), Graphics_RIGHT, Graphics_HALF);
 			Graphics_text (my graphics(), my startWindow(), my instancePref_spectrogram_viewFrom() - Graphics_dyMMtoWC (my graphics(), 0.5),
@@ -1939,7 +1957,7 @@ static void SoundAnalysisArea_v_draw_analysis (SoundAnalysisArea me) {
 			Cursor lines.
 		*/
 		Graphics_setLineType (my graphics(), Graphics_DOTTED);
-		Graphics_setColour (my graphics(), Melder_RED);
+		Graphics_setColour (my graphics(), DataGuiColour_NONEDITABLE_SELECTED);
 		if (frequencyCursorVisible) {
 			const double x = my startWindow(), y = my d_spectrogram_cursor;
 			Graphics_setTextAlignment (my graphics(), Graphics_RIGHT, Graphics_HALF);
@@ -1977,7 +1995,7 @@ void structSoundAnalysisArea :: v_draw_analysis_pulses () {
 	if (our instancePref_pulses_show() && our endWindow() - our startWindow() <= our instancePref_longestAnalysis() && our d_pulses) {
 		PointProcess point = our d_pulses.get();
 		Graphics_setWindow (our graphics(), our startWindow(), our endWindow(), -1.0, 1.0);
-		Graphics_setColour (our graphics(), our editable() ? Colour_EDITABLE_LINES() : Melder_SILVER);
+		Graphics_setColour (our graphics(), our editable() ? DataGuiColour_EDITABLE : Melder_SILVER);
 		Graphics_setLineWidth (our graphics(), 2.0);
 		if (point -> nt < 2000) for (integer i = 1; i <= point -> nt; i ++) {
 			const double t = point -> t [i];
